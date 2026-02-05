@@ -3,20 +3,25 @@ import { useParams, Link } from 'react-router-dom'
 import MatrixDiscovery from '../tutorials/MatrixDiscovery.jsx'
 import MatrixFromVectors from '../tutorials/MatrixFromVectors.jsx'
 import LeastSquares from '../tutorials/LeastSquares.jsx'
-import VectorProjection from '../tutorials/VectorProjection.jsx'
+import VectorProjectionLegacy from '../tutorials/VectorProjection.jsx'
 import LeadLagCorrelation from '../tutorials/LeadLagCorrelation.jsx'
 import EngineDemo from '../tutorials/EngineDemo.jsx'
 import { Container } from '../components/SharedUI.jsx'
 import { AnnotatableContent } from '../components/AnnotationSystem.jsx'
+import { TutorialEngine } from '../components/TutorialEngine/ElementRenderer.jsx'
 
+// Legacy JSX component tutorials
 const tutorialComponents = {
   'matrix-discovery': MatrixDiscovery,
   'matrix-from-vectors': MatrixFromVectors,
   'least-squares': LeastSquares,
-  'vector-projection': VectorProjection,
+  'vector-projection-legacy': VectorProjectionLegacy,
   'lead-lag-correlation': LeadLagCorrelation,
   'engine-demo': EngineDemo
 }
+
+// JSON-based tutorials (loaded dynamically)
+const jsonTutorials = ['vector-projection', 'engine-demo']
 
 const tutorialMeta = {
   'matrix-discovery': {
@@ -292,28 +297,71 @@ function TutorialHeader({ meta }) {
   )
 }
 
-export default function TutorialWrapper() {
+export default function TutorialWrapper({ tutorial: propTutorial }) {
   const { tutorialId } = useParams()
+  const [jsonTutorial, setJsonTutorial] = useState(propTutorial || null)
+  const [loading, setLoading] = useState(!propTutorial && jsonTutorials.includes(tutorialId))
+  const [annotations, setAnnotations] = useState([])
+  
+  // Load JSON tutorial if needed
+  useEffect(() => {
+    if (propTutorial || !jsonTutorials.includes(tutorialId)) return
+    
+    const loadTutorial = async () => {
+      try {
+        const module = await import(`../content/${tutorialId}.json`)
+        setJsonTutorial(module.default)
+      } catch (e) {
+        console.error('Failed to load tutorial JSON:', e)
+      } finally {
+        setLoading(false)
+      }
+    }
+    loadTutorial()
+  }, [tutorialId, propTutorial])
+  
+  // Determine which mode we're in
+  const isJsonTutorial = jsonTutorials.includes(tutorialId) || propTutorial
   const TutorialComponent = tutorialComponents[tutorialId]
   const meta = tutorialMeta[tutorialId]
-  const [annotations, setAnnotations] = useState([])
 
   const handleAnnotationRequest = async ({ action, selectedText, context, tutorialId }) => {
     console.log('📝 Annotation request:', { action, selectedText, context, tutorialId })
     
-    const mockResponse = {
-      id: `ann-${Date.now()}`,
-      type: action,
-      trigger: selectedText,
-      content: `[Mock ${action}] This is where the AI-generated ${action} for "${selectedText}" would appear.`,
-      createdAt: new Date().toISOString(),
+    // Call the real annotation server
+    try {
+      const response = await fetch('http://localhost:5190/annotate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action, selectedText, context, tutorialId })
+      })
+      
+      if (response.ok) {
+        const data = await response.json()
+        // Reload the tutorial content to show the new annotation
+        if (data.updatedContent) {
+          setJsonTutorial(data.updatedContent)
+        }
+      } else {
+        console.error('Annotation server error:', await response.text())
+      }
+    } catch (e) {
+      console.error('Failed to call annotation server:', e)
+      alert('Annotation server not running. Start it with: node annotation-server.js')
     }
-    
-    setAnnotations(prev => [...prev, mockResponse])
-    alert(`✅ ${action.toUpperCase()} requested for: "${selectedText}"\n\nIn production, this would call an API to generate content.`)
   }
 
-  if (!TutorialComponent || !meta) {
+  // Loading state
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-[#fafafa] flex items-center justify-center">
+        <div className="text-gray-500">Loading tutorial...</div>
+      </div>
+    )
+  }
+
+  // Not found
+  if (!isJsonTutorial && (!TutorialComponent || !meta)) {
     return (
       <div className="min-h-screen bg-[#fafafa]">
         <Container className="py-12">
@@ -324,6 +372,43 @@ export default function TutorialWrapper() {
             </Link>
           </div>
         </Container>
+      </div>
+    )
+  }
+  
+  // JSON-based tutorial (new engine)
+  if (isJsonTutorial && jsonTutorial) {
+    const jsonMeta = {
+      title: jsonTutorial.title,
+      subtitle: jsonTutorial.subtitle,
+      icon: meta?.icon || '📚',
+      gradient: meta?.gradient || 'from-indigo-500 to-purple-500',
+      glowColor: meta?.glowColor || 'rgba(99, 102, 241, 0.4)',
+      readTime: jsonTutorial.readTime || meta?.readTime || '10 min',
+      exercises: meta?.exercises || jsonTutorial.state ? Object.keys(jsonTutorial.state).length : 0,
+      sections: jsonTutorial.content?.children?.filter(c => c.type === 'Section').map(s => s.props?.title) || [],
+      isExperimental: meta?.isExperimental || false
+    }
+    
+    return (
+      <div className="min-h-screen bg-[#fafafa]">
+        <ProgressBar />
+        <TutorialHeader meta={jsonMeta} />
+        {jsonMeta.sections.length > 0 && (
+          <SectionProgress sections={jsonMeta.sections} glowColor={jsonMeta.glowColor} />
+        )}
+        
+        <AnnotatableContent 
+          tutorialId={tutorialId}
+          onAnnotationRequest={handleAnnotationRequest}
+        >
+          <Container className="py-12 max-w-3xl">
+            <TutorialEngine 
+              content={jsonTutorial.content} 
+              state={jsonTutorial.state} 
+            />
+          </Container>
+        </AnnotatableContent>
       </div>
     )
   }
@@ -340,6 +425,7 @@ export default function TutorialWrapper() {
     )
   }
 
+  // Legacy JSX tutorial
   return (
     <div className="min-h-screen bg-[#fafafa]">
       <ProgressBar />
@@ -352,20 +438,6 @@ export default function TutorialWrapper() {
       >
         <TutorialComponent />
       </AnnotatableContent>
-      
-      {/* Annotation log (debug) */}
-      {annotations.length > 0 && (
-        <div className="fixed bottom-4 left-4 max-w-sm bg-white border border-gray-200 rounded-xl shadow-lg p-4 max-h-64 overflow-auto z-40">
-          <div className="text-xs font-medium text-gray-500 mb-2">
-            Annotation Log ({annotations.length})
-          </div>
-          {annotations.map((ann) => (
-            <div key={ann.id} className="text-xs border-t border-gray-100 pt-2 mt-2">
-              <span className="font-medium">{ann.type}:</span> {ann.trigger}
-            </div>
-          ))}
-        </div>
-      )}
     </div>
   )
 }

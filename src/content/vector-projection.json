@@ -1,0 +1,201 @@
+{
+  "id": "vector-projection",
+  "title": "Vector Projection",
+  "subtitle": "An interactive exploration of projecting one vector onto another",
+  "difficulty": 2,
+  "readTime": "10 min",
+  "tags": ["linear algebra", "vectors", "geometry"],
+  "state": {
+    "vecAx": 3,
+    "vecAy": 2,
+    "vecBx": 4,
+    "vecBy": 0
+  },
+  "content": {
+    "type": "Fragment",
+    "children": [
+      {
+        "type": "Section",
+        "props": { "title": "1. Interactive Playground" },
+        "children": [
+          {
+            "type": "p",
+            "children": [
+              "Drag the endpoints of the vectors, or edit the values directly below. The ",
+              { "type": "strong", "props": { "className": "text-green-600" }, "children": "green vector" },
+              " shows the projection of ",
+              { "type": "strong", "props": { "className": "text-red-600" }, "children": "a" },
+              " onto ",
+              { "type": "strong", "props": { "className": "text-blue-600" }, "children": "b" },
+              "."
+            ]
+          },
+          {
+            "type": "VectorProjectionViz",
+            "props": {
+              "bindAx": "vecAx",
+              "bindAy": "vecAy",
+              "bindBx": "vecBx",
+              "bindBy": "vecBy"
+            }
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "2. What is Vector Projection?" },
+        "children": [
+          {
+            "type": "Analogy",
+            "children": "Imagine you're standing under a streetlight, and your shadow falls on the ground. The shadow is a projection of you onto the ground plane."
+          },
+          {
+            "type": "p",
+            "children": [
+              "Vector projection works the same way: we're finding the \"shadow\" of one vector onto another. Specifically, we want to find the component of vector ",
+              { "type": "strong", "children": "a" },
+              " that lies along the direction of vector ",
+              { "type": "strong", "children": "b" },
+              "."
+            ]
+          },
+          {
+            "type": "Blockquote",
+            "children": "The projection answers: \"How much of a points in the same direction as b?\""
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "3. The Formula" },
+        "children": [
+          {
+            "type": "p",
+            "children": [
+              "The projection of vector ",
+              { "type": "strong", "children": "a" },
+              " onto vector ",
+              { "type": "strong", "children": "b" },
+              " is:"
+            ]
+          },
+          {
+            "type": "Formula",
+            "props": { "label": "Vector Projection Formula" },
+            "children": "proj_b(a) = ((a · b) / |b|²) × b"
+          },
+          {
+            "type": "p",
+            "children": "Let's break this down:"
+          },
+          {
+            "type": "Steps",
+            "props": {
+              "steps": [
+                {
+                  "title": "Dot Product (a · b)",
+                  "description": "The dot product tells us how much the two vectors \"agree\" in direction. It's calculated as: a₁×b₁ + a₂×b₂"
+                },
+                {
+                  "title": "Divide by |b|²",
+                  "description": "We normalize by the squared length of b. This gives us a scalar that tells us how far along b the projection extends."
+                },
+                {
+                  "title": "Multiply by b",
+                  "description": "Finally, we multiply this scalar by vector b to get the actual projection vector pointing in the direction of b."
+                }
+              ]
+            }
+          },
+          {
+            "type": "Callout",
+            "props": { "type": "info" },
+            "children": [
+              "With your current vectors: a = [",
+              { "type": "StateValue", "props": { "bind": "vecAx", "format": ".1f" } },
+              ", ",
+              { "type": "StateValue", "props": { "bind": "vecAy", "format": ".1f" } },
+              "] and b = [",
+              { "type": "StateValue", "props": { "bind": "vecBx", "format": ".1f" } },
+              ", ",
+              { "type": "StateValue", "props": { "bind": "vecBy", "format": ".1f" } },
+              "]"
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "4. Alternative Form: Unit Vectors" },
+        "children": [
+          {
+            "type": "p",
+            "children": [
+              "If we first normalize ",
+              { "type": "strong", "children": "b" },
+              " to a unit vector ",
+              { "type": "strong", "children": "b̂" },
+              " (length = 1), the formula simplifies:"
+            ]
+          },
+          {
+            "type": "Formula",
+            "props": { "label": "Simplified Formula" },
+            "children": "proj_b(a) = (a · b̂) × b̂"
+          },
+          {
+            "type": "p",
+            "children": "Here, (a · b̂) directly gives us the scalar projection — the signed length of the projection. Multiplying by b̂ converts it back to a vector."
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "5. Why Does This Matter?" },
+        "children": [
+          {
+            "type": "p",
+            "children": "Vector projection appears everywhere in technical fields:"
+          },
+          {
+            "type": "DefinitionList",
+            "props": {
+              "items": [
+                { "term": "🎮 Game Physics", "definition": "When a ball bounces off a wall, we project its velocity onto the wall's normal to calculate the reflection." },
+                { "term": "📊 Machine Learning", "definition": "PCA (Principal Component Analysis) projects high-dimensional data onto principal axes to reduce dimensionality." },
+                { "term": "🔧 Engineering", "definition": "Breaking forces into components along and perpendicular to a surface is projection at work." },
+                { "term": "🖼️ Computer Graphics", "definition": "Calculating lighting involves projecting the light direction onto surface normals for diffuse shading." }
+              ]
+            }
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "6. Experiments to Try" },
+        "children": [
+          {
+            "type": "p",
+            "children": "Go back to the visualization above and try these experiments:"
+          },
+          {
+            "type": "Steps",
+            "props": {
+              "steps": [
+                "Make a and b perpendicular (90°). What happens to the projection?",
+                "Make a point in the opposite direction of b. What do you notice about the projection?",
+                "Make a parallel to b. How does the projection relate to a?",
+                "Keep a fixed and change the length of b. Does the projection change?"
+              ]
+            }
+          },
+          {
+            "type": "Callout",
+            "props": { "type": "tip" },
+            "children": "Hint: The projection's magnitude only depends on the angle between the vectors, not on the length of b!"
+          }
+        ]
+      }
+    ]
+  }
+}

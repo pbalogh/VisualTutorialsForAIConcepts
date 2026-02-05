@@ -10,11 +10,17 @@ import {
 } from './TutorialStateContext'
 import { Annotation, FootnoteAnnotation, AnnotatableContent } from '../AnnotationSystem'
 
+// Visualization components
+import { VectorProjectionViz } from '../visualizations/VectorProjectionViz'
+
 /**
  * Registry of components that can be rendered from JSON
  * Keys are the "type" values in the JSON, values are React components
  */
 const componentMap = {
+  // Visualization components
+  VectorProjectionViz,
+  
   // State bindings
   StateValue,
   StateComputed,
@@ -489,6 +495,19 @@ export function TutorialContent({ data, onAnnotationRequest }) {
 }
 
 /**
+ * Simplified interface: accepts content and state separately
+ */
+export function TutorialEngine({ content, state = {} }) {
+  return (
+    <TutorialStateProvider initialState={state}>
+      <div className="tutorial-content">
+        {renderElement(content)}
+      </div>
+    </TutorialStateProvider>
+  )
+}
+
+/**
  * Register additional components at runtime
  */
 export function registerComponent(name, component) {
@@ -505,6 +524,7 @@ export function getRegisteredComponents() {
 export default {
   renderElement,
   TutorialContent,
+  TutorialEngine,
   registerComponent,
   getRegisteredComponents,
 }
