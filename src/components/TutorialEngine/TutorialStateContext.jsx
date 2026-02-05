@@ -48,7 +48,7 @@ export function StateValue({ bind, format, className = '' }) {
   }
   
   return (
-    <span className={`font-mono text-blue-600 bg-blue-50 px-1 rounded ${className}`}>
+    <span className={`font-mono text-indigo-600 bg-indigo-50 px-1.5 py-0.5 rounded transition-all ${className}`}>
       {formatted}
     </span>
   )
@@ -65,7 +65,7 @@ export function StateComputed({ compute, className = '' }) {
     // Create function with state keys as parameters
     const fn = new Function(...Object.keys(state), `return ${compute}`)
     const result = fn(...Object.values(state))
-    return <span className={`italic text-purple-600 ${className}`}>{result}</span>
+    return <span className={`italic text-violet-600 ${className}`}>{result}</span>
   } catch (e) {
     console.error('StateComputed error:', e)
     return <span className="text-red-500">[Error: {e.message}]</span>
@@ -73,33 +73,74 @@ export function StateComputed({ compute, className = '' }) {
 }
 
 /**
- * Slider - modifies a bound state value
+ * Premium Slider - tactile feel with gradient fill
  */
 export function Slider({ bind, min = 0, max = 100, step = 1, label, showValue = true }) {
   const { state, updateState } = useTutorialState()
   const value = state[bind] ?? min
   
+  // Calculate fill percentage
+  const fillPercent = ((value - min) / (max - min)) * 100
+  
   return (
-    <div className="my-4 p-4 bg-gray-50 rounded-lg">
-      <label className="flex justify-between items-center text-sm font-medium text-gray-700 mb-2">
+    <div className="my-5">
+      <label className="flex justify-between items-center text-sm font-medium text-gray-700 mb-3">
         <span>{label}</span>
-        {showValue && <span className="font-mono text-blue-600">{value}</span>}
+        {showValue && (
+          <span className="font-mono text-indigo-600 text-lg tabular-nums bg-indigo-50 px-2 py-0.5 rounded">
+            {typeof value === 'number' ? value.toFixed(step < 1 ? 2 : 0) : value}
+          </span>
+        )}
       </label>
-      <input
-        type="range"
-        min={min}
-        max={max}
-        step={step}
-        value={value}
-        onChange={(e) => updateState(bind, parseFloat(e.target.value))}
-        className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-blue-600"
-      />
+      
+      <div className="relative h-2 w-full">
+        {/* Background track */}
+        <div className="absolute inset-0 bg-gray-200 rounded-full" />
+        
+        {/* Filled track with gradient */}
+        <div 
+          className="absolute top-0 left-0 h-full bg-gradient-to-r from-indigo-500 to-violet-500 rounded-full transition-all duration-75"
+          style={{ width: `${fillPercent}%` }}
+        />
+        
+        {/* Actual input - styled thumb */}
+        <input
+          type="range"
+          min={min}
+          max={max}
+          step={step}
+          value={value}
+          onChange={(e) => updateState(bind, parseFloat(e.target.value))}
+          className="absolute inset-0 w-full h-2 appearance-none bg-transparent cursor-pointer
+            [&::-webkit-slider-thumb]:appearance-none
+            [&::-webkit-slider-thumb]:w-5
+            [&::-webkit-slider-thumb]:h-5
+            [&::-webkit-slider-thumb]:rounded-full
+            [&::-webkit-slider-thumb]:bg-white
+            [&::-webkit-slider-thumb]:border-2
+            [&::-webkit-slider-thumb]:border-indigo-500
+            [&::-webkit-slider-thumb]:shadow-lg
+            [&::-webkit-slider-thumb]:shadow-indigo-500/30
+            [&::-webkit-slider-thumb]:transition-transform
+            [&::-webkit-slider-thumb]:hover:scale-110
+            [&::-webkit-slider-thumb]:active:scale-95
+            [&::-moz-range-thumb]:appearance-none
+            [&::-moz-range-thumb]:w-5
+            [&::-moz-range-thumb]:h-5
+            [&::-moz-range-thumb]:rounded-full
+            [&::-moz-range-thumb]:bg-white
+            [&::-moz-range-thumb]:border-2
+            [&::-moz-range-thumb]:border-indigo-500
+            [&::-moz-range-thumb]:shadow-lg
+          "
+        />
+      </div>
     </div>
   )
 }
 
 /**
- * Toggle - boolean state control
+ * Premium Toggle - smooth with subtle animations
  */
 export function Toggle({ bind, label }) {
   const { state, updateState } = useTutorialState()
@@ -114,30 +155,38 @@ export function Toggle({ bind, label }) {
   
   return (
     <div 
-      className="flex items-center gap-3 my-2 cursor-pointer select-none"
+      className="flex items-center gap-3 my-3 cursor-pointer select-none group"
       onClick={handleToggle}
     >
       <div 
-        className={`relative w-12 h-6 rounded-full transition-colors ${value ? 'bg-blue-600' : 'bg-gray-300'}`}
+        className={`relative w-12 h-6 rounded-full transition-all duration-200 ${
+          value 
+            ? 'bg-indigo-600 shadow-lg shadow-indigo-500/30' 
+            : 'bg-gray-300'
+        }`}
       >
         <div 
-          className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-transform ${value ? 'translate-x-7' : 'translate-x-1'}`}
+          className={`absolute top-1 w-4 h-4 bg-white rounded-full shadow transition-all duration-200 ${
+            value ? 'translate-x-7' : 'translate-x-1'
+          }`}
         />
       </div>
-      <span className="text-sm font-medium text-gray-700">{label}</span>
+      <span className="text-sm font-medium text-gray-700 group-hover:text-gray-900 transition-colors">
+        {label}
+      </span>
     </div>
   )
 }
 
 /**
- * NumberInput - numeric state input
+ * NumberInput - numeric state input with subtle styling
  */
 export function NumberInput({ bind, label, min, max, step = 1 }) {
   const { state, updateState } = useTutorialState()
   const value = state[bind] ?? 0
   
   return (
-    <div className="my-2">
+    <div className="my-3">
       <label className="block text-sm font-medium text-gray-700 mb-1">{label}</label>
       <input
         type="number"
@@ -146,7 +195,9 @@ export function NumberInput({ bind, label, min, max, step = 1 }) {
         step={step}
         value={value}
         onChange={(e) => updateState(bind, parseFloat(e.target.value))}
-        className="w-32 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+        className="w-32 px-3 py-2 border border-gray-300 rounded-lg 
+          focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent
+          font-mono text-gray-700 transition-shadow"
       />
     </div>
   )

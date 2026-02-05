@@ -37,14 +37,19 @@ const componentMap = {
   // Interactive card - highlighted for interactions
   InteractiveCard: ({ children, className = '' }) => (
     <div className={`
+      relative
       bg-gradient-to-br from-slate-50 to-slate-100/80
-      border border-slate-200
-      rounded-xl p-6 my-6
-      shadow-lg shadow-blue-500/5
+      border border-slate-200/80
+      rounded-2xl p-6 my-8
+      shadow-lg shadow-indigo-500/5
       ring-1 ring-slate-200/50
       ${className}
     `}>
-      {children}
+      {/* Subtle inner glow */}
+      <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-indigo-500/[0.02] to-violet-500/[0.02]" />
+      <div className="relative">
+        {children}
+      </div>
     </div>
   ),
   
@@ -55,26 +60,50 @@ const componentMap = {
     </div>
   ),
   
-  // Callouts with left border style
+  // Premium callouts with floating icon badges (Stripe-style)
   Callout: ({ type = 'info', children }) => {
     const styles = {
-      info: 'bg-blue-50 border-l-4 border-blue-500 text-blue-900',
-      warning: 'bg-amber-50 border-l-4 border-amber-500 text-amber-900',
-      success: 'bg-emerald-50 border-l-4 border-emerald-500 text-emerald-900',
-      tip: 'bg-violet-50 border-l-4 border-violet-500 text-violet-900',
+      info: {
+        container: 'bg-gradient-to-br from-sky-50 to-sky-100/50 border-sky-200/50',
+        icon: 'bg-sky-500 shadow-sky-500/30',
+        text: 'text-sky-900',
+        iconEmoji: '💡',
+      },
+      warning: {
+        container: 'bg-gradient-to-br from-amber-50 to-amber-100/50 border-amber-200/50',
+        icon: 'bg-amber-500 shadow-amber-500/30',
+        text: 'text-amber-900',
+        iconEmoji: '⚠️',
+      },
+      success: {
+        container: 'bg-gradient-to-br from-emerald-50 to-emerald-100/50 border-emerald-200/50',
+        icon: 'bg-emerald-500 shadow-emerald-500/30',
+        text: 'text-emerald-900',
+        iconEmoji: '✅',
+      },
+      tip: {
+        container: 'bg-gradient-to-br from-violet-50 to-violet-100/50 border-violet-200/50',
+        icon: 'bg-violet-500 shadow-violet-500/30',
+        text: 'text-violet-900',
+        iconEmoji: '🎯',
+      },
     }
-    const icons = { info: '💡', warning: '⚠️', success: '✅', tip: '🎯' }
+    const s = styles[type]
+    
     return (
-      <div className={`p-4 my-6 rounded-r-lg ${styles[type]}`}>
-        <div className="flex items-start gap-3">
-          <span className="text-lg flex-shrink-0">{icons[type]}</span>
-          <div className="text-sm leading-relaxed">{children}</div>
+      <div className={`relative my-8 p-5 pt-6 rounded-xl border ${s.container}`}>
+        {/* Floating icon badge */}
+        <div className={`absolute -top-3 -left-1 w-8 h-8 rounded-lg shadow-lg flex items-center justify-center ${s.icon}`}>
+          <span className="text-sm">{s.iconEmoji}</span>
+        </div>
+        <div className={`pl-2 text-sm leading-relaxed ${s.text}`}>
+          {children}
         </div>
       </div>
     )
   },
   
-  // Code block with copy button and language label
+  // Premium code block with language label and copy button
   Code: ({ children, language = 'javascript', filename }) => {
     const [copied, setCopied] = React.useState(false)
     
@@ -85,42 +114,61 @@ const componentMap = {
     }
     
     return (
-      <div className="relative group my-6">
-        {/* Language/filename label */}
-        <div className="flex items-center justify-between px-4 py-2 bg-slate-800 rounded-t-xl border-b border-slate-700">
-          <span className="text-xs font-mono text-slate-400 uppercase tracking-wider">
-            {filename || language}
-          </span>
-          <button
-            onClick={handleCopy}
-            className="text-xs text-slate-400 hover:text-white transition-colors px-2 py-1 rounded hover:bg-slate-700"
-          >
-            {copied ? '✓ Copied' : 'Copy'}
-          </button>
+      <div className="relative my-8 group">
+        {/* Language badge - floating */}
+        <div className="absolute -top-3 left-4 px-3 py-1 bg-gray-800 rounded-md text-xs font-mono text-gray-400 border border-gray-700 z-10">
+          {filename || language}
         </div>
-        <pre className="bg-slate-900 text-slate-100 p-5 rounded-b-xl overflow-x-auto text-sm font-mono leading-relaxed
-          shadow-inner ring-1 ring-white/5">
-          <code>{children}</code>
-        </pre>
+        
+        {/* Copy button */}
+        <button
+          onClick={handleCopy}
+          className="absolute top-3 right-3 p-2 rounded-lg bg-gray-800 text-gray-400 
+            opacity-0 group-hover:opacity-100 transition-opacity 
+            hover:bg-gray-700 hover:text-white z-10"
+        >
+          {copied ? (
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+            </svg>
+          ) : (
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+            </svg>
+          )}
+        </button>
+        
+        {/* Code container */}
+        <div className="bg-gray-900 rounded-xl overflow-hidden border border-gray-800 shadow-lg">
+          <pre className="p-6 pt-8 overflow-x-auto">
+            <code className="text-sm font-mono text-gray-300 leading-relaxed">
+              {children}
+            </code>
+          </pre>
+        </div>
       </div>
     )
   },
   
-  // Math/equation placeholder
+  // Math/equation with subtle highlight
   Math: ({ children, block = false }) => (
-    <span className={`font-mono text-slate-800 bg-slate-100 px-1.5 py-0.5 rounded ${
+    <span className={`font-mono text-indigo-700 bg-indigo-50 px-1.5 py-0.5 rounded ${
       block ? 'block text-center my-6 text-lg py-4' : ''
     }`}>
       {children}
     </span>
   ),
   
-  // Section with optional title - adds good spacing
-  Section: ({ title, children, className = '' }) => (
+  // Section with numbered badges
+  Section: ({ title, number, children, className = '' }) => (
     <section className={`mt-16 first:mt-0 ${className}`}>
       {title && (
-        <h2 className="text-2xl font-bold text-slate-900 mb-6 tracking-tight 
-          border-b border-slate-200 pb-4">
+        <h2 className="flex items-center gap-4 text-2xl font-semibold text-gray-900 mb-6 tracking-tight">
+          {number && (
+            <span className="flex items-center justify-center w-8 h-8 rounded-lg bg-indigo-100 text-indigo-600 text-sm font-bold">
+              {number}
+            </span>
+          )}
           {title}
         </h2>
       )}
@@ -130,80 +178,91 @@ const componentMap = {
     </section>
   ),
   
-  // Collapsible deep dive section
+  // Pull quote for key insights
+  Blockquote: ({ children }) => (
+    <blockquote className="border-l-4 border-indigo-500 pl-6 my-8 text-xl text-gray-600 italic leading-relaxed">
+      {children}
+    </blockquote>
+  ),
+  
+  // Collapsible deep dive section with spring animation feel
   DeepDive: ({ title, children, defaultOpen = false }) => {
     const [isOpen, setIsOpen] = React.useState(defaultOpen)
     return (
-      <div className="my-6 border border-violet-200 rounded-xl overflow-hidden shadow-sm">
+      <div className="my-8 rounded-xl overflow-hidden border border-violet-200 shadow-sm bg-white">
         <button
           onClick={() => setIsOpen(!isOpen)}
-          className="w-full px-5 py-4 bg-violet-50 text-left font-medium text-violet-900 
-            flex justify-between items-center hover:bg-violet-100 transition-colors"
+          className="w-full px-5 py-4 bg-gradient-to-r from-violet-50 to-purple-50 text-left font-medium text-violet-900 
+            flex justify-between items-center hover:from-violet-100 hover:to-purple-100 transition-colors"
         >
-          <span className="flex items-center gap-2">
-            <span className="text-violet-500">🌿</span>
+          <span className="flex items-center gap-3">
+            <span className="w-6 h-6 rounded-md bg-violet-500 text-white text-xs flex items-center justify-center shadow shadow-violet-500/30">
+              🌿
+            </span>
             {title}
           </span>
-          <span className={`transform transition-transform duration-200 text-violet-400 ${
+          <span className={`transform transition-transform duration-300 text-violet-400 ${
             isOpen ? 'rotate-180' : ''
           }`}>
             ▼
           </span>
         </button>
-        {isOpen && (
-          <div className="p-5 bg-white border-t border-violet-100">
-            <div className="prose prose-sm max-w-none text-slate-700 leading-relaxed">
+        <div className={`overflow-hidden transition-all duration-300 ${
+          isOpen ? 'max-h-[2000px] opacity-100' : 'max-h-0 opacity-0'
+        }`}>
+          <div className="p-5 border-t border-violet-100">
+            <div className="text-gray-700 leading-7 space-y-4">
               {children}
             </div>
           </div>
-        )}
+        </div>
       </div>
     )
   },
   
-  // Paragraph with good line height
+  // Paragraph with optimal line height
   p: ({ children, className = '' }) => (
-    <p className={`text-slate-700 leading-relaxed ${className}`}>
+    <p className={`text-gray-600 leading-7 ${className}`}>
       {children}
     </p>
   ),
   
-  // Strong/bold
+  // Strong/bold with slightly darker color
   strong: ({ children }) => (
-    <strong className="font-semibold text-slate-900">{children}</strong>
+    <strong className="font-semibold text-gray-900">{children}</strong>
   ),
   
   // Emphasis/italic
   em: ({ children }) => (
-    <em className="text-slate-600 italic">{children}</em>
+    <em className="text-gray-600 italic">{children}</em>
   ),
   
   // Inline code
   code: ({ children }) => (
-    <code className="px-1.5 py-0.5 bg-slate-100 text-slate-800 rounded text-sm font-mono">
+    <code className="px-1.5 py-0.5 bg-gray-100 text-gray-800 rounded text-sm font-mono">
       {children}
     </code>
   ),
   
-  // Links
+  // Links with underline animation
   a: ({ href, children }) => (
     <a 
       href={href}
-      className="text-blue-600 hover:text-blue-800 underline underline-offset-2 decoration-blue-300 hover:decoration-blue-500 transition-colors"
+      className="text-indigo-600 hover:text-indigo-800 underline decoration-indigo-300 underline-offset-2 hover:decoration-indigo-500 transition-colors"
     >
       {children}
     </a>
   ),
   
-  // Lists
+  // Lists with proper spacing
   ul: ({ children }) => (
-    <ul className="list-disc list-inside space-y-2 text-slate-700 my-4">{children}</ul>
+    <ul className="list-disc list-inside space-y-2 text-gray-600 my-4 pl-1">{children}</ul>
   ),
   li: ({ children }) => (
-    <li className="leading-relaxed">{children}</li>
+    <li className="leading-7">{children}</li>
   ),
   
-  // HTML elements are passed through automatically
+  // HTML elements pass through
 }
 
 /**
