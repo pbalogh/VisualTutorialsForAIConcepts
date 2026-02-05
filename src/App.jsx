@@ -6,7 +6,7 @@ import './App.css'
 
 function App() {
   return (
-    <Router>
+    <Router basename="/VisualTutorialsForAIConcepts">
       <Routes>
         <Route path="/" element={<Listing />} />
         <Route path="/tutorial/:tutorialId" element={<TutorialWrapper />} />
