@@ -4,9 +4,14 @@ import Listing from './pages/Listing.jsx'
 import TutorialWrapper from './pages/TutorialWrapper.jsx'
 import './App.css'
 
+// GitHub Pages needs basename, Netlify serves from root
+const basename = window.location.hostname.includes('github.io') 
+  ? '/VisualTutorialsForAIConcepts' 
+  : '/'
+
 function App() {
   return (
-    <Router basename="/VisualTutorialsForAIConcepts">
+    <Router basename={basename}>
       <Routes>
         <Route path="/" element={<Listing />} />
         <Route path="/tutorial/:tutorialId" element={<TutorialWrapper />} />
