@@ -282,7 +282,7 @@ export const SelectionPopup = ({
                 </button>
               </div>
               <p className="text-xs text-gray-500 mt-2">
-                Ask any question about "{selection.slice(0, 30)}{selection.length > 30 ? '...' : ''}"
+                Ask any question about "{selection.text?.slice(0, 30)}{selection.text?.length > 30 ? '...' : ''}"
               </p>
             </div>
           )}
