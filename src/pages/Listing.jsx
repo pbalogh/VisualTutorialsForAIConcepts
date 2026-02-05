@@ -1,6 +1,6 @@
 import React from 'react'
 import { Link } from 'react-router-dom'
-import { Container, Header, Card } from '../components/SharedUI.jsx'
+import { Container, Header, Card, Badge } from '../components/SharedUI.jsx'
 
 const tutorials = [
   {
@@ -44,35 +44,36 @@ const tutorials = [
 
 export default function Listing() {
   return (
-    <Container className="py-12">
+    <Container className="py-16" size="wide">
       <Header 
         title="Tutorials"
-        subtitle="Interactive learning experiences"
-        className="text-center"
+        subtitle="Interactive learning experiences for understanding AI, math, and data concepts"
+        align="center"
+        size="large"
       />
       
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mt-12">
         {tutorials.map(tutorial => (
           <Link 
             key={tutorial.id}
             to={`/tutorial/${tutorial.id}`}
-            className="no-underline"
+            className="group no-underline"
           >
-            <Card className="h-full hover:shadow-lg transition-shadow cursor-pointer">
-              <h2 className="text-2xl font-bold text-gray-900 mb-2">
+            <Card 
+              variant="default" 
+              className="h-full hover:shadow-xl hover:border-gray-300 transition-all duration-200 cursor-pointer group-hover:-translate-y-1"
+            >
+              <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-3 group-hover:text-indigo-600 transition-colors">
                 {tutorial.title}
               </h2>
-              <p className="text-gray-600 mb-4">
+              <p className="text-gray-600 mb-5 leading-relaxed">
                 {tutorial.description}
               </p>
               <div className="flex flex-wrap gap-2">
                 {tutorial.tags.map(tag => (
-                  <span
-                    key={tag}
-                    className="inline-block bg-blue-100 text-blue-800 text-xs px-3 py-1 rounded-full"
-                  >
+                  <Badge key={tag} variant="primary">
                     {tag}
-                  </span>
+                  </Badge>
                 ))}
               </div>
             </Card>
