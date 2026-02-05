@@ -4,6 +4,13 @@ import { Container, Header, Card } from '../components/SharedUI.jsx'
 
 const tutorials = [
   {
+    id: 'engine-demo',
+    title: '🧪 Tutorial Engine Demo',
+    description: 'A self-documenting demonstration of the data-driven tutorial system with live state bindings',
+    tags: ['experimental', 'meta', 'tutorial-engine'],
+    featured: true
+  },
+  {
     id: 'lead-lag-correlation',
     title: 'Lead-Lag Correlation',
     description: 'Discover predictive relationships in time series data with cross-correlation analysis',
