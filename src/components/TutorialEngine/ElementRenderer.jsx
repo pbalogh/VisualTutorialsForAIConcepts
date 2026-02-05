@@ -29,47 +29,104 @@ const componentMap = {
   
   // Layout helpers
   Fragment: React.Fragment,
-  Box: ({ children, className = '' }) => <div className={className}>{children}</div>,
-  Card: ({ children, className = '' }) => (
-    <div className={`bg-white border border-gray-200 rounded-lg shadow-sm p-6 my-4 ${className}`}>
+  
+  Box: ({ children, className = '' }) => (
+    <div className={className}>{children}</div>
+  ),
+  
+  // Interactive card - highlighted for interactions
+  InteractiveCard: ({ children, className = '' }) => (
+    <div className={`
+      bg-gradient-to-br from-slate-50 to-slate-100/80
+      border border-slate-200
+      rounded-xl p-6 my-6
+      shadow-lg shadow-blue-500/5
+      ring-1 ring-slate-200/50
+      ${className}
+    `}>
       {children}
     </div>
   ),
+  
+  // Basic card
+  Card: ({ children, className = '' }) => (
+    <div className={`bg-white border border-gray-200 rounded-xl shadow-sm p-6 my-6 ${className}`}>
+      {children}
+    </div>
+  ),
+  
+  // Callouts with left border style
   Callout: ({ type = 'info', children }) => {
     const styles = {
-      info: 'bg-blue-50 border-blue-200 text-blue-800',
-      warning: 'bg-yellow-50 border-yellow-200 text-yellow-800',
-      success: 'bg-green-50 border-green-200 text-green-800',
-      tip: 'bg-purple-50 border-purple-200 text-purple-800',
+      info: 'bg-blue-50 border-l-4 border-blue-500 text-blue-900',
+      warning: 'bg-amber-50 border-l-4 border-amber-500 text-amber-900',
+      success: 'bg-emerald-50 border-l-4 border-emerald-500 text-emerald-900',
+      tip: 'bg-violet-50 border-l-4 border-violet-500 text-violet-900',
     }
     const icons = { info: '💡', warning: '⚠️', success: '✅', tip: '🎯' }
     return (
-      <div className={`p-4 my-4 rounded-lg border-l-4 ${styles[type]}`}>
-        <span className="mr-2">{icons[type]}</span>
-        {children}
+      <div className={`p-4 my-6 rounded-r-lg ${styles[type]}`}>
+        <div className="flex items-start gap-3">
+          <span className="text-lg flex-shrink-0">{icons[type]}</span>
+          <div className="text-sm leading-relaxed">{children}</div>
+        </div>
       </div>
     )
   },
   
-  // Code block
-  Code: ({ children, language = 'javascript' }) => (
-    <pre className="bg-gray-900 text-gray-100 p-4 rounded-lg overflow-x-auto text-sm font-mono my-4">
-      <code>{children}</code>
-    </pre>
-  ),
+  // Code block with copy button and language label
+  Code: ({ children, language = 'javascript', filename }) => {
+    const [copied, setCopied] = React.useState(false)
+    
+    const handleCopy = () => {
+      navigator.clipboard.writeText(typeof children === 'string' ? children : '')
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
+    }
+    
+    return (
+      <div className="relative group my-6">
+        {/* Language/filename label */}
+        <div className="flex items-center justify-between px-4 py-2 bg-slate-800 rounded-t-xl border-b border-slate-700">
+          <span className="text-xs font-mono text-slate-400 uppercase tracking-wider">
+            {filename || language}
+          </span>
+          <button
+            onClick={handleCopy}
+            className="text-xs text-slate-400 hover:text-white transition-colors px-2 py-1 rounded hover:bg-slate-700"
+          >
+            {copied ? '✓ Copied' : 'Copy'}
+          </button>
+        </div>
+        <pre className="bg-slate-900 text-slate-100 p-5 rounded-b-xl overflow-x-auto text-sm font-mono leading-relaxed
+          shadow-inner ring-1 ring-white/5">
+          <code>{children}</code>
+        </pre>
+      </div>
+    )
+  },
   
-  // Math/equation placeholder (could integrate KaTeX later)
+  // Math/equation placeholder
   Math: ({ children, block = false }) => (
-    <span className={`font-mono text-gray-800 ${block ? 'block text-center my-4 text-lg' : ''}`}>
+    <span className={`font-mono text-slate-800 bg-slate-100 px-1.5 py-0.5 rounded ${
+      block ? 'block text-center my-6 text-lg py-4' : ''
+    }`}>
       {children}
     </span>
   ),
   
-  // Section with optional title
+  // Section with optional title - adds good spacing
   Section: ({ title, children, className = '' }) => (
-    <section className={`my-8 ${className}`}>
-      {title && <h2 className="text-2xl font-bold text-gray-900 mb-4">{title}</h2>}
-      {children}
+    <section className={`mt-16 first:mt-0 ${className}`}>
+      {title && (
+        <h2 className="text-2xl font-bold text-slate-900 mb-6 tracking-tight 
+          border-b border-slate-200 pb-4">
+          {title}
+        </h2>
+      )}
+      <div className="space-y-4">
+        {children}
+      </div>
     </section>
   ),
   
@@ -77,22 +134,74 @@ const componentMap = {
   DeepDive: ({ title, children, defaultOpen = false }) => {
     const [isOpen, setIsOpen] = React.useState(defaultOpen)
     return (
-      <div className="my-4 border border-green-200 rounded-lg overflow-hidden">
+      <div className="my-6 border border-violet-200 rounded-xl overflow-hidden shadow-sm">
         <button
           onClick={() => setIsOpen(!isOpen)}
-          className="w-full px-4 py-3 bg-green-50 text-left font-medium text-green-800 flex justify-between items-center hover:bg-green-100"
+          className="w-full px-5 py-4 bg-violet-50 text-left font-medium text-violet-900 
+            flex justify-between items-center hover:bg-violet-100 transition-colors"
         >
-          <span>🌿 {title}</span>
-          <span>{isOpen ? '▲' : '▼'}</span>
+          <span className="flex items-center gap-2">
+            <span className="text-violet-500">🌿</span>
+            {title}
+          </span>
+          <span className={`transform transition-transform duration-200 text-violet-400 ${
+            isOpen ? 'rotate-180' : ''
+          }`}>
+            ▼
+          </span>
         </button>
         {isOpen && (
-          <div className="p-4 bg-white">
-            {children}
+          <div className="p-5 bg-white border-t border-violet-100">
+            <div className="prose prose-sm max-w-none text-slate-700 leading-relaxed">
+              {children}
+            </div>
           </div>
         )}
       </div>
     )
   },
+  
+  // Paragraph with good line height
+  p: ({ children, className = '' }) => (
+    <p className={`text-slate-700 leading-relaxed ${className}`}>
+      {children}
+    </p>
+  ),
+  
+  // Strong/bold
+  strong: ({ children }) => (
+    <strong className="font-semibold text-slate-900">{children}</strong>
+  ),
+  
+  // Emphasis/italic
+  em: ({ children }) => (
+    <em className="text-slate-600 italic">{children}</em>
+  ),
+  
+  // Inline code
+  code: ({ children }) => (
+    <code className="px-1.5 py-0.5 bg-slate-100 text-slate-800 rounded text-sm font-mono">
+      {children}
+    </code>
+  ),
+  
+  // Links
+  a: ({ href, children }) => (
+    <a 
+      href={href}
+      className="text-blue-600 hover:text-blue-800 underline underline-offset-2 decoration-blue-300 hover:decoration-blue-500 transition-colors"
+    >
+      {children}
+    </a>
+  ),
+  
+  // Lists
+  ul: ({ children }) => (
+    <ul className="list-disc list-inside space-y-2 text-slate-700 my-4">{children}</ul>
+  ),
+  li: ({ children }) => (
+    <li className="leading-relaxed">{children}</li>
+  ),
   
   // HTML elements are passed through automatically
 }
@@ -147,7 +256,7 @@ export function renderElement(node, key = undefined) {
 export function TutorialContent({ data, onAnnotationRequest }) {
   const content = (
     <TutorialStateProvider initialState={data.state || {}}>
-      <div className="tutorial-content prose prose-lg max-w-none">
+      <div className="tutorial-content">
         {renderElement(data.content)}
       </div>
     </TutorialStateProvider>
