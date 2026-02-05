@@ -102,9 +102,13 @@ export const SelectionPopup = ({
   position, 
   onAction, 
   onClose,
-  actions = ['explain', 'branch'] // Removed 'visualize' until implemented
+  actions = ['explain', 'branch', 'ask'] // Added 'ask'
 }) => {
   const popupRef = useRef(null)
+  const inputRef = useRef(null)
+  const [isAskExpanded, setIsAskExpanded] = useState(false)
+  const [question, setQuestion] = useState('')
+  const [isSubmitting, setIsSubmitting] = useState(false)
 
   useEffect(() => {
     const handleClickOutside = (e) => {
@@ -114,7 +118,14 @@ export const SelectionPopup = ({
     }
     
     const handleEscape = (e) => {
-      if (e.key === 'Escape') onClose?.()
+      if (e.key === 'Escape') {
+        if (isAskExpanded) {
+          setIsAskExpanded(false)
+          setQuestion('')
+        } else {
+          onClose?.()
+        }
+      }
     }
     
     document.addEventListener('mousedown', handleClickOutside)
@@ -123,10 +134,26 @@ export const SelectionPopup = ({
       document.removeEventListener('mousedown', handleClickOutside)
       document.removeEventListener('keydown', handleEscape)
     }
-  }, [onClose])
+  }, [onClose, isAskExpanded])
+
+  // Focus input when expanded
+  useEffect(() => {
+    if (isAskExpanded && inputRef.current) {
+      inputRef.current.focus()
+    }
+  }, [isAskExpanded])
 
   if (!selection) {
     return null
+  }
+
+  const handleAskSubmit = async () => {
+    if (!question.trim()) return
+    setIsSubmitting(true)
+    await onAction('ask', selection, question.trim())
+    setIsSubmitting(false)
+    setIsAskExpanded(false)
+    setQuestion('')
   }
 
   const actionConfig = {
@@ -152,6 +179,13 @@ export const SelectionPopup = ({
       hoverText: 'group-hover:text-emerald-300',
       hoverBg: 'hover:bg-emerald-500/20',
     },
+    ask: { 
+      icon: '❓', 
+      label: 'Ask',
+      restingText: 'text-amber-300/80',
+      hoverText: 'group-hover:text-amber-300',
+      hoverBg: 'hover:bg-amber-500/20',
+    },
   }
 
   return (
@@ -171,36 +205,87 @@ export const SelectionPopup = ({
         {/* Main container with glassmorphism */}
         <div className="bg-gray-900/85 backdrop-blur-xl rounded-xl 
           shadow-[0_4px_30px_rgba(0,0,0,0.4),0_0_60px_rgba(99,102,241,0.08)]
-          flex overflow-hidden border border-white/10">
-          {actions.map((action, i) => {
-            const config = actionConfig[action]
-            const isDisabled = config?.disabled
-            
-            return (
-              <button
-                key={action}
-                onClick={() => !isDisabled && onAction(action, selection)}
-                disabled={isDisabled}
-                title={isDisabled ? 'Coming soon' : undefined}
-                className={`
-                  group px-4 py-2.5 transition-all duration-200 
-                  flex items-center gap-2.5 text-sm font-medium
-                  ${config?.hoverBg}
-                  ${i < actions.length - 1 ? 'border-r border-white/10' : ''}
-                  ${isDisabled ? 'opacity-50 cursor-not-allowed' : 'active:scale-[0.97]'}
-                `}
-              >
-                <span className={`text-lg transition-transform duration-200 
-                  ${!isDisabled && 'group-hover:scale-110'}`}>
-                  {config?.icon}
-                </span>
-                <span className={`transition-colors duration-200 
-                  ${config?.restingText} ${config?.hoverText}`}>
-                  {config?.label}
-                </span>
-              </button>
-            )
-          })}
+          border border-white/10 overflow-hidden">
+          
+          {/* Button row */}
+          <div className="flex">
+            {actions.map((action, i) => {
+              const config = actionConfig[action]
+              const isDisabled = config?.disabled
+              const isAsk = action === 'ask'
+              
+              return (
+                <button
+                  key={action}
+                  onClick={() => {
+                    if (isDisabled) return
+                    if (isAsk) {
+                      setIsAskExpanded(!isAskExpanded)
+                    } else {
+                      onAction(action, selection)
+                    }
+                  }}
+                  disabled={isDisabled}
+                  title={isDisabled ? 'Coming soon' : undefined}
+                  className={`
+                    group px-4 py-2.5 transition-all duration-200 
+                    flex items-center gap-2.5 text-sm font-medium
+                    ${config?.hoverBg}
+                    ${i < actions.length - 1 ? 'border-r border-white/10' : ''}
+                    ${isDisabled ? 'opacity-50 cursor-not-allowed' : 'active:scale-[0.97]'}
+                    ${isAsk && isAskExpanded ? 'bg-amber-500/20' : ''}
+                  `}
+                >
+                  <span className={`text-lg transition-transform duration-200 
+                    ${!isDisabled && 'group-hover:scale-110'}`}>
+                    {config?.icon}
+                  </span>
+                  <span className={`transition-colors duration-200 
+                    ${config?.restingText} ${config?.hoverText}`}>
+                    {config?.label}
+                  </span>
+                </button>
+              )
+            })}
+          </div>
+          
+          {/* Expandable question input */}
+          {isAskExpanded && (
+            <div className="border-t border-white/10 p-3">
+              <div className="flex gap-2">
+                <input
+                  ref={inputRef}
+                  type="text"
+                  value={question}
+                  onChange={(e) => setQuestion(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' && !e.shiftKey) {
+                      e.preventDefault()
+                      handleAskSubmit()
+                    }
+                  }}
+                  placeholder="What would you like to know?"
+                  className="flex-1 bg-gray-800/50 text-white text-sm px-3 py-2 rounded-lg
+                    border border-white/10 focus:border-amber-500/50 focus:outline-none
+                    placeholder:text-gray-500"
+                  disabled={isSubmitting}
+                />
+                <button
+                  onClick={handleAskSubmit}
+                  disabled={!question.trim() || isSubmitting}
+                  className="px-3 py-2 bg-amber-500/20 hover:bg-amber-500/30 
+                    text-amber-300 rounded-lg text-sm font-medium
+                    disabled:opacity-50 disabled:cursor-not-allowed
+                    transition-colors"
+                >
+                  {isSubmitting ? '...' : '→'}
+                </button>
+              </div>
+              <p className="text-xs text-gray-500 mt-2">
+                Ask any question about "{selection.slice(0, 30)}{selection.length > 30 ? '...' : ''}"
+              </p>
+            </div>
+          )}
         </div>
         
         {/* No arrow - cleaner look (Medium-style) */}
@@ -330,8 +415,8 @@ export const AnnotatableContent = ({
   const { selection, position, clearSelection } = useTextSelection(containerRef)
   const [loading, setLoading] = useState(null)
 
-  const handleAction = async (action, sel) => {
-    console.log('Annotation requested:', { action, selection: sel, tutorialId })
+  const handleAction = async (action, sel, question = null) => {
+    console.log('Annotation requested:', { action, selection: sel, tutorialId, question })
     
     setLoading(action)
     clearSelection()
@@ -342,6 +427,7 @@ export const AnnotatableContent = ({
         selectedText: sel.text,
         context: sel.context,
         tutorialId,
+        question, // Pass the question for 'ask' action
       })
     } catch (err) {
       console.error('Annotation error:', err)

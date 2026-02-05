@@ -57,7 +57,7 @@ function sendJson(res, statusCode, data) {
 /**
  * Generate annotation content using AI
  */
-async function generateAnnotation(action, selectedText, context, tutorialTitle) {
+async function generateAnnotation(action, selectedText, context, tutorialTitle, question = null) {
   const timestamp = new Date().toLocaleString()
   
   // System prompt that emphasizes contextual understanding
@@ -71,7 +71,6 @@ Key principles:
 - Be concise but insightful
 - Reference other concepts from the tutorial when relevant
 - Use concrete examples when helpful
-
 Output format: Return ONLY the explanation text, no JSON, no formatting markers, no preamble.`
 
   try {
@@ -181,6 +180,57 @@ Return ONLY a valid JSON array. No markdown, no preamble, just the JSON array.`
           defaultOpen: true 
         },
         children: deepDiveContent
+      }
+    }
+    
+    // Ask: User provides a custom question about the selected text
+    if (action === 'ask' && question) {
+      const prompt = `The user is reading this passage:
+"${context}"
+
+They selected the phrase: "${selectedText}"
+
+They asked this specific question: "${question}"
+
+Answer their question in a clear, helpful way. Focus on:
+1. Directly addressing their question
+2. Using the context of what they're reading
+3. Providing a concrete example or analogy if helpful
+4. Keeping it concise but complete (2-4 paragraphs)
+
+Do not use markdown. Do not include preamble. Just answer the question directly.`
+
+      console.log(`🤖 Calling AI to answer: "${question}"`)
+      const answer = await callAI(systemPrompt, prompt)
+      
+      // Parse for potential structured content (if AI returns JSON-like structure)
+      // Otherwise treat as text paragraphs
+      const paragraphs = answer.trim().split('\n\n').filter(p => p.trim())
+      
+      return {
+        type: 'DeepDive',
+        props: { 
+          title: `❓ Q: ${question}`,
+          defaultOpen: true 
+        },
+        children: [
+          {
+            type: 'Callout',
+            props: { type: 'info' },
+            children: [
+              { type: 'em', children: `About "${selectedText}"` }
+            ]
+          },
+          ...paragraphs.map(p => ({
+            type: 'p',
+            children: p.trim()
+          })),
+          {
+            type: 'em',
+            props: { className: 'text-gray-400 text-xs block mt-4' },
+            children: `(${timestamp})`
+          }
+        ]
       }
     }
     
@@ -476,19 +526,24 @@ const server = http.createServer(async (req, res) => {
   if (url.pathname === '/annotate' && req.method === 'POST') {
     try {
       const body = await parseBody(req)
-      const { action, selectedText, context, tutorialId } = body
+      const { action, selectedText, context, tutorialId, question } = body
       
       console.log('\n📝 Annotation Request:')
       console.log(`  Action: ${action}`)
       console.log(`  Tutorial: ${tutorialId}`)
       console.log(`  Selected: "${selectedText?.slice(0, 50)}..."`)
+      if (question) console.log(`  Question: "${question?.slice(0, 50)}..."`)
       
       if (!action || !selectedText || !tutorialId) {
         return sendJson(res, 400, { error: 'Missing required fields' })
       }
       
-      if (!['explain', 'branch'].includes(action)) {
-        return sendJson(res, 400, { error: 'Action must be explain or branch' })
+      if (!['explain', 'branch', 'ask'].includes(action)) {
+        return sendJson(res, 400, { error: 'Action must be explain, branch, or ask' })
+      }
+      
+      if (action === 'ask' && !question) {
+        return sendJson(res, 400, { error: 'Question is required for ask action' })
       }
       
       const jsonPath = path.join(CONTENT_DIR, `${tutorialId}.json`)
@@ -504,7 +559,8 @@ const server = http.createServer(async (req, res) => {
         action, 
         selectedText, 
         context || '', 
-        content.title
+        content.title,
+        question // Pass question for 'ask' action
       )
       if (!annotation) {
         return sendJson(res, 500, { error: 'Failed to generate annotation' })
