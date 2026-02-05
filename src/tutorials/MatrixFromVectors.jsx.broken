@@ -1,0 +1,1229 @@
+import { useState, useMemo } from 'react'
+import { motion } from 'framer-motion'
+import { 
+  Callout, 
+  Collapsible, 
+  Step, 
+  Section, 
+  DemoArea, 
+  Code,
+  Links,
+  LinkCard,
+} from '../components'
+
+export default function MatrixFromVectors() {
+  return (
+    <div className="tutorial">
+      <h1>🔢 Finding a Matrix from Input-Output Vectors</h1>
+      <p>
+        You know that multiplying vector <strong>A</strong> by matrix <strong>B</strong> gives 
+        vector <strong>C</strong>. You have A and C — how do you find B?
+      </p>
+
+      <Callout type="analogy" title="Think of it like...">
+        <p>
+          A matrix is a <em>transformation machine</em>. You feed in a vector, it spits out a 
+          different vector. You are reverse-engineering the machine by observing what goes in 
+          and what comes out.
+        </p>
+      </Callout>
+
+      <Section title="The Core Problem">
+        <p>Given:</p>
+        <ul style={{ marginLeft: '1.5rem', marginBottom: '1rem' }}>
+          <li><strong>A</strong> = input vector (what you feed in)</li>
+          <li><strong>C</strong> = output vector (what comes out)</li>
+        </ul>
+        <p>Find: <strong>B</strong> = the transformation matrix</p>
+        
+        <Code language="math">{`Vector × Matrix = Vector
+
+Input          Matrix B          Output
+[a₁ a₂]  ·  / b₁₁  b₁₂ \\  =  [c₁ c₂]
+            \\ b₂₁  b₂₂ /`}</Code>
+      </Section>
+
+      <h2>The Catch: One Pair Isn't Enough</h2>
+      
+      <Callout type="warning" title="Important Constraint">
+        <p>
+          A single input-output pair gives you <strong>infinitely many</strong> possible matrices!
+          It is like knowing one point on a line — there are infinite lines passing through it.
+        </p>
+      </Callout>
+
+      <UnderDeterminedDemo />
+
+      <h2>The Solution: Multiple Input-Output Pairs</h2>
+
+      <Step number={1} title="Gather enough data">
+        <p>
+          For an n×n matrix, you need <strong>n linearly independent</strong> input-output pairs.
+          For a 2×2 matrix, that is 2 pairs. For 3×3, that is 3 pairs.
+        </p>
+      </Step>
+
+      <Step number={2} title="Stack inputs and outputs into matrices">
+        <p>If you have inputs A₁, A₂ and outputs C₁, C₂:</p>
+        <Code>{`Input matrix:      Output matrix:
+/ A₁ \\             / C₁ \\
+\\ A₂ /             \\ C₂ /`}</Code>
+      </Step>
+
+      <Step number={3} title="Solve for B">
+        <p>The equation becomes: <code>Inputs · B = Outputs</code></p>
+        <p>Rearranging: <code>B = Inputs⁻¹ · Outputs</code></p>
+        <p>(Multiply both sides by the inverse of the input matrix)</p>
+      </Step>
+
+      <h2>Interactive Calculator</h2>
+      <MatrixSolver />
+
+      <h2>🎯 The Moore-Penrose Pseudoinverse: Building from First Principles</h2>
+
+      <Callout type="analogy" title="Why We Need the Pseudoinverse">
+        <p>
+          A regular matrix inverse only exists when you have a <strong>square, full-rank</strong> matrix.
+          But when you stack multiple underdetermined equations, you get a <strong>tall, narrow</strong> matrix 
+          that has no traditional inverse. The <strong>Moore-Penrose pseudoinverse</strong> is the generalization 
+          that works for <em>any</em> shape.
+        </p>
+      </Callout>
+
+      <Section title="The Journey: From Overdetermined to Underdetermined">
+        <p>Think of this progression:</p>
+        <Code>{`Case 1 (Full rank, square):
+A · B = C  →  B = A⁻¹ · C
+✓ Unique solution exists
+
+Case 2 (Overdetermined, tall matrix):
+/ A₁ \\       / C₁ \\
+| A₂ | · B = | C₂ |   (more equations than unknowns)
+\\ A₃ /       \\ C₃ /
+❌ Usually no exact solution → minimize error with least squares
+
+Case 3 (Underdetermined, wide matrix):
+[A₁ A₂ A₃] · B = [C₁ C₂ C₃]   (fewer equations than unknowns)
+∞ Infinite solutions → find the "smallest" one`}</Code>
+      </Section>
+
+      <PseudoinverseBuilder />
+
+      <h2>🎯 Finding the Closest Overlap Between Two Systems</h2>
+      
+      <Callout type="analogy" title="The Venn Diagram Intuition">
+        <p>
+          Each input-output pair defines a <em>hyperplane</em> (infinite set) of valid matrices.
+          Two pairs from different observations give you two hyperplanes. These can:
+        </p>
+        <ul style={{ marginLeft: '1.5rem' }}>
+          <li><strong>Intersect</strong> → Same matrix explains both! (overlap exists)</li>
+          <li><strong>Be parallel/skew</strong> → No exact match, but we can find the <em>closest point</em> on each</li>
+        </ul>
+      </Callout>
+
+      <Section title="The Math: Least Squares to the Rescue">
+        <p>
+          When you have two underdetermined systems that might not have a common solution,
+          you are looking for the matrix B that <strong>minimizes total error</strong>:
+        </p>
+        <Code>{`minimize: ||A · B - C||² + ||D · B - E||²
+
+This is a least-squares problem!`}</Code>
+        <p>
+          Stack all your constraints together and solve via the <strong>pseudoinverse</strong>:
+        </p>
+        <Code>{`/ A \\       / C \\
+\\ D /  · B = \\ E /
+
+B = pseudoinverse(stacked_inputs) · stacked_outputs`}</Code>
+      </Section>
+
+      <OverlapFinder />
+
+      <Collapsible title="🔬 Deep Dive: What the Distance Means">
+        <p>
+          When the solution is <em>not</em> exact (residual &gt; 0), the distance tells you how 
+          incompatible the two observations are. High residual means:
+        </p>
+        <ul style={{ marginLeft: '1.5rem' }}>
+          <li>The same matrix probably was NOT used for both</li>
+          <li>There is noise/error in your measurements</li>
+          <li>The underlying transformation changed between observations</li>
+        </ul>
+        <p>
+          The "closest matrix" is still useful — it is the <strong>best compromise</strong> that 
+          minimizes total squared error across both observations.
+        </p>
+      </Collapsible>
+
+      <Collapsible title="🧮 Why Linear Independence Matters">
+        <p>
+          If your input vectors are <em>linearly dependent</em> (one is a scalar multiple of another),
+          they do not provide new information.
+        </p>
+        <Code>{`Bad: A₁ = [1, 2], A₂ = [2, 4]  ← A₂ is just 2×A₁
+Good: A₁ = [1, 0], A₂ = [0, 1]  ← Independent`}</Code>
+      </Collapsible>
+
+      <h2>Learn More</h2>
+      
+      <Links>
+        <LinkCard 
+          href="https://www.3blue1brown.com/lessons/inverse-matrices"
+          title="3Blue1Brown: Inverse Matrices"
+          description="Visual intuition for matrix inversion"
+        />
+        <LinkCard 
+          href="https://en.wikipedia.org/wiki/Moore-Penrose_inverse"
+          title="Moore-Penrose Pseudoinverse"
+          description="The key to underdetermined systems"
+        />
+        <LinkCard 
+          href="https://en.wikipedia.org/wiki/Least_squares"
+          title="Least Squares"
+          description="Minimizing error when exact solutions do not exist"
+        />
+      </Links>
+
+      <Section>
+        <h3>Key Takeaways</h3>
+        <ul style={{ marginLeft: '1.5rem' }}>
+          <li>One input-output pair → infinitely many matrices</li>
+          <li>n independent pairs → unique n×n matrix</li>
+          <li>Two underdetermined systems → find closest overlap via least squares</li>
+          <li>Residual tells you how compatible the observations are</li>
+        </ul>
+      </Section>
+    </div>
+  )
+}
+
+function UnderDeterminedDemo() {
+  const [input, setInput] = useState([1, 0])
+  const [output, setOutput] = useState([2, 1])
+  const [freeParam, setFreeParam] = useState(0)
+  
+  // Given: input · B = output
+  // For a 2×2 matrix B = [[b00, b01], [b10, b11]]
+  // We have 2 equations, 4 unknowns → 2 degrees of freedom
+  // This is an underdetermined system!
+  
+  // One general solution family (2 DOF):
+  // If input[0] != 0:
+  //   b00 = (output[0] - input[1]*b10) / input[0]
+  //   b01 = (output[1] - input[1]*b11) / input[0]
+  // Let b10 and b11 be free parameters
+  
+  const computeMatrix = (t1, t2) => {
+    if (Math.abs(input[0]) < 0.0001 && Math.abs(input[1]) < 0.0001) {
+      return [[0, 0], [0, 0]] // degenerate
+    }
+    
+    if (Math.abs(input[0]) > 0.0001) {
+      // input[0] != 0, solve for b00, b01
+      const b10 = t1
+      const b11 = t2
+      const b00 = (output[0] - input[1] * b10) / input[0]
+      const b01 = (output[1] - input[1] * b11) / input[0]
+      return [[b00, b01], [b10, b11]]
+    } else {
+      // input[0] ≈ 0, so input[1] must be nonzero
+      const b00 = t1
+      const b01 = t2
+      const b10 = (output[0] - input[0] * b00) / input[1]
+      const b11 = (output[1] - input[0] * b01) / input[1]
+      return [[b00, b01], [b10, b11]]
+    }
+  }
+  
+  const matrix1 = computeMatrix(freeParam, 0)
+  const matrix2 = computeMatrix(0, freeParam)
+  
+  // Verify both matrices produce the correct output
+  const verify = (mat) => [
+    input[0] * mat[0][0] + input[1] * mat[1][0],
+    input[0] * mat[0][1] + input[1] * mat[1][1]
+  ]
+  
+  const output1 = verify(matrix1)
+  const output2 = verify(matrix2)
+  
+  const updateInput = (idx, value) => {
+    const num = parseFloat(value) || 0
+    setInput(prev => prev.map((v, i) => i === idx ? num : v))
+  }
+  
+  const updateOutput = (idx, value) => {
+    const num = parseFloat(value) || 0
+    setOutput(prev => prev.map((v, i) => i === idx ? num : v))
+  }
+  
+  return (
+    <DemoArea>
+      <p style={{ color: 'var(--text-muted)', marginBottom: '1rem' }}>
+        <strong>Set an input-output pair.</strong> Then slide the free parameter to see how infinitely many different matrices all transform the input into the exact same output!
+      </p>
+      
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1.5rem' }}>
+        <div style={{ padding: '1rem', background: 'var(--bg-elevated)', borderRadius: '8px' }}>
+          <h4 style={{ marginTop: 0, marginBottom: '0.5rem', color: 'var(--accent)' }}>Edit Input:</h4>
+          <div style={{ marginBottom: '0.5rem' }}>
+            <span style={{ color: 'var(--accent)', marginRight: '0.5rem', fontWeight: 500 }}>A:</span>
+            [<input type="number" value={input[0]} onChange={(e) => updateInput(0, e.target.value)} style={{ width: '50px', margin: '0 4px' }} />,
+            <input type="number" value={input[1]} onChange={(e) => updateInput(1, e.target.value)} style={{ width: '50px', margin: '0 4px' }} />]
+          </div>
+        </div>
+        
+        <div style={{ padding: '1rem', background: 'var(--bg-elevated)', borderRadius: '8px' }}>
+          <h4 style={{ marginTop: 0, marginBottom: '0.5rem', color: 'var(--success)' }}>Edit Output:</h4>
+          <div style={{ marginBottom: '0.5rem' }}>
+            <span style={{ color: 'var(--success)', marginRight: '0.5rem', fontWeight: 500 }}>C:</span>
+            [<input type="number" value={output[0]} onChange={(e) => updateOutput(0, e.target.value)} style={{ width: '50px', margin: '0 4px' }} />,
+            <input type="number" value={output[1]} onChange={(e) => updateOutput(1, e.target.value)} style={{ width: '50px', margin: '0 4px' }} />]
+          </div>
+        </div>
+      </div>
+      
+      <div style={{ marginBottom: '1.5rem', padding: '1rem', background: 'rgba(245, 158, 11, 0.1)', borderRadius: '8px', border: '1px solid var(--warning)' }}>
+        <label style={{ color: 'var(--warning)', fontSize: '0.9rem', display: 'block', marginBottom: '0.75rem', fontWeight: 500 }}>
+          Free Parameter (pick any value):
+        </label>
+        <input type="range" min="-5" max="5" step="0.1" value={freeParam}
+          onChange={(e) => setFreeParam(parseFloat(e.target.value))} style={{ width: '100%' }} />
+        <div style={{ color: 'var(--text-muted)', fontSize: '0.8rem', textAlign: 'center', marginTop: '0.5rem' }}>
+          t = {freeParam.toFixed(1)}
+        </div>
+      </div>
+      
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem', marginBottom: '1.5rem' }}>
+        {[
+          { title: 'Matrix 1 (varying first free param)', mat: matrix1, out: output1 },
+          { title: 'Matrix 2 (varying second free param)', mat: matrix2, out: output2 }
+        ].map((item, idx) => (
+          <motion.div key={idx} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: idx * 0.1 }}>
+            <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '0.5rem', fontWeight: 500 }}>{item.title}:</div>
+            <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', justifyContent: 'center', flexWrap: 'wrap' }}>
+              <div style={{ textAlign: 'center' }}>
+                <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>A</div>
+                <div style={{ fontSize: '1rem', fontFamily: 'var(--font-mono)' }}>[{input[0]}, {input[1]}]</div>
+              </div>
+              <div>×</div>
+              <div style={{ textAlign: 'center' }}>
+                <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>B</div>
+                <div style={{ fontFamily: 'var(--font-mono)', background: 'var(--bg-elevated)', padding: '0.4rem 0.6rem', borderRadius: '4px', fontSize: '0.9rem' }}>
+                  <div>[{item.mat[0][0].toFixed(2)}, {item.mat[0][1].toFixed(2)}]</div>
+                  <div>[{item.mat[1][0].toFixed(2)}, {item.mat[1][1].toFixed(2)}]</div>
+                </div>
+              </div>
+              <div>=</div>
+              <div style={{ textAlign: 'center' }}>
+                <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>C (computed)</div>
+                <div style={{ fontSize: '1rem', fontFamily: 'var(--font-mono)', color: 'var(--success)', fontWeight: 500 }}>
+                  [{item.out[0].toFixed(2)}, {item.out[1].toFixed(2)}]
+                </div>
+              </div>
+            </div>
+            <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', textAlign: 'center', marginTop: '0.3rem' }}>
+              Match target? {Math.abs(item.out[0] - output[0]) < 0.01 && Math.abs(item.out[1] - output[1]) < 0.01 ? '✓' : '✗'}
+            </div>
+          </motion.div>
+        ))}
+      </div>
+      
+      <div style={{ textAlign: 'center', padding: '1rem', background: 'rgba(34, 197, 94, 0.1)', borderRadius: '8px', border: '1px solid var(--success)' }}>
+        <p style={{ margin: 0, color: 'var(--success)', fontWeight: 500 }}>
+          ✅ <strong>Both matrices produce the exact same output!</strong>
+        </p>
+        <p style={{ margin: '0.5rem 0 0 0', fontSize: '0.85rem', color: 'var(--text-muted)' }}>
+          Slide the free parameter to generate infinitely many different matrices that all satisfy A · B = C
+        </p>
+      </div>
+      
+      <p style={{ color: 'var(--warning)', marginTop: '1rem', fontSize: '0.9rem', textAlign: 'center' }}>
+        ⚠️ One input-output pair is not enough information to uniquely determine a matrix!<br/>
+        This is why we need <strong>multiple independent pairs.</strong>
+      </p>
+    </DemoArea>
+  )
+}
+
+function MatrixSolver() {
+  const [inputs, setInputs] = useState({ a1: [1, 0], a2: [0, 1], c1: [2, 1], c2: [1, 3] })
+  const [error, setError] = useState(null)
+  const [showMath, setShowMath] = useState(false)
+  
+  const result = useMemo(() => {
+    const { a1, a2, c1, c2 } = inputs
+    const det = a1[0] * a2[1] - a1[1] * a2[0]
+    if (Math.abs(det) < 0.0001) { setError('Input vectors are linearly dependent'); return null }
+    setError(null)
+    const invInput = [[a2[1] / det, -a1[1] / det], [-a2[0] / det, a1[0] / det]]
+    return [
+      [invInput[0][0] * c1[0] + invInput[0][1] * c2[0], invInput[0][0] * c1[1] + invInput[0][1] * c2[1]],
+      [invInput[1][0] * c1[0] + invInput[1][1] * c2[0], invInput[1][0] * c1[1] + invInput[1][1] * c2[1]]
+    ]
+  }, [inputs])
+  
+  const updateVector = (key, idx, value) => {
+    const num = parseFloat(value) || 0
+    setInputs(prev => ({ ...prev, [key]: prev[key].map((v, i) => i === idx ? num : v) }))
+  }
+  
+  const VectorInput = ({ label, vecKey, color }) => (
+    <div style={{ marginBottom: '0.5rem' }}>
+      <span style={{ color, marginRight: '0.5rem', fontWeight: 500 }}>{label}:</span>
+      [<input type="number" value={inputs[vecKey][0]} onChange={(e) => updateVector(vecKey, 0, e.target.value)} style={{ width: '50px', margin: '0 4px' }} />,
+      <input type="number" value={inputs[vecKey][1]} onChange={(e) => updateVector(vecKey, 1, e.target.value)} style={{ width: '50px', margin: '0 4px' }} />]
+    </div>
+  )
+  
+  return (
+    <DemoArea>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1.5rem', width: '100%', textAlign: 'left' }}>
+        <div>
+          <h4 style={{ marginTop: 0, marginBottom: '0.5rem' }}>Input Vectors</h4>
+          <VectorInput label="A₁" vecKey="a1" color="var(--accent)" />
+          <VectorInput label="A₂" vecKey="a2" color="var(--accent)" />
+        </div>
+        <div>
+          <h4 style={{ marginTop: 0, marginBottom: '0.5rem' }}>Output Vectors</h4>
+          <VectorInput label="C₁" vecKey="c1" color="var(--success)" />
+          <VectorInput label="C₂" vecKey="c2" color="var(--success)" />
+        </div>
+      </div>
+      
+      <Code>{`| ${inputs.a1[0]} ${inputs.a1[1]} |       | ${inputs.c1[0]} ${inputs.c1[1]} |
+| ${inputs.a2[0]} ${inputs.a2[1]} | · B = | ${inputs.c2[0]} ${inputs.c2[1]} |
+
+B = inv(A) · C`}</Code>
+      
+      {error ? (
+        <div style={{ color: 'var(--error)', marginTop: '1rem', padding: '0.5rem 1rem', background: 'rgba(239, 68, 68, 0.1)', borderRadius: '4px' }}>❌ {error}</div>
+      ) : result && (
+        <motion.div key={JSON.stringify(result)} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} style={{ marginTop: '1.5rem', textAlign: 'center' }}>
+          <div style={{ color: 'var(--text-muted)', marginBottom: '0.5rem' }}>Solution Matrix B:</div>
+          <div style={{ fontFamily: 'var(--font-mono)', fontSize: '1.2rem', background: 'var(--bg-elevated)', padding: '1rem', borderRadius: '8px', display: 'inline-block' }}>
+            <div>[ {result[0][0].toFixed(2)}, {result[0][1].toFixed(2)} ]</div>
+            <div>[ {result[1][0].toFixed(2)}, {result[1][1].toFixed(2)} ]</div>
+          </div>
+          
+          <button onClick={() => setShowMath(!showMath)} style={{
+            marginTop: '1rem', padding: '0.5rem 1rem', background: 'var(--accent)', color: 'white',
+            border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '0.85rem'
+          }}>
+            {showMath ? '🔍 Hide' : '🔍 Show'} Calculation Steps
+          </button>
+          
+          {showMath && (
+            <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} style={{ marginTop: '1rem', textAlign: 'left' }}>
+              <Code>{`Step 1: Form input & output matrices
+A = | ${inputs.a1[0]} ${inputs.a1[1]} |,  C = | ${inputs.c1[0]} ${inputs.c1[1]} |
+    | ${inputs.a2[0]} ${inputs.a2[1]} |       | ${inputs.c2[0]} ${inputs.c2[1]} |
+
+Step 2: Compute det(A) = ${(inputs.a1[0] * inputs.a2[1] - inputs.a1[1] * inputs.a2[0]).toFixed(3)}
+
+Step 3: Compute A⁻¹ using 2×2 formula:
+A⁻¹ = (1/det) × | ${inputs.a2[1].toFixed(3)} ${(-inputs.a1[1]).toFixed(3)} |
+                | ${(-inputs.a2[0]).toFixed(3)} ${inputs.a1[0].toFixed(3)} |
+
+Step 4: B = A⁻¹ · C (matrix multiplication)`}</Code>
+            </motion.div>
+          )}
+        </motion.div>
+      )}
+    </DemoArea>
+  )
+}
+
+function OverlapFinder() {
+  const [system1, setSystem1] = useState({ input: [1, 0], output: [2, 1] })
+  const [system2, setSystem2] = useState({ input: [0, 1], output: [1, 3] })
+  const [showMath, setShowMath] = useState(false)
+  
+  const result = useMemo(() => {
+    const A = [system1.input, system2.input]
+    const C = [system1.output, system2.output]
+    
+    // Pseudoinverse for 2x2: (A^T A)^-1 A^T
+    const AtA = [
+      [A[0][0]*A[0][0] + A[1][0]*A[1][0], A[0][0]*A[0][1] + A[1][0]*A[1][1]],
+      [A[0][1]*A[0][0] + A[1][1]*A[1][0], A[0][1]*A[0][1] + A[1][1]*A[1][1]]
+    ]
+    const det = AtA[0][0]*AtA[1][1] - AtA[0][1]*AtA[1][0]
+    
+    if (Math.abs(det) < 0.0001) return { error: 'Inputs are linearly dependent' }
+    
+    const AtAinv = [
+      [AtA[1][1]/det, -AtA[0][1]/det],
+      [-AtA[1][0]/det, AtA[0][0]/det]
+    ]
+    
+    // A^T
+    const At = [[A[0][0], A[1][0]], [A[0][1], A[1][1]]]
+    
+    // Pseudoinverse = (A^T A)^-1 A^T
+    const pinv = [
+      [AtAinv[0][0]*At[0][0] + AtAinv[0][1]*At[1][0], AtAinv[0][0]*At[0][1] + AtAinv[0][1]*At[1][1]],
+      [AtAinv[1][0]*At[0][0] + AtAinv[1][1]*At[1][0], AtAinv[1][0]*At[0][1] + AtAinv[1][1]*At[1][1]]
+    ]
+    
+    // B = pinv * C
+    const B = [
+      [pinv[0][0]*C[0][0] + pinv[0][1]*C[1][0], pinv[0][0]*C[0][1] + pinv[0][1]*C[1][1]],
+      [pinv[1][0]*C[0][0] + pinv[1][1]*C[1][0], pinv[1][0]*C[0][1] + pinv[1][1]*C[1][1]]
+    ]
+    
+    // Compute residuals
+    const pred1 = [
+      system1.input[0]*B[0][0] + system1.input[1]*B[1][0],
+      system1.input[0]*B[0][1] + system1.input[1]*B[1][1]
+    ]
+    const pred2 = [
+      system2.input[0]*B[0][0] + system2.input[1]*B[1][0],
+      system2.input[0]*B[0][1] + system2.input[1]*B[1][1]
+    ]
+    
+    const err1 = Math.sqrt(Math.pow(pred1[0]-system1.output[0],2) + Math.pow(pred1[1]-system1.output[1],2))
+    const err2 = Math.sqrt(Math.pow(pred2[0]-system2.output[0],2) + Math.pow(pred2[1]-system2.output[1],2))
+    const totalErr = err1 + err2
+    
+    return { B, err1, err2, totalErr, pred1, pred2, isExact: totalErr < 0.001, pinv }
+  }, [system1, system2])
+  
+  const updateVec = (sys, field, idx, val) => {
+    const setter = sys === 1 ? setSystem1 : setSystem2
+    setter(prev => ({ ...prev, [field]: prev[field].map((v, i) => i === idx ? (parseFloat(val) || 0) : v) }))
+  }
+  
+  const VecInput = ({ label, sys, field, color }) => (
+    <div style={{ marginBottom: '0.5rem' }}>
+      <span style={{ color, fontWeight: 500, marginRight: '0.5rem' }}>{label}:</span>
+      [<input type="number" value={(sys === 1 ? system1 : system2)[field][0]} 
+        onChange={e => updateVec(sys, field, 0, e.target.value)} style={{ width: '50px', margin: '0 4px' }} />,
+      <input type="number" value={(sys === 1 ? system1 : system2)[field][1]}
+        onChange={e => updateVec(sys, field, 1, e.target.value)} style={{ width: '50px', margin: '0 4px' }} />]
+    </div>
+  )
+  
+  return (
+    <DemoArea>
+      <p style={{ color: 'var(--text-muted)', marginBottom: '1rem' }}>
+        Enter two input-output observations. We will find the matrix that best explains both.
+      </p>
+      
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1.5rem', width: '100%', textAlign: 'left' }}>
+        <div style={{ padding: '1rem', background: 'rgba(99, 102, 241, 0.1)', borderRadius: '8px', border: '1px solid var(--accent)' }}>
+          <h4 style={{ marginTop: 0, color: 'var(--accent)' }}>Observation 1: A → C</h4>
+          <VecInput label="A" sys={1} field="input" color="var(--accent)" />
+          <VecInput label="C" sys={1} field="output" color="var(--accent)" />
+        </div>
+        <div style={{ padding: '1rem', background: 'rgba(245, 158, 11, 0.1)', borderRadius: '8px', border: '1px solid var(--warning)' }}>
+          <h4 style={{ marginTop: 0, color: 'var(--warning)' }}>Observation 2: D → E</h4>
+          <VecInput label="D" sys={2} field="input" color="var(--warning)" />
+          <VecInput label="E" sys={2} field="output" color="var(--warning)" />
+        </div>
+      </div>
+      
+      {result.error ? (
+        <div style={{ color: 'var(--error)', marginTop: '1rem' }}>❌ {result.error}</div>
+      ) : (
+        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} style={{ marginTop: '1.5rem' }}>
+          <div style={{ textAlign: 'center', marginBottom: '1rem' }}>
+            <div style={{ color: 'var(--text-muted)', marginBottom: '0.5rem' }}>Best-fit Matrix B:</div>
+            <div style={{ fontFamily: 'var(--font-mono)', fontSize: '1.2rem', background: 'var(--bg-elevated)', padding: '1rem', borderRadius: '8px', display: 'inline-block' }}>
+              <div>[ {result.B[0][0].toFixed(3)}, {result.B[0][1].toFixed(3)} ]</div>
+              <div>[ {result.B[1][0].toFixed(3)}, {result.B[1][1].toFixed(3)} ]</div>
+            </div>
+          </div>
+          
+          {/* Venn-style visualization */}
+          <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '0.5rem', margin: '1.5rem 0' }}>
+            <div style={{ 
+              width: '120px', height: '120px', borderRadius: '50%', 
+              border: '3px solid var(--accent)', 
+              background: result.isExact ? 'rgba(99, 102, 241, 0.2)' : 'transparent',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              marginRight: result.isExact ? '-40px' : '10px',
+              position: 'relative', zIndex: 1
+            }}>
+              <span style={{ color: 'var(--accent)', fontWeight: 500, fontSize: '0.8rem' }}>A→C</span>
+            </div>
+            {!result.isExact && (
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                <div style={{ fontSize: '1.5rem' }}>↔</div>
+                <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>{result.totalErr.toFixed(3)}</div>
+              </div>
+            )}
+            <div style={{ 
+              width: '120px', height: '120px', borderRadius: '50%', 
+              border: '3px solid var(--warning)', 
+              background: result.isExact ? 'rgba(245, 158, 11, 0.2)' : 'transparent',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              marginLeft: result.isExact ? '-40px' : '10px',
+              position: 'relative', zIndex: 0
+            }}>
+              <span style={{ color: 'var(--warning)', fontWeight: 500, fontSize: '0.8rem' }}>D→E</span>
+            </div>
+          </div>
+          
+          <div style={{ textAlign: 'center', padding: '1rem', background: result.isExact ? 'rgba(34, 197, 94, 0.1)' : 'rgba(239, 68, 68, 0.05)', borderRadius: '8px' }}>
+            {result.isExact ? (
+              <div style={{ color: 'var(--success)' }}>
+                ✅ <strong>Perfect overlap!</strong> The same matrix explains both observations exactly.
+              </div>
+            ) : (
+              <div>
+                <div style={{ color: 'var(--warning)', marginBottom: '0.5rem' }}>
+                  ⚠️ <strong>No exact overlap</strong> — this is the closest compromise.
+                </div>
+                <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>
+                  Error from Obs 1: {result.err1.toFixed(4)} | Error from Obs 2: {result.err2.toFixed(4)}
+                </div>
+                <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: '0.5rem' }}>
+                  Predicted C: [{result.pred1[0].toFixed(2)}, {result.pred1[1].toFixed(2)}] vs actual [{system1.output[0]}, {system1.output[1]}]<br/>
+                  Predicted E: [{result.pred2[0].toFixed(2)}, {result.pred2[1].toFixed(2)}] vs actual [{system2.output[0]}, {system2.output[1]}]
+                </div>
+              </div>
+            )}
+          </div>
+          
+          <button onClick={() => setShowMath(!showMath)} style={{
+            marginTop: '1rem', padding: '0.5rem 1rem', background: 'var(--accent)', color: 'white',
+            border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '0.85rem'
+          }}>
+            {showMath ? '🔍 Hide' : '🔍 Show'} Pseudoinverse Calculation
+          </button>
+          
+          {showMath && (
+            <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} style={{ marginTop: '1rem', textAlign: 'left' }}>
+              <Code>{`Step 1: Form stacked system
+A = | ${system1.input[0]} ${system1.input[1]} |,  C = | ${system1.output[0]} ${system1.output[1]} |
+    | ${system2.input[0]} ${system2.input[1]} |       | ${system2.output[0]} ${system2.output[1]} |
+
+Step 2: Compute A^T (transpose)
+A^T = | ${system1.input[0]} ${system2.input[0]} |
+      | ${system1.input[1]} ${system2.input[1]} |
+
+Step 3: Compute normal equations A^T·A and A^T·C
+(These are the "collapsed" overdetermined system)
+
+Step 4: Compute pseudoinverse = (A^T·A)^(-1)·A^T
+
+Step 5: B = pseudoinverse · C`}</Code>
+            </motion.div>
+          )}
+        </motion.div>
+      )}
+    </DemoArea>
+  )
+}
+
+function PseudoinverseComputation({ caseLabel, A, b }) {
+  // Compute pseudoinverse based on matrix shape
+  const m = A.length  // rows
+  const n = A[0].length  // columns
+  
+  const computePseudo = useMemo(() => {
+    try {
+      if (n === 0) return { error: 'Invalid matrix' }
+      
+      // Transpose A
+      const At = A[0].map((_, i) => A.map(row => row[i]))
+      
+      // Compute A^T · A (for tall) or A · A^T (for wide)
+      let squareProduct, isOD
+      
+      if (m >= n) {
+        // Overdetermined or square: use (A^T·A)
+        isOD = true
+        squareProduct = At.map((row, i) => 
+          row.map((_, j) => 
+            At[i].reduce((sum, _, k) => sum + At[i][k] * A[k][j], 0)
+          )
+        )
+      } else {
+        // Underdetermined: use (A·A^T)
+        isOD = false
+        squareProduct = A.map((row, i) =>
+          A[0].map((_, j) =>
+            A.map(r => r[i]).reduce((sum, _, k) => sum + A[k][i] * At[k][j], 0)
+          )
+        )
+      }
+      
+      // Invert the square matrix (2x2 or 1x1)
+      const det = squareProduct[0][0] * (squareProduct[1]?.[1] || 1) - (squareProduct[0][1] || 0) * (squareProduct[1]?.[0] || 0)
+      if (Math.abs(det) < 1e-10) return { error: 'Matrix is singular (linearly dependent)' }
+      
+      let inverse
+      if (squareProduct.length === 1) {
+        inverse = [[1 / squareProduct[0][0]]]
+      } else {
+        inverse = [
+          [squareProduct[1][1] / det, -squareProduct[0][1] / det],
+          [-squareProduct[1][0] / det, squareProduct[0][0] / det]
+        ]
+      }
+      
+      // Compute pseudoinverse
+      let pinv
+      if (isOD) {
+        // (A^T·A)^-1 · A^T
+        pinv = inverse.map((row, i) =>
+          At[0].map((_, j) =>
+            row.reduce((sum, _, k) => sum + inverse[i][k] * At[k][j], 0)
+          )
+        )
+      } else {
+        // A^T · (A·A^T)^-1
+        pinv = At.map((row, i) =>
+          inverse[0].map((_, j) =>
+            row.reduce((sum, _, k) => sum + At[i][k] * inverse[k][j], 0)
+          )
+        )
+      }
+      
+      // Compute pseudoinverse(A) · b to get solution
+      const x = pinv.map(row =>
+        row.reduce((sum, _, j) => sum + row[j] * b[j], 0)
+      )
+      
+      // Compute residual: ||A·x - b||
+      const Ax = A.map(row =>
+        row.reduce((sum, _, j) => sum + row[j] * x[j], 0)
+      )
+      const residual = Math.sqrt(b.reduce((sum, bi, i) => sum + Math.pow(Ax[i] - bi, 2), 0))
+      
+      return { pinv, x, Ax, residual, isOD }
+    } catch (e) {
+      return { error: 'Computation error' }
+    }
+  }, [A, b, m, n])
+  
+  if (computePseudo.error) {
+    return (
+      <div style={{ marginTop: '1rem', padding: '0.75rem', background: 'rgba(239, 68, 68, 0.1)', borderRadius: '4px', color: 'var(--error)', fontSize: '0.85rem' }}>
+        ❌ {computePseudo.error}
+      </div>
+    )
+  }
+  
+  return (
+    <div style={{ marginTop: '1rem', padding: '1rem', background: 'rgba(59, 130, 246, 0.05)', borderRadius: '4px', border: '1px solid rgba(59, 130, 246, 0.2)' }}>
+      <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '0.75rem', fontWeight: 500 }}>
+        📊 Result (computed in real-time):
+      </div>
+      
+      {/* Display what's happening */}
+      <div style={{ display: 'grid', gridTemplateColumns: computePseudo.pinv?.[0]?.length > 2 ? '1fr 1fr' : '1fr', gap: '0.75rem', marginBottom: '0.75rem' }}>
+        <div style={{ padding: '0.75rem', background: 'rgba(99, 102, 241, 0.1)', borderRadius: '4px' }}>
+          <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginBottom: '0.4rem' }}>📥 Target Vector b:</div>
+          <div style={{ fontFamily: 'var(--font-mono)', fontSize: '0.9rem', color: 'var(--accent)', fontWeight: 500 }}>
+            {JSON.stringify(b.map(x => x.toFixed(2)))}
+          </div>
+          <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', marginTop: '0.3rem' }}>The right-hand side we want to match</div>
+        </div>
+        
+        <div style={{ padding: '0.75rem', background: 'rgba(34, 197, 94, 0.1)', borderRadius: '4px' }}>
+          <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginBottom: '0.4rem' }}>✅ Solution x = A⁺ · b:</div>
+          <div style={{ fontFamily: 'var(--font-mono)', fontSize: '0.9rem', color: 'var(--success)', fontWeight: 500 }}>
+            {JSON.stringify(computePseudo.x.map(x => x.toFixed(3)))}
+          </div>
+          <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', marginTop: '0.3rem' }}>The best solution (via pseudoinverse)</div>
+        </div>
+      </div>
+      
+      <div style={{ padding: '0.75rem', background: 'rgba(245, 158, 11, 0.1)', borderRadius: '4px', marginBottom: '0.75rem' }}>
+        <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginBottom: '0.4rem' }}>📤 Predicted output A · x:</div>
+        <div style={{ fontFamily: 'var(--font-mono)', fontSize: '0.9rem', color: 'var(--warning)', fontWeight: 500 }}>
+          {JSON.stringify(computePseudo.Ax.map(x => x.toFixed(3)))}
+        </div>
+        <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', marginTop: '0.3rem' }}>
+          Target was: {JSON.stringify(b.map(x => x.toFixed(2)))} — did we get close?
+        </div>
+      </div>
+      
+      <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', padding: '0.5rem', background: 'rgba(0,0,0,0.1)', borderRadius: '4px', fontFamily: 'var(--font-mono)' }}>
+        <strong>Residual error:</strong> {computePseudo.residual.toFixed(4)} {computePseudo.residual < 0.001 ? '✓ Perfect!' : '(No exact solution exists)'}
+      </div>
+    </div>
+  )
+}
+
+function PseudoinverseBuilder() {
+  const [showFormula, setShowFormula] = useState('normal')
+  const [caseInputs, setCaseInputs] = useState({
+    'Square & Invertible': { A: [[1, 2], [3, 4]], b: [5, 6] },
+    'Overdetermined (Tall)': { A: [[1, 0], [0, 1], [1, 1]], b: [1, 2, 3] },
+    'Underdetermined (Wide)': { A: [[1, 0, 1]], b: [5] }
+  })
+  
+  const updateCaseInput = (caseLabel, rowIdx, colIdx, value) => {
+    setCaseInputs(prev => ({
+      ...prev,
+      [caseLabel]: {
+        ...prev[caseLabel],
+        A: prev[caseLabel].A.map((r, i) => 
+          i === rowIdx ? r.map((v, j) => j === colIdx ? parseFloat(value) || 0 : v) : r
+        )
+      }
+    }))
+  }
+  
+  const updateCaseOutput = (caseLabel, idx, value) => {
+    setCaseInputs(prev => ({
+      ...prev,
+      [caseLabel]: {
+        ...prev[caseLabel],
+        b: prev[caseLabel].b.map((v, i) => i === idx ? parseFloat(value) || 0 : v)
+      }
+    }))
+  }
+  
+  // Visualize how Moore-Penrose handles different matrix shapes
+  const cases = [
+    {
+      label: 'Square & Invertible',
+      shape: '2×2',
+      formula: 'A⁺ = A⁻¹',
+      desc: 'Regular inverse works; pseudoinverse = inverse'
+    },
+    {
+      label: 'Overdetermined (Tall)',
+      shape: '3×2',
+      formula: 'A⁺ = (A^T·A)^(-1)·A^T',
+      desc: 'More constraints than unknowns; minimizes ||A·x - b||²'
+    },
+    {
+      label: 'Underdetermined (Wide)',
+      shape: '2×3',
+      formula: 'A⁺ = A^T·(A·A^T)^(-1)',
+      desc: 'Fewer constraints; returns minimum-norm solution'
+    }
+  ]
+  
+  const MatrixEditor = ({ caseLabel, isInput = true }) => {
+    const matrix = isInput ? caseInputs[caseLabel].A : [caseInputs[caseLabel].b]
+    const label = isInput ? 'Matrix A' : 'Vector b'
+    const color = isInput ? 'var(--accent)' : 'var(--success)'
+    
+    return (
+      <div style={{ marginTop: '0.75rem', padding: '0.75rem', background: 'rgba(0,0,0,0.05)', borderRadius: '4px' }}>
+        <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '0.5rem', fontWeight: 500 }}>{label}:</div>
+        {matrix.map((row, rIdx) => (
+          <div key={rIdx} style={{ display: 'flex', gap: '4px', marginBottom: '4px', justifyContent: 'center' }}>
+            {row.map((val, cIdx) => (
+              <input
+                key={`${rIdx}-${cIdx}`}
+                type="number"
+                value={val}
+                onChange={(e) => isInput 
+                  ? updateCaseInput(caseLabel, rIdx, cIdx, e.target.value)
+                  : updateCaseOutput(caseLabel, cIdx, e.target.value)
+                }
+                style={{ width: '45px', padding: '4px', fontSize: '0.85rem', textAlign: 'center' }}
+              />
+            ))}
+          </div>
+        ))}
+      </div>
+    )
+  }
+  
+  return (
+    <DemoArea>
+
+[remaining lines unchanged]
+      <Section title="The Moore-Penrose Recipe: From Intuition to Formula">
+        <Callout type="analogy" title="The Problem We're Solving">
+          <p>
+            A regular <strong>matrix inverse</strong> (A⁻¹) only works if A is square and full-rank. 
+            But we have tall matrices, wide matrices, and rank-deficient matrices. We need a tool that works for <em>anything</em>.
+          </p>
+          <p style={{ marginTop: '0.5rem', color: 'var(--text-muted)' }}>
+            The Moore-Penrose pseudoinverse is that universal tool. It's like a "fix-it-all" button that works on any matrix shape.
+          </p>
+        </Callout>
+
+        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
+          <Collapsible title="🧠 Intuition: Why Transpose Matters">
+            <Callout type="analogy">
+              <p><strong>The Core Trick:</strong> Multiply A by its transpose A^T.</p>
+              <p style={{ marginTop: '0.5rem' }}>
+                Think of it like this: if you have a <em>tall</em> matrix (more rows than columns), 
+                it is "stretched down". But when you multiply it by its <em>transpose</em> (flipped version), 
+                you are combining information across all rows, which <em>transforms</em> it into a square matrix!
+              </p>
+            </Callout>
+
+            <Code>{`Tall matrix A (3 equations, 2 unknowns):
+| a b |
+| c d |  ← 3 rows, 2 columns
+| e f |
+
+A^T (transpose):
+| a c e |  ← 2 rows, 3 columns
+| b d f |
+
+A^T · A = (2 rows × 3 columns) · (3 rows × 2 columns)
+        = 2 rows × 2 columns ✓ SQUARE!
+
+Now we can invert it.`}</Code>
+
+            <p style={{ marginTop: '1rem', color: 'var(--text-muted)', fontSize: '0.9rem' }}>
+              <strong>Why this works:</strong> Multiplying by A^T "mixes" all the equations together, 
+              condensing the tall system into a smaller square one. You lose information, but in a principled way — 
+              you are literally solving a "summarized" version of the system.
+            </p>
+          </Collapsible>
+        </motion.div>
+
+        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }}>
+          <Collapsible title="📐 Step-by-Step: The Recipe Broken Down">
+            <Section title="For Tall/Square Matrices (More or equal rows than columns)">
+              <Callout type="analogy" title="The Problem: More Equations Than Unknowns">
+                <p>
+                  Imagine you have 3 data points but want to fit a line (2 unknowns: slope and intercept). 
+                  A perfect line through all 3 points probably doesn't exist. So what do you do?
+                </p>
+                <p style={{ marginTop: '0.5rem' }}>
+                  <strong>Answer:</strong> Find the line that is "closest" to all points — minimize the 
+                  total squared error: <code>minimize (y₁ - ŷ₁)² + (y₂ - ŷ₂)² + (y₃ - ŷ₃)²</code>
+                </p>
+                <p style={{ marginTop: '0.5rem', color: 'var(--text-muted)' }}>
+                  This is <strong>least squares</strong> fitting. In matrix form: <code>minimize ||A·x - b||²</code>
+                </p>
+              </Callout>
+
+              <Collapsible title="🔑 The Bridge: From Least Squares to the Normal Equations">
+                <p style={{ marginBottom: '1rem' }}>
+                  Here's where the magic happens. To find the x that minimizes ||A·x - b||², mathematicians use calculus:
+                </p>
+
+                <Code>{`Goal: minimize ||A·x - b||²
+
+This is equivalent to finding where the derivative = 0.
+
+Taking the derivative with respect to x and setting it to 0:
+d/dx ||A·x - b||² = 0
+
+This simplifies to:
+A^T · A · x = A^T · b
+
+These are called the NORMAL EQUATIONS.`}</Code>
+
+                <Callout type="analogy" title="Intuition: Why A^T Appears">
+                  <p>
+                    When you have an overdetermined system (more equations than unknowns), 
+                    there's no way to make <code>A·x = b</code> exactly true. But you <em>can</em> 
+                    find the best compromise.
+                  </p>
+                  <p style={{ marginTop: '0.5rem' }}>
+                    Multiplying both sides by A^T is like "voting" or "averaging" across all the equations. 
+                    It transforms the problem into one you <em>can</em> solve exactly:
+                  </p>
+                  <Code>{`Overdetermined (no exact solution):
+A · x = b       ← Can't solve exactly
+
+Normal equations (solvable!):
+A^T · A · x = A^T · b    ← Now we CAN solve exactly!`}</Code>
+                  <p style={{ marginTop: '0.5rem', color: 'var(--text-muted)' }}>
+                    The solution to the normal equations is the least-squares solution.
+                  </p>
+                </Callout>
+              </Collapsible>
+
+              <Collapsible title="📐 From Normal Equations to the Pseudoinverse Formula">
+                <p style={{ marginBottom: '1rem' }}>
+                  Now that we have the normal equations, solving for x is straightforward:
+                </p>
+
+                <Code>{`Normal equations:
+A^T · A · x = A^T · b
+
+Solve for x by multiplying both sides by (A^T·A)^(-1):
+(A^T·A)^(-1) · A^T · A · x = (A^T·A)^(-1) · A^T · b
+
+Left side simplifies (inverse cancels):
+I · x = (A^T·A)^(-1) · A^T · b
+
+Therefore:
+x = (A^T·A)^(-1) · A^T · b
+
+Notice the pattern?
+x = [(A^T·A)^(-1)·A^T] · b
+
+The bracketed part IS the pseudoinverse!
+A⁺ = (A^T·A)^(-1)·A^T
+
+So: x = A⁺ · b`}</Code>
+
+                <Callout type="warning" title="🎯 The Key Insight">
+                  <p>
+                    <strong>The pseudoinverse formula is not magical — it's the solution to the normal equations!</strong>
+                  </p>
+                  <p style={{ marginTop: '0.5rem' }}>
+                    The chain of logic is:
+                  </p>
+                  <ol style={{ marginLeft: '1.5rem', marginTop: '0.5rem' }}>
+                    <li><strong>Problem:</strong> Minimize ||A·x - b||² (least squares)</li>
+                    <li><strong>Method:</strong> Use calculus to get normal equations: A^T·A·x = A^T·b</li>
+                    <li><strong>Solution:</strong> Solve by multiplying by (A^T·A)^(-1): x = (A^T·A)^(-1)·A^T·b</li>
+                    <li><strong>Recognition:</strong> The coefficient in front of b is the pseudoinverse!</li>
+                  </ol>
+                </Callout>
+              </Collapsible>
+
+              <Code>{`A⁺ = (A^T·A)^(-1)·A^T
+
+This formula is the direct consequence of solving the least-squares problem.`}</Code>
+            </Section>
+
+            <Section title="For Wide Matrices (Fewer rows than columns)">
+              <Code>{`A⁺ = A^T·(A·A^T)^(-1)
+
+Step 1: Transpose A → A^T
+Step 2: Multiply A by A^T → A·A^T  [NOW SQUARE]
+Step 3: Invert that square matrix → (A·A^T)^(-1)
+Step 4: Left-multiply by A^T → A^T·(A·A^T)^(-1)
+
+This gives the minimum-norm solution.`}</Code>
+
+              <Callout type="analogy">
+                <p>
+                  When you have <strong>fewer constraints than unknowns</strong> (underdetermined system), 
+                  there are infinite solutions. The pseudoinverse says:
+                </p>
+                <p style={{ marginTop: '0.5rem' }}>
+                  <em>"Among all those infinite solutions, give me the one with the smallest magnitude."</em>
+                </p>
+                <p style={{ marginTop: '0.5rem', color: 'var(--text-muted)' }}>
+                  It is picking the "simplest" or "most economical" solution — think of it like 
+                  finding the solution that requires the least "effort" or uses the least energy.
+                </p>
+              </Callout>
+            </Section>
+          </Collapsible>
+        </motion.div>
+
+        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
+          <Collapsible title="🔍 Why A^T·A Becomes Invertible">
+            <p style={{ marginBottom: '1rem' }}>
+              This is the <em>key insight</em> that makes everything work.
+            </p>
+
+            <Callout type="analogy" title="The Dimension Trick">
+              <p>
+                When A is tall (m × n with m {'>'} n), it has too many rows. But A^T·A is always n × n 
+                (square), <em>regardless</em> of how many rows A has!
+              </p>
+            </Callout>
+
+            <Code>{`Example: Overdetermined system
+A is 3 rows × 2 columns (3 equations, 2 unknowns)
+
+A^T is 2 rows × 3 columns
+
+A^T·A is (2×3) · (3×2) = 2 × 2 ✓ SQUARE!
+
+Numerically:
+A = | 1 2 |
+    | 3 4 |
+    | 5 6 |
+
+A^T = | 1 3 5 |
+      | 2 4 6 |
+
+A^T·A = | 1·1+3·3+5·5  1·2+3·4+5·6 |   | 35  44 |
+        | 2·1+4·3+6·5  2·2+4·4+6·6 | = | 44  56 |
+
+This 2×2 matrix CAN be inverted (assuming full rank).`}</Code>
+
+            <p style={{ marginTop: '1rem', color: 'var(--text-muted)', fontSize: '0.9rem' }}>
+              <strong>Why invertible?</strong> A^T·A is guaranteed to be invertible if A has full column rank 
+              (all its columns are linearly independent). In practice, this means your input vectors are not redundant.
+            </p>
+          </Collapsible>
+        </motion.div>
+
+        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.25 }}>
+          <Collapsible title="✨ The Magic Properties (Why It's 'Pseudo')">
+            <p>
+              A pseudoinverse is not a true inverse, but it satisfies these 4 properties that <strong>uniquely define it</strong>:
+            </p>
+
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '1rem', marginTop: '1rem' }}>
+              {[
+                { prop: 'A·A⁺·A = A', meaning: 'Recovering the original: multiply A by pseudo, then back by A, get A' },
+                { prop: 'A⁺·A·A⁺ = A⁺', meaning: 'The pseudo stays stable under this operation' },
+                { prop: '(A·A⁺)ᵀ = A·A⁺', meaning: 'This product is symmetric (its transpose equals itself)' },
+                { prop: '(A⁺·A)ᵀ = A⁺·A', meaning: 'This product is also symmetric' },
+              ].map((item, i) => (
+                <motion.div
+                  key={i}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.3 + i * 0.05 }}
+                  style={{
+                    padding: '1rem',
+                    background: 'linear-gradient(135deg, rgba(168, 85, 247, 0.1), rgba(59, 130, 246, 0.1))',
+                    borderRadius: '8px',
+                    border: '1px solid rgba(168, 85, 247, 0.3)'
+                  }}
+                >
+                  <div style={{ fontFamily: 'var(--font-mono)', fontSize: '0.95rem', color: 'var(--accent)', marginBottom: '0.5rem', fontWeight: 600 }}>
+                    {item.prop}
+                  </div>
+                  <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)', lineHeight: 1.4 }}>
+                    {item.meaning}
+                  </div>
+                </motion.div>
+              ))}
+            </div>
+
+            <Callout type="warning" style={{ marginTop: '1.5rem' }}>
+              <p>
+                <strong>Why only 4 properties?</strong> Because these 4 conditions, taken together, 
+                completely specify a unique matrix for <em>any</em> A. No other matrix satisfies all four!
+              </p>
+            </Callout>
+          </Collapsible>
+        </motion.div>
+
+        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}>
+          <Collapsible title="🎯 Two Interpretations: Least Squares vs. Minimum Norm">
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem', marginTop: '1rem' }}>
+              <div style={{ padding: '1.5rem', background: 'rgba(239, 68, 68, 0.1)', borderRadius: '8px', border: '1px solid rgba(239, 68, 68, 0.3)' }}>
+                <h4 style={{ marginTop: 0, color: 'rgb(239, 68, 68)' }}>Overdetermined (Tall)</h4>
+                <Code language="text">{`A⁺ = (A^T·A)^(-1)·A^T
+
+GOAL: Minimize error
+||A·x - b||² is minimized
+
+You are fitting the best solution
+that is "closest" to satisfying
+all the equations.`}</Code>
+              </div>
+
+              <div style={{ padding: '1.5rem', background: 'rgba(34, 197, 94, 0.1)', borderRadius: '8px', border: '1px solid rgba(34, 197, 94, 0.3)' }}>
+                <h4 style={{ marginTop: 0, color: 'rgb(34, 197, 94)' }}>Underdetermined (Wide)</h4>
+                <Code language="text">{`A⁺ = A^T·(A·A^T)^(-1)
+
+GOAL: Minimize magnitude
+||x||² is minimized
+
+Among infinite solutions,
+you pick the one with the
+smallest norm (simplest).`}</Code>
+              </div>
+            </div>
+
+            <Callout type="analogy" style={{ marginTop: '1.5rem' }}>
+              <p><strong>Unifying Interpretation:</strong></p>
+              <p style={{ marginTop: '0.5rem' }}>
+                The pseudoinverse always solves: <em>x = A⁺·b</em> where x is the solution that 
+                simultaneously minimizes error (if overdetermined) AND minimizes norm (if underdetermined). 
+                It is the Goldilocks of solutions — not too big, not too wrong.
+              </p>
+            </Callout>
+          </Collapsible>
+        </motion.div>
+      </Section>
+      
+      <Section title="Interactive: Three Cases">
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '1rem', width: '100%' }}>
+          {cases.map((c, i) => (
+            <motion.div 
+              key={i}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: i * 0.1 }}
+              style={{
+                padding: '1.5rem',
+                background: 'var(--bg-elevated)',
+                borderRadius: '8px',
+                border: showFormula === c.label ? '2px solid var(--success)' : '2px solid var(--accent)',
+                cursor: 'pointer',
+                transition: 'all 0.2s',
+              }}
+              onClick={() => setShowFormula(c.label)}
+            >
+              <div style={{ fontWeight: 600, marginBottom: '0.5rem', color: 'var(--accent)' }}>{c.label}</div>
+              <div style={{ fontSize: '1.1rem', fontFamily: 'var(--font-mono)', marginBottom: '0.5rem', color: 'var(--success)' }}>
+                {c.shape} matrix
+              </div>
+              <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)', lineHeight: 1.4 }}>
+                {c.desc}
+              </div>
+              <div style={{ fontSize: '0.9rem', fontFamily: 'var(--font-mono)', marginTop: '0.5rem', color: 'var(--warning)' }}>
+                {c.formula}
+              </div>
+              
+              {showFormula === c.label && (
+                <motion.div 
+                  initial={{ opacity: 0, height: 0 }} 
+                  animate={{ opacity: 1, height: 'auto' }}
+                  style={{ marginTop: '1rem', borderTop: '1px solid var(--text-muted)', paddingTop: '0.75rem' }}
+                >
+                  <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginBottom: '0.5rem' }}>Edit matrix and vector values to see the pseudoinverse compute in real time:</div>
+                  <MatrixEditor caseLabel={c.label} isInput={true} />
+                  <MatrixEditor caseLabel={c.label} isInput={false} />
+                  <PseudoinverseComputation 
+                    caseLabel={c.label} 
+                    A={caseInputs[c.label].A} 
+                    b={caseInputs[c.label].b}
+                  />
+                </motion.div>
+              )}
+            </motion.div>
+          ))}
+        </div>
+      </Section>
+      
+      <Section title="Why These Formulas Work">
+        <p>
+          The trick is <strong>adding A^T into the mix</strong>. By multiplying A by its transpose, we turn any shape into a square matrix — which we <em>can</em> invert!
+        </p>
+        <Code>{`Underdetermined (2×3):        Overdetermined (3×2):
+A is 2 wide, 3 tall           A is 3 tall, 2 wide
+
+A·A^T gives 2×2 ✓             A^T·A gives 2×2 ✓
+(invertible!)                 (invertible!)
+
+A⁺ = A^T·(A·A^T)^(-1)         A⁺ = (A^T·A)^(-1)·A^T`}</Code>
+      </Section>
+      
+      <Section title="Why is It Called 'Pseudo'?">
+        <ul style={{ marginLeft: '1.5rem' }}>
+          <li><strong>It's not a true inverse.</strong> If A is non-square, A⁺·A ≠ I (identity)</li>
+          <li><strong>But it satisfies 4 magic properties:</strong>
+            <ul style={{ marginLeft: '1.5rem', marginTop: '0.5rem' }}>
+              <li>A·A⁺·A = A</li>
+              <li>A⁺·A·A⁺ = A⁺</li>
+              <li>(A·A⁺)^T = A·A⁺  (symmetric)</li>
+              <li>(A⁺·A)^T = A⁺·A  (symmetric)</li>
+            </ul>
+          </li>
+          <li><strong>These 4 properties uniquely define it</strong> — no other matrix satisfies all of them</li>
+        </ul>
+      </Section>
+      
+      <Section title="The Deep Connection: Least Squares & Minimum Norm">
+        <Callout type="analogy">
+          <p>
+            When you use the pseudoinverse to solve an underdetermined system:
+          </p>
+          <ul style={{ marginLeft: '1.5rem' }}>
+            <li>You are finding the solution with the <strong>smallest norm</strong> (magnitude)</li>
+            <li>Among all solutions, the pseudoinverse picks the "simplest" one</li>
+            <li>When overdetermined, it picks the solution that <strong>minimizes total squared error</strong></li>
+          </ul>
+          <p style={{ marginTop: '1rem' }}>
+            It's optimal in <em>two different senses</em> — that's why it's so powerful.
+          </p>
+        </Callout>
+      </Section>
+    </DemoArea>
+  )
+}
