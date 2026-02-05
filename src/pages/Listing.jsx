@@ -4,6 +4,12 @@ import { Container, Header, Card } from '../components/SharedUI.jsx'
 
 const tutorials = [
   {
+    id: 'lead-lag-correlation',
+    title: 'Lead-Lag Correlation',
+    description: 'Discover predictive relationships in time series data with cross-correlation analysis',
+    tags: ['time series', 'correlation', 'quantitative finance']
+  },
+  {
     id: 'vector-projection',
     title: 'Vector Projection',
     description: 'Interactive exploration of projecting one 2D vector onto another with drag-and-drop visualization',
