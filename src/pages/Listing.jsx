@@ -11,6 +11,9 @@ const tutorials = [
     icon: '🧪',
     gradient: 'from-violet-500 to-purple-600',
     shadowColor: 'shadow-violet-500/30',
+    glowColor: 'rgba(139, 92, 246, 0.4)',
+    readTime: '8 min',
+    difficulty: 2,
     featured: true,
   },
   {
@@ -21,6 +24,9 @@ const tutorials = [
     icon: '📈',
     gradient: 'from-blue-500 to-cyan-500',
     shadowColor: 'shadow-blue-500/30',
+    glowColor: 'rgba(59, 130, 246, 0.4)',
+    readTime: '10 min',
+    difficulty: 3,
   },
   {
     id: 'vector-projection',
@@ -30,6 +36,9 @@ const tutorials = [
     icon: '↗️',
     gradient: 'from-emerald-500 to-teal-500',
     shadowColor: 'shadow-emerald-500/30',
+    glowColor: 'rgba(16, 185, 129, 0.4)',
+    readTime: '8 min',
+    difficulty: 1,
   },
   {
     id: 'matrix-discovery',
@@ -39,6 +48,9 @@ const tutorials = [
     icon: '🔢',
     gradient: 'from-orange-500 to-amber-500',
     shadowColor: 'shadow-orange-500/30',
+    glowColor: 'rgba(249, 115, 22, 0.4)',
+    readTime: '12 min',
+    difficulty: 2,
   },
   {
     id: 'matrix-from-vectors',
@@ -48,6 +60,9 @@ const tutorials = [
     icon: '🎯',
     gradient: 'from-pink-500 to-rose-500',
     shadowColor: 'shadow-pink-500/30',
+    glowColor: 'rgba(236, 72, 153, 0.4)',
+    readTime: '10 min',
+    difficulty: 2,
   },
   {
     id: 'least-squares',
@@ -57,38 +72,45 @@ const tutorials = [
     icon: '📊',
     gradient: 'from-indigo-500 to-blue-500',
     shadowColor: 'shadow-indigo-500/30',
+    glowColor: 'rgba(99, 102, 241, 0.4)',
+    readTime: '15 min',
+    difficulty: 3,
   }
 ]
 
-// Semantic tag color system
+// Semantic tag color system - filled backgrounds
 const tagColors = {
-  // Status tags
-  'experimental': 'bg-orange-50 text-orange-700 border-orange-200',
-  'meta': 'bg-violet-50 text-violet-700 border-violet-200',
-  'tutorial-engine': 'bg-purple-50 text-purple-700 border-purple-200',
+  // Status tags - special styling
+  'experimental': 'bg-gradient-to-r from-orange-500 to-amber-500 text-white border-transparent',
+  'meta': 'bg-violet-100 text-violet-700 border-violet-200',
+  'tutorial-engine': 'bg-purple-100 text-purple-700 border-purple-200',
   
   // Difficulty
-  'fundamentals': 'bg-emerald-50 text-emerald-700 border-emerald-200',
+  'fundamentals': 'bg-emerald-100 text-emerald-700 border-emerald-200',
   
-  // Topics - linear algebra family
-  'linear algebra': 'bg-indigo-50 text-indigo-700 border-indigo-200',
-  'vectors': 'bg-indigo-50 text-indigo-700 border-indigo-200',
-  'matrices': 'bg-indigo-50 text-indigo-700 border-indigo-200',
+  // Topics - linear algebra family (indigo/purple)
+  'linear algebra': 'bg-indigo-100 text-indigo-700 border-indigo-200',
+  'vectors': 'bg-indigo-100 text-indigo-700 border-indigo-200',
+  'matrices': 'bg-indigo-100 text-indigo-700 border-indigo-200',
   
-  // Topics - statistics family
-  'statistics': 'bg-violet-50 text-violet-700 border-violet-200',
-  'regression': 'bg-violet-50 text-violet-700 border-violet-200',
-  'correlation': 'bg-violet-50 text-violet-700 border-violet-200',
+  // Topics - statistics family (violet)
+  'statistics': 'bg-violet-100 text-violet-700 border-violet-200',
+  'regression': 'bg-violet-100 text-violet-700 border-violet-200',
+  'correlation': 'bg-violet-100 text-violet-700 border-violet-200',
   
-  // Topics - time series / finance
-  'time series': 'bg-cyan-50 text-cyan-700 border-cyan-200',
-  'quantitative finance': 'bg-cyan-50 text-cyan-700 border-cyan-200',
+  // Topics - time series / finance (cyan)
+  'time series': 'bg-cyan-100 text-cyan-700 border-cyan-200',
+  'quantitative finance': 'bg-cyan-100 text-cyan-700 border-cyan-200',
   
   // Topics - other
-  'clustering': 'bg-amber-50 text-amber-700 border-amber-200',
-  'visualization': 'bg-pink-50 text-pink-700 border-pink-200',
-  'optimization': 'bg-green-50 text-green-700 border-green-200',
+  'clustering': 'bg-amber-100 text-amber-700 border-amber-200',
+  'visualization': 'bg-pink-100 text-pink-700 border-pink-200',
+  'optimization': 'bg-green-100 text-green-700 border-green-200',
 }
+
+// Difficulty display
+const difficultyLabels = ['Beginner', 'Intermediate', 'Advanced']
+const difficultyStars = (level) => '★'.repeat(level) + '☆'.repeat(3 - level)
 
 function TutorialCard({ tutorial, featured = false }) {
   return (
@@ -98,31 +120,43 @@ function TutorialCard({ tutorial, featured = false }) {
     >
       <div className={`
         relative h-full rounded-2xl p-8
-        bg-white/80 backdrop-blur-sm
+        bg-white/90 backdrop-blur-sm
         border border-gray-100
         shadow-[0_1px_3px_rgba(0,0,0,0.05)]
-        hover:shadow-[0_20px_40px_rgba(99,102,241,0.15)]
-        hover:border-indigo-200
-        hover:-translate-y-1
+        hover:shadow-[0_25px_50px_rgba(99,102,241,0.15)]
+        hover:border-indigo-300
+        hover:scale-[1.02]
         transition-all duration-300 ease-out
         cursor-pointer
         overflow-hidden
       `}>
         {/* Gradient reveal on hover */}
-        <div className="absolute inset-0 bg-gradient-to-br from-indigo-50/50 via-transparent to-purple-50/50 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+        <div className="absolute inset-0 bg-gradient-to-br from-indigo-50/60 via-transparent to-purple-50/60 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+        
+        {/* Glowing border on hover */}
+        <div 
+          className="absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+          style={{
+            boxShadow: `inset 0 0 0 1px ${tutorial.glowColor?.replace('0.4', '0.3') || 'rgba(99, 102, 241, 0.3)'}`
+          }}
+        />
         
         {/* Content */}
         <div className="relative">
-          {/* Icon with glow */}
-          <div className={`
-            w-12 h-12 rounded-xl bg-gradient-to-br ${tutorial.gradient}
-            flex items-center justify-center mb-6
-            transition-all duration-300
-            group-hover:-translate-y-0.5 group-hover:scale-110
-            shadow-lg ${tutorial.shadowColor}
-            group-hover:shadow-xl
-          `}>
-            <span className="text-2xl">{tutorial.icon}</span>
+          {/* Icon with animated glow */}
+          <div 
+            className={`
+              w-12 h-12 rounded-xl bg-gradient-to-br ${tutorial.gradient}
+              flex items-center justify-center mb-6
+              transition-all duration-300
+              group-hover:-translate-y-1 group-hover:scale-110
+              shadow-lg
+            `}
+            style={{
+              boxShadow: `0 4px 14px ${tutorial.glowColor || 'rgba(99, 102, 241, 0.3)'}`,
+            }}
+          >
+            <span className="text-2xl group-hover:animate-bounce">{tutorial.icon}</span>
           </div>
           
           {/* Title */}
@@ -132,6 +166,17 @@ function TutorialCard({ tutorial, featured = false }) {
           >
             {tutorial.title}
           </h2>
+          
+          {/* Meta row: time + difficulty */}
+          <div className="flex items-center gap-3 mt-2 text-xs text-gray-500">
+            <span className="flex items-center gap-1">
+              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              {tutorial.readTime}
+            </span>
+            <span className="text-amber-500">{difficultyStars(tutorial.difficulty)}</span>
+          </div>
           
           {/* Description */}
           <p className="text-gray-600 mt-3 leading-7 text-[15px]">
@@ -143,11 +188,12 @@ function TutorialCard({ tutorial, featured = false }) {
             {tutorial.tags.map(tag => (
               <span 
                 key={tag}
-                className={`inline-flex items-center px-3 py-1 
-                  rounded-full text-xs font-medium
+                className={`inline-flex items-center px-2.5 py-1 
+                  rounded-full text-[11px] font-semibold
                   border
-                  transition-colors duration-200
-                  ${tagColors[tag] || 'bg-gray-50 text-gray-600 border-gray-200'}`}
+                  transition-all duration-200
+                  hover:scale-105
+                  ${tagColors[tag] || 'bg-gray-100 text-gray-600 border-gray-200'}`}
               >
                 {tag}
               </span>
@@ -168,6 +214,13 @@ const heroStyles = `
   .animate-gradient {
     animation: gradient-shift 15s ease infinite;
     background-size: 200% 200%;
+  }
+  @keyframes subtle-bounce {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-2px); }
+  }
+  .group:hover .group-hover\\:animate-bounce {
+    animation: subtle-bounce 0.5s ease-in-out;
   }
 `
 
@@ -251,8 +304,9 @@ export default function Listing() {
         </div>
         
         {/* "Continue your journey" section - delighter */}
-        <div className="mt-12 bg-gradient-to-r from-violet-50 to-indigo-50 rounded-2xl p-8 border border-violet-100/50">
-          <div className="flex items-start justify-between">
+        <div className="mt-12 bg-gradient-to-r from-violet-50 to-indigo-50 rounded-2xl p-8 border border-violet-100/50 
+          hover:shadow-lg hover:shadow-violet-500/10 transition-shadow duration-300">
+          <div className="flex items-start justify-between flex-wrap gap-6">
             <div>
               <p className="text-sm font-medium text-violet-600 mb-2 flex items-center gap-2">
                 <span>✨</span> Recommended path
@@ -265,21 +319,22 @@ export default function Listing() {
             </div>
             <Link 
               to="/tutorial/vector-projection"
-              className="flex-shrink-0 px-5 py-2.5 bg-indigo-600 text-white text-sm font-medium rounded-lg
-                hover:bg-indigo-700 transition-colors shadow-lg shadow-indigo-500/25"
+              className="flex-shrink-0 px-6 py-3 bg-indigo-600 text-white text-sm font-medium rounded-xl
+                hover:bg-indigo-700 hover:scale-105 transition-all duration-200 
+                shadow-lg shadow-indigo-500/25"
             >
               Get started →
             </Link>
           </div>
         </div>
         
-        {/* Social proof - fake but signals activity */}
+        {/* Social proof */}
         <div className="mt-8 flex items-center justify-center gap-3 text-sm text-gray-400">
           <div className="flex -space-x-2">
-            <div className="w-6 h-6 rounded-full bg-gradient-to-br from-pink-400 to-rose-500 ring-2 ring-white" />
-            <div className="w-6 h-6 rounded-full bg-gradient-to-br from-blue-400 to-cyan-500 ring-2 ring-white" />
-            <div className="w-6 h-6 rounded-full bg-gradient-to-br from-amber-400 to-orange-500 ring-2 ring-white" />
-            <div className="flex items-center justify-center w-6 h-6 rounded-full bg-gray-100 ring-2 ring-white text-[10px] text-gray-500">+12</div>
+            <div className="w-7 h-7 rounded-full bg-gradient-to-br from-pink-400 to-rose-500 ring-2 ring-white" />
+            <div className="w-7 h-7 rounded-full bg-gradient-to-br from-blue-400 to-cyan-500 ring-2 ring-white" />
+            <div className="w-7 h-7 rounded-full bg-gradient-to-br from-amber-400 to-orange-500 ring-2 ring-white" />
+            <div className="flex items-center justify-center w-7 h-7 rounded-full bg-gray-100 ring-2 ring-white text-[10px] font-medium text-gray-500">+12</div>
           </div>
           <span>15 others learning right now</span>
         </div>

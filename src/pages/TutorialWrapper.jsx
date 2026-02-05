@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import MatrixDiscovery from '../tutorials/MatrixDiscovery.jsx'
 import MatrixFromVectors from '../tutorials/MatrixFromVectors.jsx'
@@ -26,7 +26,8 @@ const tutorialMeta = {
     gradient: 'from-orange-500 to-amber-500',
     glowColor: 'rgba(249, 115, 22, 0.4)',
     readTime: '12 min',
-    exercises: 2
+    exercises: 2,
+    sections: ['Introduction', 'Input-Output Pairs', 'Matrix Solving', 'Exercises']
   },
   'matrix-from-vectors': {
     title: 'Matrix from Vectors',
@@ -35,7 +36,8 @@ const tutorialMeta = {
     gradient: 'from-pink-500 to-rose-500',
     glowColor: 'rgba(236, 72, 153, 0.4)',
     readTime: '10 min',
-    exercises: 3
+    exercises: 3,
+    sections: ['Introduction', 'Vectors', 'Transformations', 'Visualization']
   },
   'least-squares': {
     title: 'Least Squares Regression',
@@ -44,7 +46,8 @@ const tutorialMeta = {
     gradient: 'from-indigo-500 to-blue-500',
     glowColor: 'rgba(99, 102, 241, 0.4)',
     readTime: '15 min',
-    exercises: 2
+    exercises: 2,
+    sections: ['Introduction', 'The Problem', 'Minimizing Error', 'Interactive Demo']
   },
   'vector-projection': {
     title: 'Vector Projection',
@@ -53,7 +56,8 @@ const tutorialMeta = {
     gradient: 'from-emerald-500 to-teal-500',
     glowColor: 'rgba(16, 185, 129, 0.4)',
     readTime: '8 min',
-    exercises: 1
+    exercises: 1,
+    sections: ['Introduction', 'The Math', 'Interactive Demo']
   },
   'lead-lag-correlation': {
     title: 'Lead-Lag Correlation',
@@ -62,7 +66,8 @@ const tutorialMeta = {
     gradient: 'from-blue-500 to-cyan-500',
     glowColor: 'rgba(59, 130, 246, 0.4)',
     readTime: '10 min',
-    exercises: 2
+    exercises: 2,
+    sections: ['Introduction', 'Cross-Correlation', 'Time Lags', 'Applications']
   },
   'engine-demo': {
     title: 'Tutorial Engine Demo',
@@ -72,7 +77,8 @@ const tutorialMeta = {
     glowColor: 'rgba(139, 92, 246, 0.4)',
     readTime: '8 min',
     exercises: 3,
-    isExperimental: true
+    isExperimental: true,
+    sections: ['Live State Bindings', 'Conditional Content', 'Computed Expressions', 'Layout Components', 'Code Blocks', 'AI Annotations']
   }
 }
 
@@ -102,6 +108,77 @@ function ProgressBar() {
         className="h-full bg-gradient-to-r from-indigo-500 to-violet-500 transition-all duration-150"
         style={{ width: `${progress}%` }}
       />
+    </div>
+  )
+}
+
+// Section progress indicator (side dots)
+function SectionProgress({ sections, glowColor }) {
+  const [activeSection, setActiveSection] = useState(0)
+  const [progress, setProgress] = useState(0)
+  
+  useEffect(() => {
+    const handleScroll = () => {
+      const windowHeight = window.innerHeight
+      const documentHeight = document.documentElement.scrollHeight - windowHeight
+      const scrollTop = window.scrollY
+      const progress = scrollTop / documentHeight
+      
+      // Calculate which section we're in
+      const sectionIndex = Math.min(
+        Math.floor(progress * sections.length),
+        sections.length - 1
+      )
+      setActiveSection(sectionIndex)
+      setProgress(progress)
+    }
+    
+    window.addEventListener('scroll', handleScroll)
+    return () => window.removeEventListener('scroll', handleScroll)
+  }, [sections.length])
+  
+  return (
+    <div className="fixed right-6 top-1/2 -translate-y-1/2 z-40 hidden lg:block">
+      <div className="flex flex-col items-center gap-3">
+        {sections.map((section, i) => (
+          <div key={i} className="group relative flex items-center">
+            {/* Tooltip */}
+            <div className="absolute right-full mr-3 px-2 py-1 bg-gray-900 text-white text-xs rounded 
+              opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none">
+              {section}
+            </div>
+            
+            {/* Dot */}
+            <button
+              onClick={() => {
+                const targetScroll = (i / sections.length) * (document.documentElement.scrollHeight - window.innerHeight)
+                window.scrollTo({ top: targetScroll, behavior: 'smooth' })
+              }}
+              className={`
+                w-2.5 h-2.5 rounded-full transition-all duration-300
+                ${i === activeSection 
+                  ? 'scale-125' 
+                  : i < activeSection 
+                    ? 'bg-indigo-400' 
+                    : 'bg-gray-300 hover:bg-gray-400'
+                }
+              `}
+              style={i === activeSection ? { 
+                backgroundColor: glowColor?.replace('0.4', '1') || '#6366f1',
+                boxShadow: `0 0 10px ${glowColor || 'rgba(99, 102, 241, 0.5)'}`
+              } : {}}
+            />
+          </div>
+        ))}
+        
+        {/* Progress line */}
+        <div className="absolute top-0 bottom-0 right-[4px] w-0.5 bg-gray-200 -z-10 rounded-full overflow-hidden">
+          <div 
+            className="w-full bg-gradient-to-b from-indigo-500 to-violet-500 transition-all duration-150"
+            style={{ height: `${progress * 100}%` }}
+          />
+        </div>
+      </div>
     </div>
   )
 }
@@ -191,6 +268,12 @@ function TutorialHeader({ meta }) {
             </svg>
             <span>{meta.exercises} interactive exercises</span>
           </div>
+          <div className="flex items-center gap-2">
+            <svg className="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 10h16M4 14h16M4 18h16" />
+            </svg>
+            <span>{meta.sections?.length || 0} sections</span>
+          </div>
         </div>
         
         {/* Annotation hint */}
@@ -249,6 +332,7 @@ export default function TutorialWrapper() {
       <div className="min-h-screen bg-[#fafafa]">
         <ProgressBar />
         <TutorialHeader meta={meta} />
+        {meta.sections && <SectionProgress sections={meta.sections} glowColor={meta.glowColor} />}
         <TutorialComponent />
       </div>
     )
@@ -258,6 +342,7 @@ export default function TutorialWrapper() {
     <div className="min-h-screen bg-[#fafafa]">
       <ProgressBar />
       <TutorialHeader meta={meta} />
+      {meta.sections && <SectionProgress sections={meta.sections} glowColor={meta.glowColor} />}
       
       <AnnotatableContent 
         tutorialId={tutorialId}
