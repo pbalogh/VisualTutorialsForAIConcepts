@@ -147,6 +147,7 @@ function CovarianceVsCorrelation({ data1, data2, scale1 = 1, scale2 = 1 }) {
 function GeometricVisualization({ x, y }) {
   const width = 350;
   const height = 280;
+  const padding = 40;
   const cx = width / 2;
   const cy = height / 2;
   const scale = 80;
