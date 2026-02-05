@@ -329,18 +329,20 @@ function generateAnnotationId() {
 function insertAnnotation(content, selectedText, annotation, action) {
   const newContent = JSON.parse(JSON.stringify(content))
   const annotationId = generateAnnotationId()
+  const sourceId = `source-${annotationId}` // ID for the source text location
   
-  // Add ID to the annotation for linking
+  // Add ID to the annotation for linking, and sourceId for back-linking
   annotation.props = annotation.props || {}
   annotation.props.id = annotationId
+  annotation.props.sourceId = sourceId
   
-  // Create inline marker that links to the annotation
+  // Create inline marker that links to the annotation (superscript style)
   const inlineMarker = {
-    type: 'AnnotationMarker',
+    type: 'FootnoteRef',
     props: { 
+      id: sourceId,
       targetId: annotationId, 
       type: action,
-      label: action === 'branch' ? '🌿' : '💡'
     }
   }
   
@@ -470,17 +472,29 @@ function insertAnnotation(content, selectedText, annotation, action) {
   if (searchResult.found) {
     console.log(`✅ Found text at path: ${searchResult.path.join('.')}`)
     
-    // Insert marker inline with the text
-    // We'll modify the string to include a marker reference
-    const originalText = searchResult.node
-    const markerRef = `[[${annotationId}]]`
+    // Try to insert inline marker by converting the string to an array with marker
+    // This only works if the text is in a children array
+    const parentPath = searchResult.path.slice(0, -1)
+    const textIndex = searchResult.path[searchResult.path.length - 1]
+    const parent = getAtPath(newContent.content, parentPath)
     
-    // For simple string replacement, add marker at end of the text
-    // (A more sophisticated approach would wrap the selected portion)
-    const newText = originalText.replace(
-      selectedText,
-      selectedText + ` `
-    )
+    if (Array.isArray(parent) && typeof textIndex === 'number') {
+      // Replace the string with: [textBefore, selectedText, marker, textAfter]
+      const originalText = parent[textIndex]
+      const selectIndex = originalText.indexOf(selectedText)
+      
+      if (selectIndex !== -1) {
+        const before = originalText.slice(0, selectIndex + selectedText.length)
+        const after = originalText.slice(selectIndex + selectedText.length)
+        
+        // Replace the single string with multiple elements
+        const replacement = [before, inlineMarker]
+        if (after.trim()) replacement.push(after)
+        
+        parent.splice(textIndex, 1, ...replacement)
+        console.log(`✅ Inserted inline marker after "${selectedText.slice(0, 30)}..."`)
+      }
+    }
     
     // Find where to insert the deep dive
     const insertPoint = findInsertionPoint(searchResult.path)

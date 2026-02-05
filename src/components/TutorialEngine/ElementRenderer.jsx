@@ -61,17 +61,58 @@ const componentMap = {
     </button>
   ),
   
+  // Footnote reference - superscript link to footnote (appears inline at source)
+  FootnoteRef: ({ id, targetId, type }) => {
+    const icons = { footnote: '📝', branch: '🌿', ask: '❓', explain: '💡' }
+    return (
+      <sup
+        id={id}
+        onClick={() => {
+          const target = document.getElementById(targetId)
+          if (target) {
+            target.scrollIntoView({ behavior: 'smooth', block: 'center' })
+            target.classList.add('ring-2', 'ring-indigo-400', 'ring-offset-2')
+            setTimeout(() => target.classList.remove('ring-2', 'ring-indigo-400', 'ring-offset-2'), 2000)
+          }
+        }}
+        className="inline-flex items-center justify-center ml-0.5 px-1 py-0.5 
+          text-xs rounded cursor-pointer select-none
+          bg-indigo-100 text-indigo-600 hover:bg-indigo-200 
+          transition-colors align-super"
+        title="Jump to note"
+      >
+        {icons[type] || '📎'}
+      </sup>
+    )
+  },
+  
   // User footnote - personal marginalia augmented by AI
-  Footnote: ({ id, reference, userNote, children }) => (
+  Footnote: ({ id, sourceId, reference, userNote, children }) => (
     <div 
       id={id}
       className="my-6 rounded-xl overflow-hidden border border-slate-200 bg-gradient-to-br from-slate-50 to-gray-50"
     >
-      <div className="px-4 py-2 bg-slate-100 border-b border-slate-200">
+      <div className="px-4 py-2 bg-slate-100 border-b border-slate-200 flex items-center justify-between">
         <div className="flex items-center gap-2 text-sm text-slate-600">
           <span>📝</span>
           <span className="font-medium">Note on "{reference}..."</span>
         </div>
+        {sourceId && (
+          <button
+            onClick={() => {
+              const source = document.getElementById(sourceId)
+              if (source) {
+                source.scrollIntoView({ behavior: 'smooth', block: 'center' })
+                source.classList.add('bg-yellow-200')
+                setTimeout(() => source.classList.remove('bg-yellow-200'), 2000)
+              }
+            }}
+            className="text-xs text-slate-500 hover:text-indigo-600 transition-colors"
+            title="Jump back to source"
+          >
+            ↑ back
+          </button>
+        )}
       </div>
       <div className="p-4 text-slate-700 text-sm leading-relaxed space-y-3">
         {children}
