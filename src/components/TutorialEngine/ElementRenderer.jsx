@@ -269,9 +269,150 @@ const componentMap = {
   ul: ({ children }) => (
     <ul className="list-disc list-inside space-y-2 text-gray-600 my-4 pl-1">{children}</ul>
   ),
+  ol: ({ children }) => (
+    <ol className="list-decimal list-inside space-y-2 text-gray-600 my-4 pl-1">{children}</ol>
+  ),
   li: ({ children }) => (
     <li className="leading-7">{children}</li>
   ),
+  
+  // Definition list - great for term explanations
+  DefinitionList: ({ items }) => (
+    <dl className="my-6 space-y-4">
+      {items?.map((item, i) => (
+        <div key={i} className="border-l-2 border-indigo-200 pl-4">
+          <dt className="font-semibold text-gray-900">{item.term}</dt>
+          <dd className="text-gray-600 mt-1">{item.definition}</dd>
+        </div>
+      ))}
+    </dl>
+  ),
+  
+  // Comparison table - for before/after, pros/cons
+  ComparisonTable: ({ headers, rows }) => (
+    <div className="my-6 overflow-x-auto">
+      <table className="w-full text-sm border-collapse">
+        <thead>
+          <tr className="bg-gray-50">
+            {headers?.map((h, i) => (
+              <th key={i} className="px-4 py-3 text-left font-semibold text-gray-900 border-b border-gray-200">
+                {h}
+              </th>
+            ))}
+          </tr>
+        </thead>
+        <tbody>
+          {rows?.map((row, i) => (
+            <tr key={i} className="border-b border-gray-100 hover:bg-gray-50">
+              {row.map((cell, j) => (
+                <td key={j} className="px-4 py-3 text-gray-600">
+                  {cell}
+                </td>
+              ))}
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  ),
+  
+  // Step-by-step process
+  Steps: ({ steps }) => (
+    <div className="my-6 space-y-4">
+      {steps?.map((step, i) => (
+        <div key={i} className="flex gap-4">
+          <div className="flex-shrink-0 w-8 h-8 rounded-full bg-indigo-100 text-indigo-600 
+            flex items-center justify-center font-bold text-sm">
+            {i + 1}
+          </div>
+          <div className="flex-1 pt-1">
+            {typeof step === 'string' ? (
+              <p className="text-gray-600">{step}</p>
+            ) : (
+              <>
+                <p className="font-medium text-gray-900">{step.title}</p>
+                {step.description && <p className="text-gray-600 mt-1">{step.description}</p>}
+              </>
+            )}
+          </div>
+        </div>
+      ))}
+    </div>
+  ),
+  
+  // Key-value pairs (for showing formulas, properties)
+  KeyValue: ({ label, value, highlight = false }) => (
+    <div className={`flex items-center justify-between py-2 px-4 rounded-lg my-2 ${
+      highlight ? 'bg-indigo-50 border border-indigo-100' : 'bg-gray-50'
+    }`}>
+      <span className="text-gray-600">{label}</span>
+      <span className={`font-mono font-semibold ${highlight ? 'text-indigo-600' : 'text-gray-900'}`}>
+        {value}
+      </span>
+    </div>
+  ),
+  
+  // Highlighted example box
+  Example: ({ title, children }) => (
+    <div className="my-6 rounded-xl border border-amber-200 bg-gradient-to-br from-amber-50 to-orange-50 overflow-hidden">
+      <div className="px-5 py-3 bg-amber-100/50 border-b border-amber-200">
+        <span className="text-sm font-semibold text-amber-800 flex items-center gap-2">
+          <span>📝</span> {title || 'Example'}
+        </span>
+      </div>
+      <div className="p-5 text-gray-700">
+        {children}
+      </div>
+    </div>
+  ),
+  
+  // Formula display (monospace, centered)
+  Formula: ({ children, label }) => (
+    <div className="my-6 text-center">
+      {label && <div className="text-xs text-gray-500 mb-2">{label}</div>}
+      <div className="inline-block px-6 py-4 bg-gray-50 rounded-xl border border-gray-200">
+        <code className="text-lg font-mono text-gray-800">{children}</code>
+      </div>
+    </div>
+  ),
+  
+  // Analogy box - for "think of it like..."
+  Analogy: ({ children }) => (
+    <div className="my-6 p-5 rounded-xl bg-gradient-to-br from-purple-50 to-pink-50 border border-purple-100">
+      <div className="flex items-start gap-3">
+        <span className="text-2xl">🎭</span>
+        <div className="text-gray-700 italic leading-relaxed">
+          {children}
+        </div>
+      </div>
+    </div>
+  ),
+  
+  // Divider with optional label
+  Divider: ({ label }) => (
+    <div className="my-8 flex items-center gap-4">
+      <div className="flex-1 h-px bg-gray-200" />
+      {label && <span className="text-xs text-gray-400 uppercase tracking-wider">{label}</span>}
+      <div className="flex-1 h-px bg-gray-200" />
+    </div>
+  ),
+  
+  // Badge/tag inline
+  Badge: ({ children, color = 'gray' }) => {
+    const colors = {
+      gray: 'bg-gray-100 text-gray-700',
+      blue: 'bg-blue-100 text-blue-700',
+      green: 'bg-green-100 text-green-700',
+      amber: 'bg-amber-100 text-amber-700',
+      red: 'bg-red-100 text-red-700',
+      purple: 'bg-purple-100 text-purple-700',
+    }
+    return (
+      <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${colors[color] || colors.gray}`}>
+        {children}
+      </span>
+    )
+  },
   
   // HTML elements pass through
 }

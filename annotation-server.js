@@ -115,28 +115,41 @@ They want to go deeper on: "${selectedText}"
 Generate a rich, structured educational deep-dive. Return a JSON array of content elements.
 
 Available component types:
+
+BASIC TEXT:
 - { "type": "p", "children": "paragraph text" } — regular paragraph
-- { "type": "Callout", "props": { "type": "info|warning|success|tip" }, "children": "callout text" } — highlighted callout
-- { "type": "Code", "props": { "language": "javascript|python|json" }, "children": "code here" } — code block
-- { "type": "ul", "children": [{ "type": "li", "children": "item" }] } — bullet list
-- { "type": "Blockquote", "children": "key insight or quote" } — pull quote for emphasis
 - { "type": "strong", "children": "bold text" } — inline bold
 - { "type": "em", "children": "italic text" } — inline italic
+- { "type": "code", "children": "inline code" } — inline code
 
-Create a deep-dive that:
-1. Opens with WHY this matters (1 paragraph)
-2. Includes a concrete example or analogy (could be code, a list, or a callout)
-3. Explains connections to other concepts
-4. Ends with a "now you can..." actionable insight (use a tip callout)
+CALLOUTS & HIGHLIGHTS:
+- { "type": "Callout", "props": { "type": "info|warning|success|tip" }, "children": "callout text" }
+- { "type": "Blockquote", "children": "key insight or pull quote" }
+- { "type": "Analogy", "children": "Think of it like..." } — for analogies/metaphors
 
-Return ONLY a valid JSON array like:
-[
-  { "type": "p", "children": "First paragraph..." },
-  { "type": "Callout", "props": { "type": "info" }, "children": "Key insight..." },
-  { "type": "p", "children": "More explanation..." }
-]
+CODE & FORMULAS:
+- { "type": "Code", "props": { "language": "javascript|python|json" }, "children": "code here" }
+- { "type": "Formula", "props": { "label": "optional label" }, "children": "x = y + z" }
 
-No markdown. No preamble. Just the JSON array.`
+STRUCTURED DATA:
+- { "type": "ul", "children": [{ "type": "li", "children": "bullet item" }] } — bullet list
+- { "type": "ol", "children": [{ "type": "li", "children": "numbered item" }] } — numbered list
+- { "type": "Steps", "props": { "steps": ["Step 1", "Step 2"] } } — numbered steps (or { "title": "...", "description": "..." })
+- { "type": "DefinitionList", "props": { "items": [{ "term": "X", "definition": "..." }] } }
+- { "type": "ComparisonTable", "props": { "headers": ["Before", "After"], "rows": [["old", "new"]] } }
+- { "type": "KeyValue", "props": { "label": "Name", "value": "42", "highlight": true } }
+
+EXAMPLES:
+- { "type": "Example", "props": { "title": "Example: ..." }, "children": [...content...] }
+
+Create a deep-dive (4-6 elements) that:
+1. Opens with WHY this matters (paragraph)
+2. Shows a concrete example (Code, Example, Steps, or ComparisonTable)
+3. Provides an analogy or key insight (Analogy, Blockquote)
+4. Lists key takeaways or steps (ul, Steps, or DefinitionList)
+5. Ends with actionable insight (Callout type="tip")
+
+Return ONLY a valid JSON array. No markdown, no preamble, just the JSON array.`
 
       console.log('🤖 Calling AI for structured deep dive...')
       const response = await callAI(systemPrompt, prompt)
