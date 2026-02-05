@@ -234,6 +234,30 @@ Do not use markdown. Do not include preamble. Just answer the question directly.
       }
     }
     
+    // Footnote: User's personal note (no AI)
+    if (action === 'footnote' && question) { // 'question' param holds the footnote text
+      console.log(`📝 Adding user footnote`)
+      
+      return {
+        type: 'Footnote',
+        props: { 
+          id: `footnote-${Date.now()}`,
+          reference: selectedText.slice(0, 30)
+        },
+        children: [
+          {
+            type: 'p',
+            children: question // The footnote text
+          },
+          {
+            type: 'em',
+            props: { className: 'text-gray-400 text-xs block mt-2' },
+            children: `📝 Personal note • ${timestamp}`
+          }
+        ]
+      }
+    }
+    
     return null
     
   } catch (error) {
@@ -538,8 +562,8 @@ const server = http.createServer(async (req, res) => {
         return sendJson(res, 400, { error: 'Missing required fields' })
       }
       
-      if (!['explain', 'branch', 'ask'].includes(action)) {
-        return sendJson(res, 400, { error: 'Action must be explain, branch, or ask' })
+      if (!['explain', 'branch', 'ask', 'footnote'].includes(action)) {
+        return sendJson(res, 400, { error: 'Action must be explain, branch, ask, or footnote' })
       }
       
       if (action === 'ask' && !question) {

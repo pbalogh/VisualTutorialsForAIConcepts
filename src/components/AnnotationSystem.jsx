@@ -102,12 +102,15 @@ export const SelectionPopup = ({
   position, 
   onAction, 
   onClose,
-  actions = ['explain', 'branch', 'ask'] // Added 'ask'
+  actions = ['explain', 'branch', 'ask', 'footnote']
 }) => {
   const popupRef = useRef(null)
   const inputRef = useRef(null)
+  const footnoteInputRef = useRef(null)
   const [isAskExpanded, setIsAskExpanded] = useState(false)
+  const [isFootnoteExpanded, setIsFootnoteExpanded] = useState(false)
   const [question, setQuestion] = useState('')
+  const [footnote, setFootnote] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
 
   useEffect(() => {
@@ -122,6 +125,9 @@ export const SelectionPopup = ({
         if (isAskExpanded) {
           setIsAskExpanded(false)
           setQuestion('')
+        } else if (isFootnoteExpanded) {
+          setIsFootnoteExpanded(false)
+          setFootnote('')
         } else {
           onClose?.()
         }
@@ -134,14 +140,17 @@ export const SelectionPopup = ({
       document.removeEventListener('mousedown', handleClickOutside)
       document.removeEventListener('keydown', handleEscape)
     }
-  }, [onClose, isAskExpanded])
+  }, [onClose, isAskExpanded, isFootnoteExpanded])
 
   // Focus input when expanded
   useEffect(() => {
     if (isAskExpanded && inputRef.current) {
       inputRef.current.focus()
     }
-  }, [isAskExpanded])
+    if (isFootnoteExpanded && footnoteInputRef.current) {
+      footnoteInputRef.current.focus()
+    }
+  }, [isAskExpanded, isFootnoteExpanded])
 
   if (!selection) {
     return null
@@ -154,6 +163,15 @@ export const SelectionPopup = ({
     setIsSubmitting(false)
     setIsAskExpanded(false)
     setQuestion('')
+  }
+
+  const handleFootnoteSubmit = async () => {
+    if (!footnote.trim()) return
+    setIsSubmitting(true)
+    await onAction('footnote', selection, footnote.trim())
+    setIsSubmitting(false)
+    setIsFootnoteExpanded(false)
+    setFootnote('')
   }
 
   const actionConfig = {
@@ -186,6 +204,13 @@ export const SelectionPopup = ({
       hoverText: 'group-hover:text-amber-300',
       hoverBg: 'hover:bg-amber-500/20',
     },
+    footnote: { 
+      icon: '📝', 
+      label: 'Note',
+      restingText: 'text-slate-300/80',
+      hoverText: 'group-hover:text-slate-200',
+      hoverBg: 'hover:bg-slate-500/20',
+    },
   }
 
   return (
@@ -213,6 +238,7 @@ export const SelectionPopup = ({
               const config = actionConfig[action]
               const isDisabled = config?.disabled
               const isAsk = action === 'ask'
+              const isFootnote = action === 'footnote'
               
               return (
                 <button
@@ -221,6 +247,10 @@ export const SelectionPopup = ({
                     if (isDisabled) return
                     if (isAsk) {
                       setIsAskExpanded(!isAskExpanded)
+                      setIsFootnoteExpanded(false)
+                    } else if (isFootnote) {
+                      setIsFootnoteExpanded(!isFootnoteExpanded)
+                      setIsAskExpanded(false)
                     } else {
                       onAction(action, selection)
                     }
@@ -234,6 +264,7 @@ export const SelectionPopup = ({
                     ${i < actions.length - 1 ? 'border-r border-white/10' : ''}
                     ${isDisabled ? 'opacity-50 cursor-not-allowed' : 'active:scale-[0.97]'}
                     ${isAsk && isAskExpanded ? 'bg-amber-500/20' : ''}
+                    ${isFootnote && isFootnoteExpanded ? 'bg-slate-500/20' : ''}
                   `}
                 >
                   <span className={`text-lg transition-transform duration-200 
@@ -283,6 +314,44 @@ export const SelectionPopup = ({
               </div>
               <p className="text-xs text-gray-500 mt-2">
                 Ask any question about "{selection.text?.slice(0, 30)}{selection.text?.length > 30 ? '...' : ''}"
+              </p>
+            </div>
+          )}
+          
+          {/* Expandable footnote input */}
+          {isFootnoteExpanded && (
+            <div className="border-t border-white/10 p-3">
+              <div className="flex gap-2">
+                <textarea
+                  ref={footnoteInputRef}
+                  value={footnote}
+                  onChange={(e) => setFootnote(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) {
+                      e.preventDefault()
+                      handleFootnoteSubmit()
+                    }
+                  }}
+                  placeholder="Add your note..."
+                  rows={2}
+                  className="flex-1 bg-gray-800/50 text-white text-sm px-3 py-2 rounded-lg
+                    border border-white/10 focus:border-slate-400/50 focus:outline-none
+                    placeholder:text-gray-500 resize-none"
+                  disabled={isSubmitting}
+                />
+                <button
+                  onClick={handleFootnoteSubmit}
+                  disabled={!footnote.trim() || isSubmitting}
+                  className="px-3 py-2 bg-slate-500/20 hover:bg-slate-500/30 
+                    text-slate-300 rounded-lg text-sm font-medium self-end
+                    disabled:opacity-50 disabled:cursor-not-allowed
+                    transition-colors"
+                >
+                  {isSubmitting ? '...' : '📌'}
+                </button>
+              </div>
+              <p className="text-xs text-gray-500 mt-2">
+                Your personal note • ⌘+Enter to save
               </p>
             </div>
           )}

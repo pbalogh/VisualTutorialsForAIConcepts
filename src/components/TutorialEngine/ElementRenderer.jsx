@@ -61,6 +61,22 @@ const componentMap = {
     </button>
   ),
   
+  // User footnote - personal marginalia
+  Footnote: ({ id, reference, children }) => (
+    <div 
+      id={id}
+      className="my-4 ml-4 pl-4 border-l-2 border-slate-300 bg-slate-50/50 py-3 pr-4 rounded-r-lg"
+    >
+      <div className="flex items-center gap-2 text-xs text-slate-500 mb-2">
+        <span>📝</span>
+        <span>Note on: "{reference}..."</span>
+      </div>
+      <div className="text-slate-700 text-sm">
+        {children}
+      </div>
+    </div>
+  ),
+  
   // Layout helpers
   Fragment: React.Fragment,
   
