@@ -33,6 +33,34 @@ const componentMap = {
   Annotation,
   FootnoteAnnotation,
   
+  // Annotation marker - links to a deep dive or explanation
+  AnnotationMarker: ({ targetId, type, label }) => (
+    <button
+      onClick={() => {
+        const target = document.getElementById(targetId)
+        if (target) {
+          target.scrollIntoView({ behavior: 'smooth', block: 'center' })
+          target.classList.add('ring-2', 'ring-violet-400', 'ring-offset-2')
+          setTimeout(() => {
+            target.classList.remove('ring-2', 'ring-violet-400', 'ring-offset-2')
+          }, 2000)
+        }
+      }}
+      className={`
+        inline-flex items-center justify-center
+        w-5 h-5 ml-1 rounded-full text-xs
+        transition-all hover:scale-110
+        ${type === 'branch' 
+          ? 'bg-violet-100 text-violet-600 hover:bg-violet-200' 
+          : 'bg-blue-100 text-blue-600 hover:bg-blue-200'
+        }
+      `}
+      title={type === 'branch' ? 'Go to Deep Dive' : 'Go to Explanation'}
+    >
+      {label}
+    </button>
+  ),
+  
   // Layout helpers
   Fragment: React.Fragment,
   
@@ -203,10 +231,13 @@ const componentMap = {
   ),
   
   // Collapsible deep dive section with spring animation feel
-  DeepDive: ({ title, children, defaultOpen = false }) => {
+  DeepDive: ({ title, children, defaultOpen = false, id }) => {
     const [isOpen, setIsOpen] = React.useState(defaultOpen)
     return (
-      <div className="my-8 rounded-xl overflow-hidden border border-violet-200 shadow-sm bg-white">
+      <div 
+        id={id}
+        className="my-8 rounded-xl overflow-hidden border border-violet-200 shadow-sm bg-white transition-all"
+      >
         <button
           onClick={() => setIsOpen(!isOpen)}
           className="w-full px-5 py-4 bg-gradient-to-r from-violet-50 to-purple-50 text-left font-medium text-violet-900 

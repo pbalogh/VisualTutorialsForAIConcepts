@@ -212,63 +212,202 @@ Return ONLY a valid JSON array. No markdown, no preamble, just the JSON array.`
 }
 
 /**
+ * Generate a unique ID for annotations
+ */
+function generateAnnotationId() {
+  return `ann-${Date.now()}-${Math.random().toString(36).substr(2, 6)}`
+}
+
+/**
  * Find and insert annotation into content tree
+ * Also inserts an inline marker at the source text location
  */
 function insertAnnotation(content, selectedText, annotation, action) {
   const newContent = JSON.parse(JSON.stringify(content))
+  const annotationId = generateAnnotationId()
   
-  function searchAndInsert(node, parent, key) {
+  // Add ID to the annotation for linking
+  annotation.props = annotation.props || {}
+  annotation.props.id = annotationId
+  
+  // Create inline marker that links to the annotation
+  const inlineMarker = {
+    type: 'AnnotationMarker',
+    props: { 
+      targetId: annotationId, 
+      type: action,
+      label: action === 'branch' ? '🌿' : '💡'
+    }
+  }
+  
+  let insertionPoint = null // Track where we'll insert the deep dive
+  
+  /**
+   * Deep search for text in any string property
+   */
+  function findTextInNode(node, path = []) {
     if (typeof node === 'string') {
       if (node.includes(selectedText)) {
-        return { found: true }
+        return { found: true, path, node }
       }
       return { found: false }
     }
     
     if (Array.isArray(node)) {
       for (let i = 0; i < node.length; i++) {
-        const result = searchAndInsert(node[i], node, i)
-        if (result.found && !result.inserted) {
-          node.splice(i + 1, 0, annotation)
-          return { found: true, inserted: true }
-        }
-        if (result.inserted) return result
+        const result = findTextInNode(node[i], [...path, i])
+        if (result.found) return result
       }
       return { found: false }
     }
     
     if (node && typeof node === 'object') {
-      if (node.children) {
-        const result = searchAndInsert(node.children, node, 'children')
-        if (result.found || result.inserted) return result
+      // Check children
+      if (node.children !== undefined) {
+        const result = findTextInNode(node.children, [...path, 'children'])
+        if (result.found) return result
       }
-      if (node.props?.children) {
-        const result = searchAndInsert(node.props.children, node.props, 'children')
-        if (result.found || result.inserted) return result
+      
+      // Check props.children
+      if (node.props?.children !== undefined) {
+        const result = findTextInNode(node.props.children, [...path, 'props', 'children'])
+        if (result.found) return result
+      }
+      
+      // Check props.steps (for Steps component)
+      if (node.props?.steps) {
+        for (let i = 0; i < node.props.steps.length; i++) {
+          const step = node.props.steps[i]
+          if (typeof step === 'string' && step.includes(selectedText)) {
+            return { found: true, path: [...path, 'props', 'steps', i], node: step }
+          }
+          if (typeof step === 'object') {
+            if (step.title?.includes(selectedText)) {
+              return { found: true, path: [...path, 'props', 'steps', i, 'title'], node: step.title }
+            }
+            if (step.description?.includes(selectedText)) {
+              return { found: true, path: [...path, 'props', 'steps', i, 'description'], node: step.description }
+            }
+          }
+        }
+      }
+      
+      // Check props.items (for DefinitionList)
+      if (node.props?.items) {
+        for (let i = 0; i < node.props.items.length; i++) {
+          const item = node.props.items[i]
+          if (item.term?.includes(selectedText)) {
+            return { found: true, path: [...path, 'props', 'items', i, 'term'], node: item.term }
+          }
+          if (item.definition?.includes(selectedText)) {
+            return { found: true, path: [...path, 'props', 'items', i, 'definition'], node: item.definition }
+          }
+        }
+      }
+      
+      // Check props.rows (for ComparisonTable)
+      if (node.props?.rows) {
+        for (let i = 0; i < node.props.rows.length; i++) {
+          for (let j = 0; j < node.props.rows[i].length; j++) {
+            if (typeof node.props.rows[i][j] === 'string' && node.props.rows[i][j].includes(selectedText)) {
+              return { found: true, path: [...path, 'props', 'rows', i, j], node: node.props.rows[i][j] }
+            }
+          }
+        }
       }
     }
     
     return { found: false }
   }
   
-  if (newContent.content?.children && Array.isArray(newContent.content.children)) {
-    for (let i = 0; i < newContent.content.children.length; i++) {
-      const section = newContent.content.children[i]
-      const result = searchAndInsert(section, newContent.content.children, i)
-      if (result.found && !result.inserted) {
-        newContent.content.children.splice(i + 1, 0, {
-          type: 'Section',
-          props: { title: action === 'branch' ? '' : undefined },
-          children: [annotation]
-        })
-        console.log(`✅ Inserted annotation as new section after index ${i}`)
-        return newContent
-      }
-      if (result.inserted) {
-        console.log(`✅ Inserted annotation inline`)
-        return newContent
+  /**
+   * Get value at path in object
+   */
+  function getAtPath(obj, path) {
+    let current = obj
+    for (const key of path) {
+      if (current === undefined) return undefined
+      current = current[key]
+    }
+    return current
+  }
+  
+  /**
+   * Set value at path in object
+   */
+  function setAtPath(obj, path, value) {
+    let current = obj
+    for (let i = 0; i < path.length - 1; i++) {
+      current = current[path[i]]
+    }
+    current[path[path.length - 1]] = value
+  }
+  
+  /**
+   * Find the nearest Section ancestor and insert after the element containing the text
+   */
+  function findInsertionPoint(path) {
+    // Walk up the path to find a Section or the element we should insert after
+    for (let i = path.length - 1; i >= 0; i--) {
+      const partialPath = path.slice(0, i)
+      const node = getAtPath(newContent.content, partialPath)
+      
+      if (node?.type === 'Section') {
+        // Insert at end of this section's children
+        return { sectionPath: partialPath, insertIndex: node.children?.length || 0 }
       }
     }
+    return null
+  }
+  
+  // Search for the text
+  const searchResult = findTextInNode(newContent.content)
+  
+  if (searchResult.found) {
+    console.log(`✅ Found text at path: ${searchResult.path.join('.')}`)
+    
+    // Insert marker inline with the text
+    // We'll modify the string to include a marker reference
+    const originalText = searchResult.node
+    const markerRef = `[[${annotationId}]]`
+    
+    // For simple string replacement, add marker at end of the text
+    // (A more sophisticated approach would wrap the selected portion)
+    const newText = originalText.replace(
+      selectedText,
+      selectedText + ` `
+    )
+    
+    // Find where to insert the deep dive
+    const insertPoint = findInsertionPoint(searchResult.path)
+    
+    if (insertPoint) {
+      // Insert the annotation in the section
+      const section = getAtPath(newContent.content, insertPoint.sectionPath)
+      if (!section.children) section.children = []
+      
+      // Find the index of the element containing our text and insert after it
+      const containingElementIndex = searchResult.path[insertPoint.sectionPath.length + 1]
+      if (typeof containingElementIndex === 'number') {
+        section.children.splice(containingElementIndex + 1, 0, annotation)
+        console.log(`✅ Inserted annotation after element at index ${containingElementIndex}`)
+      } else {
+        section.children.push(annotation)
+        console.log(`✅ Appended annotation to section`)
+      }
+    } else {
+      // Fallback: insert after the current top-level section
+      const topLevelIndex = searchResult.path[1] // path[0] is 'children'
+      if (typeof topLevelIndex === 'number' && newContent.content.children) {
+        newContent.content.children.splice(topLevelIndex + 1, 0, {
+          type: 'Section',
+          children: [annotation]
+        })
+        console.log(`✅ Inserted as new section after index ${topLevelIndex}`)
+      }
+    }
+    
+    return newContent
   }
   
   console.log(`⚠️ Text "${selectedText.slice(0, 30)}..." not found, appending to end`)
