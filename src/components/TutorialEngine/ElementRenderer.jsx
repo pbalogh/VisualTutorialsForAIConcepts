@@ -61,17 +61,19 @@ const componentMap = {
     </button>
   ),
   
-  // User footnote - personal marginalia
-  Footnote: ({ id, reference, children }) => (
+  // User footnote - personal marginalia augmented by AI
+  Footnote: ({ id, reference, userNote, children }) => (
     <div 
       id={id}
-      className="my-4 ml-4 pl-4 border-l-2 border-slate-300 bg-slate-50/50 py-3 pr-4 rounded-r-lg"
+      className="my-6 rounded-xl overflow-hidden border border-slate-200 bg-gradient-to-br from-slate-50 to-gray-50"
     >
-      <div className="flex items-center gap-2 text-xs text-slate-500 mb-2">
-        <span>📝</span>
-        <span>Note on: "{reference}..."</span>
+      <div className="px-4 py-2 bg-slate-100 border-b border-slate-200">
+        <div className="flex items-center gap-2 text-sm text-slate-600">
+          <span>📝</span>
+          <span className="font-medium">Note on "{reference}..."</span>
+        </div>
       </div>
-      <div className="text-slate-700 text-sm">
+      <div className="p-4 text-slate-700 text-sm leading-relaxed space-y-3">
         {children}
       </div>
     </div>

@@ -234,25 +234,55 @@ Do not use markdown. Do not include preamble. Just answer the question directly.
       }
     }
     
-    // Footnote: User's personal note (no AI)
-    if (action === 'footnote' && question) { // 'question' param holds the footnote text
-      console.log(`📝 Adding user footnote`)
+    // Footnote: User's note, augmented by AI
+    if (action === 'footnote' && question) { // 'question' param holds the user's note
+      const prompt = `The user is reading this passage:
+"${context}"
+
+They selected the phrase: "${selectedText}"
+
+They wrote this personal note/thought: "${question}"
+
+Your job is to AUGMENT their note - expand on their idea, make connections, add depth.
+Keep their original insight as the starting point, then build on it.
+
+Guidelines:
+- Start by acknowledging their insight (e.g., "Great observation!" or "Yes, and...")
+- Expand with 1-2 paragraphs of relevant context
+- Make connections to related concepts in the tutorial
+- If they noted a question or confusion, address it
+- Keep it conversational and encouraging
+
+Do not use markdown. Write naturally.`
+
+      console.log(`📝 Augmenting user footnote: "${question.slice(0, 50)}..."`)
+      const augmented = await callAI(systemPrompt, prompt)
+      const paragraphs = augmented.trim().split('\n\n').filter(p => p.trim())
       
       return {
         type: 'Footnote',
         props: { 
           id: `footnote-${Date.now()}`,
-          reference: selectedText.slice(0, 30)
+          reference: selectedText.slice(0, 30),
+          userNote: question
         },
         children: [
           {
-            type: 'p',
-            children: question // The footnote text
+            type: 'Callout',
+            props: { type: 'info', className: 'mb-3 text-sm' },
+            children: [
+              { type: 'strong', children: '📝 Your note: ' },
+              question
+            ]
           },
+          ...paragraphs.map(p => ({
+            type: 'p',
+            children: p.trim()
+          })),
           {
             type: 'em',
             props: { className: 'text-gray-400 text-xs block mt-2' },
-            children: `📝 Personal note • ${timestamp}`
+            children: `${timestamp}`
           }
         ]
       }
