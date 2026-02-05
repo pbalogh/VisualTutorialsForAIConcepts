@@ -155,24 +155,25 @@ function SectionProgress({ sections, glowColor }) {
                 window.scrollTo({ top: targetScroll, behavior: 'smooth' })
               }}
               className={`
-                w-2.5 h-2.5 rounded-full transition-all duration-300
+                w-3 h-3 rounded-full transition-all duration-300
                 ${i === activeSection 
-                  ? 'scale-125' 
+                  ? 'scale-125 ring-4' 
                   : i < activeSection 
                     ? 'bg-indigo-400' 
-                    : 'bg-gray-300 hover:bg-gray-400'
+                    : 'bg-gray-300 hover:bg-gray-400 hover:scale-110'
                 }
               `}
               style={i === activeSection ? { 
                 backgroundColor: glowColor?.replace('0.4', '1') || '#6366f1',
-                boxShadow: `0 0 10px ${glowColor || 'rgba(99, 102, 241, 0.5)'}`
+                boxShadow: `0 0 12px ${glowColor || 'rgba(99, 102, 241, 0.5)'}`,
+                '--tw-ring-color': glowColor?.replace('0.4', '0.25') || 'rgba(99, 102, 241, 0.25)'
               } : {}}
             />
           </div>
         ))}
         
         {/* Progress line */}
-        <div className="absolute top-0 bottom-0 right-[4px] w-0.5 bg-gray-200 -z-10 rounded-full overflow-hidden">
+        <div className="absolute top-0 bottom-0 right-[5px] w-[3px] bg-gray-200 -z-10 rounded-full overflow-hidden">
           <div 
             className="w-full bg-gradient-to-b from-indigo-500 to-violet-500 transition-all duration-150"
             style={{ height: `${progress * 100}%` }}

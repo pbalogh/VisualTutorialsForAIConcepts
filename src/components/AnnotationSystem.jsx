@@ -98,7 +98,7 @@ export const useTextSelection = (containerRef) => {
 }
 
 /**
- * Popup that appears when text is selected
+ * Premium popup that appears when text is selected
  */
 export const SelectionPopup = ({ 
   selection, 
@@ -134,10 +134,25 @@ export const SelectionPopup = ({
   
   console.log('🎨 SelectionPopup: RENDERING popup at', position)
 
-  const actionLabels = {
-    explain: { icon: '💡', label: 'Explain' },
-    visualize: { icon: '📊', label: 'Visualize' },
-    branch: { icon: '🌿', label: 'Go Deeper' },
+  const actionConfig = {
+    explain: { 
+      icon: '💡', 
+      label: 'Explain',
+      bg: 'hover:bg-blue-500/20',
+      accent: 'group-hover:text-blue-400'
+    },
+    visualize: { 
+      icon: '📊', 
+      label: 'Visualize',
+      bg: 'hover:bg-purple-500/20',
+      accent: 'group-hover:text-purple-400'
+    },
+    branch: { 
+      icon: '🌿', 
+      label: 'Go Deeper',
+      bg: 'hover:bg-emerald-500/20',
+      accent: 'group-hover:text-emerald-400'
+    },
   }
 
   return (
@@ -148,25 +163,36 @@ export const SelectionPopup = ({
         left: `${position.x}px`, 
         top: `${position.y}px`,
         transform: 'translate(-50%, -100%)',
-        marginTop: '-8px',
+        marginTop: '-12px',
         zIndex: 9999,
       }}
+      className="animate-in fade-in slide-in-from-bottom-2 duration-200"
     >
-      <div className="bg-gray-900 text-white rounded-lg shadow-xl flex overflow-hidden">
-        {actions.map((action) => (
+      <div className="bg-gray-900/95 backdrop-blur-xl text-white rounded-xl shadow-2xl 
+        flex overflow-hidden border border-white/10 ring-1 ring-white/5">
+        {actions.map((action, i) => (
           <button
             key={action}
             onClick={() => onAction(action, selection)}
-            className="px-3 py-2 hover:bg-gray-700 transition-colors flex items-center gap-1.5 text-sm font-medium border-r border-gray-700 last:border-r-0"
+            className={`group px-4 py-2.5 transition-all duration-200 flex items-center gap-2 
+              text-sm font-medium ${actionConfig[action]?.bg}
+              ${i < actions.length - 1 ? 'border-r border-white/10' : ''}`}
           >
-            <span>{actionLabels[action]?.icon}</span>
-            <span>{actionLabels[action]?.label}</span>
+            <span className="text-base transition-transform duration-200 group-hover:scale-110">
+              {actionConfig[action]?.icon}
+            </span>
+            <span className={`transition-colors duration-200 ${actionConfig[action]?.accent}`}>
+              {actionConfig[action]?.label}
+            </span>
           </button>
         ))}
       </div>
-      {/* Arrow pointer */}
+      {/* Arrow pointer with glow */}
       <div style={{ position: 'absolute', left: '50%', transform: 'translateX(-50%)', top: '100%' }}>
-        <div className="w-0 h-0 border-l-8 border-r-8 border-t-8 border-transparent border-t-gray-900" />
+        <div className="w-0 h-0 border-l-[10px] border-r-[10px] border-t-[10px] 
+          border-transparent border-t-gray-900/95" 
+          style={{ filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.3))' }}
+        />
       </div>
     </div>
   )
@@ -259,13 +285,23 @@ export const FootnoteAnnotation = ({ id, children }) => {
 }
 
 /**
- * Loading state for when annotation is being generated
+ * Premium loading state for when annotation is being generated
  */
 export const AnnotationLoading = ({ type }) => {
+  const typeConfig = {
+    explain: { icon: '💡', color: 'text-blue-400', bg: 'bg-blue-500/10' },
+    visualize: { icon: '📊', color: 'text-purple-400', bg: 'bg-purple-500/10' },
+    branch: { icon: '🌿', color: 'text-emerald-400', bg: 'bg-emerald-500/10' },
+  }
+  const config = typeConfig[type] || typeConfig.explain
+  
   return (
-    <div className="inline-flex items-center gap-2 px-3 py-1 bg-gray-100 rounded text-sm text-gray-600 animate-pulse">
-      <span className="animate-spin">⏳</span>
-      <span>Generating {type}...</span>
+    <div className={`inline-flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm 
+      ${config.bg} border border-white/10 shadow-lg backdrop-blur-sm`}>
+      <span className="animate-spin text-lg">⏳</span>
+      <span className={`font-medium ${config.color}`}>
+        Generating {type}...
+      </span>
     </div>
   )
 }

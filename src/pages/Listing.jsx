@@ -81,7 +81,7 @@ const tutorials = [
 // Semantic tag color system - filled backgrounds
 const tagColors = {
   // Status tags - special styling
-  'experimental': 'bg-gradient-to-r from-orange-500 to-amber-500 text-white border-transparent',
+  'experimental': 'bg-gradient-to-r from-orange-400 to-amber-400 text-white border-transparent',
   'meta': 'bg-violet-100 text-violet-700 border-violet-200',
   'tutorial-engine': 'bg-purple-100 text-purple-700 border-purple-200',
   
@@ -190,9 +190,9 @@ function TutorialCard({ tutorial, featured = false }) {
                 key={tag}
                 className={`inline-flex items-center px-2.5 py-1 
                   rounded-full text-[11px] font-semibold
-                  border
+                  border cursor-pointer
                   transition-all duration-200
-                  hover:scale-105
+                  hover:scale-105 hover:shadow-sm
                   ${tagColors[tag] || 'bg-gray-100 text-gray-600 border-gray-200'}`}
               >
                 {tag}
@@ -293,7 +293,7 @@ export default function Listing() {
       
       {/* Tutorial Grid */}
       <Container size="wide" className="py-12 -mt-12">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           {tutorials.map((tutorial, i) => (
             <TutorialCard 
               key={tutorial.id} 
