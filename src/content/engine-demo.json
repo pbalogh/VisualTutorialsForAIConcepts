@@ -1,0 +1,417 @@
+{
+  "id": "engine-demo",
+  "title": "Tutorial Engine Demo",
+  "subtitle": "A self-documenting demonstration of the data-driven tutorial system",
+  "state": {
+    "correlationR": 0.65,
+    "sampleSize": 50,
+    "showAdvanced": false,
+    "temperature": 72,
+    "confidence": 0.95
+  },
+  "content": {
+    "type": "Fragment",
+    "children": [
+      {
+        "type": "Section",
+        "props": {
+          "title": "1. Live State Bindings"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": [
+              "This tutorial engine supports ",
+              {
+                "type": "strong",
+                "children": "live state bindings"
+              },
+              {
+                "type": "Callout",
+                "props": {
+                  "type": "info"
+                },
+                "children": [
+                  {
+                    "type": "strong",
+                    "children": "💡 \"live state bindings\":"
+                  },
+                  " ",
+                  "This is a placeholder explanation. In the full implementation, Clawdbot would generate a detailed explanation based on the context: \"This tutorial engine supports live state bindings. Variables defined in the JSON...\" ",
+                  {
+                    "type": "em",
+                    "props": {
+                      "className": "text-gray-400 text-xs"
+                    },
+                    "children": "(Added 2/5/2026, 12:40:32 PM)"
+                  }
+                ]
+              },
+              ". Variables defined in the JSON are reactive — when one component changes a value, all other components that reference it update instantly."
+            ]
+          },
+          {
+            "type": "Card",
+            "children": [
+              {
+                "type": "p",
+                "children": [
+                  "Current correlation value: ",
+                  {
+                    "type": "StateValue",
+                    "props": {
+                      "bind": "correlationR",
+                      "format": ".2f"
+                    }
+                  },
+                  ". With a sample size of ",
+                  {
+                    "type": "StateValue",
+                    "props": {
+                      "bind": "sampleSize",
+                      "format": ".0f"
+                    }
+                  },
+                  ", this represents a ",
+                  {
+                    "type": "StateComputed",
+                    "props": {
+                      "compute": "correlationR > 0.7 ? 'strong' : correlationR > 0.4 ? 'moderate' : 'weak'"
+                    }
+                  },
+                  " relationship."
+                ]
+              },
+              {
+                "type": "Slider",
+                "props": {
+                  "bind": "correlationR",
+                  "min": -1,
+                  "max": 1,
+                  "step": 0.01,
+                  "label": "Correlation (r)"
+                }
+              },
+              {
+                "type": "Slider",
+                "props": {
+                  "bind": "sampleSize",
+                  "min": 10,
+                  "max": 200,
+                  "step": 10,
+                  "label": "Sample Size (n)"
+                }
+              }
+            ]
+          },
+          {
+            "type": "Callout",
+            "props": {
+              "type": "tip"
+            },
+            "children": "Try dragging the sliders above. Notice how the text updates in real-time!"
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "2. Conditional Content"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "Content can appear or disappear based on state values. Toggle the switch below:"
+          },
+          {
+            "type": "Toggle",
+            "props": {
+              "bind": "showAdvanced",
+              "label": "Show advanced content"
+            }
+          },
+          {
+            "type": "StateConditional",
+            "props": {
+              "when": "showAdvanced"
+            },
+            "children": {
+              "type": "Card",
+              "props": {
+                "className": "border-purple-200 bg-purple-50"
+              },
+              "children": [
+                {
+                  "type": "h3",
+                  "props": {
+                    "className": "text-lg font-bold text-purple-800 mb-2"
+                  },
+                  "children": "🔬 Advanced Section"
+                },
+                {
+                  "type": "p",
+                  "children": [
+                    "This section only appears when 'Show advanced content' is enabled. ",
+                    "The current confidence level is ",
+                    {
+                      "type": "StateValue",
+                      "props": {
+                        "bind": "confidence",
+                        "format": ".0%"
+                      }
+                    },
+                    "."
+                  ]
+                },
+                {
+                  "type": "Slider",
+                  "props": {
+                    "bind": "confidence",
+                    "min": 0.5,
+                    "max": 0.99,
+                    "step": 0.01,
+                    "label": "Confidence Level"
+                  }
+                }
+              ]
+            }
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "3. Computed Expressions"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": [
+              "StateComputed allows arbitrary JavaScript expressions. For example, with r = ",
+              {
+                "type": "StateValue",
+                "props": {
+                  "bind": "correlationR",
+                  "format": ".2f"
+                }
+              },
+              ":"
+            ]
+          },
+          {
+            "type": "ul",
+            "children": [
+              {
+                "type": "li",
+                "children": [
+                  "r² (coefficient of determination) = ",
+                  {
+                    "type": "DeepDive",
+                    "props": {
+                      "title": "Deep Dive: coefficient of determination",
+                      "defaultOpen": true
+                    },
+                    "children": [
+                      {
+                        "type": "p",
+                        "children": "Let's explore \"coefficient of determination\" in more detail."
+                      },
+                      {
+                        "type": "p",
+                        "children": "This is a placeholder for the deep dive content. In the full implementation, Clawdbot would generate comprehensive explanations, examples, and potentially interactive elements."
+                      },
+                      {
+                        "type": "Callout",
+                        "props": {
+                          "type": "tip"
+                        },
+                        "children": [
+                          "Context: \"",
+                          "r² (coefficient of determination) = 0.4225. Interpretation: 42% of variance explained.",
+                          "...\" ",
+                          {
+                            "type": "em",
+                            "props": {
+                              "className": "text-gray-400 text-xs"
+                            },
+                            "children": "(Added 2/5/2026, 12:41:26 PM)"
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "type": "StateComputed",
+                    "props": {
+                      "compute": "(correlationR * correlationR).toFixed(4)"
+                    }
+                  }
+                ]
+              },
+              {
+                "type": "li",
+                "children": [
+                  "Interpretation: ",
+                  {
+                    "type": "StateComputed",
+                    "props": {
+                      "compute": "Math.round(correlationR * correlationR * 100) + '% of variance explained'"
+                    }
+                  }
+                ]
+              },
+              {
+                "type": "li",
+                "children": [
+                  "Direction: ",
+                  {
+                    "type": "StateComputed",
+                    "props": {
+                      "compute": "correlationR > 0 ? 'positive ↗' : correlationR < 0 ? 'negative ↘' : 'none →'"
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "4. Layout Components"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "The engine includes several layout primitives:"
+          },
+          {
+            "type": "Callout",
+            "props": {
+              "type": "info"
+            },
+            "children": "This is an INFO callout — use it for helpful tips."
+          },
+          {
+            "type": "Callout",
+            "props": {
+              "type": "warning"
+            },
+            "children": "This is a WARNING callout — use it for important caveats."
+          },
+          {
+            "type": "Callout",
+            "props": {
+              "type": "success"
+            },
+            "children": "This is a SUCCESS callout — use it for positive confirmations."
+          },
+          {
+            "type": "DeepDive",
+            "props": {
+              "title": "Click to expand this Deep Dive section"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "DeepDive components are collapsible sections perfect for optional detailed explanations. They start collapsed by default."
+              },
+              {
+                "type": "p",
+                "children": [
+                  "Even inside a DeepDive, state bindings work: temperature is ",
+                  {
+                    "type": "StateValue",
+                    "props": {
+                      "bind": "temperature",
+                      "format": ".0f"
+                    }
+                  },
+                  "°F."
+                ]
+              },
+              {
+                "type": "Slider",
+                "props": {
+                  "bind": "temperature",
+                  "min": 32,
+                  "max": 100,
+                  "step": 1,
+                  "label": "Temperature (°F)"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "5. Code Blocks"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "Code can be displayed with syntax highlighting (basic for now):"
+          },
+          {
+            "type": "Code",
+            "props": {
+              "language": "javascript"
+            },
+            "children": "// The state is defined in JSON:\n{\n  \"state\": {\n    \"correlationR\": 0.65,\n    \"sampleSize\": 50\n  }\n}\n\n// Components bind to it:\n<StateValue bind=\"correlationR\" format=\".2f\" />"
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "6. Annotations (Coming Soon)"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": [
+              "The annotation system allows users to select any text and request explanations, visualizations, or deeper dives. When triggered, ",
+              {
+                "type": "Annotation",
+                "props": {
+                  "type": "explain",
+                  "trigger": "Clawdbot",
+                  "children": "Clawdbot is an AI assistant that can modify these tutorials in real-time based on user requests."
+                }
+              },
+              " will generate new content and insert it into this JSON structure."
+            ]
+          },
+          {
+            "type": "Callout",
+            "props": {
+              "type": "tip"
+            },
+            "children": "Try selecting any text on this page — you should see a popup with Explain, Visualize, and Go Deeper options!"
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "How It Works"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "This entire tutorial is defined as a JSON file. The TutorialEngine recursively renders it using a component registry. Each element has a 'type' (component name) and optional 'props' and 'children'."
+          },
+          {
+            "type": "p",
+            "children": [
+              "Because it's just data, Clawdbot can programmatically insert new sections, add annotations, or modify content — then return the updated JSON for instant preview, while also committing to Git for persistence."
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}
