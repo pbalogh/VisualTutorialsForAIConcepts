@@ -112,19 +112,54 @@ Write a brief (2-3 sentences) contextual explanation of what "${selectedText}" m
 
 They want to go deeper on: "${selectedText}"
 
-Write a focused deep-dive (3-4 paragraphs) that:
-1. Explains why this concept matters in the current context
-2. Provides a concrete example or analogy
-3. Connects it to other concepts they might encounter
-4. Gives them something actionable or a "now you can..." statement
+Generate a rich, structured educational deep-dive. Return a JSON array of content elements.
 
-Keep it educational and engaging, not dry. Do not use markdown formatting.`
+Available component types:
+- { "type": "p", "children": "paragraph text" } — regular paragraph
+- { "type": "Callout", "props": { "type": "info|warning|success|tip" }, "children": "callout text" } — highlighted callout
+- { "type": "Code", "props": { "language": "javascript|python|json" }, "children": "code here" } — code block
+- { "type": "ul", "children": [{ "type": "li", "children": "item" }] } — bullet list
+- { "type": "Blockquote", "children": "key insight or quote" } — pull quote for emphasis
+- { "type": "strong", "children": "bold text" } — inline bold
+- { "type": "em", "children": "italic text" } — inline italic
 
-      console.log('🤖 Calling AI for deep dive...')
-      const deepDive = await callAI(systemPrompt, prompt)
+Create a deep-dive that:
+1. Opens with WHY this matters (1 paragraph)
+2. Includes a concrete example or analogy (could be code, a list, or a callout)
+3. Explains connections to other concepts
+4. Ends with a "now you can..." actionable insight (use a tip callout)
+
+Return ONLY a valid JSON array like:
+[
+  { "type": "p", "children": "First paragraph..." },
+  { "type": "Callout", "props": { "type": "info" }, "children": "Key insight..." },
+  { "type": "p", "children": "More explanation..." }
+]
+
+No markdown. No preamble. Just the JSON array.`
+
+      console.log('🤖 Calling AI for structured deep dive...')
+      const response = await callAI(systemPrompt, prompt)
       
-      // Split into paragraphs
-      const paragraphs = deepDive.trim().split('\n\n').filter(p => p.trim())
+      // Parse the JSON response
+      let deepDiveContent
+      try {
+        // Try to extract JSON from the response
+        const jsonMatch = response.match(/\[[\s\S]*\]/)
+        if (jsonMatch) {
+          deepDiveContent = JSON.parse(jsonMatch[0])
+        } else {
+          throw new Error('No JSON array found in response')
+        }
+      } catch (parseError) {
+        console.log('⚠️ Could not parse structured response, falling back to paragraphs')
+        // Fallback: split into paragraphs
+        const paragraphs = response.trim().split('\n\n').filter(p => p.trim())
+        deepDiveContent = paragraphs.map(p => ({
+          type: 'p',
+          children: p.trim().replace(/^[\[\{].*[\]\}]$/gm, '').trim() || p.trim()
+        }))
+      }
       
       return {
         type: 'DeepDive',
@@ -132,10 +167,7 @@ Keep it educational and engaging, not dry. Do not use markdown formatting.`
           title: `Deep Dive: ${selectedText}`,
           defaultOpen: true 
         },
-        children: paragraphs.map(p => ({
-          type: 'p',
-          children: p.trim()
-        }))
+        children: deepDiveContent
       }
     }
     
