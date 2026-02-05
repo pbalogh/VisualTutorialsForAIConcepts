@@ -3,12 +3,14 @@ import { useParams, Link } from 'react-router-dom'
 import MatrixDiscovery from '../tutorials/MatrixDiscovery.jsx'
 import MatrixFromVectors from '../tutorials/MatrixFromVectors.jsx'
 import LeastSquares from '../tutorials/LeastSquares.jsx'
+import VectorProjection from '../tutorials/VectorProjection.jsx'
 import { Container } from '../components/SharedUI.jsx'
 
 const tutorialComponents = {
   'matrix-discovery': MatrixDiscovery,
   'matrix-from-vectors': MatrixFromVectors,
-  'least-squares': LeastSquares
+  'least-squares': LeastSquares,
+  'vector-projection': VectorProjection
 }
 
 export default function TutorialWrapper() {

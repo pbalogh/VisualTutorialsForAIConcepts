@@ -4,6 +4,12 @@ import { Container, Header, Card } from '../components/SharedUI.jsx'
 
 const tutorials = [
   {
+    id: 'vector-projection',
+    title: 'Vector Projection',
+    description: 'Interactive exploration of projecting one 2D vector onto another with drag-and-drop visualization',
+    tags: ['vectors', 'linear algebra', 'fundamentals']
+  },
+  {
     id: 'matrix-discovery',
     title: 'Matrix Discovery',
     description: 'Interactive tool for discovering transformation matrices from input-output pairs',
