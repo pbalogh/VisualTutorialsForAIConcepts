@@ -325,15 +325,15 @@ export default function TutorialWrapper({ tutorial: propTutorial }) {
   const TutorialComponent = tutorialComponents[tutorialId]
   const meta = tutorialMeta[tutorialId]
 
-  const handleAnnotationRequest = async ({ action, selectedText, context, tutorialId }) => {
-    console.log('📝 Annotation request:', { action, selectedText, context, tutorialId })
+  const handleAnnotationRequest = async ({ action, selectedText, context, tutorialId, question }) => {
+    console.log('📝 Annotation request:', { action, selectedText, context, tutorialId, question })
     
     // Call the real annotation server
     try {
       const response = await fetch('http://localhost:5190/annotate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action, selectedText, context, tutorialId })
+        body: JSON.stringify({ action, selectedText, context, tutorialId, question })
       })
       
       if (response.ok) {
