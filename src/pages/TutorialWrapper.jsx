@@ -184,7 +184,7 @@ function SectionProgress({ sections, glowColor }) {
   )
 }
 
-// Premium tutorial header with atmospheric effects
+// Premium tutorial header with atmospheric effects (matching listing page)
 function TutorialHeader({ meta }) {
   return (
     <header className="relative overflow-hidden">
@@ -201,11 +201,12 @@ function TutorialHeader({ meta }) {
         }}
       />
       
-      {/* Ambient glow from icon color */}
+      {/* Floating glow orbs (matching listing page) */}
       <div 
-        className="absolute top-0 right-0 w-96 h-96 rounded-full blur-3xl opacity-30"
+        className="absolute top-10 right-1/4 w-72 h-72 rounded-full blur-3xl opacity-40"
         style={{ backgroundColor: meta.glowColor }}
       />
+      <div className="absolute bottom-0 left-1/4 w-64 h-64 bg-purple-500/15 rounded-full blur-3xl" />
       
       {/* Subtle grid pattern */}
       <div 
@@ -215,7 +216,7 @@ function TutorialHeader({ meta }) {
         }}
       />
       
-      <div className="relative max-w-3xl mx-auto px-6 sm:px-8 pt-16 pb-12">
+      <div className="relative max-w-3xl mx-auto px-6 sm:px-8 pt-16 pb-14">
         {/* Breadcrumb navigation */}
         <nav className="flex items-center gap-2 text-sm text-gray-400 mb-8">
           <Link to="/" className="hover:text-indigo-400 transition-colors">Tutorials</Link>
@@ -255,22 +256,22 @@ function TutorialHeader({ meta }) {
           {meta.subtitle}
         </p>
         
-        {/* Meta info row */}
-        <div className="flex items-center gap-6 text-sm text-gray-500">
+        {/* Meta info row - slightly larger for visibility */}
+        <div className="flex items-center gap-6 text-sm text-gray-400">
           <div className="flex items-center gap-2">
-            <svg className="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
             <span>{meta.readTime} read</span>
           </div>
           <div className="flex items-center gap-2">
-            <svg className="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
             </svg>
             <span>{meta.exercises} interactive exercises</span>
           </div>
           <div className="flex items-center gap-2">
-            <svg className="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 10h16M4 14h16M4 18h16" />
             </svg>
             <span>{meta.sections?.length || 0} sections</span>

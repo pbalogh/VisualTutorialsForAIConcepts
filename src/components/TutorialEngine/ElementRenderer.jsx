@@ -115,26 +115,37 @@ const componentMap = {
     
     return (
       <div className="relative my-8 group">
-        {/* Language badge - floating */}
-        <div className="absolute -top-3 left-4 px-3 py-1 bg-gray-800 rounded-md text-xs font-mono text-gray-400 border border-gray-700 z-10">
+        {/* Language badge - more visible */}
+        <div className="absolute -top-3 left-4 px-3 py-1.5 bg-gradient-to-r from-gray-800 to-gray-700 
+          rounded-lg text-xs font-mono text-gray-300 border border-gray-600 z-10 
+          shadow-lg shadow-black/20">
           {filename || language}
         </div>
         
-        {/* Copy button */}
+        {/* Copy button with "Copied!" confirmation */}
         <button
           onClick={handleCopy}
-          className="absolute top-3 right-3 p-2 rounded-lg bg-gray-800 text-gray-400 
-            opacity-0 group-hover:opacity-100 transition-opacity 
-            hover:bg-gray-700 hover:text-white z-10"
+          className={`absolute top-3 right-3 px-3 py-1.5 rounded-lg text-xs font-medium
+            transition-all duration-200 z-10 flex items-center gap-1.5
+            ${copied 
+              ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 opacity-100' 
+              : 'bg-gray-800 text-gray-400 opacity-0 group-hover:opacity-100 hover:bg-gray-700 hover:text-white border border-transparent'
+            }`}
         >
           {copied ? (
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-            </svg>
+            <>
+              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+              </svg>
+              <span>Copied!</span>
+            </>
           ) : (
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
-            </svg>
+            <>
+              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+              </svg>
+              <span>Copy</span>
+            </>
           )}
         </button>
         
