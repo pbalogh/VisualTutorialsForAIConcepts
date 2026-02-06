@@ -1,0 +1,597 @@
+{
+  "id": "matrix-from-vectors-engine",
+  "title": "Finding a Matrix from Input-Output Vectors",
+  "subtitle": "Reverse-engineer the transformation machine by observing what goes in and what comes out",
+  "difficulty": 2,
+  "readTime": "10 min",
+  "tags": [
+    "linear algebra",
+    "matrices",
+    "vectors",
+    "pseudoinverse"
+  ],
+  "state": {},
+  "content": {
+    "type": "Fragment",
+    "children": [
+      {
+        "type": "Section",
+        "props": {
+          "title": "The Core Problem"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": [
+              "You know that multiplying vector ",
+              {
+                "type": "strong",
+                "children": "A"
+              },
+              " by matrix ",
+              {
+                "type": "strong",
+                "children": "B"
+              },
+              " gives vector ",
+              {
+                "type": "strong",
+                "children": "C"
+              },
+              ". You have A and C — how do you find B?"
+            ]
+          },
+          {
+            "type": "Analogy",
+            "children": "A matrix is a transformation machine. You feed in a vector, it spits out a different vector. You are reverse-engineering the machine by observing what goes in and what comes out."
+          },
+          {
+            "type": "p",
+            "children": "Given:"
+          },
+          {
+            "type": "DefinitionList",
+            "props": {
+              "items": [
+                {
+                  "term": "A",
+                  "definition": "input vector (what you feed in)"
+                },
+                {
+                  "term": "C",
+                  "definition": "output vector (what comes out)"
+                },
+                {
+                  "term": "B",
+                  "definition": "the transformation matrix (what we want to find)"
+                }
+              ]
+            }
+          },
+          {
+            "type": "Code",
+            "props": {
+              "language": "text"
+            },
+            "children": "A · B = C\n\n[a₁, a₂] · | b₁₁  b₁₂ |  =  [c₁, c₂]\n           | b₂₁  b₂₂ |"
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "The Catch: One Pair Isn't Enough"
+        },
+        "children": [
+          {
+            "type": "Callout",
+            "props": {
+              "type": "warning"
+            },
+            "children": [
+              {
+                "type": "strong",
+                "children": "Important Constraint:"
+              },
+              " A single input-output pair gives you ",
+              {
+                "type": "strong",
+                "children": "infinitely many"
+              },
+              " possible matrices! It's like knowing one point on a line — there are infinite lines passing through it."
+            ]
+          },
+          {
+            "type": "InfiniteMatricesDemo"
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "The Solution: Multiple Input-Output Pairs"
+        },
+        "children": [
+          {
+            "type": "Steps",
+            "props": {
+              "steps": [
+                {
+                  "title": "Gather enough data",
+                  "description": "For an n×n matrix, you need n linearly independent input-output pairs. For a 2×2 matrix, that's 2 pairs. For 3×3, that's 3 pairs."
+                },
+                {
+                  "title": "Stack inputs and outputs into matrices",
+                  "description": "If you have inputs A₁, A₂ and outputs C₁, C₂, stack them into matrices."
+                },
+                {
+                  "title": "Solve for B",
+                  "description": "The equation becomes: Inputs · B = Outputs. Rearranging: B = Inputs⁻¹ · Outputs"
+                }
+              ]
+            }
+          },
+          {
+            "type": "Code",
+            "props": {
+              "language": "text",
+              "filename": "Step 2: Stacking"
+            },
+            "children": "Input matrix:    Output matrix:\n| A₁ |           | C₁ |\n| A₂ |           | C₂ |"
+          },
+          {
+            "type": "Callout",
+            "props": {
+              "type": "tip"
+            },
+            "children": "Multiply both sides by the inverse of the input matrix to isolate B."
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "Interactive Calculator"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "Enter two input-output pairs to find the unique matrix B:"
+          },
+          {
+            "type": "MatrixCalculator"
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "Finding the Closest Overlap Between Two Systems"
+        },
+        "children": [
+          {
+            "type": "Analogy",
+            "children": "Each input-output pair defines a hyperplane (infinite set) of valid matrices. Two pairs from different observations give you two hyperplanes. These can: Intersect → Same matrix explains both! (overlap exists) or Be parallel/skew → No exact match, but we can find the closest point on each."
+          },
+          {
+            "type": "p",
+            "children": "When you have two underdetermined systems that might not have a common solution, you're looking for the matrix B that minimizes total error:"
+          },
+          {
+            "type": "Formula",
+            "props": {
+              "label": "Least Squares Objective"
+            },
+            "children": "minimize: ||A · B - C||² + ||D · B - E||²"
+          },
+          {
+            "type": "p",
+            "children": "Stack all your constraints together and solve via the pseudoinverse:"
+          },
+          {
+            "type": "Code",
+            "props": {
+              "language": "text"
+            },
+            "children": "| A |       | C |\n| D | · B = | E |\n\nB = pseudoinverse(stacked_inputs) · stacked_outputs"
+          },
+          {
+            "type": "TwoSystemCalculator"
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "Deep Dives"
+        },
+        "children": [
+          {
+            "type": "DeepDive",
+            "props": {
+              "title": "What the Distance Means",
+              "defaultOpen": false
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "When the solution is not exact (residual > 0), the distance tells you how incompatible the two observations are. High residual means:"
+              },
+              {
+                "type": "ul",
+                "children": [
+                  {
+                    "type": "li",
+                    "children": "The same matrix probably was NOT used for both"
+                  },
+                  {
+                    "type": "li",
+                    "children": "There is noise/error in your measurements"
+                  },
+                  {
+                    "type": "li",
+                    "children": "The underlying transformation changed between observations"
+                  }
+                ]
+              },
+              {
+                "type": "p",
+                "children": "The 'closest matrix' is still useful — it's the best compromise that minimizes total squared error across both observations."
+              }
+            ]
+          },
+          {
+            "type": "DeepDive",
+            "props": {
+              "title": "Why Linear Independence Matters",
+              "defaultOpen": false
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "If your input vectors are linearly dependent (one is a scalar multiple of another), they don't provide new information."
+              },
+              {
+                "type": "Code",
+                "props": {
+                  "language": "text"
+                },
+                "children": "Bad:  A₁ = [1, 2], A₂ = [2, 4]  ← A₂ is just 2×A₁\nGood: A₁ = [1, 0], A₂ = [0, 1]  ← Independent"
+              }
+            ]
+          },
+          {
+            "type": "DeepDive",
+            "props": {
+              "title": "The Moore-Penrose Pseudoinverse: Building from First Principles",
+              "defaultOpen": false
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "The Moore-Penrose pseudoinverse A⁺ is the answer to all three cases. Here's why it's so powerful:"
+              },
+              {
+                "type": "p",
+                "children": [
+                  {
+                    "type": "strong",
+                    "children": "Why Transpose Matters:"
+                  },
+                  " When you multiply a matrix by its transpose, you transform any shape into a square matrix. And square matrices can be inverted! This is the key trick."
+                ]
+              },
+              {
+                "type": "Code",
+                "props": {
+                  "language": "text",
+                  "filename": "Transpose Trick"
+                },
+                "children": "For Tall Matrix A (3×2):\nA^T has shape 2×3\nA^T · A has shape 2×2  ✓ (invertible!)\n\nFor Wide Matrix A (2×3):\nA^T has shape 3×2\nA · A^T has shape 2×2  ✓ (invertible!)"
+              },
+              {
+                "type": "p",
+                "children": [
+                  {
+                    "type": "strong",
+                    "children": "The Recipe:"
+                  },
+                  " Once you have a square matrix from the transpose trick, the pseudoinverse formula is:"
+                ]
+              },
+              {
+                "type": "Code",
+                "props": {
+                  "language": "text"
+                },
+                "children": "Tall Matrix A (3×2):\nA⁺ = (A^T · A)^(-1) · A^T\nThis gives you the least squares solution\n\nWide Matrix A (2×3):\nA⁺ = A^T · (A · A^T)^(-1)\nThis gives you the minimum-norm solution"
+              },
+              {
+                "type": "p",
+                "children": [
+                  {
+                    "type": "strong",
+                    "children": "Why It's Called 'Pseudo':"
+                  },
+                  " It's not a true inverse. If A is non-square, A⁺ · A ≠ I. But it satisfies 4 magic properties that uniquely define it:"
+                ]
+              },
+              {
+                "type": "ul",
+                "children": [
+                  {
+                    "type": "li",
+                    "children": "A · A⁺ · A = A"
+                  },
+                  {
+                    "type": "li",
+                    "children": "A⁺ · A · A⁺ = A⁺"
+                  },
+                  {
+                    "type": "li",
+                    "children": "(A · A⁺)ᵀ = A · A⁺"
+                  },
+                  {
+                    "type": "li",
+                    "children": "(A⁺ · A)ᵀ = A⁺ · A"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "DeepDive",
+            "props": {
+              "title": "The Bridge: From Least Squares to Pseudoinverse (Calculus Derivation)",
+              "defaultOpen": false
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "When you have more equations than unknowns (overdetermined system), there's usually no exact solution. So we ask: What matrix minimizes the total error?"
+              },
+              {
+                "type": "Formula",
+                "props": {
+                  "label": "The Objective"
+                },
+                "children": "minimize: ||A · B - C||²"
+              },
+              {
+                "type": "p",
+                "children": [
+                  {
+                    "type": "strong",
+                    "children": "Step 1: What Are We Actually Minimizing?"
+                  },
+                  " The squared norm of a vector",
+                  {
+                    "type": "FootnoteRef",
+                    "props": {
+                      "id": "source-ann-1770411966346-6djmzm",
+                      "targetId": "ann-1770411966346-6djmzm",
+                      "type": "ask"
+                    }
+                  },
+                  " is the sum of its squared components. If the error vector is e = A·B - C, then ||e||² = e₁² + e₂² + e₃² + ..."
+                ]
+              },
+              {
+                "type": "p",
+                "children": "This sum of squared components is exactly what you get when you dot a vector with itself! So:"
+              },
+              {
+                "type": "Code",
+                "props": {
+                  "language": "text"
+                },
+                "children": "||e||² = eᵀ · e = (A·B - C)ᵀ · (A·B - C)\n\nExpanding (using FOIL):\n= Bᵀ·Aᵀ·A·B - Bᵀ·Aᵀ·C - Cᵀ·A·B + Cᵀ·C"
+              },
+              {
+                "type": "p",
+                "children": [
+                  {
+                    "type": "strong",
+                    "children": "Step 2: Finding the Minimum (Calculus)"
+                  },
+                  " To minimize, we take the derivative with respect to B and set it to zero."
+                ]
+              },
+              {
+                "type": "Code",
+                "props": {
+                  "language": "text"
+                },
+                "children": "∂/∂B [...] = 2·Aᵀ·A·B - 2·Aᵀ·C\n\nSetting to zero:\nAᵀ·A·B = Aᵀ·C    ← The 'Normal Equations'!"
+              },
+              {
+                "type": "Callout",
+                "props": {
+                  "type": "info"
+                },
+                "children": "Why 'Normal'? The name comes from geometry: the error vector (A·B - C) ends up being perpendicular (normal) to the column space of A. This is the projection interpretation of least squares."
+              },
+              {
+                "type": "p",
+                "children": [
+                  {
+                    "type": "strong",
+                    "children": "Step 3: Solve for B"
+                  },
+                  " If AᵀA is invertible (which happens when A has full column rank), we can multiply both sides by its inverse:"
+                ]
+              },
+              {
+                "type": "Code",
+                "props": {
+                  "language": "text"
+                },
+                "children": "B = (Aᵀ·A)⁻¹·Aᵀ · C\n\nThe part (AᵀA)⁻¹Aᵀ is exactly the Moore-Penrose pseudoinverse A⁺!\n\nSo: B = A⁺ · C"
+              },
+              {
+                "type": "Callout",
+                "props": {
+                  "type": "success"
+                },
+                "children": "The Big Picture: The pseudoinverse isn't arbitrary or magical. It's what you get when you ask calculus: 'What value of B minimizes the squared error?' The normal equations are just the condition that the derivative equals zero — the standard way to find a minimum."
+              }
+            ]
+          },
+          {
+            "type": "DeepDive",
+            "props": {
+              "title": "❓ Q: Same as magnitude of vector?",
+              "defaultOpen": true,
+              "id": "ann-1770411966346-6djmzm",
+              "sourceId": "source-ann-1770411966346-6djmzm"
+            },
+            "children": [
+              {
+                "type": "Callout",
+                "props": {
+                  "type": "info"
+                },
+                "children": [
+                  {
+                    "type": "em",
+                    "children": "About \"squared norm of a vector\""
+                  }
+                ]
+              },
+              {
+                "type": "p",
+                "children": "Not exactly the same, but very closely related. The magnitude (or length) of a vector is the square root of the squared norm. So if the squared norm is ||e||² = e₁² + e₂² + e₃², then the magnitude is ||e|| = √(e₁² + e₂² + e₃²)."
+              },
+              {
+                "type": "p",
+                "children": "In this tutorial, we're minimizing the squared norm instead of the magnitude because it's mathematically much easier to work with. When you take derivatives to find the minimum (which we'll do later), squared terms give you nice linear expressions, while square roots create messy fractions."
+              },
+              {
+                "type": "p",
+                "children": "Think of it this way: if you're trying to make a vector as small as possible, minimizing its squared length will give you the same answer as minimizing its actual length, since both reach their minimum at the same point. But the math is much cleaner with the squared version."
+              },
+              {
+                "type": "p",
+                "children": "For example, if your error vector e has components [3, -4], then its squared norm is 3² + (-4)² = 25, while its magnitude is √25 = 5. Minimizing either one will lead you to the same optimal matrix A."
+              },
+              {
+                "type": "em",
+                "props": {
+                  "className": "text-gray-400 text-xs block mt-4"
+                },
+                "children": "(2/6/2026, 4:06:00 PM)"
+              }
+            ]
+          },
+          {
+            "type": "DeepDive",
+            "props": {
+              "title": "Three Cases: The Journey to the Pseudoinverse",
+              "defaultOpen": false
+            },
+            "children": [
+              {
+                "type": "Code",
+                "props": {
+                  "language": "text"
+                },
+                "children": "Case 1 (Square, invertible matrix):\nA · B = C   (exactly as many equations as unknowns)\n✓ Unique solution: B = A^(-1) · C\n\nCase 2 (Overdetermined, tall matrix):\n| A₁ |       | C₁ |\n| A₂ | · B = | C₂ |   (more equations than unknowns)\n| A₃ |       | C₃ |\n❌ Usually no exact solution → minimize error with least squares\n\nCase 3 (Underdetermined, wide matrix):\n[A₁ A₂ A₃] · B = [C₁ C₂ C₃]   (fewer equations than unknowns)\n∞ Infinite solutions → find the 'smallest' one"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "Key Takeaways"
+        },
+        "children": [
+          {
+            "type": "DefinitionList",
+            "props": {
+              "items": [
+                {
+                  "term": "One input-output pair",
+                  "definition": "→ infinitely many matrices"
+                },
+                {
+                  "term": "n independent pairs",
+                  "definition": "→ unique n×n matrix (if it exists)"
+                },
+                {
+                  "term": "Two underdetermined systems",
+                  "definition": "→ find closest overlap via least squares"
+                },
+                {
+                  "term": "The pseudoinverse",
+                  "definition": "is not magical — it solves the normal equations"
+                },
+                {
+                  "term": "Residual",
+                  "definition": "tells you how compatible the observations are"
+                },
+                {
+                  "term": "It works for ANY matrix shape",
+                  "definition": "(tall, square, or wide)"
+                }
+              ]
+            }
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "Learn More"
+        },
+        "children": [
+          {
+            "type": "ul",
+            "children": [
+              {
+                "type": "li",
+                "children": [
+                  {
+                    "type": "a",
+                    "props": {
+                      "href": "https://www.3blue1brown.com/lessons/inverse-matrices"
+                    },
+                    "children": "3Blue1Brown: Inverse Matrices"
+                  },
+                  " — Visual intuition for matrix inversion"
+                ]
+              },
+              {
+                "type": "li",
+                "children": [
+                  {
+                    "type": "a",
+                    "props": {
+                      "href": "https://en.wikipedia.org/wiki/Moore-Penrose_inverse"
+                    },
+                    "children": "Moore-Penrose Pseudoinverse"
+                  },
+                  " — The key to underdetermined systems"
+                ]
+              },
+              {
+                "type": "li",
+                "children": [
+                  {
+                    "type": "a",
+                    "props": {
+                      "href": "https://en.wikipedia.org/wiki/Least_squares"
+                    },
+                    "children": "Least Squares"
+                  },
+                  " — Minimizing error when exact solutions do not exist"
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}
