@@ -1,0 +1,635 @@
+{
+  "id": "schankian-paper-draft",
+  "title": "Schankian Operators Paper Draft",
+  "subtitle": "Working draft: Learning Semantic Operators from Event Data — add annotations and questions here",
+  "readTime": "30 min",
+  "state": {},
+  "content": {
+    "type": "Fragment",
+    "children": [
+      {
+        "type": "Callout",
+        "props": {
+          "type": "warning"
+        },
+        "children": "⚠️ DRAFT — Not for publication. This is a working document for organizing paper ideas. Use [skip ci] when committing."
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "Paper 1: Core Method — Learned Schankian Operators"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "The central claim: semantic operators (like Schank's primitives) can be LEARNED from data rather than hand-coded, using geometric transformations in complex vector space."
+          },
+          {
+            "type": "DeepDive",
+            "props": {
+              "title": "Deep Dive: Schank's primitives",
+              "defaultOpen": true,
+              "id": "ann-1770413426854-9dzfxi",
+              "sourceId": "source-ann-1770413426854-9dzfxi"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "Schank's primitives were Roger Schank's attempt in the 1970s to break down all human actions and concepts into a small set of fundamental building blocks. Instead of treating language as surface forms, he proposed that underneath every action or state change, there are basic semantic operators like MOVE, TRANSFER, or CHANGE-STATE. The revolutionary idea here is that these hand-crafted primitives might emerge naturally from data using geometric transformations in vector spaces."
+              },
+              {
+                "type": "Example",
+                "props": {
+                  "title": "Example: Classic Schank Primitives in Action"
+                },
+                "children": [
+                  {
+                    "type": "p",
+                    "children": "Consider how Schank would decompose these sentences:"
+                  },
+                  {
+                    "type": "Code",
+                    "props": {
+                      "language": "javascript"
+                    },
+                    "children": "// 'John gave Mary a book'\nMOVE(book, FROM: John, TO: Mary)\nTRANSFER(possession, ACTOR: John, OBJECT: book, RECIPIENT: Mary)\n\n// 'The ice melted'\nCHANGE-STATE(ice, FROM: solid, TO: liquid)\nCAUSE(heat, CHANGE-STATE(...))"
+                  }
+                ]
+              },
+              {
+                "type": "Analogy",
+                "children": "Think of Schank's primitives like the periodic table of meaning. Just as all matter can be understood through combinations of basic elements (hydrogen, oxygen, carbon), Schank believed all human actions and concepts could be understood through combinations of basic semantic elements (MOVE, TRANSFER, CHANGE-STATE)."
+              },
+              {
+                "type": "DefinitionList",
+                "props": {
+                  "items": [
+                    {
+                      "term": "MOVE",
+                      "definition": "Physical transfer of objects through space"
+                    },
+                    {
+                      "term": "TRANSFER",
+                      "definition": "Abstract transfer of ownership, information, or states"
+                    },
+                    {
+                      "term": "PROPEL",
+                      "definition": "Application of force to cause movement"
+                    },
+                    {
+                      "term": "GRASP",
+                      "definition": "Taking control or possession"
+                    },
+                    {
+                      "term": "INGEST",
+                      "definition": "Taking something into oneself"
+                    },
+                    {
+                      "term": "EXPEL",
+                      "definition": "Removing something from oneself"
+                    }
+                  ]
+                }
+              },
+              {
+                "type": "Blockquote",
+                "children": "The key insight: If these primitives truly capture universal patterns of meaning, then they should emerge from statistical patterns in language data, not require manual specification by linguists."
+              },
+              {
+                "type": "Callout",
+                "props": {
+                  "type": "tip"
+                },
+                "children": "Watch for how the tutorial shows these hand-coded primitives being replaced by learned vector transformations. The same semantic relationships Schank identified manually might be discoverable as geometric patterns in high-dimensional space, making them both more flexible and more data-driven."
+              }
+            ]
+          },
+          {
+            "type": "h3",
+            "children": "1.1 The Problem"
+          },
+          {
+            "type": "p",
+            "children": "Events like \"cop shot frank\" have asymmetric structure. The cop does something TO frank. Current approaches (TransE, DistMult) treat relations as symmetric or use simple addition. We need operators that capture directionality."
+          },
+          {
+            "type": "Callout",
+            "props": {
+              "type": "info"
+            },
+            "children": "Key insight: (agent, operator, patient) ≠ (patient, operator, agent). Non-commutativity is essential."
+          },
+          {
+            "type": "h3",
+            "children": "1.2 Our Approach"
+          },
+          {
+            "type": "ul",
+            "children": [
+              {
+                "type": "li",
+                "children": "Entities as complex vectors (d-dimensional)"
+              },
+              {
+                "type": "li",
+                "children": "Operators as diagonal rotation matrices in complex space"
+              },
+              {
+                "type": "li",
+                "children": "Scoring: ||agent ⊙ operator - patient|| (RotatE-style)"
+              },
+              {
+                "type": "li",
+                "children": "Training: margin-based ranking loss"
+              }
+            ]
+          },
+          {
+            "type": "h3",
+            "children": "1.3 Phase 1 Results (Synthetic Validation)"
+          },
+          {
+            "type": "p",
+            "children": "Trained on synthetic data with 5 known operators (HARM, TRANSFER, LEARN, MOVE, RECEIVE) and 20 entities."
+          },
+          {
+            "type": "Callout",
+            "props": {
+              "type": "success"
+            },
+            "children": "✅ Result: 88.2% average operator recovery. All 5 operators successfully learned from data."
+          },
+          {
+            "type": "ComparisonTable",
+            "props": {
+              "headers": [
+                "Operator",
+                "Recovery Score",
+                "Semantic Meaning"
+              ],
+              "rows": [
+                [
+                  "HARM",
+                  "0.896",
+                  "Agent rotates forward, patient backward (adversarial)"
+                ],
+                [
+                  "TRANSFER",
+                  "0.899",
+                  "Both rotate forward together (symmetric exchange)"
+                ],
+                [
+                  "LEARN",
+                  "0.844",
+                  "Both toward 'knowledge' axis"
+                ],
+                [
+                  "MOVE",
+                  "0.876",
+                  "Agent-dominant action"
+                ],
+                [
+                  "RECEIVE",
+                  "0.893",
+                  "Patient-dominant reception"
+                ]
+              ]
+            }
+          },
+          {
+            "type": "h3",
+            "children": "1.4 What This Proves"
+          },
+          {
+            "type": "ul",
+            "children": [
+              {
+                "type": "li",
+                "children": "Operators CAN be learned — not just hardcoded"
+              },
+              {
+                "type": "li",
+                "children": "Non-commutativity emerges naturally from the geometry"
+              },
+              {
+                "type": "li",
+                "children": "Simple diagonal rotations are sufficient (no full matrices needed)"
+              },
+              {
+                "type": "li",
+                "children": "Architecture is sound — ready for real data"
+              }
+            ]
+          },
+          {
+            "type": "h3",
+            "children": "1.5 Open Questions for Paper 1"
+          },
+          {
+            "type": "ul",
+            "children": [
+              {
+                "type": "li",
+                "children": "Will real-data operators cluster into Schankian categories?"
+              },
+              {
+                "type": "li",
+                "children": "How do we handle polysemy? ('hit' in baseball vs violence)"
+              },
+              {
+                "type": "li",
+                "children": "What's the right granularity? (HARM vs SHOOT/HIT/PUNCH)"
+              },
+              {
+                "type": "li",
+                "children": "Can operators generalize to unseen entity combinations?"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "Paper 2: Entity State Tracking"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "Application paper: tracking how entities evolve through narratives. Frank-before-shooting ≠ Frank-after-shooting."
+          },
+          {
+            "type": "h3",
+            "children": "2.1 State as Trajectory"
+          },
+          {
+            "type": "p",
+            "children": "The 'state' of an entity is not a single vector but a trajectory through vector space — a sequence representing the entity at different points in time. The path taken to get there matters."
+          },
+          {
+            "type": "Callout",
+            "props": {
+              "type": "info"
+            },
+            "children": "Insight: State depends on sequence. The implicit actions that preceded a state matter. (Getting out of bed → must have gotten into bed → probably took off shoes)"
+          },
+          {
+            "type": "h3",
+            "children": "2.2 Multi-Marker Representation"
+          },
+          {
+            "type": "p",
+            "children": "Entities can have MULTIPLE markers in semantic space. 'Marlowe was a detective and much bigger than in his youth' puts markers near: detective, big, man. Markers can MOVE — if Marlowe loses 60 pounds, the 'big' marker moves to 'normal-sized'."
+          },
+          {
+            "type": "h3",
+            "children": "2.3 Implicit Preconditions/Postconditions"
+          },
+          {
+            "type": "p",
+            "children": "'Marlowe tumbled out of bed' implies: he got INTO bed first, which implies: took off shoes. States carry implicit history."
+          },
+          {
+            "type": "Example",
+            "props": {
+              "title": "The Lego Example"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "'Marlowe rolled out of bed and staggered down the dark hallway, forgetting about the Lego blocks. \"Dammit!\" he screamed, limping the rest of the way to the bathroom.'"
+              },
+              {
+                "type": "p",
+                "children": "Implicit: Getting into bed → removal of shoes. Getting out of bed → still shoeless. Stepping on Legos → pain. All inferred, not stated."
+              }
+            ]
+          },
+          {
+            "type": "h3",
+            "children": "2.4 DFW-Style Annotation + RAG (NEW)"
+          },
+          {
+            "type": "Callout",
+            "props": {
+              "type": "tip"
+            },
+            "children": "New idea (2026-02-06): First pass annotates ALL implicit states (Nabokov/DFW footnote style). Then tree-summarize for efficient RAG retrieval. Separates: (1) capturing implicit knowledge, (2) efficient retrieval."
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "Paper 2b (Potential): Implicit State Inference"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "Might deserve its own paper: how do we LEARN the implicit preconditions and postconditions of actions?"
+          },
+          {
+            "type": "ul",
+            "children": [
+              {
+                "type": "li",
+                "children": "Training data: annotated documents with explicit implicit-state"
+              },
+              {
+                "type": "li",
+                "children": "Learn which operators produce which implicit states"
+              },
+              {
+                "type": "li",
+                "children": "Wierzbicka-style universal attributes as dimensions"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "Paper 3: Temporal Structure & Entity Chains"
+        },
+        "children": [
+          {
+            "type": "h3",
+            "children": "3.1 The Chronology Challenge"
+          },
+          {
+            "type": "p",
+            "children": "A Schankian primitive neuron + two entity neurons tells us the operator is relevant. But it doesn't tell us SEQUENCE — critical for non-commutative operators. Time has one arrow, but multiple entities = multiple arrows (a 'fusillade')."
+          },
+          {
+            "type": "h3",
+            "children": "3.2 Separate Entity Chains"
+          },
+          {
+            "type": "p",
+            "children": "Linear description can only describe one thing at a time. We need SEPARATE chains of states for each entity, with connections between them:"
+          },
+          {
+            "type": "ul",
+            "children": [
+              {
+                "type": "li",
+                "children": "'The cat's screaming was synchronous with Adam's dropping of the salad bowl'"
+              },
+              {
+                "type": "li",
+                "children": "'Frank nearly fell down and then Bill laughed'"
+              }
+            ]
+          },
+          {
+            "type": "h3",
+            "children": "3.3 Entity Identification (Coreference)"
+          },
+          {
+            "type": "Example",
+            "props": {
+              "title": "The Marlowe Chair Example"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "'The detective leaned too far back. The chair's feet slid on the linoleum floor. Marlowe grunted as his head clunked against the linoleum.'"
+              },
+              {
+                "type": "p",
+                "children": "Must resolve: detective = Marlowe; chair = the one he's sitting in; linoleum = same floor (both times)"
+              }
+            ]
+          },
+          {
+            "type": "Callout",
+            "props": {
+              "type": "info"
+            },
+            "children": "Anaphora resolution feeds directly into state tracking. Can't track Frank's state if you don't know 'the detective' IS Frank."
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "Paper 4: Vision Paper (Synthesis)"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "The big picture: a complete system for understanding narratives through learned operators + entity state tracking + temporal structure."
+          },
+          {
+            "type": "h3",
+            "children": "Potential Title"
+          },
+          {
+            "type": "Callout",
+            "props": {
+              "type": "tip"
+            },
+            "children": "🎯 'Entities, Operators, Anaphora, and Arrows: Oh My'"
+          },
+          {
+            "type": "h3",
+            "children": "Key Theoretical Contributions"
+          },
+          {
+            "type": "ul",
+            "children": [
+              {
+                "type": "li",
+                "children": "Empirical → Theoretical: Let data discover primitives, then analyze"
+              },
+              {
+                "type": "li",
+                "children": "CNN analogy: Don't hand-design Gabor filters, let them emerge"
+              },
+              {
+                "type": "li",
+                "children": "Operators as geometric transformations, not symbolic rules"
+              },
+              {
+                "type": "li",
+                "children": "State as trajectory, not snapshot"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "Connections to Prior Work"
+        },
+        "children": [
+          {
+            "type": "h3",
+            "children": "Knowledge Graph Embeddings"
+          },
+          {
+            "type": "ul",
+            "children": [
+              {
+                "type": "li",
+                "children": "TransE: h + r ≈ t (additive, symmetric)"
+              },
+              {
+                "type": "li",
+                "children": "DistMult: h^T M_r t (bilinear)"
+              },
+              {
+                "type": "li",
+                "children": "ComplEx: complex-valued"
+              },
+              {
+                "type": "li",
+                "children": "RotatE: rotation in complex space ← OUR APPROACH"
+              }
+            ]
+          },
+          {
+            "type": "p",
+            "children": "Our contribution: Apply KG methods to EVENT semantics, not just static relations."
+          },
+          {
+            "type": "h3",
+            "children": "Schank's Conceptual Dependency Theory"
+          },
+          {
+            "type": "p",
+            "children": "~14 primitive acts (PTRANS, ATRANS, PROPEL, etc.). We ask: can these be LEARNED instead of hand-coded? And: are there MORE or DIFFERENT primitives?"
+          },
+          {
+            "type": "h3",
+            "children": "Wierzbicka's Semantic Primes"
+          },
+          {
+            "type": "p",
+            "children": "~65 universal semantic primes. Similar question: empirical discovery vs. linguistic analysis. Use as starting point, not dogma."
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "Implementation Status"
+        },
+        "children": [
+          {
+            "type": "h3",
+            "children": "Completed"
+          },
+          {
+            "type": "ul",
+            "children": [
+              {
+                "type": "li",
+                "children": "✅ Phase 1: Synthetic operator learning (88.2% recovery)"
+              },
+              {
+                "type": "li",
+                "children": "✅ schankian_learner_v1.py — working implementation"
+              },
+              {
+                "type": "li",
+                "children": "✅ Paper organization (IDEAS_INVENTORY.md, PAPER_ORGANIZATION.md)"
+              }
+            ]
+          },
+          {
+            "type": "h3",
+            "children": "Next Steps"
+          },
+          {
+            "type": "ul",
+            "children": [
+              {
+                "type": "li",
+                "children": "🔲 Phase 2: Multi-hop composition (can we chain operators?)"
+              },
+              {
+                "type": "li",
+                "children": "🔲 Phase 3: Real SVO data (extract from corpus, train)"
+              },
+              {
+                "type": "li",
+                "children": "🔲 Phase 4: Cluster analysis (do learned ops match Schankian categories?)"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "Questions & Annotations"
+        },
+        "children": [
+          {
+            "type": "Callout",
+            "props": {
+              "type": "tip"
+            },
+            "children": "Use this section to add questions, annotations, and notes as you review. Select text above to get AI explanations."
+          },
+          {
+            "type": "h3",
+            "children": "Open Questions"
+          },
+          {
+            "type": "ol",
+            "children": [
+              {
+                "type": "li",
+                "children": "Does real data produce Schankian clusters, or something new?"
+              },
+              {
+                "type": "li",
+                "children": "How do we handle polysemy? ('hit' in baseball vs violence)"
+              },
+              {
+                "type": "li",
+                "children": "What's the right granularity? (HARM vs SHOOT/HIT/PUNCH)"
+              },
+              {
+                "type": "li",
+                "children": "Can operators generalize to unseen entity combinations?"
+              },
+              {
+                "type": "li",
+                "children": "How do we ground entity vectors initially? (chicken-egg)"
+              },
+              {
+                "type": "li",
+                "children": "What happens with negation? ('didn't shoot')"
+              },
+              {
+                "type": "li",
+                "children": "Do we need a semantic dimension for each Wierzbicka attribute?"
+              },
+              {
+                "type": "li",
+                "children": "How do we handle implicit preconditions/postconditions?"
+              },
+              {
+                "type": "li",
+                "children": "Store absolute marker positions, deltas, or both?"
+              }
+            ]
+          },
+          {
+            "type": "h3",
+            "children": "Notes (Add below)"
+          },
+          {
+            "type": "p",
+            "children": "[Your annotations and notes will appear here as you add them...]"
+          }
+        ]
+      }
+    ]
+  }
+}
