@@ -667,13 +667,18 @@ const server = http.createServer(async (req, res) => {
   if (url.pathname === '/annotate' && req.method === 'POST') {
     try {
       const body = await parseBody(req)
-      const { action, selectedText, context, tutorialId, question } = body
+      let { action, selectedText, context, tutorialId, question } = body
+      
+      // Ensure selectedText is a string
+      if (selectedText && typeof selectedText !== 'string') {
+        selectedText = String(selectedText)
+      }
       
       console.log('\n📝 Annotation Request:')
       console.log(`  Action: ${action}`)
       console.log(`  Tutorial: ${tutorialId}`)
-      console.log(`  Selected: "${selectedText?.slice(0, 50)}..."`)
-      if (question) console.log(`  Question: "${question?.slice(0, 50)}..."`)
+      console.log(`  Selected: "${selectedText?.slice?.(0, 50) || selectedText}..."`)
+      if (question) console.log(`  Question: "${question?.slice?.(0, 50) || question}..."`)
       
       if (!action || !selectedText || !tutorialId) {
         return sendJson(res, 400, { error: 'Missing required fields' })
@@ -722,7 +727,7 @@ const server = http.createServer(async (req, res) => {
       await fs.writeFile(jsonPath, JSON.stringify(updatedContent, null, 2))
       console.log(`💾 Saved: ${jsonPath}`)
       
-      const commitMsg = `[${action}] "${selectedText.slice(0, 40)}..." in ${tutorialId}`
+      const commitMsg = `[${action}] "${String(selectedText).slice(0, 40)}..." in ${tutorialId}`
       commitAndPush(jsonPath, commitMsg).catch(() => {})
       
       return sendJson(res, 200, {
