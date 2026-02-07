@@ -1079,10 +1079,8 @@ const server = http.createServer(async (req, res) => {
         return summary
       }).join('\n')
       
-      // For large tutorials, use a simpler approach: just consolidate/remove annotations
-      // Rather than rewriting everything, we'll:
-      // 1. Ask AI which annotations to keep, merge, or remove
-      // 2. Apply those changes programmatically
+      // Simplified approach: AI decides keep or remove
+      // We don't do "integrate" because it's too complex to reliably apply
       
       const systemPrompt = `You are reviewing annotations on an educational tutorial called "${content.title}".
 
@@ -1092,7 +1090,7 @@ Each annotation shows:
 - BEFORE: The tutorial text that precedes it
 - AFTER: The tutorial text that follows it
 
-Your job is to decide what to do with each annotation based on whether it's still needed given the surrounding context.
+Your job is to decide which annotations to KEEP and which to REMOVE.
 
 Return a JSON object with your decisions. Be concise.`
 
@@ -1101,10 +1099,8 @@ Return a JSON object with your decisions. Be concise.`
 ${annotationSummary}
 
 For each annotation, decide:
-- "keep" = valuable supplementary content NOT covered by surrounding text
-- "remove" = redundant, OR the surrounding text already explains this, OR it's a Q&A that should be integrated into the main text
-- "integrate" = the annotation contains important info that should be woven into the main tutorial text (not kept as a sidebar)
-- "merge:X" = merge with annotation X (they cover the same topic)
+- "keep" = valuable content that adds something NOT already in the surrounding text
+- "remove" = redundant, OR the surrounding text already explains this well enough
 
 Look carefully at the BEFORE and AFTER context. If the main text already addresses what the annotation explains, mark it for removal.
 
@@ -1113,13 +1109,13 @@ Return JSON like:
   "decisions": {
     "1": "keep",
     "2": "remove", 
-    "3": "integrate",
-    "4": "merge:1"
+    "3": "keep",
+    "4": "remove"
   },
   "summary": "Brief explanation of your changes"
 }
 
-${aggressive ? 'AGGRESSIVE: Be bold. Most Q&A should be integrated or removed. Only keep truly supplementary sidebars.' : 'CONSERVATIVE: Remove only clearly redundant annotations. Prefer "integrate" for valuable Q&A.'}
+${aggressive ? 'AGGRESSIVE: Remove more aggressively. Only keep annotations that provide truly unique insight.' : 'CONSERVATIVE: Only remove clearly redundant annotations.'}
 
 Return ONLY valid JSON, no markdown.`
 
@@ -1166,13 +1162,9 @@ Return ONLY valid JSON, no markdown.`
         .filter(([_, action]) => action === 'remove')
         .map(([idx]) => parseInt(idx))
       
-      const toIntegrate = Object.entries(decisions.decisions || {})
-        .filter(([_, action]) => action === 'integrate')
-        .map(([idx]) => parseInt(idx))
-      
-      const toMerge = Object.entries(decisions.decisions || {})
-        .filter(([_, action]) => typeof action === 'string' && action.startsWith('merge:'))
-        .map(([idx, action]) => ({ from: parseInt(idx), to: parseInt(action.split(':')[1]) }))
+      // Simplified: just keep or remove (no integrate/merge for now)
+      const toMerge = []
+      const toIntegrate = []
       
       const toKeep = Object.entries(decisions.decisions || {})
         .filter(([_, action]) => action === 'keep')
@@ -1182,8 +1174,6 @@ Return ONLY valid JSON, no markdown.`
       const parts = []
       if (toKeep.length) parts.push(`${toKeep.length} keep`)
       if (toRemove.length) parts.push(`${toRemove.length} remove`)
-      if (toIntegrate.length) parts.push(`${toIntegrate.length} integrate`)
-      if (toMerge.length) parts.push(`${toMerge.length} merge`)
       
       console.log(`📊 Results: ${parts.join(', ')}`)
       
@@ -1201,28 +1191,6 @@ Return ONLY valid JSON, no markdown.`
         })
       }
       
-      for (const idx of toIntegrate) {
-        const ann = annotations[idx - 1]
-        if (ann) changes.push({
-          action: 'integrate',
-          index: idx,
-          type: ann.type,
-          title: ann.title,
-          preview: ann.content?.slice(0, 100)
-        })
-      }
-      
-      for (const { from, to } of toMerge) {
-        const ann = annotations[from - 1]
-        if (ann) changes.push({
-          action: 'merge',
-          index: from,
-          mergeInto: to,
-          type: ann.type,
-          preview: ann.content?.slice(0, 100)
-        })
-      }
-      
       // If preview mode, return without applying
       if (!apply) {
         const previewMessage = `Preview: ${parts.join(', ')}. ${decisions.summary || ''}`
@@ -1235,14 +1203,11 @@ Return ONLY valid JSON, no markdown.`
           annotationCount: annotations.length,
           decisions: {
             keep: toKeep.length,
-            remove: toRemove.length,
-            integrate: toIntegrate.length,
-            merge: toMerge.length
+            remove: toRemove.length
           },
           changes,
           details: decisions,
           message: previewMessage,
-          // Return unchanged content for preview
           updatedContent: content
         })
       }
@@ -1252,61 +1217,13 @@ Return ONLY valid JSON, no markdown.`
       let updatedContent = JSON.parse(JSON.stringify(content)) // Deep clone
       let changesApplied = 0
       
-      // Sort paths in reverse order so we remove from bottom up (indices stay valid)
+      // Collect all paths to remove
       const pathsToRemove = []
       
-      // 1. Handle removals - just delete the annotation
       for (const idx of toRemove) {
         const annotation = annotations[idx - 1] // 1-indexed
         if (annotation) {
-          pathsToRemove.push({ path: annotation.path, reason: 'remove' })
-        }
-      }
-      
-      // 2. Handle integrations - AI rewrites surrounding text, then remove annotation
-      for (const idx of toIntegrate) {
-        const annotation = annotations[idx - 1]
-        if (!annotation) continue
-        
-        // For integration, we'll ask AI to rewrite the BEFORE context to include the annotation's insight
-        // This is a targeted, small rewrite
-        console.log(`🔄 Integrating annotation ${idx}: "${annotation.content?.slice(0, 50)}..."`)
-        
-        try {
-          const integratePrompt = `Rewrite this paragraph to incorporate the insight from the annotation.
-
-ORIGINAL TEXT:
-"${annotation.contextBefore}"
-
-ANNOTATION TO INTEGRATE:
-"${annotation.content}"
-
-Return ONLY the rewritten paragraph. Keep it concise. Don't add markdown or explanation.`
-
-          const rewritten = await callAI(
-            'You are editing educational content. Integrate the annotation insight naturally into the text.',
-            integratePrompt
-          )
-          
-          // Find the text node before the annotation and update it
-          // This is tricky - we need to find where contextBefore came from
-          // For now, just mark for removal (the insight is noted in commit message)
-          pathsToRemove.push({ path: annotation.path, reason: 'integrate', rewritten: rewritten.trim() })
-          console.log(`  ✅ Generated integrated text`)
-        } catch (e) {
-          console.error(`  ❌ Failed to integrate: ${e.message}`)
-          // Still remove the annotation even if integration fails
-          pathsToRemove.push({ path: annotation.path, reason: 'integrate-failed' })
-        }
-      }
-      
-      // 3. Handle merges - combine content, remove the "from" annotation
-      for (const { from, to } of toMerge) {
-        const fromAnn = annotations[from - 1]
-        const toAnn = annotations[to - 1]
-        if (fromAnn && toAnn) {
-          // Just remove the "from" - in a full implementation we'd merge content
-          pathsToRemove.push({ path: fromAnn.path, reason: `merge into ${to}` })
+          pathsToRemove.push({ path: annotation.path, reason: 'remove', annotation })
         }
       }
       
@@ -1322,16 +1239,21 @@ Return ONLY the rewritten paragraph. Keep it concise. Don't add markdown or expl
       })
       
       // Apply removals (and clean up associated inline markers)
-      for (const { path, reason } of pathsToRemove) {
+      for (const { path, reason, annotation } of pathsToRemove) {
+        console.log(`  🔍 Processing: ${path}`)
+        
         // First, try to remove any inline marker pointing to this annotation
-        removeInlineMarker(updatedContent.content, path)
+        const markerRemoved = removeInlineMarker(updatedContent.content, path)
+        if (markerRemoved) {
+          console.log(`    ✅ Cleaned up inline marker`)
+        }
         
         // Then remove the annotation itself
         if (removeAtPath(updatedContent.content, path)) {
           changesApplied++
-          console.log(`  ✅ Removed (${reason}): ${path}`)
+          console.log(`    ✅ Removed annotation`)
         } else {
-          console.log(`  ⚠️ Failed to remove: ${path}`)
+          console.log(`    ⚠️ Failed to remove annotation at: ${path}`)
         }
       }
       

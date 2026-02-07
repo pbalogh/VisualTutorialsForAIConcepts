@@ -24,9 +24,7 @@ function RegroupPreviewModal({ preview, onApply, onCancel }) {
   }
   
   const actionLabels = {
-    remove: '🗑️ Remove',
-    integrate: '📝 Integrate into main text',
-    merge: '🔗 Merge'
+    remove: '🗑️ Remove'
   }
   
   return (
@@ -36,12 +34,11 @@ function RegroupPreviewModal({ preview, onApply, onCancel }) {
         <div className="p-6 border-b border-gray-700">
           <h2 className="text-xl font-semibold text-white mb-2">Preview Changes</h2>
           <p className="text-gray-400 text-sm">
-            {decisions.keep} keep • {decisions.remove} remove • {decisions.integrate} integrate
-            {decisions.merge > 0 && ` • ${decisions.merge} merge`}
+            {decisions.keep} keep • {decisions.remove} remove
           </p>
           {summary && (
             <p className="text-gray-500 text-sm mt-2 italic">"{summary}"</p>
-          )}
+          )}}
         </div>
         
         {/* Changes list */}
