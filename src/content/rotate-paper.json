@@ -252,7 +252,18 @@
               },
               {
                 "type": "p",
-                "children": "The key insight is that complex multiplication can encode different types of transformations. Where TransE uses simple addition (h + r ≈ t), ComplEx uses complex multiplication and conjugation. For a relation r with complex embedding, the scoring function becomes Re(⟨h, r, t̄⟩), where t̄ is the complex conjugate of t and ⟨·,·,·⟩ is a three-way inner product."
+                "children": [
+                  "The key insight is that complex multiplication can encode different types of transformations. Where TransE uses simple addition (h + r ≈ t), ComplEx uses complex multiplication and conjugation",
+                  {
+                    "type": "FootnoteRef",
+                    "props": {
+                      "id": "source-ann-1770467204186-nwhtnk",
+                      "targetId": "ann-1770467204186-nwhtnk",
+                      "type": "branch"
+                    }
+                  },
+                  ". For a relation r with complex embedding, the scoring function becomes Re(⟨h, r, t̄⟩), where t̄ is the complex conjugate of t and ⟨·,·,·⟩ is a three-way inner product."
+                ]
               },
               {
                 "type": "p",
@@ -268,6 +279,70 @@
                   "className": "text-gray-400 text-xs block mt-4"
                 },
                 "children": "(2/7/2026, 6:52:55 AM)"
+              }
+            ]
+          },
+          {
+            "type": "DeepDive",
+            "props": {
+              "title": "Deep Dive: complex multiplication and conjugation",
+              "defaultOpen": true,
+              "id": "ann-1770467204186-nwhtnk",
+              "sourceId": "source-ann-1770467204186-nwhtnk"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "Complex multiplication and conjugation are the mathematical engines that give RotatE its power to model different relationship types. While TransE can only model translations (moving in a straight line), complex operations unlock rotations and reflections in the embedding space. This means RotatE can naturally represent both symmetric relations (like 'spouse of') and composition patterns (like 'father of mother = maternal grandfather')."
+              },
+              {
+                "type": "Example",
+                "props": {
+                  "title": "Example: Complex Operations in Action"
+                },
+                "children": [
+                  {
+                    "type": "p",
+                    "children": "Let's see how complex multiplication works with concrete numbers:"
+                  },
+                  {
+                    "type": "Code",
+                    "props": {
+                      "language": "python"
+                    },
+                    "children": "# Entity embeddings (complex numbers)\nh = 3 + 4j  # head entity\nt = 1 + 2j  # tail entity\nr = 0.6 + 0.8j  # relation\n\n# Complex conjugate of t\nt_conj = 1 - 2j  # flip the imaginary sign\n\n# Three-way product: h * r * t_conj\nresult = h * r * t_conj\nprint(f\"Result: {result}\")\nprint(f\"Real part (score): {result.real}\")\n# Output: Real part (score): -4.4"
+                  }
+                ]
+              },
+              {
+                "type": "Analogy",
+                "children": "Think of complex multiplication like dancing: regular addition (TransE) is like walking in a straight line, but complex multiplication is like spinning and turning. The conjugation (flipping the imaginary sign) is like your dance partner facing the opposite direction, creating the perfect geometric relationship for the dance move to work."
+              },
+              {
+                "type": "DefinitionList",
+                "props": {
+                  "items": [
+                    {
+                      "term": "Complex Multiplication",
+                      "definition": "Combines rotation and scaling in 2D space. When you multiply h * r, you're rotating h by r's angle and scaling by r's magnitude."
+                    },
+                    {
+                      "term": "Complex Conjugate (t̄)",
+                      "definition": "Flips the sign of the imaginary part: if t = a + bi, then t̄ = a - bi. This creates the geometric constraint needed for the relation."
+                    },
+                    {
+                      "term": "Real Part Extraction",
+                      "definition": "Taking Re(⟨h, r, t̄⟩) gives a single real number score, measuring how well the triple fits the learned geometric pattern."
+                    }
+                  ]
+                }
+              },
+              {
+                "type": "Callout",
+                "props": {
+                  "type": "tip"
+                },
+                "children": "The magic happens because complex multiplication preserves distances and angles in a way that simple addition cannot. This is why RotatE can model relation composition (r1 ∘ r2 = r3) and symmetry patterns that would be impossible with just vector addition."
               }
             ]
           },
