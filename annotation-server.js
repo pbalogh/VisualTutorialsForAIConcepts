@@ -320,7 +320,78 @@ function generateAnnotationId() {
  */
 
 /**
- * Recursively find all Sidebar elements in content
+ * Recursively find all annotation elements in content
+ * This includes Sidebars, DeepDives, Q&A Callouts, footnotes, etc.
+ */
+function findAllAnnotations(node, path = '') {
+  const annotations = []
+  
+  if (!node) return annotations
+  
+  // Sidebar annotations
+  if (node.type === 'Sidebar') {
+    annotations.push({
+      type: 'sidebar',
+      subtype: node.props?.type || 'note',
+      title: node.props?.title || 'Untitled',
+      content: extractTextContent(node.children).slice(0, 200),
+      path
+    })
+  }
+  
+  // DeepDive sections (often from "Go Deeper")
+  if (node.type === 'DeepDive') {
+    annotations.push({
+      type: 'deepdive',
+      title: node.props?.title || 'Deep Dive',
+      content: extractTextContent(node.children).slice(0, 200),
+      path
+    })
+  }
+  
+  // Callouts with 💡 (inline explanations)
+  if (node.type === 'Callout' && extractTextContent(node.children).includes('💡')) {
+    annotations.push({
+      type: 'explanation',
+      content: extractTextContent(node.children).slice(0, 200),
+      path
+    })
+  }
+  
+  // Q&A style annotations (buttons with ❓)
+  if (node.type === 'button' && node.children && extractTextContent(node.children).includes('❓')) {
+    annotations.push({
+      type: 'question',
+      content: extractTextContent(node.children).slice(0, 200),
+      path
+    })
+  }
+  
+  // Footnote annotations
+  if (node.type === 'Footnote') {
+    annotations.push({
+      type: 'footnote',
+      reference: node.props?.reference,
+      content: extractTextContent(node.children).slice(0, 200),
+      path
+    })
+  }
+  
+  // Recurse into children
+  if (node.children) {
+    const children = Array.isArray(node.children) ? node.children : [node.children]
+    children.forEach((child, i) => {
+      if (typeof child === 'object') {
+        annotations.push(...findAllAnnotations(child, `${path}.children[${i}]`))
+      }
+    })
+  }
+  
+  return annotations
+}
+
+/**
+ * Recursively find all Sidebar elements in content (legacy, for backward compat)
  */
 function findSidebars(node, path = '') {
   const sidebars = []
@@ -778,7 +849,7 @@ const server = http.createServer(async (req, res) => {
     }
   }
   
-  // Regroup and Reorganize endpoint - applies changes immediately
+  // Regroup and Reorganize endpoint - treats annotations as editor's notes
   if (url.pathname === '/regroup' && req.method === 'POST') {
     try {
       const body = await parseBody(req)
@@ -786,7 +857,7 @@ const server = http.createServer(async (req, res) => {
       
       console.log('\n🔄 Regroup Request:')
       console.log(`  Tutorial: ${tutorialId}`)
-      console.log(`  Aggressive: ${aggressive}`)
+      console.log(`  Mode: ${aggressive ? 'aggressive' : 'conservative'}`)
       
       if (!tutorialId) {
         return sendJson(res, 400, { error: 'Missing tutorialId' })
@@ -810,50 +881,60 @@ const server = http.createServer(async (req, res) => {
         return sendJson(res, 404, { error: `Tutorial not found: ${tutorialId}` })
       }
       
-      // Find all Sidebars in the content
-      const sidebars = findSidebars(content.content)
-      console.log(`  Found ${sidebars.length} sidebars to analyze`)
+      // Find ALL annotations (sidebars, deepdives, callouts, Q&A, etc.)
+      const annotations = findAllAnnotations(content.content)
+      console.log(`  Found ${annotations.length} annotations to review`)
       
-      if (sidebars.length === 0) {
+      if (annotations.length === 0) {
         return sendJson(res, 200, { 
           success: true, 
-          message: 'No sidebars found to reorganize',
+          message: 'No annotations found - tutorial is clean',
           changes: 0,
           updatedContent: content
         })
       }
       
-      if (sidebars.length === 1) {
-        return sendJson(res, 200, { 
-          success: true, 
-          message: 'Only one sidebar found - nothing to consolidate',
-          changes: 0,
-          updatedContent: content
-        })
-      }
+      // Summarize annotations for the AI
+      const annotationSummary = annotations.map((a, i) => 
+        `${i+1}. [${a.type}${a.subtype ? ':'+a.subtype : ''}] ${a.title || ''} - "${a.content}"`
+      ).join('\n')
       
-      // Call AI to reorganize
-      const systemPrompt = `You are reorganizing an educational tutorial called "${content.title}".
+      // Call AI with the "editor's notes" framing
+      const systemPrompt = `You are a senior editor revising an educational tutorial called "${content.title}".
 
-Your job is to consolidate and tidy up the sidebar annotations. You will receive the FULL tutorial JSON and should return a MODIFIED version with sidebars consolidated.
+The tutorial has accumulated reader annotations - questions, requests for clarification, and "go deeper" expansions. Think of these as EDITOR'S NOTES on a manuscript: they represent places where readers were confused or curious.
 
-Rules for consolidation:
-${aggressive ? `- AGGRESSIVE MODE: Consolidate aggressively. Merge any sidebars on related topics.
-- Combine 3+ sidebars into summary sections where possible.
-- Remove redundant explanations entirely.` : `- CONSERVATIVE MODE: Only merge sidebars that are clearly about the exact same concept.
-- Keep distinct explanations separate.
-- Preserve user's original questions/notes.`}
+Your job is to REVISE THE TUTORIAL ITSELF so that these questions wouldn't need to be asked. The goal is a clean, self-contained tutorial where:
+- Confusing terms are explained BEFORE they're used (or inline when first used)
+- "Go deeper" content is integrated as proper sections if important, or removed if tangential
+- Q&A exchanges are absorbed into the main text as clear explanations
+- Sidebars with important info become part of the main flow
+- Redundant annotations are consolidated or removed
 
-Return the FULL modified tutorial JSON (not just the changes).`
-      
-      const prompt = `Here is the tutorial JSON to reorganize:
+${aggressive ? `AGGRESSIVE REVISION:
+- Be bold. Restructure sections if needed.
+- Remove annotations entirely after integrating their insights.
+- Combine related Q&A into consolidated explanations.
+- Cut tangential deep-dives that distract from the main narrative.` : `CONSERVATIVE REVISION:
+- Preserve the structure, but improve the prose.
+- Keep valuable annotations as sidebars if they're truly supplementary.
+- Integrate only the most essential clarifications into main text.
+- Don't remove content unless it's clearly redundant.`}
+
+Return the FULL revised tutorial JSON.`
+
+      const prompt = `Here are the reader annotations (editor's notes) on this tutorial:
+
+${annotationSummary}
+
+Here is the full tutorial JSON:
 
 ${JSON.stringify(content, null, 2)}
 
-Consolidate the Sidebar elements according to the rules. Return the FULL modified JSON.
+Revise the tutorial to address these reader needs. Return the FULL modified JSON.
 Only return valid JSON, no markdown or explanation.`
 
-      console.log('🤖 Calling AI to reorganize content...')
+      console.log('🤖 Calling AI to revise tutorial as editor...')
       const response = await callAI(systemPrompt, prompt)
       
       let updatedContent
@@ -875,28 +956,28 @@ Only return valid JSON, no markdown or explanation.`
         }
       }
       
-      // Count changes
-      const newSidebars = findSidebars(updatedContent.content)
-      const changeCount = sidebars.length - newSidebars.length
+      // Count annotations before and after
+      const newAnnotations = findAllAnnotations(updatedContent.content)
+      const removedCount = annotations.length - newAnnotations.length
       
       // Save the updated content
       await fs.writeFile(jsonPath, JSON.stringify(updatedContent, null, 2))
       console.log(`💾 Saved: ${jsonPath}`)
-      console.log(`📊 Sidebars: ${sidebars.length} → ${newSidebars.length} (${changeCount > 0 ? '-' : ''}${Math.abs(changeCount)} ${changeCount >= 0 ? 'consolidated' : 'added'})`)
+      console.log(`📊 Annotations: ${annotations.length} → ${newAnnotations.length} (${removedCount > 0 ? removedCount + ' integrated/removed' : 'restructured'})`)
       
       // Commit to git (for undo capability)
-      const commitMsg = `[regroup${aggressive ? '-aggressive' : ''}] ${sidebars.length}→${newSidebars.length} sidebars in ${tutorialId}`
+      const commitMsg = `[regroup${aggressive ? '-aggressive' : ''}] ${annotations.length}→${newAnnotations.length} annotations in ${tutorialId}`
       commitAndPush(jsonPath, commitMsg).catch(() => {})
       
       return sendJson(res, 200, {
         success: true,
         tutorialId,
-        beforeCount: sidebars.length,
-        afterCount: newSidebars.length,
-        changes: changeCount,
-        message: changeCount > 0 
-          ? `Consolidated ${changeCount} sidebar${changeCount > 1 ? 's' : ''}`
-          : 'No consolidations made',
+        beforeCount: annotations.length,
+        afterCount: newAnnotations.length,
+        changes: removedCount,
+        message: removedCount > 0 
+          ? `Revised tutorial: ${removedCount} annotation${removedCount > 1 ? 's' : ''} integrated into main text`
+          : 'Tutorial revised and restructured',
         updatedContent
       })
       

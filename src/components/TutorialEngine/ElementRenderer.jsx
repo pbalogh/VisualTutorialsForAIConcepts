@@ -18,6 +18,7 @@ import { MatrixDiscoveryTool } from '../visualizations/MatrixDiscoveryViz'
 import { LeadLagPlayground } from '../visualizations/LeadLagCorrelationViz'
 import { LeastSquaresPlayground } from '../visualizations/LeastSquaresViz'
 import { ComplexRotationViz, ComplexVectorViz, DimensionalityChoiceViz } from '../visualizations/ComplexRotationViz'
+import { TriangleRotationPuzzle, CoinFlipPuzzle, TwoCoinsPuzzle, GroupMultTable } from '../visualizations/GroupTheoryPuzzleViz'
 
 /**
  * Registry of components that can be rendered from JSON
