@@ -45,7 +45,7 @@ export default function MixturePanel({
   }
 
   return (
-    <div className="bg-white/5 backdrop-blur-sm rounded-2xl border border-white/10 overflow-hidden">
+    <div className="bg-white/5 backdrop-blur-md rounded-2xl border border-white/10 overflow-hidden">
       {/* Header */}
       <div className="px-6 py-4 border-b border-white/10 bg-gradient-to-r from-white/5 to-transparent">
         <h2 className="text-xl font-bold text-white">Mixture Settings</h2>
@@ -57,7 +57,7 @@ export default function MixturePanel({
       <div className="p-6 space-y-6">
         {/* Source breakdown */}
         <div>
-          <div className="text-xs text-slate-500 uppercase tracking-wider mb-3">
+          <div className="text-xs text-slate-400 uppercase tracking-wider mb-3">
             Source Composition
           </div>
           <div className="space-y-2">
@@ -86,10 +86,10 @@ export default function MixturePanel({
         {/* Acrimony slider */}
         <div>
           <div className="flex justify-between items-center mb-2">
-            <span className="text-xs text-slate-500 uppercase tracking-wider">
+            <span className="text-xs text-slate-400 uppercase tracking-wider">
               Dialectical Tension
             </span>
-            <span className="text-sm text-slate-400">
+            <span className="text-sm text-slate-300">
               {mixture.acrimony < 0.3 
                 ? 'Harmonious' 
                 : mixture.acrimony < 0.7 
@@ -113,7 +113,7 @@ export default function MixturePanel({
                 hsl(0, 60%, 50%) 100%)`
             }}
           />
-          <div className="flex justify-between text-xs text-slate-600 mt-1">
+          <div className="flex justify-between text-xs text-slate-400 mt-1">
             <span>🕊️ Synthesis</span>
             <span>⚔️ Debate</span>
           </div>
@@ -121,35 +121,35 @@ export default function MixturePanel({
 
         {/* Output mode */}
         <div>
-          <div className="text-xs text-slate-500 uppercase tracking-wider mb-3">
+          <div className="text-xs text-slate-400 uppercase tracking-wider mb-3">
             Output Style
           </div>
           <div className="grid grid-cols-2 gap-3">
             <button
               onClick={() => onUpdateMixture({ mode: 'structured' })}
-              className={`p-4 rounded-xl border text-left transition-all
+              className={`p-4 rounded-xl border-2 text-left transition-all
                 ${mixture.mode === 'structured'
-                  ? 'bg-white/10 border-white/30 text-white'
+                  ? 'bg-white/10 border-indigo-500/60 text-white ring-2 ring-indigo-500/20'
                   : 'bg-white/5 border-white/10 text-slate-400 hover:text-white hover:border-white/20'
                 }`}
             >
               <div className="text-2xl mb-2">📑</div>
               <div className="text-sm font-medium">Structured</div>
-              <div className="text-xs text-slate-500 mt-1">
+              <div className="text-xs text-slate-400 mt-1">
                 Organized essay blending perspectives
               </div>
             </button>
             <button
               onClick={() => onUpdateMixture({ mode: 'dialogue' })}
-              className={`p-4 rounded-xl border text-left transition-all
+              className={`p-4 rounded-xl border-2 text-left transition-all
                 ${mixture.mode === 'dialogue'
-                  ? 'bg-white/10 border-white/30 text-white'
+                  ? 'bg-white/10 border-indigo-500/60 text-white ring-2 ring-indigo-500/20'
                   : 'bg-white/5 border-white/10 text-slate-400 hover:text-white hover:border-white/20'
                 }`}
             >
               <div className="text-2xl mb-2">💬</div>
               <div className="text-sm font-medium">Dialogue</div>
-              <div className="text-xs text-slate-500 mt-1">
+              <div className="text-xs text-slate-400 mt-1">
                 Turn-by-turn conversation between voices
               </div>
             </button>
@@ -184,7 +184,7 @@ export default function MixturePanel({
         </button>
 
         {sourceList.length < 2 && (
-          <p className="text-xs text-center text-slate-500">
+          <p className="text-xs text-center text-slate-400">
             Add at least 2 sources to generate a synthesis
           </p>
         )}
@@ -193,10 +193,10 @@ export default function MixturePanel({
         {generatedOutput && (
           <div className="pt-4 border-t border-white/10 space-y-3">
             <div className="flex items-center justify-between">
-              <span className="text-xs text-slate-500 uppercase tracking-wider">
+              <span className="text-xs text-slate-400 uppercase tracking-wider">
                 Generated Output
               </span>
-              <span className="text-xs text-slate-500">
+              <span className="text-xs text-slate-400">
                 {new Date(generatedOutput.generatedAt).toLocaleTimeString()}
               </span>
             </div>

@@ -88,7 +88,7 @@ export default function SourceUploader({
   }
 
   return (
-    <div className="bg-white/5 backdrop-blur-sm rounded-2xl border border-white/10 overflow-hidden">
+    <div className="bg-white/5 backdrop-blur-md rounded-2xl border border-white/10 overflow-hidden">
       {/* Header */}
       <div 
         className="px-6 py-4 border-b border-white/10"
@@ -136,10 +136,10 @@ export default function SourceUploader({
             <button
               key={tab.id}
               onClick={() => setMode(tab.id)}
-              className={`flex-1 py-2 px-3 text-sm rounded-lg flex items-center justify-center gap-2 transition-colors
+              className={`flex-1 py-2.5 px-3 text-sm rounded-lg flex items-center justify-center gap-2 transition-all border
                 ${mode === tab.id 
-                  ? 'bg-white/10 text-white' 
-                  : 'text-slate-400 hover:text-white hover:bg-white/5'
+                  ? 'bg-white/15 text-white border-white/20 shadow-sm' 
+                  : 'text-slate-400 hover:text-white hover:bg-white/5 border-transparent'
                 }`}
             >
               <span>{tab.icon}</span>
@@ -150,7 +150,7 @@ export default function SourceUploader({
 
         {/* Title input (optional) */}
         <div>
-          <label className="block text-xs text-slate-500 uppercase tracking-wider mb-2">
+          <label className="block text-xs text-slate-400 uppercase tracking-wider mb-2">
             Title (optional)
           </label>
           <input
@@ -159,7 +159,7 @@ export default function SourceUploader({
             onChange={(e) => setTitle(e.target.value)}
             placeholder="Give this source a name..."
             className="w-full px-4 py-2 bg-white/5 border border-white/10 rounded-lg
-              text-white placeholder-slate-500 text-sm
+              text-white placeholder-slate-400 text-sm
               focus:outline-none focus:border-white/30"
           />
         </div>
@@ -177,15 +177,15 @@ export default function SourceUploader({
             <button
               onClick={() => fileInputRef.current?.click()}
               disabled={isProcessing}
-              className="w-full py-8 border-2 border-dashed border-white/20 rounded-xl
-                text-slate-400 hover:text-white hover:border-white/40 
+              className="w-full py-8 border-2 border-dashed border-white/25 rounded-xl
+                text-slate-300 hover:text-white hover:border-white/40 hover:bg-white/5
                 transition-colors flex flex-col items-center gap-2"
             >
               <span className="text-3xl">📁</span>
               <span className="text-sm">
                 {isProcessing ? 'Processing...' : 'Click to upload a file'}
               </span>
-              <span className="text-xs text-slate-500">
+              <span className="text-xs text-slate-400">
                 .txt, .md, .pdf, .epub, .html
               </span>
             </button>
@@ -201,7 +201,7 @@ export default function SourceUploader({
               onChange={(e) => setUrl(e.target.value)}
               placeholder="https://..."
               className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg
-                text-white placeholder-slate-500 text-sm
+                text-white placeholder-slate-400 text-sm
                 focus:outline-none focus:border-white/30"
             />
             <button
@@ -225,7 +225,7 @@ export default function SourceUploader({
               placeholder="Paste text content here..."
               rows={6}
               className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg
-                text-white placeholder-slate-500 text-sm resize-none
+                text-white placeholder-slate-400 text-sm resize-none
                 focus:outline-none focus:border-white/30"
             />
             <button
@@ -250,7 +250,7 @@ export default function SourceUploader({
         {/* Suggestions (for opposite/orthogonal sources) */}
         {suggestions && suggestions.length > 0 && (
           <div className="pt-4 border-t border-white/10">
-            <div className="text-xs text-slate-500 uppercase tracking-wider mb-3">
+            <div className="text-xs text-slate-400 uppercase tracking-wider mb-3">
               Suggested opposites
             </div>
             <div className="space-y-2">

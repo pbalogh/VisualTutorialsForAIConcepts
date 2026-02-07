@@ -16,7 +16,7 @@ export default function SourcePanel({
   const oppositePos = getOppositePosition(position)
   
   return (
-    <div className="bg-white/5 backdrop-blur-sm rounded-2xl border border-white/10 overflow-hidden">
+    <div className="bg-white/5 backdrop-blur-md rounded-2xl border border-white/10 overflow-hidden">
       {/* Header with source color */}
       <div 
         className="px-6 py-4 border-b border-white/10"
@@ -51,7 +51,7 @@ export default function SourcePanel({
       <div className="p-6 space-y-6">
         {/* Source type & info */}
         <div>
-          <div className="text-xs text-slate-500 uppercase tracking-wider mb-2">Source</div>
+          <div className="text-xs text-slate-400 uppercase tracking-wider mb-2">Source</div>
           <div className="flex items-center gap-2 text-slate-300">
             <span className="text-lg">
               {source.type === 'url' ? '🔗' : source.type === 'file' ? '📄' : '📝'}
@@ -65,7 +65,7 @@ export default function SourcePanel({
         {/* Summary if available */}
         {source.summary && (
           <div>
-            <div className="text-xs text-slate-500 uppercase tracking-wider mb-2">Summary</div>
+            <div className="text-xs text-slate-400 uppercase tracking-wider mb-2">Summary</div>
             <p className="text-sm text-slate-300 leading-relaxed">
               {source.summary}
             </p>
@@ -75,7 +75,7 @@ export default function SourcePanel({
         {/* Key themes */}
         {source.themes?.length > 0 && (
           <div>
-            <div className="text-xs text-slate-500 uppercase tracking-wider mb-2">Key Themes</div>
+            <div className="text-xs text-slate-400 uppercase tracking-wider mb-2">Key Themes</div>
             <div className="flex flex-wrap gap-2">
               {source.themes.map((theme, i) => (
                 <span 
@@ -96,10 +96,10 @@ export default function SourcePanel({
         {/* Magnitude slider */}
         <div>
           <div className="flex justify-between items-center mb-2">
-            <span className="text-xs text-slate-500 uppercase tracking-wider">
+            <span className="text-xs text-slate-400 uppercase tracking-wider">
               Influence
             </span>
-            <span className="text-sm text-slate-400">
+            <span className="text-sm text-slate-300">
               {Math.round(source.magnitude * 100)}%
             </span>
           </div>
@@ -115,7 +115,7 @@ export default function SourcePanel({
               background: `linear-gradient(to right, ${color} ${source.magnitude * 100}%, rgba(255,255,255,0.1) ${source.magnitude * 100}%)`
             }}
           />
-          <div className="flex justify-between text-xs text-slate-600 mt-1">
+          <div className="flex justify-between text-xs text-slate-400 mt-1">
             <span>Subtle</span>
             <span>Dominant</span>
           </div>

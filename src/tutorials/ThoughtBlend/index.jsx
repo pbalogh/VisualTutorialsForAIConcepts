@@ -105,7 +105,7 @@ export default function ThoughtBlend() {
                 Synthesize perspectives through dialectical color mixing
               </p>
             </div>
-            <div className="text-sm text-slate-500">
+            <div className="text-sm text-slate-400">
               {sourceCount === 0 
                 ? 'Add your first source to begin'
                 : `${sourceCount} source${sourceCount === 1 ? '' : 's'} loaded`
@@ -172,7 +172,7 @@ export default function ThoughtBlend() {
 // Getting started panel
 function GettingStarted({ onStart }) {
   return (
-    <div className="bg-white/5 backdrop-blur-sm rounded-2xl border border-white/10 p-6">
+    <div className="bg-white/5 backdrop-blur-md rounded-2xl border border-white/10 p-6">
       <h2 className="text-xl font-bold text-white mb-4">How it works</h2>
       
       <div className="space-y-4 text-slate-300 text-sm leading-relaxed">

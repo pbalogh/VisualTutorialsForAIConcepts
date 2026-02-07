@@ -141,17 +141,17 @@ export default function ColorWheel({
                 r={displayRadius}
                 fill={isOccupied 
                   ? getPositionColor(position, 70, 45) 
-                  : 'rgba(255,255,255,0.05)'
+                  : 'rgba(255,255,255,0.1)'
                 }
                 stroke={isSelected 
                   ? 'white' 
                   : isOccupied 
                     ? getPositionColor(position, 90, 70)
-                    : 'rgba(255,255,255,0.2)'
+                    : 'rgba(255,255,255,0.25)'
                 }
                 strokeWidth={isSelected ? 3 : 1.5}
                 onClick={() => onPositionClick(position)}
-                className="transition-all duration-200 hover:scale-110"
+                className={`transition-all duration-200 hover:scale-110 ${!isOccupied ? 'hover:fill-[rgba(255,255,255,0.18)]' : ''}`}
                 style={{ transformOrigin: `${x}px ${y}px` }}
               />
               
@@ -162,9 +162,9 @@ export default function ColorWheel({
                   y={y}
                   textAnchor="middle"
                   dominantBaseline="middle"
-                  fill="rgba(255,255,255,0.3)"
-                  fontSize="12"
-                  fontWeight="500"
+                  fill="rgba(255,255,255,0.5)"
+                  fontSize="14"
+                  fontWeight="600"
                   onClick={() => onPositionClick(position)}
                   className="cursor-pointer select-none"
                 >
@@ -200,7 +200,7 @@ export default function ColorWheel({
           fill={centerColor}
           stroke="rgba(255,255,255,0.2)"
           strokeWidth="2"
-          className="cursor-pointer transition-colors duration-500"
+          className="cursor-pointer transition-all duration-500 hover:stroke-[rgba(255,255,255,0.4)]"
           onClick={() => onPositionClick(null)}
         />
         
@@ -232,7 +232,7 @@ export default function ColorWheel({
       </svg>
 
       {/* Legend */}
-      <div className="absolute -bottom-8 left-1/2 -translate-x-1/2 text-xs text-slate-500">
+      <div className="absolute -bottom-8 left-1/2 -translate-x-1/2 text-xs text-slate-400">
         Click a slot to add a source • Click center to mix
       </div>
     </div>

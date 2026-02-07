@@ -322,57 +322,99 @@ function generateAnnotationId() {
 /**
  * Recursively find all annotation elements in content
  * This includes Sidebars, DeepDives, Q&A Callouts, footnotes, etc.
+ * Now also captures surrounding context for better AI decisions
  */
-function findAllAnnotations(node, path = '') {
+function findAllAnnotations(node, path = '', parent = null, siblingIndex = -1) {
   const annotations = []
   
   if (!node) return annotations
   
+  // Helper to get context from siblings
+  const getContext = () => {
+    if (!parent || !Array.isArray(parent.children)) return { before: '', after: '' }
+    const siblings = parent.children
+    
+    let before = ''
+    let after = ''
+    
+    // Get text from previous siblings (up to 300 chars)
+    for (let i = siblingIndex - 1; i >= 0 && before.length < 300; i--) {
+      const text = extractTextContent(siblings[i])
+      if (text) before = text.slice(-300) + ' ' + before
+    }
+    
+    // Get text from next siblings (up to 300 chars)
+    for (let i = siblingIndex + 1; i < siblings.length && after.length < 300; i++) {
+      const text = extractTextContent(siblings[i])
+      if (text) after = after + ' ' + text.slice(0, 300)
+    }
+    
+    return { 
+      before: before.trim().slice(-300), 
+      after: after.trim().slice(0, 300) 
+    }
+  }
+  
   // Sidebar annotations
   if (node.type === 'Sidebar') {
+    const ctx = getContext()
     annotations.push({
       type: 'sidebar',
       subtype: node.props?.type || 'note',
       title: node.props?.title || 'Untitled',
       content: extractTextContent(node.children).slice(0, 200),
+      contextBefore: ctx.before,
+      contextAfter: ctx.after,
       path
     })
   }
   
   // DeepDive sections (often from "Go Deeper")
   if (node.type === 'DeepDive') {
+    const ctx = getContext()
     annotations.push({
       type: 'deepdive',
       title: node.props?.title || 'Deep Dive',
       content: extractTextContent(node.children).slice(0, 200),
+      contextBefore: ctx.before,
+      contextAfter: ctx.after,
       path
     })
   }
   
   // Callouts with 💡 (inline explanations)
   if (node.type === 'Callout' && extractTextContent(node.children).includes('💡')) {
+    const ctx = getContext()
     annotations.push({
       type: 'explanation',
       content: extractTextContent(node.children).slice(0, 200),
+      contextBefore: ctx.before,
+      contextAfter: ctx.after,
       path
     })
   }
   
   // Q&A style annotations (buttons with ❓)
   if (node.type === 'button' && node.children && extractTextContent(node.children).includes('❓')) {
+    const ctx = getContext()
     annotations.push({
       type: 'question',
       content: extractTextContent(node.children).slice(0, 200),
+      contextBefore: ctx.before,
+      contextAfter: ctx.after,
       path
     })
   }
   
   // Footnote annotations
   if (node.type === 'Footnote') {
+    const ctx = getContext()
     annotations.push({
       type: 'footnote',
       reference: node.props?.reference,
       content: extractTextContent(node.children).slice(0, 200),
+      contextBefore: ctx.before,
+      contextAfter: ctx.after,
       path
     })
   }
@@ -382,7 +424,7 @@ function findAllAnnotations(node, path = '') {
     const children = Array.isArray(node.children) ? node.children : [node.children]
     children.forEach((child, i) => {
       if (typeof child === 'object') {
-        annotations.push(...findAllAnnotations(child, `${path}.children[${i}]`))
+        annotations.push(...findAllAnnotations(child, `${path}.children[${i}]`, node, i))
       }
     })
   }
@@ -895,9 +937,18 @@ const server = http.createServer(async (req, res) => {
       }
       
       // Summarize annotations for the AI
-      const annotationSummary = annotations.map((a, i) => 
-        `${i+1}. [${a.type}${a.subtype ? ':'+a.subtype : ''}] ${a.title || ''} - "${a.content}"`
-      ).join('\n')
+      // Build rich annotation summary with context
+      const annotationSummary = annotations.map((a, i) => {
+        let summary = `${i+1}. [${a.type}${a.subtype ? ':'+a.subtype : ''}] ${a.title || ''}\n`
+        summary += `   Content: "${a.content}"\n`
+        if (a.contextBefore) {
+          summary += `   BEFORE: "...${a.contextBefore}"\n`
+        }
+        if (a.contextAfter) {
+          summary += `   AFTER: "${a.contextAfter}..."\n`
+        }
+        return summary
+      }).join('\n')
       
       // For large tutorials, use a simpler approach: just consolidate/remove annotations
       // Rather than rewriting everything, we'll:
@@ -906,32 +957,40 @@ const server = http.createServer(async (req, res) => {
       
       const systemPrompt = `You are reviewing annotations on an educational tutorial called "${content.title}".
 
-The tutorial has ${annotations.length} reader annotations (questions, explanations, deep-dives). 
-Your job is to decide what to do with each one.
+The tutorial has ${annotations.length} reader annotations (questions, explanations, deep-dives).
+Each annotation shows:
+- The annotation content
+- BEFORE: The tutorial text that precedes it
+- AFTER: The tutorial text that follows it
+
+Your job is to decide what to do with each annotation based on whether it's still needed given the surrounding context.
 
 Return a JSON object with your decisions. Be concise.`
 
-      const prompt = `Here are the annotations:
+      const prompt = `Here are the annotations with their surrounding context:
 
 ${annotationSummary}
 
 For each annotation, decide:
-- "keep" = leave as-is (it's valuable supplementary content)
-- "remove" = delete it (redundant or already addressed in main text)
+- "keep" = valuable supplementary content NOT covered by surrounding text
+- "remove" = redundant, OR the surrounding text already explains this, OR it's a Q&A that should be integrated into the main text
+- "integrate" = the annotation contains important info that should be woven into the main tutorial text (not kept as a sidebar)
 - "merge:X" = merge with annotation X (they cover the same topic)
+
+Look carefully at the BEFORE and AFTER context. If the main text already addresses what the annotation explains, mark it for removal.
 
 Return JSON like:
 {
   "decisions": {
     "1": "keep",
     "2": "remove", 
-    "3": "merge:1",
-    "4": "keep"
+    "3": "integrate",
+    "4": "merge:1"
   },
   "summary": "Brief explanation of your changes"
 }
 
-${aggressive ? 'AGGRESSIVE: Remove more, keep only essential.' : 'CONSERVATIVE: Keep most, only remove clearly redundant.'}
+${aggressive ? 'AGGRESSIVE: Be bold. Most Q&A should be integrated or removed. Only keep truly supplementary sidebars.' : 'CONSERVATIVE: Remove only clearly redundant annotations. Prefer "integrate" for valuable Q&A.'}
 
 Return ONLY valid JSON, no markdown.`
 
@@ -973,10 +1032,13 @@ Return ONLY valid JSON, no markdown.`
       
       console.log('📋 AI decisions:', decisions.summary || 'No summary')
       
-      // Apply decisions: remove annotations marked for removal
-      // For now, we'll just report what would change (safer first pass)
+      // Parse decisions
       const toRemove = Object.entries(decisions.decisions || {})
         .filter(([_, action]) => action === 'remove')
+        .map(([idx]) => parseInt(idx))
+      
+      const toIntegrate = Object.entries(decisions.decisions || {})
+        .filter(([_, action]) => action === 'integrate')
         .map(([idx]) => parseInt(idx))
       
       const toMerge = Object.entries(decisions.decisions || {})
@@ -987,10 +1049,16 @@ Return ONLY valid JSON, no markdown.`
         .filter(([_, action]) => action === 'keep')
         .map(([idx]) => parseInt(idx))
       
-      // For now, just report - actual removal would need path-based deletion
-      const message = `Reviewed ${annotations.length} annotations: ${toKeep.length} keep, ${toRemove.length} remove, ${toMerge.length} merge. ${decisions.summary || ''}`
+      // Build message
+      const parts = []
+      if (toKeep.length) parts.push(`${toKeep.length} keep`)
+      if (toRemove.length) parts.push(`${toRemove.length} remove`)
+      if (toIntegrate.length) parts.push(`${toIntegrate.length} integrate`)
+      if (toMerge.length) parts.push(`${toMerge.length} merge`)
       
-      console.log(`📊 Results: ${toKeep.length} keep, ${toRemove.length} remove, ${toMerge.length} merge`)
+      const message = `Reviewed ${annotations.length} annotations: ${parts.join(', ')}. ${decisions.summary || ''}`
+      
+      console.log(`📊 Results: ${parts.join(', ')}`)
       
       // TODO: Actually apply the removals/merges to the content
       // For now we just report the analysis
@@ -1002,10 +1070,12 @@ Return ONLY valid JSON, no markdown.`
         decisions: {
           keep: toKeep.length,
           remove: toRemove.length,
+          integrate: toIntegrate.length,
           merge: toMerge.length
         },
         details: decisions,
         message,
+        changes: toRemove.length + toIntegrate.length + toMerge.length,
         // Don't update content yet - just analysis
         updatedContent: content
       })
