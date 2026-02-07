@@ -200,7 +200,18 @@
               },
               {
                 "type": "p",
-                "children": "The real insight of the RotatE paper isn't just pointing out this limitation - it's showing how to get the best of both worlds. RotatE achieves the asymmetry that full matrices could provide, but does so with the same parameter efficiency as diagonal matrices. Instead of using more parameters, it uses complex numbers and rotation operations to elegantly encode directional relationships. This is why RotatE is considered an advancement: it solves the asymmetry problem without sacrificing the computational benefits that made DistMult attractive in the first place."
+                "children": [
+                  "The real insight of the RotatE paper isn't just pointing out this limitation - it's showing how to get the best of both worlds. RotatE achieves the asymmetry that full matrices could provide, but does so with the same parameter efficiency as diagonal matrices. Instead of using more parameters, it uses complex numbers and rotation operations to elegantly encode directional relationships. This is why RotatE is considered an advancement: it solves the asymmetry problem",
+                  {
+                    "type": "FootnoteRef",
+                    "props": {
+                      "id": "source-ann-1770464691587-75xkbd",
+                      "targetId": "ann-1770464691587-75xkbd",
+                      "type": "ask"
+                    }
+                  },
+                  " without sacrificing the computational benefits that made DistMult attractive in the first place."
+                ]
               },
               {
                 "type": "em",
@@ -208,6 +219,52 @@
                   "className": "text-gray-400 text-xs block mt-4"
                 },
                 "children": "(2/7/2026, 6:42:38 AM)"
+              }
+            ]
+          },
+          {
+            "type": "DeepDive",
+            "props": {
+              "title": "❓ Q: What worries me, though, is that rotating a vector in multiple dimensions will only work if the target vector has the same shape across all dimensions, no? If the target is much larger or smaller in one particular dimension, how can rotation work at getting us to it?",
+              "defaultOpen": true,
+              "id": "ann-1770464691587-75xkbd",
+              "sourceId": "source-ann-1770464691587-75xkbd"
+            },
+            "children": [
+              {
+                "type": "Callout",
+                "props": {
+                  "type": "info"
+                },
+                "children": [
+                  {
+                    "type": "em",
+                    "children": "About \"solves the asymmetry problem\""
+                  }
+                ]
+              },
+              {
+                "type": "p",
+                "children": "You're thinking about rotation too literally - like rotating a physical object where the shape must be preserved. In RotatE, \"rotation\" is actually element-wise multiplication by complex numbers, which allows both rotation AND scaling simultaneously."
+              },
+              {
+                "type": "p",
+                "children": "Here's what actually happens: each dimension of the relation embedding is a complex number with both magnitude and phase. When you multiply the head entity by this complex relation, you're not just rotating - you're rotating each dimension by a potentially different angle AND scaling it by a potentially different amount. The magnitude of each complex number controls the scaling, while the phase controls the rotation."
+              },
+              {
+                "type": "p",
+                "children": "So if your target vector needs to be much larger in dimension 3 but smaller in dimension 1, the relation embedding can have a large magnitude in dimension 3 (strong scaling up) and small magnitude in dimension 1 (scaling down), each with their own rotation angles. This is why RotatE can capture the same expressiveness as full matrix transformations - it's not constrained to rigid rotations that preserve vector length and shape."
+              },
+              {
+                "type": "p",
+                "children": "This element-wise approach means RotatE can model any combination of scaling and rotation per dimension, giving it the asymmetric modeling power you need while keeping the parameter count linear rather than quadratic."
+              },
+              {
+                "type": "em",
+                "props": {
+                  "className": "text-gray-400 text-xs block mt-4"
+                },
+                "children": "(2/7/2026, 6:44:45 AM)"
               }
             ]
           },
