@@ -9,6 +9,7 @@ import {
   StateConditional 
 } from './TutorialStateContext'
 import { Annotation, FootnoteAnnotation, AnnotatableContent } from '../AnnotationSystem'
+import Sidebar from '../Sidebar'
 
 // Visualization components
 import { VectorProjectionViz } from '../visualizations/VectorProjectionViz'
@@ -209,6 +210,13 @@ const componentMap = {
       </div>
     )
   },
+  
+  // Collapsible sidebar/note component (textbook margin notes)
+  Sidebar: ({ type = 'note', title, expanded, children }) => (
+    <Sidebar type={type} title={title} defaultExpanded={expanded}>
+      {children}
+    </Sidebar>
+  ),
   
   // Premium code block with language label and copy button
   Code: ({ children, language = 'javascript', filename }) => {
