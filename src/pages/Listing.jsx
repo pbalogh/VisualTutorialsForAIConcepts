@@ -124,6 +124,19 @@ function CreateTutorialModal({ isOpen, onClose }) {
 
 const tutorials = [
   {
+    id: 'group-theory-puzzles',
+    title: 'Group Theory for Puzzle Solving',
+    description: 'Discover how abstract symmetry helps crack puzzles — from coin flips to Rubik\'s cubes, with interactive Cayley diagrams',
+    tags: ['group theory', 'puzzles', 'fundamentals'],
+    icon: '🔺',
+    gradient: 'from-rose-500 to-orange-500',
+    shadowColor: 'shadow-rose-500/30',
+    glowColor: 'rgba(244, 63, 94, 0.4)',
+    readTime: '12 min',
+    difficulty: 1,
+    featured: true,
+  },
+  {
     id: 'engine-demo',
     title: 'Tutorial Engine Demo',
     description: 'A self-documenting demonstration of the data-driven tutorial system with live state bindings',
@@ -134,7 +147,6 @@ const tutorials = [
     glowColor: 'rgba(139, 92, 246, 0.4)',
     readTime: '8 min',
     difficulty: 2,
-    featured: true,
   },
   {
     id: 'lead-lag-correlation',
@@ -267,6 +279,10 @@ const tagColors = {
   
   // Difficulty
   'fundamentals': 'bg-emerald-100 text-emerald-700 border-emerald-200',
+  
+  // Topics - group theory family (rose)
+  'group theory': 'bg-rose-100 text-rose-700 border-rose-200',
+  'puzzles': 'bg-orange-100 text-orange-700 border-orange-200',
   
   // Topics - linear algebra family (indigo/purple)
   'linear algebra': 'bg-indigo-100 text-indigo-700 border-indigo-200',

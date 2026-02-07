@@ -23,7 +23,7 @@ const tutorialComponents = {
 }
 
 // JSON-based tutorials (loaded dynamically)
-const jsonTutorials = ['vector-projection', 'engine-demo', 'matrix-from-vectors-engine', 'matrix-discovery-engine', 'lead-lag-correlation-engine', 'least-squares-engine', 'schankian-paper-draft', 'rotate-paper', 'neural-oscillations']
+const jsonTutorials = ['vector-projection', 'engine-demo', 'matrix-from-vectors-engine', 'matrix-discovery-engine', 'lead-lag-correlation-engine', 'least-squares-engine', 'schankian-paper-draft', 'rotate-paper', 'neural-oscillations', 'group-theory-puzzles']
 
 const tutorialMeta = {
   'matrix-discovery': {
@@ -170,6 +170,16 @@ const tutorialMeta = {
     exercises: 0,
     isExperimental: true,
     sections: ['Brain Rhythms', 'Theta Oscillations', 'Gamma & Binding', 'Superior Pattern Processing', 'Schankian Connection', 'Takeaways']
+  },
+  'group-theory-puzzles': {
+    title: 'Group Theory for Puzzle Solving',
+    subtitle: 'How mathematicians turned abstract symmetry into puzzle-cracking power',
+    icon: '🔺',
+    gradient: 'from-rose-500 to-orange-500',
+    glowColor: 'rgba(244, 63, 94, 0.4)',
+    readTime: '12 min',
+    exercises: 3,
+    sections: ['The Big Secret', 'Level 1: A Coin', 'Level 2: Triangle Rotation', 'Level 3: Two Coins', 'Group Axioms', 'Multiplication Tables', 'Why This Matters', 'What\'s Next']
   }
 }
 

@@ -36,6 +36,10 @@ const componentMap = {
   ComplexRotationViz,
   ComplexVectorViz,
   DimensionalityChoiceViz,
+  TriangleRotationPuzzle,
+  CoinFlipPuzzle,
+  TwoCoinsPuzzle,
+  GroupMultTable,
   
   // State bindings
   StateValue,

@@ -1,0 +1,421 @@
+{
+  "id": "group-theory-puzzles",
+  "title": "Group Theory for Puzzle Solving",
+  "subtitle": "How mathematicians turned abstract symmetry into puzzle-cracking power",
+  "state": {
+    "showAdvanced": false
+  },
+  "content": {
+    "type": "Fragment",
+    "children": [
+      {
+        "type": "Section",
+        "props": {
+          "title": "The Big Secret: Every Puzzle is a Group"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": [
+              "Here's something that changed how mathematicians think about puzzles: ",
+              {
+                "type": "strong",
+                "children": "every puzzle with reversible moves secretly has a group structure"
+              },
+              ". This isn't just abstract theory — it's a practical tool that helps solve Rubik's cubes, crack combination locks, and design efficient algorithms."
+            ]
+          },
+          {
+            "type": "p",
+            "children": "But what does that actually mean? Let's build intuition from the ground up with the simplest possible examples."
+          },
+          {
+            "type": "Callout",
+            "props": {
+              "type": "info"
+            },
+            "children": "A group is just a set of things (like puzzle states or moves) with a way to combine them that follows certain rules. Don't worry about the formal definition yet — we'll discover the rules by playing with actual puzzles."
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "Level 1: The Simplest Puzzle — A Coin"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "Before Rubik's cubes, let's start embarrassingly simple. A coin has two states (heads, tails) and one move (flip). That's a puzzle!"
+          },
+          {
+            "type": "CoinFlipPuzzle",
+            "props": {
+              "showGroup": true
+            }
+          },
+          {
+            "type": "Callout",
+            "props": {
+              "type": "tip"
+            },
+            "children": "Click the coin or the Flip button. Notice how two flips bring you back to the start. This is your first taste of group structure: every element has an inverse (something that undoes it). For the flip, the inverse is... another flip!"
+          },
+          {
+            "type": "p",
+            "children": "This is the group Z₂ (\"zee-two\"). It's the smallest interesting group, and it appears everywhere: light switches, binary digits, even quantum computing."
+          },
+          {
+            "type": "DeepDive",
+            "props": {
+              "title": "Why do we call it Z₂?"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "The 'Z' stands for the German word 'Zahlen' (numbers). Z₂ is the integers modulo 2 — basically, arithmetic where you only care about even/odd. Adding 1+1 in Z₂ gives 0 (even + even = even... wait, 2 is even, which is 0 mod 2). Same idea as flipping twice returning to start."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "Level 2: Triangle Rotation — Z₃"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "Now let's add a bit more complexity. Imagine a triangle with labeled corners. You can rotate it, but you can't flip it over. How many distinct positions are there?"
+          },
+          {
+            "type": "TriangleRotationPuzzle",
+            "props": {
+              "showCayley": true,
+              "showOperationHistory": true
+            }
+          },
+          {
+            "type": "p",
+            "children": "Three rotations bring you back to the start. This is Z₃ — the cyclic group of order 3."
+          },
+          {
+            "type": "Callout",
+            "props": {
+              "type": "tip"
+            },
+            "children": [
+              "Look at the Cayley diagram on the right. It's a visual map of ",
+              {
+                "type": "strong",
+                "children": "all possible states"
+              },
+              " and how they connect. Each arrow represents applying the rotation operation. Notice it forms a cycle — that's why it's called a ",
+              {
+                "type": "em",
+                "children": "cyclic"
+              },
+              " group!"
+            ]
+          },
+          {
+            "type": "p",
+            "children": "The group elements are:"
+          },
+          {
+            "type": "ul",
+            "children": [
+              {
+                "type": "li",
+                "children": [
+                  {
+                    "type": "strong",
+                    "children": "e"
+                  },
+                  " (identity) — do nothing, ABC stays ABC"
+                ]
+              },
+              {
+                "type": "li",
+                "children": [
+                  {
+                    "type": "strong",
+                    "children": "r"
+                  },
+                  " (rotate once) — ABC → CAB"
+                ]
+              },
+              {
+                "type": "li",
+                "children": [
+                  {
+                    "type": "strong",
+                    "children": "r²"
+                  },
+                  " (rotate twice) — ABC → BCA"
+                ]
+              }
+            ]
+          },
+          {
+            "type": "p",
+            "children": [
+              "And r³ = e (three rotations = back to start). In group language: ",
+              {
+                "type": "strong",
+                "children": "the order of r is 3"
+              },
+              "."
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "Level 3: Two Coins — The Klein Four Group"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "What happens when we combine two simple puzzles? Two coins give us something new and interesting."
+          },
+          {
+            "type": "TwoCoinsPuzzle",
+            "props": {
+              "showCayley": true
+            }
+          },
+          {
+            "type": "p",
+            "children": "This is the Klein Four Group (named after mathematician Felix Klein). It has 4 elements and a beautiful symmetric structure."
+          },
+          {
+            "type": "Callout",
+            "props": {
+              "type": "info"
+            },
+            "children": "Notice something remarkable: every non-identity element is its own inverse. Flip coin 1 twice? Back to start. Flip coin 2 twice? Back to start. Flip both coins twice? Back to start. This makes the Klein Four Group very different from Z₄ (a cyclic group with 4 elements)."
+          },
+          {
+            "type": "p",
+            "children": "The Cayley diagram shows this beautifully — it's a square with diagonals, not a simple cycle. Different colored edges represent different operations."
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "The Group Axioms — Discovered, Not Imposed"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "Now that you've played with these puzzles, let's notice what they all have in common. These are the four group axioms:"
+          },
+          {
+            "type": "Steps",
+            "props": {
+              "steps": [
+                {
+                  "title": "Closure",
+                  "description": "Combining any two moves gives you another valid move. Rotate then rotate again? That's still a rotation (just more of it)."
+                },
+                {
+                  "title": "Associativity",
+                  "description": "(a · b) · c = a · (b · c). The order you group operations doesn't matter (but the sequence does!)."
+                },
+                {
+                  "title": "Identity",
+                  "description": "There's always a \"do nothing\" element (we call it e). It doesn't change anything when combined with other moves."
+                },
+                {
+                  "title": "Inverses",
+                  "description": "Every move can be undone. For every element a, there exists a⁻¹ such that a · a⁻¹ = e."
+                }
+              ]
+            }
+          },
+          {
+            "type": "p",
+            "children": [
+              "These aren't arbitrary rules mathematicians made up — they're properties that ",
+              {
+                "type": "em",
+                "children": "naturally emerge"
+              },
+              " from any system of reversible transformations. That's why groups show up everywhere!"
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "Multiplication Tables — Your Complete Cheat Sheet"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "A group's multiplication table tells you everything about how its elements combine. It's like a lookup chart: find the row for your first operation, the column for your second, and the cell tells you the result."
+          },
+          {
+            "type": "InteractiveCard",
+            "children": [
+              {
+                "type": "Box",
+                "props": {
+                  "className": "grid md:grid-cols-3 gap-6"
+                },
+                "children": [
+                  {
+                    "type": "GroupMultTable",
+                    "props": {
+                      "group": "Z2"
+                    }
+                  },
+                  {
+                    "type": "GroupMultTable",
+                    "props": {
+                      "group": "Z3"
+                    }
+                  },
+                  {
+                    "type": "GroupMultTable",
+                    "props": {
+                      "group": "Klein4"
+                    }
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "Callout",
+            "props": {
+              "type": "tip"
+            },
+            "children": [
+              "Look for patterns! In Z₃, notice how each row and column contains each element exactly once. This is true for ",
+              {
+                "type": "em",
+                "children": "every"
+              },
+              " group — it's called the Latin square property. It means you can always \"solve for x\" in equations like a · x = b."
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "Why This Matters for Puzzle Solving"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "So what? Why should puzzle solvers care about groups?"
+          },
+          {
+            "type": "Blockquote",
+            "children": "Group theory doesn't tell you how to solve a puzzle — it tells you what's possible."
+          },
+          {
+            "type": "p",
+            "children": "Here's what you gain:"
+          },
+          {
+            "type": "ul",
+            "children": [
+              {
+                "type": "li",
+                "children": [
+                  {
+                    "type": "strong",
+                    "children": "State counting"
+                  },
+                  ": The group order tells you how many configurations exist. A Rubik's cube has about 43 quintillion states — that's the order of its group."
+                ]
+              },
+              {
+                "type": "li",
+                "children": [
+                  {
+                    "type": "strong",
+                    "children": "Impossibility proofs"
+                  },
+                  ": Some states can't be reached from others. Group theory can prove when a puzzle is unsolvable (like a 15-puzzle with two tiles swapped)."
+                ]
+              },
+              {
+                "type": "li",
+                "children": [
+                  {
+                    "type": "strong",
+                    "children": "Algorithm design"
+                  },
+                  ": Commutators and conjugates (group operations) are the building blocks of Rubik's cube algorithms."
+                ]
+              },
+              {
+                "type": "li",
+                "children": [
+                  {
+                    "type": "strong",
+                    "children": "Symmetry exploitation"
+                  },
+                  ": If a puzzle has symmetry, you can often reduce the search space dramatically."
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "What's Next?"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "We've barely scratched the surface! Future sections will explore:"
+          },
+          {
+            "type": "ul",
+            "children": [
+              {
+                "type": "li",
+                "children": "The Dihedral Groups (triangle rotations AND flips) — D₃, D₄, ..."
+              },
+              {
+                "type": "li",
+                "children": "The Symmetric Groups (all permutations) — S₃, S₄, ..."
+              },
+              {
+                "type": "li",
+                "children": "Subgroups and Cosets — finding structure within structure"
+              },
+              {
+                "type": "li",
+                "children": "A mini sliding puzzle demonstrating parity arguments"
+              },
+              {
+                "type": "li",
+                "children": "Commutators — the secret weapon of speedcubers"
+              }
+            ]
+          },
+          {
+            "type": "Callout",
+            "props": {
+              "type": "success"
+            },
+            "children": "You've now met three fundamental groups: Z₂, Z₃, and the Klein Four Group. These simple examples contain all the core ideas you need to understand much more complex structures. The Rubik's cube group is just a bigger version of the same concepts!"
+          }
+        ]
+      }
+    ]
+  }
+}
