@@ -318,6 +318,48 @@ function generateAnnotationId() {
  * Find and insert annotation into content tree
  * Also inserts an inline marker at the source text location
  */
+
+/**
+ * Recursively find all Sidebar elements in content
+ */
+function findSidebars(node, path = '') {
+  const sidebars = []
+  
+  if (!node) return sidebars
+  
+  if (node.type === 'Sidebar') {
+    const contentPreview = extractTextContent(node.children).slice(0, 100)
+    sidebars.push({
+      type: node.props?.type || 'note',
+      title: node.props?.title || 'Untitled',
+      contentPreview,
+      path
+    })
+  }
+  
+  if (node.children) {
+    const children = Array.isArray(node.children) ? node.children : [node.children]
+    children.forEach((child, i) => {
+      if (typeof child === 'object') {
+        sidebars.push(...findSidebars(child, `${path}.children[${i}]`))
+      }
+    })
+  }
+  
+  return sidebars
+}
+
+/**
+ * Extract plain text from content tree
+ */
+function extractTextContent(node) {
+  if (!node) return ''
+  if (typeof node === 'string') return node
+  if (Array.isArray(node)) return node.map(extractTextContent).join(' ')
+  if (node.children) return extractTextContent(node.children)
+  return ''
+}
+
 function insertAnnotation(content, selectedText, annotation, action) {
   const newContent = JSON.parse(JSON.stringify(content))
   const annotationId = generateAnnotationId()
@@ -732,6 +774,118 @@ const server = http.createServer(async (req, res) => {
       
     } catch (error) {
       console.error('❌ Error:', error)
+      return sendJson(res, 500, { error: error.message })
+    }
+  }
+  
+  // Regroup and Reorganize endpoint
+  if (url.pathname === '/regroup' && req.method === 'POST') {
+    try {
+      const body = await parseBody(req)
+      const { tutorialId } = body
+      
+      console.log('\n🔄 Regroup Request:')
+      console.log(`  Tutorial: ${tutorialId}`)
+      
+      if (!tutorialId) {
+        return sendJson(res, 400, { error: 'Missing tutorialId' })
+      }
+      
+      // Map engine tutorial IDs to their JSON filenames
+      const jsonFilenames = {
+        'matrix-from-vectors-engine': 'matrix-from-vectors',
+        'matrix-discovery-engine': 'matrix-discovery',
+        'lead-lag-correlation-engine': 'lead-lag-correlation',
+        'least-squares-engine': 'least-squares'
+      }
+      
+      const filename = jsonFilenames[tutorialId] || tutorialId
+      const jsonPath = path.join(CONTENT_DIR, `${filename}.json`)
+      
+      let content
+      try {
+        content = JSON.parse(await fs.readFile(jsonPath, 'utf-8'))
+      } catch {
+        return sendJson(res, 404, { error: `Tutorial not found: ${tutorialId}` })
+      }
+      
+      // Find all Sidebars in the content
+      const sidebars = findSidebars(content.content)
+      console.log(`  Found ${sidebars.length} sidebars to analyze`)
+      
+      if (sidebars.length === 0) {
+        return sendJson(res, 200, { 
+          success: true, 
+          message: 'No sidebars found to reorganize',
+          changes: 0
+        })
+      }
+      
+      // Call AI to analyze and suggest reorganization
+      const systemPrompt = `You are helping reorganize an educational tutorial called "${content.title}".
+The user has added several annotation sidebars while reading. Your job is to:
+1. Identify related sidebars that should be consolidated
+2. Suggest if any explanations should be moved earlier in the tutorial (as prerequisites)
+3. Recommend which sidebars could be combined to reduce clutter
+
+Be specific about which sidebars to merge and why.`
+      
+      const sidebarSummary = sidebars.map((s, i) => 
+        `${i+1}. [${s.type}] "${s.title}" - ${s.contentPreview}`
+      ).join('\n')
+      
+      const prompt = `Here are the sidebars added to the tutorial:
+
+${sidebarSummary}
+
+Analyze these and return a JSON object with:
+{
+  "consolidations": [
+    { "merge": [1, 3], "reason": "Both explain the same concept", "newTitle": "Combined title" }
+  ],
+  "moveEarlier": [
+    { "sidebar": 2, "reason": "This is a prerequisite for understanding section 3" }
+  ],
+  "keepAsIs": [4, 5],
+  "summary": "Brief description of recommended changes"
+}
+
+Return ONLY valid JSON, no markdown or explanation.`
+
+      console.log('🤖 Calling AI for reorganization analysis...')
+      const response = await callAI(systemPrompt, prompt)
+      
+      let suggestions
+      try {
+        suggestions = JSON.parse(response.trim())
+      } catch {
+        // If AI didn't return valid JSON, try to extract it
+        const jsonMatch = response.match(/\{[\s\S]*\}/)
+        if (jsonMatch) {
+          suggestions = JSON.parse(jsonMatch[0])
+        } else {
+          suggestions = { 
+            consolidations: [], 
+            moveEarlier: [], 
+            keepAsIs: sidebars.map((_, i) => i + 1),
+            summary: "Could not parse AI suggestions. Review sidebars manually."
+          }
+        }
+      }
+      
+      console.log(`✅ Analysis complete: ${suggestions.consolidations?.length || 0} consolidations suggested`)
+      
+      return sendJson(res, 200, {
+        success: true,
+        tutorialId,
+        sidebarCount: sidebars.length,
+        sidebars: sidebars.map(s => ({ type: s.type, title: s.title })),
+        suggestions,
+        message: suggestions.summary
+      })
+      
+    } catch (error) {
+      console.error('❌ Regroup error:', error)
       return sendJson(res, 500, { error: error.message })
     }
   }

@@ -276,7 +276,7 @@ function SectionProgress({ sections, glowColor }) {
 }
 
 // Premium tutorial header with atmospheric effects (matching listing page)
-function TutorialHeader({ meta, tutorialId }) {
+function TutorialHeader({ meta, tutorialId, onRegroup }) {
   return (
     <header className="relative overflow-hidden">
       {/* Atmospheric gradient background */}
@@ -387,6 +387,19 @@ function TutorialHeader({ meta, tutorialId }) {
             <span>🌳</span>
             View as Tree
           </Link>
+          
+          {/* Regroup button */}
+          {onRegroup && (
+            <button
+              onClick={onRegroup}
+              className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full 
+                bg-violet-500/10 border border-violet-500/20 text-sm text-violet-400
+                hover:bg-violet-500/20 transition-colors"
+            >
+              <span>🔄</span>
+              Regroup & Tidy
+            </button>
+          )}
         </div>
       </div>
     </header>
@@ -456,6 +469,40 @@ export default function TutorialWrapper({ tutorial: propTutorial }) {
     }
   }
 
+  // Regroup and Tidy handler
+  const handleRegroup = async () => {
+    if (!tutorialId) return
+    
+    try {
+      const response = await fetch('http://localhost:5190/regroup', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ tutorialId })
+      })
+      
+      if (response.ok) {
+        const data = await response.json()
+        console.log('📊 Regroup analysis:', data)
+        
+        // Show results to user
+        if (data.sidebarCount === 0) {
+          alert('No sidebars found to reorganize. Add some annotations first!')
+        } else {
+          const msg = `Found ${data.sidebarCount} sidebar(s).\n\n${data.message || 'Analysis complete.'}\n\nConsolidations suggested: ${data.suggestions?.consolidations?.length || 0}`
+          alert(msg)
+          // TODO: Show a modal with detailed suggestions and apply button
+        }
+      } else {
+        const error = await response.json()
+        console.error('Regroup error:', error)
+        alert(`Regroup failed: ${error.error}`)
+      }
+    } catch (e) {
+      console.error('Failed to call regroup:', e)
+      alert('Annotation server not running. Start it with: node annotation-server.js')
+    }
+  }
+
   // Loading state
   if (loading) {
     return (
@@ -498,7 +545,7 @@ export default function TutorialWrapper({ tutorial: propTutorial }) {
     return (
       <div className="min-h-screen bg-[#fafafa]">
         <ProgressBar />
-        <TutorialHeader meta={jsonMeta} tutorialId={tutorialId} />
+        <TutorialHeader meta={jsonMeta} tutorialId={tutorialId} onRegroup={handleRegroup} />
         {jsonMeta.sections.length > 0 && (
           <SectionProgress sections={jsonMeta.sections} glowColor={jsonMeta.glowColor} />
         )}
@@ -523,7 +570,7 @@ export default function TutorialWrapper({ tutorial: propTutorial }) {
     return (
       <div className="min-h-screen bg-[#fafafa]">
         <ProgressBar />
-        <TutorialHeader meta={meta} tutorialId={tutorialId} />
+        <TutorialHeader meta={meta} tutorialId={tutorialId} onRegroup={handleRegroup} />
         {meta.sections && <SectionProgress sections={meta.sections} glowColor={meta.glowColor} />}
         <TutorialComponent />
       </div>
@@ -534,7 +581,7 @@ export default function TutorialWrapper({ tutorial: propTutorial }) {
   return (
     <div className="min-h-screen bg-[#fafafa]">
       <ProgressBar />
-      <TutorialHeader meta={meta} tutorialId={tutorialId} />
+      <TutorialHeader meta={meta} tutorialId={tutorialId} onRegroup={handleRegroup} />
       {meta.sections && <SectionProgress sections={meta.sections} glowColor={meta.glowColor} />}
       
       <AnnotatableContent 
