@@ -167,6 +167,28 @@ export default function TreeWrapper() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
   
+  // Handler for annotation requests (sends to annotation server)
+  const handleAnnotationRequest = async (selectedText, context) => {
+    try {
+      const response = await fetch('http://localhost:5182/annotate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          tutorialId,
+          selectedText,
+          surroundingContext: context,
+          timestamp: new Date().toISOString()
+        })
+      })
+      
+      if (!response.ok) {
+        console.error('Annotation request failed:', response.status)
+      }
+    } catch (err) {
+      console.error('Failed to send annotation:', err)
+    }
+  }
+  
   useEffect(() => {
     const loadTutorial = async () => {
       try {
@@ -223,7 +245,8 @@ export default function TreeWrapper() {
           title={`${tutorial.title} — Structure`}
           className="shadow-lg"
           height={600}
-          orientation="horizontal"
+          tutorialId={tutorialId}
+          onAnnotationRequest={handleAnnotationRequest}
           renderContent={(node) => {
             if (node.content) {
               return <TutorialEngine content={node.content} state={tutorial.state || {}} />

@@ -1,5 +1,6 @@
 import React, { useRef, useEffect, useState, useCallback } from 'react'
 import * as d3 from 'd3'
+import { AnnotatableContent } from '../AnnotationSystem.jsx'
 
 /**
  * D3Tree - Beautiful hierarchical tree visualization
@@ -14,8 +15,12 @@ const X = ({ className }) => (
 )
 
 // Detail modal component
-function DetailModal({ node, onClose, renderContent }) {
+function DetailModal({ node, onClose, renderContent, tutorialId, onAnnotationRequest }) {
   if (!node) return null
+  
+  const content = renderContent ? renderContent(node.data || node) : (
+    <p className="text-gray-500 italic">No detailed content available.</p>
+  )
   
   return (
     <div 
@@ -27,7 +32,7 @@ function DetailModal({ node, onClose, renderContent }) {
         className="relative bg-white rounded-2xl shadow-2xl w-full max-w-3xl max-h-[85vh] overflow-hidden"
         onClick={e => e.stopPropagation()}
       >
-        <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between">
+        <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between z-10">
           <h2 className="text-lg font-semibold text-gray-900 truncate pr-4">
             {node.data?.title || node.title}
           </h2>
@@ -36,9 +41,14 @@ function DetailModal({ node, onClose, renderContent }) {
           </button>
         </div>
         <div className="p-6 overflow-y-auto max-h-[calc(85vh-80px)]">
-          {renderContent ? renderContent(node.data || node) : (
-            <p className="text-gray-500 italic">No detailed content available.</p>
-          )}
+          {tutorialId ? (
+            <AnnotatableContent 
+              tutorialId={tutorialId}
+              onAnnotationRequest={onAnnotationRequest}
+            >
+              {content}
+            </AnnotatableContent>
+          ) : content}
         </div>
       </div>
     </div>
@@ -58,6 +68,8 @@ export default function D3Tree({
   renderContent,
   className = "",
   height = 600,
+  tutorialId,
+  onAnnotationRequest,
 }) {
   const svgRef = useRef(null)
   const containerRef = useRef(null)
@@ -356,6 +368,8 @@ export default function D3Tree({
         node={selectedNode}
         onClose={() => setSelectedNode(null)}
         renderContent={renderContent}
+        tutorialId={tutorialId}
+        onAnnotationRequest={onAnnotationRequest}
       />
     </div>
   )
