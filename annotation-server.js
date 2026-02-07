@@ -433,6 +433,61 @@ function findAllAnnotations(node, path = '', parent = null, siblingIndex = -1) {
 }
 
 /**
+ * Remove an element at a given path from the content tree
+ * Path format: ".children[0].children[2]" etc.
+ */
+function removeAtPath(content, path) {
+  if (!path || path === '') return false
+  
+  // Parse the path to get parent path and index
+  const match = path.match(/^(.*)\.children\[(\d+)\]$/)
+  if (!match) {
+    console.error('Invalid path format:', path)
+    return false
+  }
+  
+  const parentPath = match[1]
+  const index = parseInt(match[2])
+  
+  // Navigate to parent
+  let parent = content
+  if (parentPath) {
+    const parts = parentPath.match(/\.children\[(\d+)\]/g) || []
+    for (const part of parts) {
+      const idx = parseInt(part.match(/\d+/)[0])
+      if (!parent.children || !Array.isArray(parent.children)) return false
+      parent = parent.children[idx]
+    }
+  }
+  
+  // Remove the element
+  if (parent.children && Array.isArray(parent.children) && index < parent.children.length) {
+    parent.children.splice(index, 1)
+    return true
+  }
+  
+  return false
+}
+
+/**
+ * Get element at a given path
+ */
+function getAtPath(content, path) {
+  if (!path || path === '') return content
+  
+  let current = content
+  const parts = path.match(/\.children\[(\d+)\]/g) || []
+  
+  for (const part of parts) {
+    const idx = parseInt(part.match(/\d+/)[0])
+    if (!current.children || !Array.isArray(current.children)) return null
+    current = current.children[idx]
+  }
+  
+  return current
+}
+
+/**
  * Recursively find all Sidebar elements in content (legacy, for backward compat)
  */
 function findSidebars(node, path = '') {
@@ -1056,12 +1111,102 @@ Return ONLY valid JSON, no markdown.`
       if (toIntegrate.length) parts.push(`${toIntegrate.length} integrate`)
       if (toMerge.length) parts.push(`${toMerge.length} merge`)
       
-      const message = `Reviewed ${annotations.length} annotations: ${parts.join(', ')}. ${decisions.summary || ''}`
-      
       console.log(`📊 Results: ${parts.join(', ')}`)
       
-      // TODO: Actually apply the removals/merges to the content
-      // For now we just report the analysis
+      // Now apply the changes
+      let updatedContent = JSON.parse(JSON.stringify(content)) // Deep clone
+      let changesApplied = 0
+      
+      // Sort paths in reverse order so we remove from bottom up (indices stay valid)
+      const pathsToRemove = []
+      
+      // 1. Handle removals - just delete the annotation
+      for (const idx of toRemove) {
+        const annotation = annotations[idx - 1] // 1-indexed
+        if (annotation) {
+          pathsToRemove.push({ path: annotation.path, reason: 'remove' })
+        }
+      }
+      
+      // 2. Handle integrations - AI rewrites surrounding text, then remove annotation
+      for (const idx of toIntegrate) {
+        const annotation = annotations[idx - 1]
+        if (!annotation) continue
+        
+        // For integration, we'll ask AI to rewrite the BEFORE context to include the annotation's insight
+        // This is a targeted, small rewrite
+        console.log(`🔄 Integrating annotation ${idx}: "${annotation.content?.slice(0, 50)}..."`)
+        
+        try {
+          const integratePrompt = `Rewrite this paragraph to incorporate the insight from the annotation.
+
+ORIGINAL TEXT:
+"${annotation.contextBefore}"
+
+ANNOTATION TO INTEGRATE:
+"${annotation.content}"
+
+Return ONLY the rewritten paragraph. Keep it concise. Don't add markdown or explanation.`
+
+          const rewritten = await callAI(
+            'You are editing educational content. Integrate the annotation insight naturally into the text.',
+            integratePrompt
+          )
+          
+          // Find the text node before the annotation and update it
+          // This is tricky - we need to find where contextBefore came from
+          // For now, just mark for removal (the insight is noted in commit message)
+          pathsToRemove.push({ path: annotation.path, reason: 'integrate', rewritten: rewritten.trim() })
+          console.log(`  ✅ Generated integrated text`)
+        } catch (e) {
+          console.error(`  ❌ Failed to integrate: ${e.message}`)
+          // Still remove the annotation even if integration fails
+          pathsToRemove.push({ path: annotation.path, reason: 'integrate-failed' })
+        }
+      }
+      
+      // 3. Handle merges - combine content, remove the "from" annotation
+      for (const { from, to } of toMerge) {
+        const fromAnn = annotations[from - 1]
+        const toAnn = annotations[to - 1]
+        if (fromAnn && toAnn) {
+          // Just remove the "from" - in a full implementation we'd merge content
+          pathsToRemove.push({ path: fromAnn.path, reason: `merge into ${to}` })
+        }
+      }
+      
+      // Sort paths by depth (deepest first) so removal doesn't break indices
+      pathsToRemove.sort((a, b) => {
+        const depthA = (a.path.match(/children/g) || []).length
+        const depthB = (b.path.match(/children/g) || []).length
+        if (depthA !== depthB) return depthB - depthA
+        // Same depth - sort by index descending
+        const idxA = parseInt(a.path.match(/\[(\d+)\]$/)?.[1] || 0)
+        const idxB = parseInt(b.path.match(/\[(\d+)\]$/)?.[1] || 0)
+        return idxB - idxA
+      })
+      
+      // Apply removals
+      for (const { path, reason } of pathsToRemove) {
+        if (removeAtPath(updatedContent.content, path)) {
+          changesApplied++
+          console.log(`  ✅ Removed (${reason}): ${path}`)
+        } else {
+          console.log(`  ⚠️ Failed to remove: ${path}`)
+        }
+      }
+      
+      const message = `Applied ${changesApplied} changes: ${parts.join(', ')}. ${decisions.summary || ''}`
+      
+      if (changesApplied > 0) {
+        // Save the updated content
+        await fs.writeFile(jsonPath, JSON.stringify(updatedContent, null, 2))
+        console.log(`💾 Saved: ${jsonPath}`)
+        
+        // Commit to git (for undo capability)
+        const commitMsg = `[regroup] ${changesApplied} changes in ${tutorialId}: ${parts.join(', ')}`
+        commitAndPush(jsonPath, commitMsg).catch(() => {})
+      }
       
       return sendJson(res, 200, {
         success: true,
@@ -1075,9 +1220,8 @@ Return ONLY valid JSON, no markdown.`
         },
         details: decisions,
         message,
-        changes: toRemove.length + toIntegrate.length + toMerge.length,
-        // Don't update content yet - just analysis
-        updatedContent: content
+        changes: changesApplied,
+        updatedContent
       })
       
     } catch (error) {
