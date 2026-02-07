@@ -97,14 +97,6 @@
                 ],
                 [
                   "DistMult",
-                  {
-                    "type": "FootnoteRef",
-                    "props": {
-                      "id": "source-ann-1770464161736-pys8as",
-                      "targetId": "ann-1770464161736-pys8as",
-                      "type": "ask"
-                    }
-                  },
                   "⟨h, r, t⟩ (dot product)",
                   "Antisymmetric relations (parent_of)"
                 ],
@@ -113,16 +105,20 @@
                   "Re(⟨h, r, t̄⟩)",
                   "Composition (grandfather = father ∘ father)"
                 ]
-              ]
+              ],
+              "highlightRows": [
+                1
+              ],
+              "highlightId": "ann-1770464450203-oj2nkl"
             }
           },
           {
             "type": "DeepDive",
             "props": {
-              "title": "❓ Q: Can you flesh this out the same way you fleshed out TransE? That made it very clear to me",
+              "title": "❓ Q: Can you flesh this out the way you did with TransE?",
               "defaultOpen": true,
-              "id": "ann-1770464161736-pys8as",
-              "sourceId": "source-ann-1770464161736-pys8as"
+              "id": "ann-1770464450203-oj2nkl",
+              "sourceId": "source-ann-1770464450203-oj2nkl"
             },
             "children": [
               {
@@ -139,22 +135,26 @@
               },
               {
                 "type": "p",
-                "children": "DistMult works by representing entities as vectors and relations as diagonal matrices, but there's a clever simplification that makes it much more efficient. Instead of storing full matrices, DistMult represents relations as vectors too, where each element corresponds to a diagonal entry of what would be the full matrix."
+                "children": "DistMult is another fundamental knowledge graph embedding method that takes a very different approach from TransE. While TransE models relationships as translations in vector space (h + r ≈ t), DistMult models them as element-wise multiplications."
               },
               {
                 "type": "p",
-                "children": "The scoring function is: f(h,r,t) = h^T diag(r) t = Σᵢ hᵢ × rᵢ × tᵢ. This means you take corresponding elements from the head entity vector, relation vector, and tail entity vector, multiply them together, then sum everything up. For example, if \"Obama\" = [0.2, -0.1, 0.8], \"born_in\" = [0.5, 0.3, -0.2], and \"Hawaii\" = [0.4, 0.7, 0.6], then the score would be (0.2×0.5×0.4) + (-0.1×0.3×0.7) + (0.8×-0.2×0.6) = 0.04 - 0.021 - 0.096 = -0.077."
+                "children": "In DistMult, entities are represented as vectors and relations are represented as diagonal matrices (or equivalently, vectors). The scoring function is simply the dot product: score(h,r,t) = h^T diag(r) t = Σᵢ hᵢ × rᵢ × tᵢ. This means DistMult captures how well entities \"match\" through a relation by measuring their component-wise compatibility."
               },
               {
                 "type": "p",
-                "children": "The key insight is that DistMult is symmetric - f(h,r,t) always equals f(t,r,h) because multiplication is commutative. This makes it great for symmetric relations like \"married_to\" or \"similar_to\", but it can't handle asymmetric relations like \"father_of\" where the direction matters. That's why more complex models like RotatE were developed - they can capture both symmetric and asymmetric patterns by using rotations in complex space instead of just element-wise multiplication."
+                "children": "However, DistMult has a critical limitation that RotatE aims to address: it's symmetric by design. Since multiplication is commutative (h × r × t = t × r × h), DistMult cannot distinguish between (head, relation, tail) and (tail, relation, head). This makes it impossible to model asymmetric relations like \"parent_of\" - if John is the parent of Mary, DistMult would incorrectly suggest Mary is also the parent of John."
+              },
+              {
+                "type": "p",
+                "children": "This symmetry constraint is exactly what motivated the development of more sophisticated models like RotatE, which uses complex rotations to capture both symmetric patterns (like DistMult's strengths) and asymmetric patterns (addressing DistMult's key weakness) in a unified framework."
               },
               {
                 "type": "em",
                 "props": {
                   "className": "text-gray-400 text-xs block mt-4"
                 },
-                "children": "(2/7/2026, 6:35:54 AM)"
+                "children": "(2/7/2026, 6:40:41 AM)"
               }
             ]
           },
@@ -167,18 +167,7 @@
             "children": [
               {
                 "type": "p",
-                "children": [
-                  "TransE requires h + r = t",
-                  {
-                    "type": "FootnoteRef",
-                    "props": {
-                      "id": "source-ann-1770463906274-qphm1j",
-                      "targetId": "ann-1770463906274-qphm1j",
-                      "type": "ask"
-                    }
-                  },
-                  ". For a symmetric relation like 'married_to', we need BOTH h + r = t AND t + r = h to hold."
-                ]
+                "children": "TransE requires h + r = t. For a symmetric relation like 'married_to', we need BOTH h + r = t AND t + r = h to hold."
               },
               {
                 "type": "p",
@@ -191,48 +180,6 @@
               {
                 "type": "p",
                 "children": "RotatE solves this: symmetric relations are 180° rotations (r = -1). Rotating twice returns to start: (-1)×(-1) = 1."
-              }
-            ]
-          },
-          {
-            "type": "DeepDive",
-            "props": {
-              "title": "❓ Q: Can you flesh this out with a toy example that makes this concrete? And show a little more about how they represent entities and relations?",
-              "defaultOpen": true,
-              "id": "ann-1770463906274-qphm1j",
-              "sourceId": "source-ann-1770463906274-qphm1j"
-            },
-            "children": [
-              {
-                "type": "Callout",
-                "props": {
-                  "type": "info"
-                },
-                "children": [
-                  {
-                    "type": "em",
-                    "children": "About \"TransE requires h + r = t\""
-                  }
-                ]
-              },
-              {
-                "type": "p",
-                "children": "In TransE, entities and relations are represented as vectors in the same dimensional space - think of them as points or directions in a coordinate system. For example, \"Paris\" might be the vector [0.2, -0.5, 0.8] and \"capital_of\" might be [0.1, 0.3, -0.2]."
-              },
-              {
-                "type": "p",
-                "children": "The core idea h + r = t means that if you start at the head entity's position, then move in the direction specified by the relation vector, you should end up at the tail entity's position. So if we have the fact \"Paris capital_of France\", TransE learns vectors such that Paris + capital_of ≈ France. Concretely, this might be [0.2, -0.5, 0.8] + [0.1, 0.3, -0.2] = [0.3, -0.2, 0.6], which should be close to France's learned vector."
-              },
-              {
-                "type": "p",
-                "children": "This works well for asymmetric relations like \"capital_of\" where there's a clear directional relationship. But as the passage points out, symmetric relations create problems because \"John married_to Mary\" and \"Mary married_to John\" are both true, yet TransE would need both John + married_to = Mary AND Mary + married_to = John. Since addition isn't symmetric (if A + B = C, then C + B doesn't equal A unless B = 0), TransE struggles with these cases - which is exactly the motivation for developing RotatE."
-              },
-              {
-                "type": "em",
-                "props": {
-                  "className": "text-gray-400 text-xs block mt-4"
-                },
-                "children": "(2/7/2026, 6:31:36 AM)"
               }
             ]
           },
