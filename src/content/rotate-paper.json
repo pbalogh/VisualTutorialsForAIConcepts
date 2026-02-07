@@ -109,7 +109,18 @@
               },
               {
                 "type": "p",
-                "children": "However, RotatE specifically constrains |r| = 1 because knowledge graph relations should preserve the \"semantic space\" - entities shouldn't drift arbitrarily far apart just because they're connected by a relation. The unit constraint ensures that relations are pure rotations, maintaining consistent geometric structure where similar entities cluster together."
+                "children": [
+                  "However, RotatE specifically constrains |r| = 1",
+                  {
+                    "type": "FootnoteRef",
+                    "props": {
+                      "id": "source-ann-1770465082460-5j1kke",
+                      "targetId": "ann-1770465082460-5j1kke",
+                      "type": "footnote"
+                    }
+                  },
+                  " because knowledge graph relations should preserve the \"semantic space\" - entities shouldn't drift arbitrarily far apart just because they're connected by a relation. The unit constraint ensures that relations are pure rotations, maintaining consistent geometric structure where similar entities cluster together."
+                ]
               },
               {
                 "type": "p",
@@ -121,6 +132,50 @@
                   "className": "text-gray-400 text-xs block mt-4"
                 },
                 "children": "(2/7/2026, 6:47:26 AM)"
+              }
+            ]
+          },
+          {
+            "type": "Footnote",
+            "props": {
+              "id": "ann-1770465082460-5j1kke",
+              "reference": "However, RotatE specifically c",
+              "userNote": "This kinda contradicts something you said elsewhere, when I asked about \"what if the target has one or more dimensions in which its magnitude has changed drastically compared to all the other dimensions? Don't you need some way to amplify/reduce each dimension individually?\"",
+              "sourceId": "source-ann-1770465082460-5j1kke"
+            },
+            "children": [
+              {
+                "type": "Callout",
+                "props": {
+                  "type": "info",
+                  "className": "mb-3 text-sm"
+                },
+                "children": [
+                  {
+                    "type": "strong",
+                    "children": "📝 Your note: "
+                  },
+                  "This kinda contradicts something you said elsewhere, when I asked about \"what if the target has one or more dimensions in which its magnitude has changed drastically compared to all the other dimensions? Don't you need some way to amplify/reduce each dimension individually?\""
+                ]
+              },
+              {
+                "type": "p",
+                "children": "Great observation! You've identified a fundamental tension in RotatE's design. You're absolutely right that constraining |r| = 1 seems to conflict with the need for dimension-wise scaling that we discussed earlier."
+              },
+              {
+                "type": "p",
+                "children": "Here's what's actually happening: RotatE makes a deliberate trade-off. By forcing relations to be pure rotations (unit magnitude), it sacrifices some representational flexibility in favor of geometric consistency. This means RotatE can't directly model relations that should amplify or dampen specific dimensions - like a \"specialization\" relation that might increase precision in some semantic dimensions while reducing scope in others. Instead, RotatE relies on the rotation angles themselves to capture these nuanced transformations. A relation might rotate different dimensions by different amounts, effectively redistributing the entity's \"semantic energy\" across dimensions rather than changing its overall magnitude."
+              },
+              {
+                "type": "p",
+                "children": "This constraint is both RotatE's strength and limitation. It ensures that the embedding space maintains nice geometric properties - entities don't drift arbitrarily far from their neighborhoods, and similar entities stay clustered. But as you noted, it means RotatE might struggle with relations that intuitively should involve magnitude changes. Later models like RotatE3D and others try to address this by introducing additional parameters while still maintaining some geometric structure."
+              },
+              {
+                "type": "em",
+                "props": {
+                  "className": "text-gray-400 text-xs block mt-2"
+                },
+                "children": "2/7/2026, 6:51:15 AM"
               }
             ]
           },
