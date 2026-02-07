@@ -97,6 +97,14 @@
                 ],
                 [
                   "DistMult",
+                  {
+                    "type": "FootnoteRef",
+                    "props": {
+                      "id": "source-ann-1770464161736-pys8as",
+                      "targetId": "ann-1770464161736-pys8as",
+                      "type": "ask"
+                    }
+                  },
                   "⟨h, r, t⟩ (dot product)",
                   "Antisymmetric relations (parent_of)"
                 ],
@@ -107,6 +115,48 @@
                 ]
               ]
             }
+          },
+          {
+            "type": "DeepDive",
+            "props": {
+              "title": "❓ Q: Can you flesh this out the same way you fleshed out TransE? That made it very clear to me",
+              "defaultOpen": true,
+              "id": "ann-1770464161736-pys8as",
+              "sourceId": "source-ann-1770464161736-pys8as"
+            },
+            "children": [
+              {
+                "type": "Callout",
+                "props": {
+                  "type": "info"
+                },
+                "children": [
+                  {
+                    "type": "em",
+                    "children": "About \"DistMult\""
+                  }
+                ]
+              },
+              {
+                "type": "p",
+                "children": "DistMult works by representing entities as vectors and relations as diagonal matrices, but there's a clever simplification that makes it much more efficient. Instead of storing full matrices, DistMult represents relations as vectors too, where each element corresponds to a diagonal entry of what would be the full matrix."
+              },
+              {
+                "type": "p",
+                "children": "The scoring function is: f(h,r,t) = h^T diag(r) t = Σᵢ hᵢ × rᵢ × tᵢ. This means you take corresponding elements from the head entity vector, relation vector, and tail entity vector, multiply them together, then sum everything up. For example, if \"Obama\" = [0.2, -0.1, 0.8], \"born_in\" = [0.5, 0.3, -0.2], and \"Hawaii\" = [0.4, 0.7, 0.6], then the score would be (0.2×0.5×0.4) + (-0.1×0.3×0.7) + (0.8×-0.2×0.6) = 0.04 - 0.021 - 0.096 = -0.077."
+              },
+              {
+                "type": "p",
+                "children": "The key insight is that DistMult is symmetric - f(h,r,t) always equals f(t,r,h) because multiplication is commutative. This makes it great for symmetric relations like \"married_to\" or \"similar_to\", but it can't handle asymmetric relations like \"father_of\" where the direction matters. That's why more complex models like RotatE were developed - they can capture both symmetric and asymmetric patterns by using rotations in complex space instead of just element-wise multiplication."
+              },
+              {
+                "type": "em",
+                "props": {
+                  "className": "text-gray-400 text-xs block mt-4"
+                },
+                "children": "(2/7/2026, 6:35:54 AM)"
+              }
+            ]
           },
           {
             "type": "DeepDive",
