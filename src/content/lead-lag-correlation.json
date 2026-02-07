@@ -1,0 +1,249 @@
+{
+  "id": "lead-lag-correlation",
+  "title": "Lead-Lag Correlation",
+  "subtitle": "Find predictive relationships in time series data using cross-correlation analysis",
+  "difficulty": 3,
+  "readTime": "10 min",
+  "tags": [
+    "statistics",
+    "time series",
+    "correlation",
+    "trading"
+  ],
+  "state": {},
+  "content": {
+    "type": "Fragment",
+    "children": [
+      {
+        "type": "Section",
+        "props": {
+          "title": "1. What is Lead-Lag Correlation?"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "Lead-lag correlation measures whether one time series can predict another. If stock A's movements today correlate with stock B's movements tomorrow, A 'leads' B — and this relationship might be tradeable."
+          },
+          {
+            "type": "Analogy",
+            "children": "Think of it like weather forecasting: the temperature in San Francisco today might predict tomorrow's temperature in Los Angeles. If you find this pattern reliably, you could 'predict' LA's weather by watching SF."
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "2. Interactive Playground"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "Experiment with the controls below to generate synthetic data with a known lag and correlation. Then try to find the true lag by examining the correlation chart. Remember: lag 0 is non-tradeable!"
+          },
+          {
+            "type": "InteractiveCard",
+            "children": [
+              {
+                "type": "LeadLagPlayground"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "3. Key Concepts"
+        },
+        "children": [
+          {
+            "type": "DefinitionList",
+            "props": {
+              "items": [
+                {
+                  "term": "Correlation",
+                  "definition": "A measure of linear relationship between -1 (opposite) and +1 (identical). Calculated as: r = Cov(X,Y) / (σₓ × σᵧ)"
+                },
+                {
+                  "term": "Lagged Correlation",
+                  "definition": "Correlation between X(t) and Y(t+k) — does X today predict Y in k days?"
+                },
+                {
+                  "term": "Returns (not prices)",
+                  "definition": "Always use percentage returns, not raw prices. Prices trend upward and create false correlations."
+                },
+                {
+                  "term": "Trading Threshold",
+                  "definition": "Need |r| ≥ 0.20 to have edge after transaction costs. Weak correlations get eaten by fees."
+                }
+              ]
+            }
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "4. Why Lag 0 Doesn't Work"
+        },
+        "children": [
+          {
+            "type": "Callout",
+            "props": {
+              "type": "warning"
+            },
+            "children": "If two stocks move together at lag 0, they move simultaneously. By the time you see A move, B has already moved too — there's no time to trade on the signal."
+          },
+          {
+            "type": "p",
+            "children": "Predictive relationships require lag ≥ 1: first A moves, you observe it, then B moves, and you profit from having anticipated it. This is why the tool marks lag 0 as non-tradeable."
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "5. The Math"
+        },
+        "children": [
+          {
+            "type": "Formula",
+            "props": {
+              "label": "Correlation"
+            },
+            "children": "r = Cov(X,Y) / (σₓ × σᵧ)"
+          },
+          {
+            "type": "Formula",
+            "props": {
+              "label": "Lagged Correlation"
+            },
+            "children": "rₖ = Corr(X[0:n-k], Y[k:n])"
+          },
+          {
+            "type": "p",
+            "children": "The geometric interpretation: correlation equals cos(θ), where θ is the angle between the two time series viewed as vectors. This is why correlation is always between -1 and +1."
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "6. Computational Efficiency"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "Testing many securities across many lags gets expensive. With N=200 securities, K=20 lags, and T=4000 time periods, the naive approach needs O(N² × K × T) = 32 billion operations!"
+          },
+          {
+            "type": "p",
+            "children": "The FFT trick: cross-correlation can be computed for all lags at once using Fast Fourier Transform:"
+          },
+          {
+            "type": "Formula",
+            "props": {
+              "label": "FFT Cross-Correlation"
+            },
+            "children": "Cross-corr(X,Y) = IFFT(FFT(X) × conj(FFT(Y)))"
+          },
+          {
+            "type": "p",
+            "children": "This reduces complexity to O(N² × T log T), giving 10-50× speedup."
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "7. Key Takeaways"
+        },
+        "children": [
+          {
+            "type": "ul",
+            "props": {
+              "className": "space-y-2"
+            },
+            "children": [
+              {
+                "type": "li",
+                "children": "Use correlation (not covariance) — it's scale-independent"
+              },
+              {
+                "type": "li",
+                "children": "Use returns (not prices) — removes trend bias"
+              },
+              {
+                "type": "li",
+                "children": "Exclude lag 0 — same-time correlation isn't predictive"
+              },
+              {
+                "type": "li",
+                "children": "Threshold ≥ 20% — need enough edge to beat transaction costs"
+              },
+              {
+                "type": "li",
+                "children": "FFT optimization — computes all lags efficiently"
+              },
+              {
+                "type": "li",
+                "children": "Multiple testing correction — testing many pairs creates false positives"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "children": [
+          {
+            "type": "DeepDive",
+            "props": {
+              "title": "❓ Q: I'm vaguely familiar with this term, but what does it mean concretely here? Can you give a toy example to explain the math and the code involved?",
+              "defaultOpen": true,
+              "id": "ann-1770464301277-qgrzna",
+              "sourceId": "source-ann-1770464301277-qgrzna"
+            },
+            "children": [
+              {
+                "type": "Callout",
+                "props": {
+                  "type": "info"
+                },
+                "children": [
+                  {
+                    "type": "em",
+                    "children": "About \"standard deviations\""
+                  }
+                ]
+              },
+              {
+                "type": "p",
+                "children": "In this correlation context, standard deviations measure how much each variable typically varies from its average value. When we divide covariance by both standard deviations, we're essentially scaling the relationship to account for how \"spread out\" each variable is."
+              },
+              {
+                "type": "p",
+                "children": "Here's a concrete example: Say you're comparing daily temperature changes (in degrees) with stock price changes (in dollars). Temperature might vary ±5 degrees from its average, while stock prices might vary ±50 dollars from theirs. The covariance between them could be 250, but that raw number is hard to interpret because the variables have different scales."
+              },
+              {
+                "type": "p",
+                "children": "To get correlation, you'd calculate: correlation = covariance / (std_dev_temp × std_dev_stock) = 250 / (5 × 50) = 1.0. This tells you they're perfectly correlated, regardless of their original units. In code, this typically looks like `np.corrcoef(temp_changes, stock_changes)` or manually as `np.cov(x,y)[0,1] / (np.std(x) * np.std(y))`."
+              },
+              {
+                "type": "p",
+                "children": "The key insight is that standard deviations act as normalizing factors - they convert the raw covariance (which depends on the variables' units and scales) into a standardized measure that always falls between -1 and +1, making correlations comparable across any pair of variables."
+              },
+              {
+                "type": "em",
+                "props": {
+                  "className": "text-gray-400 text-xs block mt-4"
+                },
+                "children": "(2/7/2026, 6:38:12 AM)"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}
