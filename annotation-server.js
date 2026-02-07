@@ -488,6 +488,50 @@ function getAtPath(content, path) {
 }
 
 /**
+ * Set element at a given path
+ */
+function setAtPath(content, path, newValue) {
+  if (!path || path === '') return false
+  
+  // Parse the path to get parent path and index
+  const match = path.match(/^(.*)\.children\[(\d+)\]$/)
+  if (!match) {
+    // Path might be just ".children[X]" with no parent
+    const simpleMatch = path.match(/^\.children\[(\d+)\]$/)
+    if (simpleMatch) {
+      const idx = parseInt(simpleMatch[1])
+      if (content.children && Array.isArray(content.children) && idx < content.children.length) {
+        content.children[idx] = newValue
+        return true
+      }
+    }
+    return false
+  }
+  
+  const parentPath = match[1]
+  const index = parseInt(match[2])
+  
+  // Navigate to parent
+  let parent = content
+  if (parentPath) {
+    const parts = parentPath.match(/\.children\[(\d+)\]/g) || []
+    for (const part of parts) {
+      const idx = parseInt(part.match(/\d+/)[0])
+      if (!parent.children || !Array.isArray(parent.children)) return false
+      parent = parent.children[idx]
+    }
+  }
+  
+  // Set the element
+  if (parent.children && Array.isArray(parent.children) && index < parent.children.length) {
+    parent.children[index] = newValue
+    return true
+  }
+  
+  return false
+}
+
+/**
  * Remove inline markers (❓, 💡) that point to a removed annotation
  * These markers are usually in the element BEFORE the annotation
  */
@@ -1079,193 +1123,158 @@ const server = http.createServer(async (req, res) => {
         return summary
       }).join('\n')
       
-      // Simplified approach: AI decides keep or remove
-      // We don't do "integrate" because it's too complex to reliably apply
+      // NEW APPROACH: Rewrite sections to incorporate annotation insights
+      // Instead of removing annotations, we improve the main text so annotations become unnecessary
       
-      const systemPrompt = `You are reviewing annotations on an educational tutorial called "${content.title}".
-
-The tutorial has ${annotations.length} reader annotations (questions, explanations, deep-dives).
-Each annotation shows:
-- The annotation content
-- BEFORE: The tutorial text that precedes it
-- AFTER: The tutorial text that follows it
-
-Your job is to decide which annotations to KEEP and which to REMOVE.
-
-Return a JSON object with your decisions. Be concise.`
-
-      const prompt = `Here are the annotations with their surrounding context:
-
-${annotationSummary}
-
-For each annotation, decide:
-- "keep" = valuable content that adds something NOT already in the surrounding text
-- "remove" = redundant, OR the surrounding text already explains this well enough
-
-Look carefully at the BEFORE and AFTER context. If the main text already addresses what the annotation explains, mark it for removal.
-
-Return JSON like:
-{
-  "decisions": {
-    "1": "keep",
-    "2": "remove", 
-    "3": "keep",
-    "4": "remove"
-  },
-  "summary": "Brief explanation of your changes"
-}
-
-${aggressive ? 'AGGRESSIVE: Remove more aggressively. Only keep annotations that provide truly unique insight.' : 'CONSERVATIVE: Only remove clearly redundant annotations.'}
-
-Return ONLY valid JSON, no markdown.`
-
-      console.log('🤖 Calling AI for annotation review...')
-      const response = await callAI(systemPrompt, prompt)
+      // Group annotations by their parent section
+      const sectionAnnotations = new Map() // sectionPath -> { section, annotations }
       
-      let decisions
-      try {
-        // Try to parse the response as JSON directly
-        let jsonStr = response.trim()
+      for (const ann of annotations) {
+        // Find the Section that contains this annotation
+        // Path looks like ".children[1].children[3]" - find the Section level
+        const pathParts = ann.path.match(/\.children\[(\d+)\]/g) || []
+        if (pathParts.length < 2) continue
         
-        // Remove markdown code blocks if present
-        if (jsonStr.startsWith('```json')) {
-          jsonStr = jsonStr.slice(7)
-        } else if (jsonStr.startsWith('```')) {
-          jsonStr = jsonStr.slice(3)
-        }
-        if (jsonStr.endsWith('```')) {
-          jsonStr = jsonStr.slice(0, -3)
-        }
-        jsonStr = jsonStr.trim()
+        // The section is typically the first or second level
+        let sectionPath = pathParts[0] // e.g., ".children[1]"
+        let section = getAtPath(content.content, sectionPath)
         
-        decisions = JSON.parse(jsonStr)
-      } catch (e) {
-        // Try to extract JSON object
-        const jsonMatch = response.match(/\{[\s\S]*\}/)
-        if (jsonMatch) {
-          try {
-            decisions = JSON.parse(jsonMatch[0])
-          } catch {
-            console.error('Failed to parse AI decisions:', e.message)
-            console.error('Response:', response.slice(0, 500))
-            return sendJson(res, 500, { error: 'AI returned invalid response - try again' })
+        // If it's not a Section, try one level deeper
+        if (!section || section.type !== 'Section') {
+          if (pathParts.length >= 2) {
+            sectionPath = pathParts.slice(0, 2).join('')
+            section = getAtPath(content.content, sectionPath)
           }
-        } else {
-          return sendJson(res, 500, { error: 'AI returned invalid response - try again' })
+        }
+        
+        if (section && section.type === 'Section') {
+          if (!sectionAnnotations.has(sectionPath)) {
+            sectionAnnotations.set(sectionPath, { 
+              section, 
+              sectionPath,
+              sectionTitle: section.props?.title || 'Untitled Section',
+              annotations: [] 
+            })
+          }
+          sectionAnnotations.get(sectionPath).annotations.push(ann)
         }
       }
       
-      console.log('📋 AI decisions:', decisions.summary || 'No summary')
+      console.log(`📚 Found annotations in ${sectionAnnotations.size} section(s)`)
       
-      // Parse decisions
-      const toRemove = Object.entries(decisions.decisions || {})
-        .filter(([_, action]) => action === 'remove')
-        .map(([idx]) => parseInt(idx))
-      
-      // Simplified: just keep or remove (no integrate/merge for now)
-      const toMerge = []
-      const toIntegrate = []
-      
-      const toKeep = Object.entries(decisions.decisions || {})
-        .filter(([_, action]) => action === 'keep')
-        .map(([idx]) => parseInt(idx))
-      
-      // Build message
-      const parts = []
-      if (toKeep.length) parts.push(`${toKeep.length} keep`)
-      if (toRemove.length) parts.push(`${toRemove.length} remove`)
-      
-      console.log(`📊 Results: ${parts.join(', ')}`)
-      
-      // Build preview of what will change
-      const changes = []
-      
-      for (const idx of toRemove) {
-        const ann = annotations[idx - 1]
-        if (ann) changes.push({
-          action: 'remove',
-          index: idx,
-          type: ann.type,
-          title: ann.title,
-          preview: ann.content?.slice(0, 100)
+      if (sectionAnnotations.size === 0) {
+        return sendJson(res, 200, {
+          success: true,
+          preview: true,
+          message: 'No sections with annotations found to rewrite',
+          changes: [],
+          updatedContent: content
         })
       }
       
-      // If preview mode, return without applying
+      // Build preview: one entry per section that will be rewritten
+      const changes = []
+      for (const [path, { sectionTitle, annotations: sectionAnns }] of sectionAnnotations) {
+        changes.push({
+          action: 'rewrite',
+          sectionTitle,
+          sectionPath: path,
+          annotationCount: sectionAnns.length,
+          preview: sectionAnns.map(a => a.content?.slice(0, 50)).join('; ')
+        })
+      }
+      
+      // If preview mode, return the plan
       if (!apply) {
-        const previewMessage = `Preview: ${parts.join(', ')}. ${decisions.summary || ''}`
         console.log('📋 Preview only - no changes applied')
-        
         return sendJson(res, 200, {
           success: true,
           preview: true,
           tutorialId,
           annotationCount: annotations.length,
-          decisions: {
-            keep: toKeep.length,
-            remove: toRemove.length
-          },
+          sectionCount: sectionAnnotations.size,
           changes,
-          details: decisions,
-          message: previewMessage,
+          message: `Will rewrite ${sectionAnnotations.size} section(s) to incorporate ${annotations.length} annotation insights`,
           updatedContent: content
         })
       }
       
-      // APPLY MODE: Actually make the changes
-      console.log('🔧 Applying changes...')
+      // APPLY MODE: Rewrite each section
+      console.log('🔧 Rewriting sections to incorporate annotations...')
       let updatedContent = JSON.parse(JSON.stringify(content)) // Deep clone
-      let changesApplied = 0
+      let sectionsRewritten = 0
       
-      // Collect all paths to remove
-      const pathsToRemove = []
-      
-      for (const idx of toRemove) {
-        const annotation = annotations[idx - 1] // 1-indexed
-        if (annotation) {
-          pathsToRemove.push({ path: annotation.path, reason: 'remove', annotation })
+      for (const [sectionPath, { section, sectionTitle, annotations: sectionAnns }] of sectionAnnotations) {
+        console.log(`\n📝 Rewriting section: "${sectionTitle}" (${sectionAnns.length} annotations)`)
+        
+        // Extract the section's text content (without annotations)
+        const sectionText = extractTextContent(section)
+        
+        // Build annotation summary for this section
+        const annSummary = sectionAnns.map((a, i) => 
+          `${i+1}. [${a.type}] ${a.title || ''}: "${a.content}"`
+        ).join('\n')
+        
+        try {
+          const rewritePrompt = `You are improving an educational tutorial section by incorporating reader feedback.
+
+SECTION TITLE: "${sectionTitle}"
+
+CURRENT SECTION TEXT:
+${sectionText}
+
+READER ANNOTATIONS (questions/explanations that were added):
+${annSummary}
+
+TASK: Rewrite the section text to incorporate the insights from these annotations.
+- Weave explanations naturally into the prose
+- Answer questions inline where they arise
+- Make the text self-sufficient (reader shouldn't need the annotations)
+- Keep the same overall structure and flow
+- Don't add new subsections or headers
+
+Return ONLY the rewritten text (plain prose, no JSON, no markdown headers).`
+
+          const rewrittenText = await callAI(
+            'You are an educational content editor. Improve tutorial text by incorporating reader feedback.',
+            rewritePrompt
+          )
+          
+          // Now we need to rebuild the section with the new text
+          // This is tricky - we'll create a simplified section structure
+          const newSection = {
+            type: 'Section',
+            props: section.props,
+            children: [
+              {
+                type: 'p',
+                children: rewrittenText.trim()
+              }
+            ]
+          }
+          
+          // Replace the section in the content tree
+          if (setAtPath(updatedContent.content, sectionPath, newSection)) {
+            sectionsRewritten++
+            console.log(`  ✅ Section rewritten`)
+          } else {
+            console.log(`  ⚠️ Failed to replace section at ${sectionPath}`)
+          }
+          
+        } catch (e) {
+          console.error(`  ❌ Failed to rewrite section: ${e.message}`)
         }
       }
       
-      // Sort paths by depth (deepest first) so removal doesn't break indices
-      pathsToRemove.sort((a, b) => {
-        const depthA = (a.path.match(/children/g) || []).length
-        const depthB = (b.path.match(/children/g) || []).length
-        if (depthA !== depthB) return depthB - depthA
-        // Same depth - sort by index descending
-        const idxA = parseInt(a.path.match(/\[(\d+)\]$/)?.[1] || 0)
-        const idxB = parseInt(b.path.match(/\[(\d+)\]$/)?.[1] || 0)
-        return idxB - idxA
-      })
+      const message = `Rewrote ${sectionsRewritten} section(s) to incorporate ${annotations.length} annotation insights`
       
-      // Apply removals (and clean up associated inline markers)
-      for (const { path, reason, annotation } of pathsToRemove) {
-        console.log(`  🔍 Processing: ${path}`)
-        
-        // First, try to remove any inline marker pointing to this annotation
-        const markerRemoved = removeInlineMarker(updatedContent.content, path)
-        if (markerRemoved) {
-          console.log(`    ✅ Cleaned up inline marker`)
-        }
-        
-        // Then remove the annotation itself
-        if (removeAtPath(updatedContent.content, path)) {
-          changesApplied++
-          console.log(`    ✅ Removed annotation`)
-        } else {
-          console.log(`    ⚠️ Failed to remove annotation at: ${path}`)
-        }
-      }
-      
-      const message = `Applied ${changesApplied} changes: ${parts.join(', ')}. ${decisions.summary || ''}`
-      
-      if (changesApplied > 0) {
+      if (sectionsRewritten > 0) {
         // Save the updated content
         await fs.writeFile(jsonPath, JSON.stringify(updatedContent, null, 2))
-        console.log(`💾 Saved: ${jsonPath}`)
+        console.log(`\n💾 Saved: ${jsonPath}`)
         
         // Commit to git (for undo capability)
-        const commitMsg = `[regroup] ${changesApplied} changes in ${tutorialId}: ${parts.join(', ')}`
+        const commitMsg = `[regroup] Rewrote ${sectionsRewritten} sections in ${tutorialId}`
         commitAndPush(jsonPath, commitMsg).catch(() => {})
       }
       
@@ -1273,16 +1282,9 @@ Return ONLY valid JSON, no markdown.`
         success: true,
         preview: false,
         tutorialId,
-        annotationCount: annotations.length,
-        decisions: {
-          keep: toKeep.length,
-          remove: toRemove.length,
-          integrate: toIntegrate.length,
-          merge: toMerge.length
-        },
-        details: decisions,
+        sectionsRewritten,
+        annotationsIncorporated: annotations.length,
         message,
-        changes: changesApplied,
         updatedContent
       })
       

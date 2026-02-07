@@ -15,53 +15,40 @@ import { TutorialEngine } from '../components/TutorialEngine/ElementRenderer.jsx
 function RegroupPreviewModal({ preview, onApply, onCancel }) {
   if (!preview) return null
   
-  const { changes, decisions, summary } = preview
-  
-  const actionColors = {
-    remove: 'bg-red-500/20 text-red-300 border-red-500/30',
-    integrate: 'bg-amber-500/20 text-amber-300 border-amber-500/30',
-    merge: 'bg-blue-500/20 text-blue-300 border-blue-500/30'
-  }
-  
-  const actionLabels = {
-    remove: '🗑️ Remove'
-  }
+  const { changes, sectionCount, annotationCount, message } = preview
   
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
       <div className="bg-gray-900 rounded-xl border border-gray-700 max-w-2xl w-full max-h-[80vh] overflow-hidden flex flex-col">
         {/* Header */}
         <div className="p-6 border-b border-gray-700">
-          <h2 className="text-xl font-semibold text-white mb-2">Preview Changes</h2>
+          <h2 className="text-xl font-semibold text-white mb-2">✨ Incorporate Annotations</h2>
           <p className="text-gray-400 text-sm">
-            {decisions.keep} keep • {decisions.remove} remove
+            {message || `Will rewrite ${sectionCount} section(s) to incorporate ${annotationCount} annotation insights`}
           </p>
-          {summary && (
-            <p className="text-gray-500 text-sm mt-2 italic">"{summary}"</p>
-          )}}
+          <p className="text-amber-400/80 text-xs mt-3">
+            ⚠️ The AI will rewrite each section's prose to weave in the annotation insights. 
+            Original formatting may change. Use Undo if needed.
+          </p>
         </div>
         
-        {/* Changes list */}
+        {/* Sections to rewrite */}
         <div className="flex-1 overflow-y-auto p-6 space-y-3">
-          {changes.map((change, i) => (
+          {changes && changes.map((change, i) => (
             <div 
               key={i}
-              className={`p-4 rounded-lg border ${actionColors[change.action]}`}
+              className="p-4 rounded-lg border bg-indigo-500/20 text-indigo-300 border-indigo-500/30"
             >
               <div className="flex items-center gap-2 mb-2">
                 <span className="text-sm font-medium">
-                  {actionLabels[change.action]}
-                  {change.mergeInto && ` with #${change.mergeInto}`}
+                  📝 Rewrite: {change.sectionTitle}
                 </span>
                 <span className="text-xs opacity-60">
-                  [{change.type}]
+                  ({change.annotationCount} annotations)
                 </span>
               </div>
-              {change.title && (
-                <div className="text-sm font-medium mb-1">{change.title}</div>
-              )}
               <div className="text-sm opacity-80 line-clamp-2">
-                {change.preview}...
+                Insights to incorporate: {change.preview}...
               </div>
             </div>
           ))}
@@ -607,15 +594,16 @@ export default function TutorialWrapper({ tutorial: propTutorial }) {
           // Show preview modal
           setPreviewData({
             changes: data.changes,
-            decisions: data.decisions,
-            summary: data.details?.summary || '',
+            sectionCount: data.sectionCount,
+            annotationCount: data.annotationCount,
+            message: data.message,
             aggressive
           })
           setRegroupStatus(null)
         } else {
           setRegroupStatus({ 
             type: 'info', 
-            message: data.message || 'No changes recommended'
+            message: data.message || 'No sections with annotations found'
           })
           setTimeout(() => setRegroupStatus(null), 4000)
         }
