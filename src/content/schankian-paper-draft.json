@@ -132,7 +132,18 @@
               },
               {
                 "type": "li",
-                "children": "Operators as diagonal rotation matrices in complex space"
+                "children": [
+                  "Operators as diagonal",
+                  {
+                    "type": "FootnoteRef",
+                    "props": {
+                      "id": "source-ann-1770466656403-dzkv7o",
+                      "targetId": "ann-1770466656403-dzkv7o",
+                      "type": "ask"
+                    }
+                  },
+                  " rotation matrices in complex space"
+                ]
               },
               {
                 "type": "li",
@@ -141,6 +152,52 @@
               {
                 "type": "li",
                 "children": "Training: margin-based ranking loss"
+              }
+            ]
+          },
+          {
+            "type": "DeepDive",
+            "props": {
+              "title": "❓ Q: Is this absolutely vital? In other words, what would risk breaking if these were *non*-diagonal matrices?",
+              "defaultOpen": true,
+              "id": "ann-1770466656403-dzkv7o",
+              "sourceId": "source-ann-1770466656403-dzkv7o"
+            },
+            "children": [
+              {
+                "type": "Callout",
+                "props": {
+                  "type": "info"
+                },
+                "children": [
+                  {
+                    "type": "em",
+                    "children": "About \"diagonal\""
+                  }
+                ]
+              },
+              {
+                "type": "p",
+                "children": "The diagonal property is absolutely vital for operators to function properly as mental transformations. If these matrices were non-diagonal, operators would no longer preserve the independence of different conceptual dimensions, creating unwanted interference between unrelated aspects of knowledge."
+              },
+              {
+                "type": "p",
+                "children": "Think of it this way: when you apply the PREDICT operator to think about tomorrow's weather, you want it to affect your weather-related thoughts without accidentally rotating your feelings about your lunch plans or your memory of yesterday's conversation. Diagonal matrices ensure that each conceptual dimension transforms independently - the rotation angle for \"weather prediction confidence\" doesn't bleed into the rotation angle for \"social relationship certainty.\""
+              },
+              {
+                "type": "p",
+                "children": "Non-diagonal matrices would introduce cross-coupling terms, meaning that applying an operator would create spurious correlations between conceptually unrelated dimensions. For example, increasing your confidence about a scientific fact might inadvertently decrease your certainty about an emotional memory, simply due to mathematical artifacts rather than any meaningful cognitive relationship."
+              },
+              {
+                "type": "p",
+                "children": "This independence is what allows Schankian operators to be compositional and predictable. You can apply PREDICT, then GENERALIZE, then SPECIALIZE in sequence, knowing that each operation affects only the relevant aspects of your mental state without creating chaotic interactions across unrelated conceptual boundaries."
+              },
+              {
+                "type": "em",
+                "props": {
+                  "className": "text-gray-400 text-xs block mt-4"
+                },
+                "children": "(2/7/2026, 7:17:29 AM)"
               }
             ]
           },
@@ -182,11 +239,118 @@
           },
           {
             "type": "h3",
-            "children": "1.3 Phase 1 Results (Synthetic Validation)"
+            "children": "1.3 Phase 1 Experiment: Can Operators Be Learned?"
+          },
+          {
+            "type": "Callout",
+            "props": {
+              "type": "info"
+            },
+            "children": "Before trying real data, we need to validate: CAN the architecture learn operators at all? Phase 1 tests this with synthetic data where we KNOW the ground truth."
+          },
+          {
+            "type": "h4",
+            "children": "The Setup"
           },
           {
             "type": "p",
-            "children": "Trained on synthetic data with 5 known operators (HARM, TRANSFER, LEARN, MOVE, RECEIVE) and 20 entities."
+            "children": "We created a controlled experiment with known answers:"
+          },
+          {
+            "type": "ul",
+            "children": [
+              {
+                "type": "li",
+                "children": "5 ground-truth operators: HARM, TRANSFER, LEARN, MOVE, RECEIVE"
+              },
+              {
+                "type": "li",
+                "children": "20 random entity embeddings (64 complex dimensions = 128 params each)"
+              },
+              {
+                "type": "li",
+                "children": "5000 synthetic triples: (agent, operator, patient)"
+              },
+              {
+                "type": "li",
+                "children": "80/20 train/test split"
+              }
+            ]
+          },
+          {
+            "type": "h4",
+            "children": "Ground Truth Operators (What We're Trying to Recover)"
+          },
+          {
+            "type": "p",
+            "children": "Each operator is a diagonal rotation matrix with clear geometric meaning:"
+          },
+          {
+            "type": "ComparisonTable",
+            "props": {
+              "headers": [
+                "Operator",
+                "Rotation Pattern",
+                "Semantic Meaning"
+              ],
+              "rows": [
+                [
+                  "HARM",
+                  "Agent +45°, Patient -45°",
+                  "Adversarial: agent acts against patient"
+                ],
+                [
+                  "TRANSFER",
+                  "Both +30°",
+                  "Symmetric: both move together"
+                ],
+                [
+                  "LEARN",
+                  "Both toward knowledge axis",
+                  "Both entities gain knowledge"
+                ],
+                [
+                  "MOVE",
+                  "Agent +60°, Patient -30°",
+                  "Agent-dominant action"
+                ],
+                [
+                  "RECEIVE",
+                  "Agent -30°, Patient +60°",
+                  "Patient-dominant reception"
+                ]
+              ]
+            }
+          },
+          {
+            "type": "h4",
+            "children": "The Training Algorithm"
+          },
+          {
+            "type": "p",
+            "children": "The learner uses margin-based ranking loss:"
+          },
+          {
+            "type": "Code",
+            "props": {
+              "language": "python"
+            },
+            "children": "# For each training triple (agent, operator, patient):\n\n# 1. Score the correct triple (should be LOW = close match)\nscore_positive = ||agent ⊙ operator - patient||\n\n# 2. Create a corrupted triple (swap agent or patient randomly)\nscore_negative = ||wrong_agent ⊙ operator - patient||\n\n# 3. Ranking loss: push positive below negative by margin\nloss = max(0, margin + score_positive - score_negative)\n\n# The model learns to score correct triples LOWER than corrupted ones"
+          },
+          {
+            "type": "Callout",
+            "props": {
+              "type": "tip"
+            },
+            "children": "Key insight: We never tell the model what the operators ARE. We only show it examples of (agent, op, patient) triples and let it discover the operator patterns from data."
+          },
+          {
+            "type": "h4",
+            "children": "Results: 88.2% Operator Recovery"
+          },
+          {
+            "type": "p",
+            "children": "After 200 epochs of training:"
           },
           {
             "type": "Callout",
@@ -201,7 +365,7 @@
               "headers": [
                 "Operator",
                 "Recovery Score",
-                "Semantic Meaning"
+                "Interpretation"
               ],
               "rows": [
                 [
@@ -233,29 +397,40 @@
             }
           },
           {
-            "type": "h3",
-            "children": "1.4 What This Proves"
+            "type": "h4",
+            "children": "What This Proves"
           },
           {
             "type": "ul",
             "children": [
               {
                 "type": "li",
-                "children": "Operators CAN be learned — not just hardcoded"
+                "children": "✅ Operators CAN be learned from data alone — not hardcoded by humans"
               },
               {
                 "type": "li",
-                "children": "Non-commutativity emerges naturally from the geometry"
+                "children": "✅ Non-commutativity emerges naturally — (agent, op, patient) ≠ (patient, op, agent)"
               },
               {
                 "type": "li",
-                "children": "Simple diagonal rotations are sufficient (no full matrices needed)"
+                "children": "✅ Simple diagonal rotations are sufficient — no need for full matrices"
               },
               {
                 "type": "li",
-                "children": "Architecture is sound — ready for real data"
+                "children": "✅ Ranking loss works — no reconstruction term needed"
+              },
+              {
+                "type": "li",
+                "children": "✅ Architecture is validated — ready for real data"
               }
             ]
+          },
+          {
+            "type": "Callout",
+            "props": {
+              "type": "info"
+            },
+            "children": "The code: projects/graph-nn/code/schankian_learner_v1.py (~500 lines). Full results: memory/schankian-phase1-results.md"
           },
           {
             "type": "h3",
@@ -343,14 +518,118 @@
           },
           {
             "type": "h3",
-            "children": "2.4 DFW-Style Annotation + RAG (NEW)"
+            "children": "2.4 ⭐ The Big Idea: Implicit-Explicit Document Enrichment"
+          },
+          {
+            "type": "Callout",
+            "props": {
+              "type": "warning"
+            },
+            "children": "This may be the most practically impactful idea in this research. It addresses a fundamental limitation of current RAG systems."
+          },
+          {
+            "type": "h4",
+            "children": "The Problem with Current RAG"
+          },
+          {
+            "type": "p",
+            "children": "Retrieval-Augmented Generation (RAG) systems retrieve chunks of text based on surface similarity. But they miss IMPLICIT information that humans automatically infer."
+          },
+          {
+            "type": "Example",
+            "props": {
+              "title": "What RAG Misses"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "Document: 'Marlowe tumbled out of bed and stepped on a Lego.'"
+              },
+              {
+                "type": "p",
+                "children": "Query: 'Was Marlowe wearing shoes?'"
+              },
+              {
+                "type": "p",
+                "children": "RAG answer: 'I don't see any mention of shoes in the document.'"
+              },
+              {
+                "type": "p",
+                "children": "Human answer: 'No — he got out of bed, so he was barefoot. That's why stepping on the Lego hurt.'"
+              }
+            ]
+          },
+          {
+            "type": "h4",
+            "children": "The Solution: Two-Phase Architecture"
+          },
+          {
+            "type": "p",
+            "children": "Phase 1 (Offline): Annotate the document with ALL implicit information, DFW/Nabokov footnote style:"
+          },
+          {
+            "type": "Code",
+            "props": {
+              "language": "text"
+            },
+            "children": "Original: 'Marlowe tumbled out of bed'\n\nAnnotated: 'Marlowe tumbled out of bed'\n  [IMPLICIT: To get out of bed, must have been in bed]\n  [IMPLICIT: Being in bed implies removal of shoes]\n  [IMPLICIT: Getting out of bed → still shoeless]\n  [IMPLICIT: Marlowe is now standing, barefoot, near the bed]"
+          },
+          {
+            "type": "p",
+            "children": "Phase 2 (Query Time): Use hierarchical summarization to navigate efficiently:"
+          },
+          {
+            "type": "ul",
+            "children": [
+              {
+                "type": "li",
+                "children": "Top level: 'Document about Marlowe's morning routine'"
+              },
+              {
+                "type": "li",
+                "children": "Mid level: 'Marlowe gets out of bed, walks down hallway, steps on Lego'"
+              },
+              {
+                "type": "li",
+                "children": "Detail level: Full annotated text with all implicit state"
+              }
+            ]
           },
           {
             "type": "Callout",
             "props": {
               "type": "tip"
             },
-            "children": "New idea (2026-02-06): First pass annotates ALL implicit states (Nabokov/DFW footnote style). Then tree-summarize for efficient RAG retrieval. Separates: (1) capturing implicit knowledge, (2) efficient retrieval."
+            "children": "The hierarchy lets you: query summary first → decide if relevant → drill down to detail. You only pay the cost of reading the bulky annotated version when you NEED that detail."
+          },
+          {
+            "type": "h4",
+            "children": "Why This Matters"
+          },
+          {
+            "type": "ul",
+            "children": [
+              {
+                "type": "li",
+                "children": "RAG systems currently fail on implicit reasoning"
+              },
+              {
+                "type": "li",
+                "children": "Making implicit explicit is a one-time preprocessing cost"
+              },
+              {
+                "type": "li",
+                "children": "Hierarchical summarization keeps retrieval fast"
+              },
+              {
+                "type": "li",
+                "children": "The annotated corpus could train implicit-state models"
+              },
+              {
+                "type": "li",
+                "children": "This separates TWO concerns: (1) capturing knowledge, (2) efficient retrieval"
+              }
+            ]
           }
         ]
       },
@@ -362,7 +641,7 @@
         "children": [
           {
             "type": "p",
-            "children": "Might deserve its own paper: how do we LEARN the implicit preconditions and postconditions of actions?"
+            "children": "The annotation approach above could generate training data for learning implicit state operators. This might deserve its own paper."
           },
           {
             "type": "ul",
@@ -1110,6 +1389,133 @@
                 "children": "This is why our projection strategy is so important: we start with BERT's rich 768-dimensional space (similar scale to RotatE) but compress intelligently to 64 dimensions, preserving the rotational structure that matters most for our specific knowledge recovery task."
               }
             ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "🧠 Brainstorming"
+        },
+        "children": [
+          {
+            "type": "Callout",
+            "props": {
+              "type": "info"
+            },
+            "children": "Far-flung connections, unexpected implications, and unexplored angles. Updated hourly by AI + manual additions."
+          },
+          {
+            "type": "h3",
+            "children": "Entry 1: Neural Oscillation Patterns"
+          },
+          {
+            "type": "p",
+            "children": "What if Schankian primitives correspond to distinct neural oscillatory signatures? The 'rotation in complex space' we use could be a mathematical analog of phase relationships between neural oscillators."
+          },
+          {
+            "type": "ul",
+            "children": [
+              {
+                "type": "li",
+                "children": "Gamma oscillations for feature binding — could primitives bind entity features?"
+              },
+              {
+                "type": "li",
+                "children": "Theta phase for episodic encoding — operators as phase transitions?"
+              },
+              {
+                "type": "li",
+                "children": "Our complex-number representation might be more biologically plausible than we thought"
+              }
+            ]
+          },
+          {
+            "type": "p",
+            "children": "Links: ncbi.nlm.nih.gov/pmc/articles/PMC4141622 (gamma oscillations), nature.com/articles/nrn3917 (theta and memory)"
+          },
+          {
+            "type": "h3",
+            "children": "Entry 2: The Frame Problem Connection"
+          },
+          {
+            "type": "p",
+            "children": "Our 'implicit state' idea directly connects to the Frame Problem — one of the oldest unsolved problems in AI. How does an intelligent system know what DOESN'T change when something happens?"
+          },
+          {
+            "type": "Callout",
+            "props": {
+              "type": "tip"
+            },
+            "children": "Our approach flips it: Instead of asking 'what didn't change?', we ask 'what MUST be true given what happened?' Getting out of bed → was in bed → removed shoes. We enumerate implicit preconditions/postconditions."
+          },
+          {
+            "type": "p",
+            "children": "Links: plato.stanford.edu/entries/frame-problem (Stanford Encyclopedia), McCarthy & Hayes 1969 (original paper)"
+          },
+          {
+            "type": "h3",
+            "children": "Entry 3: Learning Counterfactuals"
+          },
+          {
+            "type": "p",
+            "children": "Can our operators model counterfactual chains? 'If Frank hadn't been shot, he wouldn't have gone to the hospital.'"
+          },
+          {
+            "type": "ul",
+            "children": [
+              {
+                "type": "li",
+                "children": "Operator inverses already exist (r₂ = r̄₁ in RotatE terms)"
+              },
+              {
+                "type": "li",
+                "children": "Counterfactual = apply inverse, then apply alternative operator"
+              },
+              {
+                "type": "li",
+                "children": "'If NOT shot' = invert HARM, then apply alternative sequence"
+              }
+            ]
+          },
+          {
+            "type": "p",
+            "children": "Implication: Learning operators might enable counterfactual reasoning without explicit causal graphs — the geometry encodes causal structure implicitly."
+          },
+          {
+            "type": "h3",
+            "children": "Entry 4: The ImplicitState-1K Benchmark"
+          },
+          {
+            "type": "p",
+            "children": "Turn the Marlowe/Lego example into a benchmark dataset: 1000 short narratives with annotated implicit states."
+          },
+          {
+            "type": "Example",
+            "props": {
+              "title": "Benchmark Entry"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "Text: 'Marlowe rolled out of bed and stepped on a Lego.'"
+              },
+              {
+                "type": "p",
+                "children": "Implicit states: was in bed, took off shoes (usually), now barefoot, Lego on floor near bed, stepping barefoot hurts, now in pain"
+              }
+            ]
+          },
+          {
+            "type": "p",
+            "children": "Related datasets: ATOMIC (commonsense), Event2Mind (mental states), ProPara (procedural tracking)"
+          },
+          {
+            "type": "Callout",
+            "props": {
+              "type": "warning"
+            },
+            "children": "More entries added hourly. See projects/graph-nn/papers/BRAINSTORMING.md for the full collection with all links."
           }
         ]
       }
