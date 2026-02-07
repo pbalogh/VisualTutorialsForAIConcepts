@@ -168,21 +168,28 @@ export default function TreeWrapper() {
   const [error, setError] = useState(null)
   
   // Handler for annotation requests (sends to annotation server)
-  const handleAnnotationRequest = async (selectedText, context) => {
+  const handleAnnotationRequest = async ({ action, selectedText, context, question }) => {
     try {
       const response = await fetch('http://localhost:5190/annotate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
+          action,
           tutorialId,
           selectedText,
-          surroundingContext: context,
-          timestamp: new Date().toISOString()
+          context,
+          question
         })
       })
       
       if (!response.ok) {
-        console.error('Annotation request failed:', response.status)
+        const error = await response.json()
+        console.error('Annotation request failed:', error)
+      } else {
+        // Reload tutorial to show updated content
+        const filename = jsonFilenames[tutorialId] || tutorialId
+        const module = await import(`../content/${filename}.json`)
+        setTutorial(module.default || module)
       }
     } catch (err) {
       console.error('Failed to send annotation:', err)
