@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { useParams, Link } from 'react-router-dom'
-import SummaryTree from '../components/SummaryTree/SummaryTree.jsx'
+import D3Tree from '../components/SummaryTree/D3Tree.jsx'
 import { Container } from '../components/SharedUI.jsx'
 import { TutorialEngine } from '../components/TutorialEngine/ElementRenderer.jsx'
 
@@ -217,11 +217,12 @@ export default function TreeWrapper() {
         tutorialId={tutorialId}
       />
       
-      <Container className="py-8 max-w-4xl">
-        <SummaryTree 
+      <Container className="py-8 max-w-6xl">
+        <D3Tree 
           data={treeData}
           title={`${tutorial.title} — Structure`}
           className="shadow-lg"
+          height={600}
           renderContent={(node) => {
             if (node.content) {
               return <TutorialEngine content={node.content} state={tutorial.state || {}} />
