@@ -148,10 +148,10 @@ function TreeHeader({ title, subtitle, tutorialId }) {
           {subtitle || 'Hierarchical overview — click nodes to expand'}
         </p>
         
-        {/* Link back to tutorial */}
+        {/* Link back to tutorial - emerald to match header */}
         <Link 
           to={`/tutorial/${tutorialId}`}
-          className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-white/10 hover:bg-white/20 text-white text-sm transition-colors"
+          className="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 active:scale-[0.98] text-white text-sm font-medium transition-all duration-150 shadow-lg shadow-emerald-500/25"
         >
           <span>📖</span>
           View Full Tutorial
@@ -232,14 +232,17 @@ export default function TreeWrapper() {
   const treeData = tutorial.tree || generateTreeFromContent(tutorial.content, tutorial.title)
   
   return (
-    <div className="min-h-screen bg-[#fafafa]">
+    <div className="min-h-screen bg-slate-50">
       <TreeHeader 
         title={tutorial.title} 
         subtitle={tutorial.subtitle}
         tutorialId={tutorialId}
       />
       
-      <Container className="py-8 max-w-6xl">
+      {/* Gradient bridge from dark header to light content */}
+      <div className="h-16 bg-gradient-to-b from-[#1a1825] via-slate-200 to-slate-50" />
+      
+      <Container className="py-8 pb-16 max-w-6xl -mt-8">
         <D3Tree 
           data={treeData}
           title={`${tutorial.title} — Structure`}

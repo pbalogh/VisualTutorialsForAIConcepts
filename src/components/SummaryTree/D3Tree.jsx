@@ -62,13 +62,13 @@ function DetailModal({ node, onClose, renderContent, tutorialId, onAnnotationReq
 
 // Refined color palette based on critic feedback
 // - Slate base for neutrality
-// - Indigo for root (authoritative)
+// - Indigo for root (authoritative) with emerald accent for header cohesion
 // - Slate-blue for expandable sections (action available)  
 // - Amber/warm for leaf content (content here)
 const nodeColors = {
   root: { 
     bg: '#312e81',      // indigo-900
-    border: '#4338ca',  // indigo-700
+    border: '#10b981',  // emerald-500 - ties to header palette
     text: '#ffffff',
     hoverBg: '#3730a3', // indigo-800
   },
@@ -90,7 +90,7 @@ const nodeColors = {
 const getNodeSize = (depth) => {
   if (depth === 0) return { fontSize: 14, fontWeight: 700, height: 36, padding: 16 }
   if (depth === 1) return { fontSize: 12, fontWeight: 500, height: 30, padding: 12 }
-  return { fontSize: 11, fontWeight: 400, height: 26, padding: 10 }
+  return { fontSize: 12, fontWeight: 400, height: 28, padding: 10 }  // Bumped from 11px to 12px
 }
 
 export default function D3Tree({ 
@@ -240,14 +240,14 @@ export default function D3Tree({
       .x(d => d.y)
       .y(d => d.x)
     
-    // Draw links
+    // Draw links (thinner for less competition with nodes)
     g.selectAll('.link')
       .data(root.links())
       .join('path')
       .attr('class', 'link')
       .attr('fill', 'none')
       .attr('stroke', '#cbd5e1')  // slate-300
-      .attr('stroke-width', 1.5)
+      .attr('stroke-width', 1)    // Thinner: was 1.5
       .attr('d', linkGenerator)
     
     // Determine node colors
