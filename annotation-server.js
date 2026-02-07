@@ -85,21 +85,22 @@ Write a brief (2-3 sentences) contextual explanation of what "${selectedText}" m
       console.log('🤖 Calling AI for explanation...')
       const explanation = await callAI(systemPrompt, prompt)
       
+      // Create a collapsible Sidebar instead of inline Callout
       return {
-        type: 'Callout',
-        props: { type: 'info' },
+        type: 'Sidebar',
+        props: { 
+          type: 'note',
+          title: `About "${selectedText.length > 30 ? selectedText.slice(0, 30) + '...' : selectedText}"`
+        },
         children: [
           {
-            type: 'strong',
-            children: `💡 "${selectedText}":`
+            type: 'p',
+            children: explanation.trim()
           },
-          ' ',
-          explanation.trim(),
-          ' ',
           {
-            type: 'em',
-            props: { className: 'text-gray-400 text-xs' },
-            children: `(${timestamp})`
+            type: 'p',
+            props: { className: 'text-xs text-gray-400 mt-2' },
+            children: `Added ${timestamp}`
           }
         ]
       }
@@ -203,32 +204,26 @@ Do not use markdown. Do not include preamble. Just answer the question directly.
       console.log(`🤖 Calling AI to answer: "${question}"`)
       const answer = await callAI(systemPrompt, prompt)
       
-      // Parse for potential structured content (if AI returns JSON-like structure)
-      // Otherwise treat as text paragraphs
+      // Parse into paragraphs
       const paragraphs = answer.trim().split('\n\n').filter(p => p.trim())
       
+      // Create a Sidebar for Q&A - collapsible to reduce clutter
       return {
-        type: 'DeepDive',
+        type: 'Sidebar',
         props: { 
-          title: `❓ Q: ${question}`,
-          defaultOpen: true 
+          type: 'note',
+          title: `Q: ${question.length > 40 ? question.slice(0, 40) + '...' : question}`,
+          expanded: true  // Start expanded since user just asked
         },
         children: [
-          {
-            type: 'Callout',
-            props: { type: 'info' },
-            children: [
-              { type: 'em', children: `About "${selectedText}"` }
-            ]
-          },
           ...paragraphs.map(p => ({
             type: 'p',
             children: p.trim()
           })),
           {
-            type: 'em',
-            props: { className: 'text-gray-400 text-xs block mt-4' },
-            children: `(${timestamp})`
+            type: 'p',
+            props: { className: 'text-xs text-gray-400 mt-2' },
+            children: `Asked about "${selectedText.slice(0, 30)}${selectedText.length > 30 ? '...' : ''}" — ${timestamp}`
           }
         ]
       }
@@ -259,30 +254,27 @@ Do not use markdown. Write naturally.`
       const augmented = await callAI(systemPrompt, prompt)
       const paragraphs = augmented.trim().split('\n\n').filter(p => p.trim())
       
+      // Create a Sidebar for user notes - uses 'historical' type (slate) for personal annotations
       return {
-        type: 'Footnote',
+        type: 'Sidebar',
         props: { 
-          id: `footnote-${Date.now()}`,
-          reference: selectedText.slice(0, 30),
-          userNote: question
+          type: 'historical',
+          title: `📝 Note: ${question.length > 35 ? question.slice(0, 35) + '...' : question}`
         },
         children: [
           {
-            type: 'Callout',
-            props: { type: 'info', className: 'mb-3 text-sm' },
-            children: [
-              { type: 'strong', children: '📝 Your note: ' },
-              question
-            ]
+            type: 'p',
+            props: { className: 'italic border-l-2 border-slate-300 pl-3 mb-3' },
+            children: `"${question}"`
           },
           ...paragraphs.map(p => ({
             type: 'p',
             children: p.trim()
           })),
           {
-            type: 'em',
-            props: { className: 'text-gray-400 text-xs block mt-2' },
-            children: `${timestamp}`
+            type: 'p',
+            props: { className: 'text-xs text-gray-400 mt-2' },
+            children: `Note on "${selectedText.slice(0, 25)}..." — ${timestamp}`
           }
         ]
       }
