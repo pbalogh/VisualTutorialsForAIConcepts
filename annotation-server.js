@@ -1550,6 +1550,324 @@ Return ONLY valid JSON. No markdown, no preamble, no explanation outside the JSO
       return sendJson(res, 500, { error: error.message })
     }
   }
+
+  // ============================================================================
+  // ThoughtBlend Endpoints
+  // ============================================================================
+
+  // Fetch and extract content from a URL
+  if (url.pathname === '/thoughtblend/fetch-url' && req.method === 'POST') {
+    try {
+      const body = await parseBody(req)
+      const { url: targetUrl } = body
+
+      if (!targetUrl) {
+        return sendJson(res, 400, { error: 'Missing url' })
+      }
+
+      console.log(`\n🔗 Fetching URL: ${targetUrl}`)
+
+      // Fetch the URL content
+      const fetchUrl = await import('node:https').then(m => m.default)
+      const httpModule = targetUrl.startsWith('https') ? fetchUrl : await import('node:http').then(m => m.default)
+      
+      const fetchContent = () => new Promise((resolve, reject) => {
+        const request = httpModule.get(targetUrl, { 
+          headers: { 'User-Agent': 'Mozilla/5.0 ThoughtBlend/1.0' }
+        }, (response) => {
+          // Handle redirects
+          if (response.statusCode >= 300 && response.statusCode < 400 && response.headers.location) {
+            console.log(`  Redirecting to: ${response.headers.location}`)
+            return resolve(null) // Would need to follow redirect
+          }
+          
+          let data = ''
+          response.on('data', chunk => data += chunk)
+          response.on('end', () => resolve(data))
+        })
+        request.on('error', reject)
+        request.setTimeout(10000, () => {
+          request.destroy()
+          reject(new Error('Request timed out'))
+        })
+      })
+
+      const html = await fetchContent()
+      if (!html) {
+        return sendJson(res, 400, { error: 'Failed to fetch URL (redirect not followed)' })
+      }
+
+      // Extract text content (basic HTML stripping)
+      let text = html
+        .replace(/<script[^>]*>[\s\S]*?<\/script>/gi, '')
+        .replace(/<style[^>]*>[\s\S]*?<\/style>/gi, '')
+        .replace(/<nav[^>]*>[\s\S]*?<\/nav>/gi, '')
+        .replace(/<footer[^>]*>[\s\S]*?<\/footer>/gi, '')
+        .replace(/<header[^>]*>[\s\S]*?<\/header>/gi, '')
+        .replace(/<[^>]+>/g, ' ')
+        .replace(/&nbsp;/g, ' ')
+        .replace(/&amp;/g, '&')
+        .replace(/&lt;/g, '<')
+        .replace(/&gt;/g, '>')
+        .replace(/&quot;/g, '"')
+        .replace(/\s+/g, ' ')
+        .trim()
+        .slice(0, 50000) // Limit size
+
+      // Extract title
+      const titleMatch = html.match(/<title[^>]*>([^<]+)<\/title>/i)
+      const title = titleMatch ? titleMatch[1].trim() : new URL(targetUrl).hostname
+
+      console.log(`  Extracted ${text.length} chars, title: "${title.slice(0, 50)}"`)
+
+      // Generate summary and themes using AI
+      const systemPrompt = `You are analyzing a source document for ThoughtBlend, a tool that synthesizes multiple perspectives.
+
+Extract the key information from this document and return a JSON object with:
+- summary: A 2-3 sentence summary of the main argument or perspective
+- themes: An array of 3-5 key themes or topics (short phrases)
+- stance: A brief description of the document's position/viewpoint
+- keyPoints: An array of 3-5 main points made by the document
+
+Return ONLY valid JSON, no explanation.`
+
+      const prompt = `Document title: "${title}"
+
+Content (first 5000 chars):
+${text.slice(0, 5000)}
+
+Analyze this document and extract its key information as JSON.`
+
+      console.log(`  🤖 Analyzing content...`)
+      const analysis = await callAI(systemPrompt, prompt)
+      
+      let parsed
+      try {
+        const jsonMatch = analysis.match(/\{[\s\S]*\}/)
+        parsed = JSON.parse(jsonMatch[0])
+      } catch {
+        parsed = {
+          summary: 'Could not automatically summarize. Review the content manually.',
+          themes: [],
+          stance: 'Unknown',
+          keyPoints: []
+        }
+      }
+
+      return sendJson(res, 200, {
+        success: true,
+        title,
+        content: text,
+        ...parsed
+      })
+
+    } catch (error) {
+      console.error('❌ Fetch URL error:', error)
+      return sendJson(res, 500, { error: error.message })
+    }
+  }
+
+  // Analyze pasted or uploaded text content
+  if (url.pathname === '/thoughtblend/analyze' && req.method === 'POST') {
+    try {
+      const body = await parseBody(req)
+      const { content, title } = body
+
+      if (!content) {
+        return sendJson(res, 400, { error: 'Missing content' })
+      }
+
+      console.log(`\n📝 Analyzing content: "${(title || 'untitled').slice(0, 50)}" (${content.length} chars)`)
+
+      const systemPrompt = `You are analyzing a source document for ThoughtBlend, a tool that synthesizes multiple perspectives.
+
+Extract the key information from this document and return a JSON object with:
+- summary: A 2-3 sentence summary of the main argument or perspective
+- themes: An array of 3-5 key themes or topics (short phrases)  
+- stance: A brief description of the document's position/viewpoint
+- keyPoints: An array of 3-5 main points made by the document
+
+Return ONLY valid JSON, no explanation.`
+
+      const prompt = `Document title: "${title || 'Untitled'}"
+
+Content (first 5000 chars):
+${content.slice(0, 5000)}
+
+Analyze this document and extract its key information as JSON.`
+
+      console.log(`  🤖 Analyzing...`)
+      const analysis = await callAI(systemPrompt, prompt)
+      
+      let parsed
+      try {
+        const jsonMatch = analysis.match(/\{[\s\S]*\}/)
+        parsed = JSON.parse(jsonMatch[0])
+      } catch {
+        parsed = {
+          summary: 'Could not automatically summarize.',
+          themes: [],
+          stance: 'Unknown',
+          keyPoints: []
+        }
+      }
+
+      return sendJson(res, 200, {
+        success: true,
+        ...parsed
+      })
+
+    } catch (error) {
+      console.error('❌ Analyze error:', error)
+      return sendJson(res, 500, { error: error.message })
+    }
+  }
+
+  // Generate synthesis from multiple sources
+  if (url.pathname === '/thoughtblend/synthesize' && req.method === 'POST') {
+    try {
+      const body = await parseBody(req)
+      const { sources, acrimony = 0.5, mode = 'structured' } = body
+
+      if (!sources || !Array.isArray(sources) || sources.length < 2) {
+        return sendJson(res, 400, { error: 'Need at least 2 sources' })
+      }
+
+      console.log(`\n🎨 Synthesizing ${sources.length} sources`)
+      console.log(`  Mode: ${mode}, Tension: ${Math.round(acrimony * 100)}%`)
+
+      // Build source descriptions
+      const sourceDescriptions = sources.map((s, i) => {
+        const magnitude = s.magnitude || 1
+        return `SOURCE ${i + 1} (weight: ${Math.round(magnitude * 100)}%):
+Title: ${s.title}
+Summary: ${s.summary || 'No summary available'}
+Key themes: ${(s.themes || []).join(', ') || 'None identified'}
+Stance: ${s.stance || 'Not specified'}
+Key points: ${(s.keyPoints || []).map(p => '- ' + p).join('\n') || 'None identified'}
+Content excerpt: ${(s.content || '').slice(0, 1500)}...
+`
+      }).join('\n---\n')
+
+      // Determine synthesis style based on acrimony and mode
+      let toneGuidance
+      if (acrimony < 0.3) {
+        toneGuidance = 'Find common ground and areas of agreement. Emphasize synthesis and complementary perspectives. Minimize conflict.'
+      } else if (acrimony < 0.7) {
+        toneGuidance = 'Present each perspective fairly. Acknowledge both agreements and disagreements. Be balanced and analytical.'
+      } else {
+        toneGuidance = 'Highlight tensions and contradictions. Let the sources challenge each other directly. Be provocative and dialectical.'
+      }
+
+      let formatGuidance
+      if (mode === 'dialogue') {
+        formatGuidance = `Format as a dialogue/debate between voices representing each source.
+Use source titles or "Voice 1", "Voice 2" etc as speaker names.
+Each voice should authentically represent its source's perspective.
+Include back-and-forth exchanges where voices respond to each other.`
+      } else {
+        formatGuidance = `Format as a structured essay with clear sections:
+1. Introduction - frame the topic and the perspectives being compared
+2. Areas of Agreement - where sources converge
+3. Points of Tension - where sources diverge or conflict
+4. Synthesis - your analysis drawing from all sources
+5. Conclusion - key takeaways`
+      }
+
+      const systemPrompt = `You are ThoughtBlend, an AI that synthesizes multiple perspectives into coherent discourse.
+
+Your task is to create a ${mode === 'dialogue' ? 'dialogue' : 'structured essay'} that weaves together the following sources.
+
+Tone guidance: ${toneGuidance}
+
+Format guidance: ${formatGuidance}
+
+Important:
+- Weight each source according to its specified magnitude
+- Cite or attribute ideas to their sources
+- Don't just summarize - synthesize and analyze
+- Make connections the sources themselves might not make
+- Be intellectually honest about genuine disagreements`
+
+      const prompt = `Here are the sources to synthesize:
+
+${sourceDescriptions}
+
+Create a ${mode === 'dialogue' ? 'dialogue between these perspectives' : 'structured synthesis essay'} with ${acrimony < 0.3 ? 'harmonious' : acrimony < 0.7 ? 'balanced' : 'contentious'} tone.
+
+Output the synthesis directly as markdown. Include section headers.`
+
+      console.log(`  🤖 Generating synthesis...`)
+      const synthesis = await callAI(systemPrompt, prompt)
+
+      return sendJson(res, 200, {
+        success: true,
+        synthesis: synthesis.trim(),
+        mode,
+        acrimony,
+        sourceCount: sources.length
+      })
+
+    } catch (error) {
+      console.error('❌ Synthesis error:', error)
+      return sendJson(res, 500, { error: error.message })
+    }
+  }
+
+  // Suggest opposite/contrasting sources (placeholder - would need search API)
+  if (url.pathname === '/thoughtblend/suggest-opposite' && req.method === 'POST') {
+    try {
+      const body = await parseBody(req)
+      const { source } = body
+
+      if (!source) {
+        return sendJson(res, 400, { error: 'Missing source' })
+      }
+
+      console.log(`\n🔄 Generating opposite suggestions for: "${source.title?.slice(0, 50)}"`)
+
+      const systemPrompt = `You are helping users find contrasting perspectives for ThoughtBlend.
+
+Given a source document, suggest works/authors/perspectives that would provide meaningful intellectual opposition or contrast.
+
+Return a JSON object with:
+- suggestions: An array of 3-5 suggestions, each with:
+  - title: Name of the work or a descriptive title
+  - author: Author if known, or "Various" 
+  - description: Why this contrasts with the original
+  - searchQuery: A search query to find this content
+
+Focus on substantive intellectual contrast, not just surface-level disagreement.`
+
+      const prompt = `Original source:
+Title: ${source.title}
+Summary: ${source.summary || 'Not available'}
+Themes: ${(source.themes || []).join(', ')}
+Stance: ${source.stance || 'Not specified'}
+
+Suggest contrasting perspectives that would create productive intellectual tension with this source.`
+
+      console.log(`  🤖 Generating suggestions...`)
+      const response = await callAI(systemPrompt, prompt)
+
+      let suggestions
+      try {
+        const jsonMatch = response.match(/\{[\s\S]*\}/)
+        suggestions = JSON.parse(jsonMatch[0]).suggestions || []
+      } catch {
+        suggestions = []
+      }
+
+      return sendJson(res, 200, {
+        success: true,
+        suggestions
+      })
+
+    } catch (error) {
+      console.error('❌ Suggest error:', error)
+      return sendJson(res, 500, { error: error.message })
+    }
+  }
   
   sendJson(res, 404, { error: 'Not found' })
 })
@@ -1563,8 +1881,15 @@ server.listen(PORT, () => {
   if (aiInfo.region) console.log(`   Region: ${aiInfo.region}`)
   console.log(`\n   To switch providers, edit: ai-config.js`)
   console.log(`\nEndpoints:`)
-  console.log(`  POST /annotate  - Create annotation`)
-  console.log(`  GET  /health    - Health check`)
-  console.log(`  GET  /tutorials - List tutorials`)
+  console.log(`  POST /annotate              - Create annotation`)
+  console.log(`  POST /generate              - Generate new tutorial`)
+  console.log(`  POST /regroup               - Reorganize annotations`)
+  console.log(`  GET  /health                - Health check`)
+  console.log(`  GET  /tutorials             - List tutorials`)
+  console.log(`\nThoughtBlend:`)
+  console.log(`  POST /thoughtblend/fetch-url       - Fetch & analyze URL`)
+  console.log(`  POST /thoughtblend/analyze         - Analyze text content`)
+  console.log(`  POST /thoughtblend/synthesize      - Generate synthesis`)
+  console.log(`  POST /thoughtblend/suggest-opposite - Suggest contrasts`)
   console.log(`\nContent: ${CONTENT_DIR}`)
 })

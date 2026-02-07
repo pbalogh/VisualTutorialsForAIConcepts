@@ -5,6 +5,8 @@
 import React, { useState } from 'react'
 import { getPositionColor } from './ColorWheel'
 
+const API_BASE = 'http://localhost:5190'
+
 export default function MixturePanel({ 
   sources, 
   mixture, 
@@ -12,24 +14,59 @@ export default function MixturePanel({
 }) {
   const [isGenerating, setIsGenerating] = useState(false)
   const [generatedOutput, setGeneratedOutput] = useState(null)
+  const [error, setError] = useState(null)
   
   const sourceList = Object.entries(sources)
   const totalMagnitude = sourceList.reduce((sum, [_, s]) => sum + (s.magnitude || 1), 0)
 
   const handleGenerate = async () => {
     setIsGenerating(true)
+    setError(null)
     
-    // Simulate generation (in production, this would call an AI API)
-    await new Promise(resolve => setTimeout(resolve, 2000))
-    
-    setGeneratedOutput({
-      title: 'Synthesized Perspectives',
-      content: `# Synthesized Perspectives\n\nThis synthesis combines ${sourceList.length} sources with ${mixture.mode === 'dialogue' ? 'a dialogic' : 'a structured'} approach and ${Math.round(mixture.acrimony * 100)}% dialectical tension.\n\n## Key Tensions\n\n*Content would be generated here based on the actual sources...*`,
-      generatedAt: Date.now(),
-    })
-    
-    setIsGenerating(false)
-    onUpdateMixture({ output: generatedOutput })
+    try {
+      // Prepare sources for the API
+      const sourcesPayload = sourceList.map(([pos, source]) => ({
+        title: source.title,
+        summary: source.summary,
+        themes: source.themes,
+        stance: source.stance,
+        keyPoints: source.keyPoints,
+        content: source.content?.slice(0, 3000), // Limit content size
+        magnitude: source.magnitude || 1,
+        position: parseInt(pos),
+      }))
+
+      const response = await fetch(`${API_BASE}/thoughtblend/synthesize`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          sources: sourcesPayload,
+          acrimony: mixture.acrimony,
+          mode: mixture.mode,
+        })
+      })
+
+      if (!response.ok) {
+        const data = await response.json()
+        throw new Error(data.error || 'Synthesis failed')
+      }
+
+      const data = await response.json()
+      
+      setGeneratedOutput({
+        content: data.synthesis,
+        mode: data.mode,
+        acrimony: data.acrimony,
+        sourceCount: data.sourceCount,
+        generatedAt: Date.now(),
+      })
+      
+      onUpdateMixture({ output: data.synthesis })
+    } catch (err) {
+      setError(err.message)
+    } finally {
+      setIsGenerating(false)
+    }
   }
 
   const handleDownload = () => {
@@ -73,6 +110,9 @@ export default function MixturePanel({
                     <div className="text-sm text-white truncate">
                       {source.title || `Source ${parseInt(pos) + 1}`}
                     </div>
+                    {source.stance && (
+                      <div className="text-xs text-slate-500 truncate">{source.stance}</div>
+                    )}
                   </div>
                   <div className="text-xs text-slate-400 w-10 text-right">
                     {percent}%
@@ -189,6 +229,13 @@ export default function MixturePanel({
           </p>
         )}
 
+        {/* Error display */}
+        {error && (
+          <div className="p-3 bg-red-500/10 border border-red-500/30 rounded-lg text-red-400 text-sm">
+            {error}
+          </div>
+        )}
+
         {/* Generated output */}
         {generatedOutput && (
           <div className="pt-4 border-t border-white/10 space-y-3">
@@ -201,10 +248,10 @@ export default function MixturePanel({
               </span>
             </div>
             
-            <div className="p-4 bg-white/5 rounded-lg max-h-48 overflow-y-auto">
-              <pre className="text-sm text-slate-300 whitespace-pre-wrap font-sans">
+            <div className="p-4 bg-slate-900/50 rounded-lg max-h-64 overflow-y-auto">
+              <div className="text-sm text-slate-200 whitespace-pre-wrap prose prose-invert prose-sm max-w-none">
                 {generatedOutput.content}
-              </pre>
+              </div>
             </div>
 
             <div className="flex gap-2">

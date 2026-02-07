@@ -48,7 +48,7 @@ export default function SourcePanel({
         </div>
       </div>
 
-      <div className="p-6 space-y-6">
+      <div className="p-6 space-y-5">
         {/* Source type & info */}
         <div>
           <div className="text-xs text-slate-400 uppercase tracking-wider mb-2">Source</div>
@@ -62,12 +62,22 @@ export default function SourcePanel({
           </div>
         </div>
 
-        {/* Summary if available */}
+        {/* Summary */}
         {source.summary && (
           <div>
             <div className="text-xs text-slate-400 uppercase tracking-wider mb-2">Summary</div>
             <p className="text-sm text-slate-300 leading-relaxed">
               {source.summary}
+            </p>
+          </div>
+        )}
+
+        {/* Stance */}
+        {source.stance && (
+          <div>
+            <div className="text-xs text-slate-400 uppercase tracking-wider mb-2">Stance</div>
+            <p className="text-sm text-slate-300 leading-relaxed">
+              {source.stance}
             </p>
           </div>
         )}
@@ -80,16 +90,31 @@ export default function SourcePanel({
               {source.themes.map((theme, i) => (
                 <span 
                   key={i}
-                  className="px-2 py-1 text-xs rounded-full"
+                  className="px-2.5 py-1 text-xs rounded-full"
                   style={{ 
-                    backgroundColor: `${color}30`,
-                    color: getPositionColor(position, 80, 80)
+                    backgroundColor: `${color}25`,
+                    color: getPositionColor(position, 80, 75)
                   }}
                 >
                   {theme}
                 </span>
               ))}
             </div>
+          </div>
+        )}
+
+        {/* Key points */}
+        {source.keyPoints?.length > 0 && (
+          <div>
+            <div className="text-xs text-slate-400 uppercase tracking-wider mb-2">Key Points</div>
+            <ul className="space-y-1.5">
+              {source.keyPoints.map((point, i) => (
+                <li key={i} className="text-sm text-slate-300 flex gap-2">
+                  <span className="text-slate-500">•</span>
+                  <span>{point}</span>
+                </li>
+              ))}
+            </ul>
           </div>
         )}
 
