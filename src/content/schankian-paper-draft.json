@@ -1029,6 +1029,89 @@
             ]
           }
         ]
+      },
+      {
+        "type": "Section",
+        "children": [
+          {
+            "type": "DeepDive",
+            "props": {
+              "title": "Deep Dive: RotatE paper uses 500-1000 dims successfully",
+              "defaultOpen": true,
+              "id": "ann-1770461335834-4cwfkc",
+              "sourceId": "source-ann-1770461335834-4cwfkc"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "The RotatE paper's success with 500-1000 dimensions reveals a crucial insight about the dimensionality requirements for complex rotational embeddings. While traditional knowledge graph embeddings often work well in lower dimensions (64-256), rotation-based methods need significantly more space to represent the rich geometric relationships between entities and relations."
+              },
+              {
+                "type": "ComparisonTable",
+                "props": {
+                  "headers": [
+                    "Method",
+                    "Dimensions",
+                    "Performance",
+                    "Key Insight"
+                  ],
+                  "rows": [
+                    [
+                      "TransE (translational)",
+                      "100-200",
+                      "Good",
+                      "Simple addition needs fewer dims"
+                    ],
+                    [
+                      "RotatE (rotational)",
+                      "500-1000",
+                      "State-of-art",
+                      "Complex rotations need rich space"
+                    ],
+                    [
+                      "Our Phase 1",
+                      "64",
+                      "88% recovery",
+                      "Aggressive compression works with projection"
+                    ]
+                  ]
+                }
+              },
+              {
+                "type": "Analogy",
+                "children": "Think of it like choreography: simple dance moves (translations) can be described briefly, but complex rotational sequences need detailed notation to capture all the nuanced positioning and timing. RotatE's rotations are like intricate dance moves that require high-dimensional 'notation' to be performed accurately."
+              },
+              {
+                "type": "ul",
+                "children": [
+                  {
+                    "type": "li",
+                    "children": "High dimensions allow RotatE to avoid interference between different rotation patterns"
+                  },
+                  {
+                    "type": "li",
+                    "children": "Complex relations (like hierarchies, compositions) need orthogonal subspaces to coexist"
+                  },
+                  {
+                    "type": "li",
+                    "children": "More dimensions = more degrees of freedom for representing subtle relationship differences"
+                  },
+                  {
+                    "type": "li",
+                    "children": "The 500-1000 range hits the sweet spot between expressiveness and computational feasibility"
+                  }
+                ]
+              },
+              {
+                "type": "Callout",
+                "props": {
+                  "type": "tip"
+                },
+                "children": "This is why our projection strategy is so important: we start with BERT's rich 768-dimensional space (similar scale to RotatE) but compress intelligently to 64 dimensions, preserving the rotational structure that matters most for our specific knowledge recovery task."
+              }
+            ]
+          }
+        ]
       }
     ]
   }
