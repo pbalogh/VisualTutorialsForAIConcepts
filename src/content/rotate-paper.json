@@ -1,0 +1,763 @@
+{
+  "id": "rotate-paper",
+  "title": "RotatE Paper: Annotated Tutorial",
+  "subtitle": "Knowledge Graph Embedding by Relational Rotation in Complex Space — Sun et al., ICLR 2019",
+  "readTime": "45 min",
+  "state": {},
+  "content": {
+    "type": "Fragment",
+    "children": [
+      {
+        "type": "Callout",
+        "props": {
+          "type": "info"
+        },
+        "children": "This is an annotated, interactive version of the RotatE paper. Original: arxiv.org/abs/1902.10197. Annotations explain concepts in plain English and connect to Schankian operator research."
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "1. The Big Picture"
+        },
+        "children": [
+          {
+            "type": "h3",
+            "children": "What Problem Does RotatE Solve?"
+          },
+          {
+            "type": "p",
+            "children": "Knowledge graphs store facts as triples: (head, relation, tail). For example: (Obama, bornIn, Hawaii). The problem: knowledge graphs are always incomplete. Can we predict missing links?"
+          },
+          {
+            "type": "Example",
+            "props": {
+              "title": "Link Prediction"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "Given: (Obama, bornIn, ?)"
+              },
+              {
+                "type": "p",
+                "children": "Predict: Hawaii"
+              },
+              {
+                "type": "p",
+                "children": "Or given: (?, presidentOf, USA)"
+              },
+              {
+                "type": "p",
+                "children": "Predict: Obama, Biden, Trump, ..."
+              }
+            ]
+          },
+          {
+            "type": "h3",
+            "children": "The Key Insight"
+          },
+          {
+            "type": "Callout",
+            "props": {
+              "type": "tip"
+            },
+            "children": "RotatE models relations as ROTATIONS in complex vector space. If you rotate the head entity by the relation angle, you should arrive at the tail entity."
+          },
+          {
+            "type": "p",
+            "children": "Mathematically: t = h ⊙ r, where ⊙ is element-wise multiplication of complex numbers, and |r| = 1 (unit complex number = rotation)."
+          },
+          {
+            "type": "ComplexRotationViz",
+            "props": {
+              "initialAngle": 45
+            }
+          },
+          {
+            "type": "h3",
+            "children": "Why Rotations?"
+          },
+          {
+            "type": "p",
+            "children": "Previous models had limitations:"
+          },
+          {
+            "type": "ComparisonTable",
+            "props": {
+              "headers": [
+                "Model",
+                "Approach",
+                "Can't Handle"
+              ],
+              "rows": [
+                [
+                  "TransE",
+                  {
+                    "type": "FootnoteRef",
+                    "props": {
+                      "id": "source-ann-1770463372025-h5yl23",
+                      "targetId": "ann-1770463372025-h5yl23",
+                      "type": "ask"
+                    }
+                  },
+                  "h + r ≈ t (translation)",
+                  "Symmetric relations (married_to)"
+                ],
+                [
+                  "DistMult",
+                  "⟨h, r, t⟩ (dot product)",
+                  "Antisymmetric relations (parent_of)"
+                ],
+                [
+                  "ComplEx",
+                  "Re(⟨h, r, t̄⟩)",
+                  "Composition (grandfather = father ∘ father)"
+                ]
+              ]
+            }
+          },
+          {
+            "type": "DeepDive",
+            "props": {
+              "title": "❓ Q: How exactly did TransE do it?? Because I'd think that translation (essentially, addition) would be *innately* symmetric, since addition is commutative! If anything, I'd expect more trouble with antisymmetric relations!",
+              "defaultOpen": true,
+              "id": "ann-1770463372025-h5yl23",
+              "sourceId": "source-ann-1770463372025-h5yl23"
+            },
+            "children": [
+              {
+                "type": "Callout",
+                "props": {
+                  "type": "info"
+                },
+                "children": [
+                  {
+                    "type": "em",
+                    "children": "About \"TransE\""
+                  }
+                ]
+              },
+              {
+                "type": "p",
+                "children": "You're absolutely right to be puzzled! TransE's translation approach does have an inherent symmetry problem because vector addition is commutative. If we represent a relation r as a translation vector, then h + r = t should mean that t - r = h, which would imply the reverse relation automatically exists."
+              },
+              {
+                "type": "p",
+                "children": "TransE handles this through its training process and scoring function. During training, it explicitly learns separate embeddings for relations and their inverses (if they exist in the dataset). For example, if \"capital_of\" exists in the training data, TransE learns one vector for it. If \"capital_of_inverse\" also exists as training data, it learns a completely different vector. The model doesn't automatically assume symmetry - it only learns what's explicitly provided in the training examples."
+              },
+              {
+                "type": "p",
+                "children": "However, you've identified TransE's key weakness! For truly antisymmetric relations (like \"parent_of\"), TransE often does struggle because the translation mechanism wants to allow movement in both directions along the same vector. This is exactly why more sophisticated models like RotatE were developed - rotation naturally handles antisymmetric relations because rotating by θ is fundamentally different from rotating by -θ, even though they use the same axis."
+              },
+              {
+                "type": "p",
+                "children": "So TransE \"works\" for symmetric relations mainly because it learns separate vectors when trained on both directions, but you're correct that its mathematical foundation fights against antisymmetric modeling."
+              },
+              {
+                "type": "em",
+                "props": {
+                  "className": "text-gray-400 text-xs block mt-4"
+                },
+                "children": "(2/7/2026, 6:22:41 AM)"
+              }
+            ]
+          },
+          {
+            "type": "Callout",
+            "props": {
+              "type": "success"
+            },
+            "children": "RotatE handles ALL THREE patterns: symmetry, antisymmetry, inversion, AND composition. This is the main contribution."
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "2. Three Relation Patterns"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "The paper identifies three critical patterns that any good model should handle:"
+          },
+          {
+            "type": "h3",
+            "children": "Pattern 1: Symmetry / Antisymmetry"
+          },
+          {
+            "type": "p",
+            "children": "Symmetric: If r(x,y) then r(y,x). Example: married_to, similar_to"
+          },
+          {
+            "type": "p",
+            "children": "Antisymmetric: If r(x,y) then NOT r(y,x). Example: parent_of, older_than"
+          },
+          {
+            "type": "Callout",
+            "props": {
+              "type": "info"
+            },
+            "children": "RotatE solution: A relation r is symmetric iff r = ±1 (rotation by 0° or 180°). For any other angle, it's antisymmetric."
+          },
+          {
+            "type": "h3",
+            "children": "Pattern 2: Inversion"
+          },
+          {
+            "type": "p",
+            "children": "r₁ is inverse of r₂ if: r₂(x,y) implies r₁(y,x). Example: hypernym/hyponym, parent/child"
+          },
+          {
+            "type": "Callout",
+            "props": {
+              "type": "info"
+            },
+            "children": "RotatE solution: r₂ = r̄₁ (complex conjugate). Rotating by θ then by -θ gets you back to start."
+          },
+          {
+            "type": "h3",
+            "children": "Pattern 3: Composition"
+          },
+          {
+            "type": "p",
+            "children": "r₃ = r₁ ∘ r₂ if: r₁(x,y) AND r₂(y,z) implies r₃(x,z). Example: grandfather = father ∘ father"
+          },
+          {
+            "type": "Callout",
+            "props": {
+              "type": "info"
+            },
+            "children": "RotatE solution: r₃ = r₁ ⊙ r₂. Rotation angles ADD: θ₃ = θ₁ + θ₂. This is why complex numbers are perfect!"
+          },
+          {
+            "type": "Example",
+            "props": {
+              "title": "Composition Example"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "father = rotation by 30°"
+              },
+              {
+                "type": "p",
+                "children": "grandfather = father ∘ father = rotation by 60°"
+              },
+              {
+                "type": "p",
+                "children": "great-grandfather = rotation by 90°"
+              },
+              {
+                "type": "p",
+                "children": "The angles compose naturally via complex multiplication!"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "3. The RotatE Model"
+        },
+        "children": [
+          {
+            "type": "h3",
+            "children": "Core Equation"
+          },
+          {
+            "type": "p",
+            "children": "For a triple (h, r, t), we want:"
+          },
+          {
+            "type": "Code",
+            "props": {
+              "language": "text"
+            },
+            "children": "t = h ⊙ r\n\nwhere:\n  h, t ∈ ℂᵏ  (k-dimensional complex vectors)\n  r ∈ ℂᵏ with |rᵢ| = 1 (unit complex = rotation)\n  ⊙ = element-wise (Hadamard) product"
+          },
+          {
+            "type": "p",
+            "children": "For each dimension i:"
+          },
+          {
+            "type": "Code",
+            "props": {
+              "language": "text"
+            },
+            "children": "tᵢ = hᵢ × rᵢ\n\nSince |rᵢ| = 1, we can write rᵢ = e^(iθᵢ)\nThis rotates hᵢ by angle θᵢ in the complex plane"
+          },
+          {
+            "type": "h3",
+            "children": "Distance (Scoring) Function"
+          },
+          {
+            "type": "p",
+            "children": "To score a triple, RotatE measures how close h⊙r is to t:"
+          },
+          {
+            "type": "Code",
+            "props": {
+              "language": "text"
+            },
+            "children": "d(h, r, t) = ||h ⊙ r - t||\n\nLower distance = better match\nA perfect triple has distance 0"
+          },
+          {
+            "type": "h3",
+            "children": "Training: Negative Sampling"
+          },
+          {
+            "type": "p",
+            "children": "The model learns by contrasting true triples with corrupted (false) triples:"
+          },
+          {
+            "type": "Code",
+            "props": {
+              "language": "python"
+            },
+            "children": "# Loss function:\nL = -log(σ(γ - d(h,r,t)))           # True triple: distance < margin γ\n  - Σ log(σ(d(h',r,t') - γ))        # False triples: distance > margin γ\n\n# σ = sigmoid, γ = margin (hyperparameter)"
+          },
+          {
+            "type": "Callout",
+            "props": {
+              "type": "tip"
+            },
+            "children": "Self-adversarial negative sampling: Sample harder negatives based on current embeddings. Triples that currently score well (but are false) are weighted more heavily."
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "4. Why Each Pattern Works"
+        },
+        "children": [
+          {
+            "type": "h3",
+            "children": "Symmetry: r = ±1"
+          },
+          {
+            "type": "p",
+            "children": "If r(x,y) and r(y,x) both hold, then:"
+          },
+          {
+            "type": "Code",
+            "props": {
+              "language": "text"
+            },
+            "children": "y = x ⊙ r  (from first triple)\nx = y ⊙ r  (from second triple)\n\nSubstituting: x = (x ⊙ r) ⊙ r = x ⊙ r²\n\nThis requires r² = 1, so r = ±1\n\nr = +1: rotation by 0° (identity)\nr = -1: rotation by 180°"
+          },
+          {
+            "type": "h3",
+            "children": "Inversion: r₂ = r̄₁"
+          },
+          {
+            "type": "p",
+            "children": "If r₁(x,y) and r₂(y,x), then r₂ = r̄₁ (complex conjugate):"
+          },
+          {
+            "type": "Code",
+            "props": {
+              "language": "text"
+            },
+            "children": "y = x ⊙ r₁  →  x = y ⊙ r₂\n\nFor this to work: r₁ ⊙ r₂ = 1\n\nSo r₂ = 1/r₁ = r̄₁ (conjugate, since |r₁| = 1)"
+          },
+          {
+            "type": "h3",
+            "children": "Composition: r₃ = r₁ ⊙ r₂"
+          },
+          {
+            "type": "p",
+            "children": "If r₁(x,y) and r₂(y,z), then r₃(x,z) where r₃ = r₁ ⊙ r₂:"
+          },
+          {
+            "type": "Code",
+            "props": {
+              "language": "text"
+            },
+            "children": "y = x ⊙ r₁\nz = y ⊙ r₂ = (x ⊙ r₁) ⊙ r₂ = x ⊙ (r₁ ⊙ r₂)\n\nSo z = x ⊙ r₃ where r₃ = r₁ ⊙ r₂\n\nIn terms of angles: θ₃ = θ₁ + θ₂"
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "5. Comparison to Other Models"
+        },
+        "children": [
+          {
+            "type": "ComparisonTable",
+            "props": {
+              "headers": [
+                "Model",
+                "Score Function",
+                "Symmetry",
+                "Antisymmetry",
+                "Inversion",
+                "Composition"
+              ],
+              "rows": [
+                [
+                  "TransE",
+                  "||h + r - t||",
+                  "❌",
+                  "✅",
+                  "✅",
+                  "✅"
+                ],
+                [
+                  "DistMult",
+                  "⟨h, r, t⟩",
+                  "✅",
+                  "❌",
+                  "❌",
+                  "❌"
+                ],
+                [
+                  "ComplEx",
+                  "Re(⟨h, r, t̄⟩)",
+                  "✅",
+                  "✅",
+                  "✅",
+                  "❌"
+                ],
+                [
+                  "RotatE",
+                  "||h ⊙ r - t||",
+                  "✅",
+                  "✅",
+                  "✅",
+                  "✅"
+                ]
+              ]
+            }
+          },
+          {
+            "type": "Callout",
+            "props": {
+              "type": "success"
+            },
+            "children": "RotatE is the ONLY model that handles all four patterns. This is why it achieves state-of-the-art on benchmarks."
+          },
+          {
+            "type": "h3",
+            "children": "Why TransE Fails on Symmetry"
+          },
+          {
+            "type": "p",
+            "children": "TransE uses: t = h + r. For symmetric relations where h→t and t→h both hold:"
+          },
+          {
+            "type": "Code",
+            "props": {
+              "language": "text"
+            },
+            "children": "t = h + r  and  h = t + r\n\nSubtracting: 0 = 2r, so r = 0\n\nAll symmetric relations collapse to r = 0!\nEntities with symmetric relations get pushed together."
+          },
+          {
+            "type": "p",
+            "children": "RotatE avoids this because rotation by 180° (r = -1) is a valid non-zero representation."
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "6. Experimental Results"
+        },
+        "children": [
+          {
+            "type": "h3",
+            "children": "Benchmark Datasets"
+          },
+          {
+            "type": "ComparisonTable",
+            "props": {
+              "headers": [
+                "Dataset",
+                "Entities",
+                "Relations",
+                "Main Patterns"
+              ],
+              "rows": [
+                [
+                  "FB15k",
+                  "14,951",
+                  "1,345",
+                  "Symmetry, Inversion"
+                ],
+                [
+                  "WN18",
+                  "40,943",
+                  "18",
+                  "Symmetry, Inversion"
+                ],
+                [
+                  "FB15k-237",
+                  "14,541",
+                  "237",
+                  "Composition (inverse relations removed)"
+                ],
+                [
+                  "WN18RR",
+                  "40,943",
+                  "11",
+                  "Symmetry, Composition"
+                ]
+              ]
+            }
+          },
+          {
+            "type": "h3",
+            "children": "Key Results"
+          },
+          {
+            "type": "ul",
+            "children": [
+              {
+                "type": "li",
+                "children": "RotatE achieves state-of-the-art on ALL benchmarks"
+              },
+              {
+                "type": "li",
+                "children": "Especially strong on FB15k-237 and WN18RR (composition-heavy)"
+              },
+              {
+                "type": "li",
+                "children": "pRotatE (phase-only variant) also works but worse on composition"
+              },
+              {
+                "type": "li",
+                "children": "Self-adversarial negative sampling helps significantly"
+              }
+            ]
+          },
+          {
+            "type": "Callout",
+            "props": {
+              "type": "info"
+            },
+            "children": "The modulus of entity embeddings (not just phase) is critical for composition patterns. This is why full RotatE beats pRotatE."
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "7. Connection to Schankian Operators"
+        },
+        "children": [
+          {
+            "type": "Callout",
+            "props": {
+              "type": "warning"
+            },
+            "children": "This section connects RotatE to your research on learned Schankian operators."
+          },
+          {
+            "type": "h3",
+            "children": "What We Borrow from RotatE"
+          },
+          {
+            "type": "ul",
+            "children": [
+              {
+                "type": "li",
+                "children": "Complex vector embeddings for entities"
+              },
+              {
+                "type": "li",
+                "children": "Relations (operators) as rotations"
+              },
+              {
+                "type": "li",
+                "children": "Margin-based ranking loss"
+              },
+              {
+                "type": "li",
+                "children": "The scoring function ||h ⊙ r - t||"
+              }
+            ]
+          },
+          {
+            "type": "h3",
+            "children": "How We Extend RotatE"
+          },
+          {
+            "type": "ComparisonTable",
+            "props": {
+              "headers": [
+                "Aspect",
+                "RotatE",
+                "Schankian Operators"
+              ],
+              "rows": [
+                [
+                  "Domain",
+                  "Static knowledge graphs",
+                  "Event semantics / narratives"
+                ],
+                [
+                  "Triples",
+                  "(entity, relation, entity)",
+                  "(agent, operator, patient)"
+                ],
+                [
+                  "Goal",
+                  "Link prediction",
+                  "Learn semantic primitives"
+                ],
+                [
+                  "Relations",
+                  "Pre-defined in KG",
+                  "Discovered from data"
+                ],
+                [
+                  "Asymmetry",
+                  "Some relations",
+                  "ALL operators (agent ≠ patient)"
+                ]
+              ]
+            }
+          },
+          {
+            "type": "h3",
+            "children": "Key Insight"
+          },
+          {
+            "type": "p",
+            "children": "RotatE proves that rotation-based operators can capture complex relational patterns. We apply this to EVENT semantics:"
+          },
+          {
+            "type": "ul",
+            "children": [
+              {
+                "type": "li",
+                "children": "'cop shot frank' → HARM(cop, frank)"
+              },
+              {
+                "type": "li",
+                "children": "'frank shot cop' → HARM(frank, cop) — DIFFERENT!"
+              },
+              {
+                "type": "li",
+                "children": "Non-commutativity is built into the rotation framework"
+              }
+            ]
+          },
+          {
+            "type": "Callout",
+            "props": {
+              "type": "tip"
+            },
+            "children": "Our Phase 1 experiment (88% operator recovery) validates that RotatE's approach works for learning Schankian-style operators from data."
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "8. Implementation Details"
+        },
+        "children": [
+          {
+            "type": "h3",
+            "children": "Hyperparameters"
+          },
+          {
+            "type": "ul",
+            "children": [
+              {
+                "type": "li",
+                "children": "Embedding dimension k: 125, 250, 500, or 1000"
+              },
+              {
+                "type": "li",
+                "children": "Batch size: 512, 1024, or 2048"
+              },
+              {
+                "type": "li",
+                "children": "Margin γ: 3 to 30"
+              },
+              {
+                "type": "li",
+                "children": "Self-adversarial temperature α: 0.5 or 1.0"
+              },
+              {
+                "type": "li",
+                "children": "Optimizer: Adam"
+              },
+              {
+                "type": "li",
+                "children": "No regularization (margin prevents overfitting)"
+              }
+            ]
+          },
+          {
+            "type": "h3",
+            "children": "Initialization"
+          },
+          {
+            "type": "ul",
+            "children": [
+              {
+                "type": "li",
+                "children": "Entity embeddings: uniform random (real + imaginary parts)"
+              },
+              {
+                "type": "li",
+                "children": "Relation phases: uniform in [0, 2π]"
+              }
+            ]
+          },
+          {
+            "type": "h3",
+            "children": "Code"
+          },
+          {
+            "type": "p",
+            "children": "Official implementation: github.com/DeepGraphLearning/KnowledgeGraphEmbedding"
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "Key Takeaways"
+        },
+        "children": [
+          {
+            "type": "ol",
+            "children": [
+              {
+                "type": "li",
+                "children": "Relations as rotations: t = h ⊙ r where |r| = 1"
+              },
+              {
+                "type": "li",
+                "children": "Handles ALL patterns: symmetry, antisymmetry, inversion, composition"
+              },
+              {
+                "type": "li",
+                "children": "Composition = angle addition: θ₃ = θ₁ + θ₂"
+              },
+              {
+                "type": "li",
+                "children": "Self-adversarial sampling improves training"
+              },
+              {
+                "type": "li",
+                "children": "State-of-the-art on all major KG benchmarks"
+              },
+              {
+                "type": "li",
+                "children": "Foundation for our Schankian operator research"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}
