@@ -267,6 +267,19 @@ const tutorials = [
     glowColor: 'rgba(168, 85, 247, 0.4)',
     readTime: '30 min',
     difficulty: 2,
+  },
+  {
+    id: 'thoughtblend',
+    title: 'ThoughtBlend',
+    description: 'Synthesize perspectives through dialectical color mixing — add sources as color swatches and blend them into structured text or dialogue',
+    tags: ['experimental', 'synthesis', 'dialectics'],
+    icon: '🎨',
+    gradient: 'from-teal-500 to-emerald-500',
+    shadowColor: 'shadow-teal-500/30',
+    glowColor: 'rgba(20, 184, 166, 0.4)',
+    readTime: '∞',
+    difficulty: 2,
+    isApp: true,
   }
 ]
 
@@ -302,6 +315,10 @@ const tagColors = {
   'clustering': 'bg-amber-100 text-amber-700 border-amber-200',
   'visualization': 'bg-pink-100 text-pink-700 border-pink-200',
   'optimization': 'bg-green-100 text-green-700 border-green-200',
+  
+  // ThoughtBlend tags
+  'synthesis': 'bg-teal-100 text-teal-700 border-teal-200',
+  'dialectics': 'bg-emerald-100 text-emerald-700 border-emerald-200',
 }
 
 // Difficulty display
@@ -309,9 +326,12 @@ const difficultyLabels = ['Beginner', 'Intermediate', 'Advanced']
 const difficultyStars = (level) => '★'.repeat(level) + '☆'.repeat(3 - level)
 
 function TutorialCard({ tutorial, featured = false }) {
+  // Apps have their own routes, tutorials use /tutorial/:id
+  const linkPath = tutorial.isApp ? `/${tutorial.id}` : `/tutorial/${tutorial.id}`
+  
   return (
     <Link 
-      to={`/tutorial/${tutorial.id}`}
+      to={linkPath}
       className={`group block no-underline ${featured ? 'md:col-span-2' : ''}`}
     >
       <div className={`

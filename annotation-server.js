@@ -899,50 +899,48 @@ const server = http.createServer(async (req, res) => {
         `${i+1}. [${a.type}${a.subtype ? ':'+a.subtype : ''}] ${a.title || ''} - "${a.content}"`
       ).join('\n')
       
-      // Call AI with the "editor's notes" framing
-      const systemPrompt = `You are a senior editor revising an educational tutorial called "${content.title}".
+      // For large tutorials, use a simpler approach: just consolidate/remove annotations
+      // Rather than rewriting everything, we'll:
+      // 1. Ask AI which annotations to keep, merge, or remove
+      // 2. Apply those changes programmatically
+      
+      const systemPrompt = `You are reviewing annotations on an educational tutorial called "${content.title}".
 
-The tutorial has accumulated reader annotations - questions, requests for clarification, and "go deeper" expansions. Think of these as EDITOR'S NOTES on a manuscript: they represent places where readers were confused or curious.
+The tutorial has ${annotations.length} reader annotations (questions, explanations, deep-dives). 
+Your job is to decide what to do with each one.
 
-Your job is to REVISE THE TUTORIAL ITSELF so that these questions wouldn't need to be asked. The goal is a clean, self-contained tutorial where:
-- Confusing terms are explained BEFORE they're used (or inline when first used)
-- "Go deeper" content is integrated as proper sections if important, or removed if tangential
-- Q&A exchanges are absorbed into the main text as clear explanations
-- Sidebars with important info become part of the main flow
-- Redundant annotations are consolidated or removed
+Return a JSON object with your decisions. Be concise.`
 
-${aggressive ? `AGGRESSIVE REVISION:
-- Be bold. Restructure sections if needed.
-- Remove annotations entirely after integrating their insights.
-- Combine related Q&A into consolidated explanations.
-- Cut tangential deep-dives that distract from the main narrative.` : `CONSERVATIVE REVISION:
-- Preserve the structure, but improve the prose.
-- Keep valuable annotations as sidebars if they're truly supplementary.
-- Integrate only the most essential clarifications into main text.
-- Don't remove content unless it's clearly redundant.`}
-
-Return the FULL revised tutorial JSON.`
-
-      const prompt = `Here are the reader annotations (editor's notes) on this tutorial:
+      const prompt = `Here are the annotations:
 
 ${annotationSummary}
 
-Here is the full tutorial JSON:
+For each annotation, decide:
+- "keep" = leave as-is (it's valuable supplementary content)
+- "remove" = delete it (redundant or already addressed in main text)
+- "merge:X" = merge with annotation X (they cover the same topic)
 
-${JSON.stringify(content, null, 2)}
+Return JSON like:
+{
+  "decisions": {
+    "1": "keep",
+    "2": "remove", 
+    "3": "merge:1",
+    "4": "keep"
+  },
+  "summary": "Brief explanation of your changes"
+}
 
-Revise the tutorial to address these reader needs. Return the FULL modified JSON.
-Only return valid JSON, no markdown or explanation.`
+${aggressive ? 'AGGRESSIVE: Remove more, keep only essential.' : 'CONSERVATIVE: Keep most, only remove clearly redundant.'}
 
-      console.log('🤖 Calling AI to revise tutorial as editor...')
+Return ONLY valid JSON, no markdown.`
+
+      console.log('🤖 Calling AI for annotation review...')
       const response = await callAI(systemPrompt, prompt)
       
-      let updatedContent
+      let decisions
       try {
         // Try to parse the response as JSON directly
-        updatedContent = JSON.parse(response.trim())
-      } catch {
-        // Try to extract JSON from markdown code blocks or raw response
         let jsonStr = response.trim()
         
         // Remove markdown code blocks if present
@@ -956,56 +954,60 @@ Only return valid JSON, no markdown or explanation.`
         }
         jsonStr = jsonStr.trim()
         
-        try {
-          updatedContent = JSON.parse(jsonStr)
-        } catch {
-          // Last resort: find the outermost JSON object
-          const jsonMatch = jsonStr.match(/\{[\s\S]*\}/)
-          if (jsonMatch) {
-            try {
-              updatedContent = JSON.parse(jsonMatch[0])
-            } catch (e) {
-              console.error('Failed to parse AI response as JSON:', e.message)
-              console.error('Response preview:', response.slice(0, 500))
-              return sendJson(res, 500, { error: 'AI returned invalid JSON - try again' })
-            }
-          } else {
-            console.error('No JSON found in response')
-            console.error('Response preview:', response.slice(0, 500))
-            return sendJson(res, 500, { error: 'AI returned invalid JSON - try again' })
+        decisions = JSON.parse(jsonStr)
+      } catch (e) {
+        // Try to extract JSON object
+        const jsonMatch = response.match(/\{[\s\S]*\}/)
+        if (jsonMatch) {
+          try {
+            decisions = JSON.parse(jsonMatch[0])
+          } catch {
+            console.error('Failed to parse AI decisions:', e.message)
+            console.error('Response:', response.slice(0, 500))
+            return sendJson(res, 500, { error: 'AI returned invalid response - try again' })
           }
+        } else {
+          return sendJson(res, 500, { error: 'AI returned invalid response - try again' })
         }
       }
       
-      // Validate the response has the expected structure
-      if (!updatedContent || !updatedContent.content) {
-        console.error('AI response missing content field')
-        return sendJson(res, 500, { error: 'AI returned incomplete tutorial structure' })
-      }
+      console.log('📋 AI decisions:', decisions.summary || 'No summary')
       
-      // Count annotations before and after
-      const newAnnotations = findAllAnnotations(updatedContent.content)
-      const removedCount = annotations.length - newAnnotations.length
+      // Apply decisions: remove annotations marked for removal
+      // For now, we'll just report what would change (safer first pass)
+      const toRemove = Object.entries(decisions.decisions || {})
+        .filter(([_, action]) => action === 'remove')
+        .map(([idx]) => parseInt(idx))
       
-      // Save the updated content
-      await fs.writeFile(jsonPath, JSON.stringify(updatedContent, null, 2))
-      console.log(`💾 Saved: ${jsonPath}`)
-      console.log(`📊 Annotations: ${annotations.length} → ${newAnnotations.length} (${removedCount > 0 ? removedCount + ' integrated/removed' : 'restructured'})`)
+      const toMerge = Object.entries(decisions.decisions || {})
+        .filter(([_, action]) => typeof action === 'string' && action.startsWith('merge:'))
+        .map(([idx, action]) => ({ from: parseInt(idx), to: parseInt(action.split(':')[1]) }))
       
-      // Commit to git (for undo capability)
-      const commitMsg = `[regroup${aggressive ? '-aggressive' : ''}] ${annotations.length}→${newAnnotations.length} annotations in ${tutorialId}`
-      commitAndPush(jsonPath, commitMsg).catch(() => {})
+      const toKeep = Object.entries(decisions.decisions || {})
+        .filter(([_, action]) => action === 'keep')
+        .map(([idx]) => parseInt(idx))
+      
+      // For now, just report - actual removal would need path-based deletion
+      const message = `Reviewed ${annotations.length} annotations: ${toKeep.length} keep, ${toRemove.length} remove, ${toMerge.length} merge. ${decisions.summary || ''}`
+      
+      console.log(`📊 Results: ${toKeep.length} keep, ${toRemove.length} remove, ${toMerge.length} merge`)
+      
+      // TODO: Actually apply the removals/merges to the content
+      // For now we just report the analysis
       
       return sendJson(res, 200, {
         success: true,
         tutorialId,
-        beforeCount: annotations.length,
-        afterCount: newAnnotations.length,
-        changes: removedCount,
-        message: removedCount > 0 
-          ? `Revised tutorial: ${removedCount} annotation${removedCount > 1 ? 's' : ''} integrated into main text`
-          : 'Tutorial revised and restructured',
-        updatedContent
+        annotationCount: annotations.length,
+        decisions: {
+          keep: toKeep.length,
+          remove: toRemove.length,
+          merge: toMerge.length
+        },
+        details: decisions,
+        message,
+        // Don't update content yet - just analysis
+        updatedContent: content
       })
       
     } catch (error) {
