@@ -778,14 +778,15 @@ const server = http.createServer(async (req, res) => {
     }
   }
   
-  // Regroup and Reorganize endpoint
+  // Regroup and Reorganize endpoint - applies changes immediately
   if (url.pathname === '/regroup' && req.method === 'POST') {
     try {
       const body = await parseBody(req)
-      const { tutorialId } = body
+      const { tutorialId, aggressive = false } = body
       
       console.log('\n🔄 Regroup Request:')
       console.log(`  Tutorial: ${tutorialId}`)
+      console.log(`  Aggressive: ${aggressive}`)
       
       if (!tutorialId) {
         return sendJson(res, 400, { error: 'Missing tutorialId' })
@@ -817,75 +818,148 @@ const server = http.createServer(async (req, res) => {
         return sendJson(res, 200, { 
           success: true, 
           message: 'No sidebars found to reorganize',
-          changes: 0
+          changes: 0,
+          updatedContent: content
         })
       }
       
-      // Call AI to analyze and suggest reorganization
-      const systemPrompt = `You are helping reorganize an educational tutorial called "${content.title}".
-The user has added several annotation sidebars while reading. Your job is to:
-1. Identify related sidebars that should be consolidated
-2. Suggest if any explanations should be moved earlier in the tutorial (as prerequisites)
-3. Recommend which sidebars could be combined to reduce clutter
-
-Be specific about which sidebars to merge and why.`
+      if (sidebars.length === 1) {
+        return sendJson(res, 200, { 
+          success: true, 
+          message: 'Only one sidebar found - nothing to consolidate',
+          changes: 0,
+          updatedContent: content
+        })
+      }
       
-      const sidebarSummary = sidebars.map((s, i) => 
-        `${i+1}. [${s.type}] "${s.title}" - ${s.contentPreview}`
-      ).join('\n')
+      // Call AI to reorganize
+      const systemPrompt = `You are reorganizing an educational tutorial called "${content.title}".
+
+Your job is to consolidate and tidy up the sidebar annotations. You will receive the FULL tutorial JSON and should return a MODIFIED version with sidebars consolidated.
+
+Rules for consolidation:
+${aggressive ? `- AGGRESSIVE MODE: Consolidate aggressively. Merge any sidebars on related topics.
+- Combine 3+ sidebars into summary sections where possible.
+- Remove redundant explanations entirely.` : `- CONSERVATIVE MODE: Only merge sidebars that are clearly about the exact same concept.
+- Keep distinct explanations separate.
+- Preserve user's original questions/notes.`}
+
+Return the FULL modified tutorial JSON (not just the changes).`
       
-      const prompt = `Here are the sidebars added to the tutorial:
+      const prompt = `Here is the tutorial JSON to reorganize:
 
-${sidebarSummary}
+${JSON.stringify(content, null, 2)}
 
-Analyze these and return a JSON object with:
-{
-  "consolidations": [
-    { "merge": [1, 3], "reason": "Both explain the same concept", "newTitle": "Combined title" }
-  ],
-  "moveEarlier": [
-    { "sidebar": 2, "reason": "This is a prerequisite for understanding section 3" }
-  ],
-  "keepAsIs": [4, 5],
-  "summary": "Brief description of recommended changes"
-}
+Consolidate the Sidebar elements according to the rules. Return the FULL modified JSON.
+Only return valid JSON, no markdown or explanation.`
 
-Return ONLY valid JSON, no markdown or explanation.`
-
-      console.log('🤖 Calling AI for reorganization analysis...')
+      console.log('🤖 Calling AI to reorganize content...')
       const response = await callAI(systemPrompt, prompt)
       
-      let suggestions
+      let updatedContent
       try {
-        suggestions = JSON.parse(response.trim())
+        // Try to parse the response as JSON
+        updatedContent = JSON.parse(response.trim())
       } catch {
-        // If AI didn't return valid JSON, try to extract it
+        // Try to extract JSON from response
         const jsonMatch = response.match(/\{[\s\S]*\}/)
         if (jsonMatch) {
-          suggestions = JSON.parse(jsonMatch[0])
-        } else {
-          suggestions = { 
-            consolidations: [], 
-            moveEarlier: [], 
-            keepAsIs: sidebars.map((_, i) => i + 1),
-            summary: "Could not parse AI suggestions. Review sidebars manually."
+          try {
+            updatedContent = JSON.parse(jsonMatch[0])
+          } catch {
+            console.error('Failed to parse AI response as JSON')
+            return sendJson(res, 500, { error: 'AI returned invalid JSON' })
           }
+        } else {
+          return sendJson(res, 500, { error: 'AI returned invalid JSON' })
         }
       }
       
-      console.log(`✅ Analysis complete: ${suggestions.consolidations?.length || 0} consolidations suggested`)
+      // Count changes
+      const newSidebars = findSidebars(updatedContent.content)
+      const changeCount = sidebars.length - newSidebars.length
+      
+      // Save the updated content
+      await fs.writeFile(jsonPath, JSON.stringify(updatedContent, null, 2))
+      console.log(`💾 Saved: ${jsonPath}`)
+      console.log(`📊 Sidebars: ${sidebars.length} → ${newSidebars.length} (${changeCount > 0 ? '-' : ''}${Math.abs(changeCount)} ${changeCount >= 0 ? 'consolidated' : 'added'})`)
+      
+      // Commit to git (for undo capability)
+      const commitMsg = `[regroup${aggressive ? '-aggressive' : ''}] ${sidebars.length}→${newSidebars.length} sidebars in ${tutorialId}`
+      commitAndPush(jsonPath, commitMsg).catch(() => {})
       
       return sendJson(res, 200, {
         success: true,
         tutorialId,
-        sidebarCount: sidebars.length,
-        sidebars: sidebars.map(s => ({ type: s.type, title: s.title })),
-        suggestions,
-        message: suggestions.summary
+        beforeCount: sidebars.length,
+        afterCount: newSidebars.length,
+        changes: changeCount,
+        message: changeCount > 0 
+          ? `Consolidated ${changeCount} sidebar${changeCount > 1 ? 's' : ''}`
+          : 'No consolidations made',
+        updatedContent
       })
       
     } catch (error) {
       console.error('❌ Regroup error:', error)
+      return sendJson(res, 500, { error: error.message })
+    }
+  }
+  
+  // Undo endpoint - reverts to previous git commit
+  if (url.pathname === '/undo' && req.method === 'POST') {
+    try {
+      const body = await parseBody(req)
+      const { tutorialId } = body
+      
+      console.log('\n⏪ Undo Request:')
+      console.log(`  Tutorial: ${tutorialId}`)
+      
+      if (!tutorialId) {
+        return sendJson(res, 400, { error: 'Missing tutorialId' })
+      }
+      
+      const jsonFilenames = {
+        'matrix-from-vectors-engine': 'matrix-from-vectors',
+        'matrix-discovery-engine': 'matrix-discovery',
+        'lead-lag-correlation-engine': 'lead-lag-correlation',
+        'least-squares-engine': 'least-squares'
+      }
+      
+      const filename = jsonFilenames[tutorialId] || tutorialId
+      const jsonPath = path.join(CONTENT_DIR, `${filename}.json`)
+      const relativePath = `src/content/${filename}.json`
+      
+      try {
+        // Revert to previous commit for this file
+        execSync(`git checkout HEAD~1 -- "${relativePath}"`, { 
+          cwd: TUTORIALS_REPO,
+          stdio: 'pipe'
+        })
+        
+        // Read the reverted content
+        const content = JSON.parse(await fs.readFile(jsonPath, 'utf-8'))
+        
+        // Commit the revert
+        execSync(`git add "${relativePath}" && git commit -m "[undo] Reverted ${tutorialId}"`, {
+          cwd: TUTORIALS_REPO,
+          stdio: 'pipe'
+        })
+        
+        console.log('✅ Reverted to previous version')
+        
+        return sendJson(res, 200, {
+          success: true,
+          message: 'Reverted to previous version',
+          updatedContent: content
+        })
+      } catch (e) {
+        console.error('Undo failed:', e.message)
+        return sendJson(res, 500, { error: 'No previous version to undo to' })
+      }
+      
+    } catch (error) {
+      console.error('❌ Undo error:', error)
       return sendJson(res, 500, { error: error.message })
     }
   }

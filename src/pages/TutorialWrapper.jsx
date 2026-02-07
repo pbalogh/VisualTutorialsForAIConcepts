@@ -276,7 +276,7 @@ function SectionProgress({ sections, glowColor }) {
 }
 
 // Premium tutorial header with atmospheric effects (matching listing page)
-function TutorialHeader({ meta, tutorialId, onRegroup }) {
+function TutorialHeader({ meta, tutorialId, onRegroup, regroupStatus, canUndo, onUndo }) {
   return (
     <header className="relative overflow-hidden">
       {/* Atmospheric gradient background */}
@@ -391,16 +391,42 @@ function TutorialHeader({ meta, tutorialId, onRegroup }) {
           {/* Regroup button */}
           {onRegroup && (
             <button
-              onClick={onRegroup}
+              onClick={() => onRegroup(false)}
+              disabled={regroupStatus === 'loading'}
               className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full 
                 bg-violet-500/10 border border-violet-500/20 text-sm text-violet-400
-                hover:bg-violet-500/20 transition-colors"
+                hover:bg-violet-500/20 transition-colors disabled:opacity-50"
             >
-              <span>🔄</span>
-              Regroup & Tidy
+              <span>{regroupStatus === 'loading' ? '⏳' : '🔄'}</span>
+              {regroupStatus === 'loading' ? 'Tidying...' : 'Regroup & Tidy'}
+            </button>
+          )}
+          
+          {/* Undo button */}
+          {canUndo && onUndo && (
+            <button
+              onClick={onUndo}
+              className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full 
+                bg-amber-500/10 border border-amber-500/20 text-sm text-amber-400
+                hover:bg-amber-500/20 transition-colors"
+            >
+              <span>↩️</span>
+              Undo
             </button>
           )}
         </div>
+        
+        {/* Status toast */}
+        {regroupStatus && regroupStatus !== 'loading' && (
+          <div className={`mt-4 px-4 py-2 rounded-lg text-sm inline-flex items-center gap-2 ${
+            regroupStatus.type === 'success' ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30' :
+            regroupStatus.type === 'error' ? 'bg-red-500/20 text-red-300 border border-red-500/30' :
+            'bg-blue-500/20 text-blue-300 border border-blue-500/30'
+          }`}>
+            <span>{regroupStatus.type === 'success' ? '✅' : regroupStatus.type === 'error' ? '❌' : 'ℹ️'}</span>
+            {regroupStatus.message}
+          </div>
+        )}
       </div>
     </header>
   )
@@ -469,12 +495,58 @@ export default function TutorialWrapper({ tutorial: propTutorial }) {
     }
   }
 
-  // Regroup and Tidy handler
-  const handleRegroup = async () => {
+  // Regroup and Tidy handler - applies changes immediately
+  const [regroupStatus, setRegroupStatus] = useState(null) // null | 'loading' | { type: 'success'|'error', message }
+  const [canUndo, setCanUndo] = useState(false)
+  
+  const handleRegroup = async (aggressive = false) => {
     if (!tutorialId) return
+    
+    setRegroupStatus('loading')
     
     try {
       const response = await fetch('http://localhost:5190/regroup', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ tutorialId, aggressive })
+      })
+      
+      if (response.ok) {
+        const data = await response.json()
+        console.log('📊 Regroup result:', data)
+        
+        if (data.changes > 0) {
+          // Update the tutorial content
+          setJsonTutorial(data.updatedContent)
+          setCanUndo(true)
+          setRegroupStatus({ 
+            type: 'success', 
+            message: data.message 
+          })
+        } else {
+          setRegroupStatus({ 
+            type: 'info', 
+            message: data.message || 'No changes needed'
+          })
+        }
+        
+        // Clear status after 4 seconds
+        setTimeout(() => setRegroupStatus(null), 4000)
+      } else {
+        const error = await response.json()
+        setRegroupStatus({ type: 'error', message: error.error })
+        setTimeout(() => setRegroupStatus(null), 4000)
+      }
+    } catch (e) {
+      console.error('Failed to call regroup:', e)
+      setRegroupStatus({ type: 'error', message: 'Server not running' })
+      setTimeout(() => setRegroupStatus(null), 4000)
+    }
+  }
+  
+  const handleUndo = async () => {
+    try {
+      const response = await fetch('http://localhost:5190/undo', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ tutorialId })
@@ -482,24 +554,14 @@ export default function TutorialWrapper({ tutorial: propTutorial }) {
       
       if (response.ok) {
         const data = await response.json()
-        console.log('📊 Regroup analysis:', data)
-        
-        // Show results to user
-        if (data.sidebarCount === 0) {
-          alert('No sidebars found to reorganize. Add some annotations first!')
-        } else {
-          const msg = `Found ${data.sidebarCount} sidebar(s).\n\n${data.message || 'Analysis complete.'}\n\nConsolidations suggested: ${data.suggestions?.consolidations?.length || 0}`
-          alert(msg)
-          // TODO: Show a modal with detailed suggestions and apply button
-        }
-      } else {
-        const error = await response.json()
-        console.error('Regroup error:', error)
-        alert(`Regroup failed: ${error.error}`)
+        setJsonTutorial(data.updatedContent)
+        setCanUndo(false)
+        setRegroupStatus({ type: 'success', message: 'Reverted changes' })
+        setTimeout(() => setRegroupStatus(null), 3000)
       }
     } catch (e) {
-      console.error('Failed to call regroup:', e)
-      alert('Annotation server not running. Start it with: node annotation-server.js')
+      setRegroupStatus({ type: 'error', message: 'Undo failed' })
+      setTimeout(() => setRegroupStatus(null), 3000)
     }
   }
 
@@ -545,7 +607,7 @@ export default function TutorialWrapper({ tutorial: propTutorial }) {
     return (
       <div className="min-h-screen bg-[#fafafa]">
         <ProgressBar />
-        <TutorialHeader meta={jsonMeta} tutorialId={tutorialId} onRegroup={handleRegroup} />
+        <TutorialHeader meta={jsonMeta} tutorialId={tutorialId} onRegroup={handleRegroup} regroupStatus={regroupStatus} canUndo={canUndo} onUndo={handleUndo} />
         {jsonMeta.sections.length > 0 && (
           <SectionProgress sections={jsonMeta.sections} glowColor={jsonMeta.glowColor} />
         )}
@@ -570,7 +632,7 @@ export default function TutorialWrapper({ tutorial: propTutorial }) {
     return (
       <div className="min-h-screen bg-[#fafafa]">
         <ProgressBar />
-        <TutorialHeader meta={meta} tutorialId={tutorialId} onRegroup={handleRegroup} />
+        <TutorialHeader meta={meta} tutorialId={tutorialId} onRegroup={handleRegroup} regroupStatus={regroupStatus} canUndo={canUndo} onUndo={handleUndo} />
         {meta.sections && <SectionProgress sections={meta.sections} glowColor={meta.glowColor} />}
         <TutorialComponent />
       </div>
@@ -581,7 +643,7 @@ export default function TutorialWrapper({ tutorial: propTutorial }) {
   return (
     <div className="min-h-screen bg-[#fafafa]">
       <ProgressBar />
-      <TutorialHeader meta={meta} tutorialId={tutorialId} onRegroup={handleRegroup} />
+      <TutorialHeader meta={meta} tutorialId={tutorialId} onRegroup={handleRegroup} regroupStatus={regroupStatus} canUndo={canUndo} onUndo={handleUndo} />
       {meta.sections && <SectionProgress sections={meta.sections} glowColor={meta.glowColor} />}
       
       <AnnotatableContent 
