@@ -322,6 +322,11 @@ export default function D3Tree({
             .attr('transform', null)
         })
       
+      // Tooltip for full title (shows on hover when truncated)
+      if (title.length > 35) {
+        node.append('title').text(title)
+      }
+      
       // Text label
       node.append('text')
         .attr('x', size.padding - 4)

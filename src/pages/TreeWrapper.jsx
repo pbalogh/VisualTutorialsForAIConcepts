@@ -170,7 +170,7 @@ export default function TreeWrapper() {
   // Handler for annotation requests (sends to annotation server)
   const handleAnnotationRequest = async (selectedText, context) => {
     try {
-      const response = await fetch('http://localhost:5182/annotate', {
+      const response = await fetch('http://localhost:5190/annotate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
