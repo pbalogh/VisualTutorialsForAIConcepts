@@ -143,7 +143,18 @@
               },
               {
                 "type": "p",
-                "children": "However, DistMult has a critical limitation that RotatE aims to address: it's symmetric by design. Since multiplication is commutative (h × r × t = t × r × h), DistMult cannot distinguish between (head, relation, tail) and (tail, relation, head). This makes it impossible to model asymmetric relations like \"parent_of\" - if John is the parent of Mary, DistMult would incorrectly suggest Mary is also the parent of John."
+                "children": [
+                  "However, DistMult has a critical limitation that RotatE aims to address: it's symmetric by design. Since multiplication is commutative (h × r × t = t × r × h), DistMult cannot distinguish",
+                  {
+                    "type": "FootnoteRef",
+                    "props": {
+                      "id": "source-ann-1770464568269-xgf8h5",
+                      "targetId": "ann-1770464568269-xgf8h5",
+                      "type": "ask"
+                    }
+                  },
+                  " between (head, relation, tail) and (tail, relation, head). This makes it impossible to model asymmetric relations like \"parent_of\" - if John is the parent of Mary, DistMult would incorrectly suggest Mary is also the parent of John."
+                ]
               },
               {
                 "type": "p",
@@ -155,6 +166,48 @@
                   "className": "text-gray-400 text-xs block mt-4"
                 },
                 "children": "(2/7/2026, 6:40:41 AM)"
+              }
+            ]
+          },
+          {
+            "type": "DeepDive",
+            "props": {
+              "title": "❓ Q: Isn't this just the inevitable result of using a diagonal matrix? Why didn't they use a more robust, freeform matrix?",
+              "defaultOpen": true,
+              "id": "ann-1770464568269-xgf8h5",
+              "sourceId": "source-ann-1770464568269-xgf8h5"
+            },
+            "children": [
+              {
+                "type": "Callout",
+                "props": {
+                  "type": "info"
+                },
+                "children": [
+                  {
+                    "type": "em",
+                    "children": "About \"DistMult cannot distinguish\""
+                  }
+                ]
+              },
+              {
+                "type": "p",
+                "children": "You're absolutely right that this is a consequence of DistMult's design choice to use diagonal matrices! The designers of DistMult deliberately chose this constrained approach for computational efficiency and to reduce overfitting, not because they couldn't think of using full matrices."
+              },
+              {
+                "type": "p",
+                "children": "A full matrix would indeed be more expressive, but it comes with major trade-offs. With diagonal matrices, DistMult only needs to learn one parameter per dimension for each relation, making it fast and less prone to memorizing the training data. A full matrix would require learning d² parameters per relation (where d is the embedding dimension), making it computationally expensive and more likely to overfit, especially when training data is limited."
+              },
+              {
+                "type": "p",
+                "children": "The real insight of the RotatE paper isn't just pointing out this limitation - it's showing how to get the best of both worlds. RotatE achieves the asymmetry that full matrices could provide, but does so with the same parameter efficiency as diagonal matrices. Instead of using more parameters, it uses complex numbers and rotation operations to elegantly encode directional relationships. This is why RotatE is considered an advancement: it solves the asymmetry problem without sacrificing the computational benefits that made DistMult attractive in the first place."
+              },
+              {
+                "type": "em",
+                "props": {
+                  "className": "text-gray-400 text-xs block mt-4"
+                },
+                "children": "(2/7/2026, 6:42:38 AM)"
               }
             ]
           },
