@@ -3,9 +3,14 @@ import * as d3 from 'd3'
 import { AnnotatableContent } from '../AnnotationSystem.jsx'
 
 /**
- * D3Tree - Beautiful hierarchical tree visualization
+ * D3Tree - Polished hierarchical tree visualization
  * 
- * Inspired by: Text in rounded boxes, chevron indicators, color-coded nodes
+ * Design improvements based on critic feedback:
+ * - Type hierarchy (root larger, sections medium, leaves regular)
+ * - Sophisticated color palette (slate + indigo + amber)
+ * - Hover states with lift effect
+ * - Animated transitions
+ * - Depth through shadows
  */
 
 const X = ({ className }) => (
@@ -55,11 +60,37 @@ function DetailModal({ node, onClose, renderContent, tutorialId, onAnnotationReq
   )
 }
 
-// Colors: Blue for expandable, green for leaf nodes
+// Refined color palette based on critic feedback
+// - Slate base for neutrality
+// - Indigo for root (authoritative)
+// - Slate-blue for expandable sections (action available)  
+// - Amber/warm for leaf content (content here)
 const nodeColors = {
-  expandable: { bg: '#dbeafe', border: '#93c5fd', text: '#1e40af' },  // Blue
-  leaf: { bg: '#d1fae5', border: '#6ee7b7', text: '#065f46' },  // Green
-  root: { bg: '#e0e7ff', border: '#a5b4fc', text: '#3730a3' },  // Indigo for root
+  root: { 
+    bg: '#312e81',      // indigo-900
+    border: '#4338ca',  // indigo-700
+    text: '#ffffff',
+    hoverBg: '#3730a3', // indigo-800
+  },
+  expandable: { 
+    bg: '#f1f5f9',      // slate-100
+    border: '#94a3b8',  // slate-400
+    text: '#334155',    // slate-700
+    hoverBg: '#e2e8f0', // slate-200
+  },
+  leaf: { 
+    bg: '#fef3c7',      // amber-100
+    border: '#f59e0b',  // amber-500
+    text: '#92400e',    // amber-800
+    hoverBg: '#fde68a', // amber-200
+  },
+}
+
+// Node sizing based on depth (type hierarchy)
+const getNodeSize = (depth) => {
+  if (depth === 0) return { fontSize: 14, fontWeight: 700, height: 36, padding: 16 }
+  if (depth === 1) return { fontSize: 12, fontWeight: 500, height: 30, padding: 12 }
+  return { fontSize: 11, fontWeight: 400, height: 26, padding: 10 }
 }
 
 export default function D3Tree({ 
@@ -128,6 +159,37 @@ export default function D3Tree({
     // Clear previous content
     svg.selectAll('*').remove()
     
+    // Add defs for shadows
+    const defs = svg.append('defs')
+    
+    // Shadow filter for expanded nodes
+    const shadowFilter = defs.append('filter')
+      .attr('id', 'node-shadow')
+      .attr('x', '-50%')
+      .attr('y', '-50%')
+      .attr('width', '200%')
+      .attr('height', '200%')
+    
+    shadowFilter.append('feDropShadow')
+      .attr('dx', 0)
+      .attr('dy', 2)
+      .attr('stdDeviation', 3)
+      .attr('flood-color', 'rgba(0,0,0,0.15)')
+    
+    // Hover shadow (stronger)
+    const hoverShadow = defs.append('filter')
+      .attr('id', 'node-hover-shadow')
+      .attr('x', '-50%')
+      .attr('y', '-50%')
+      .attr('width', '200%')
+      .attr('height', '200%')
+    
+    hoverShadow.append('feDropShadow')
+      .attr('dx', 0)
+      .attr('dy', 4)
+      .attr('stdDeviation', 6)
+      .attr('flood-color', 'rgba(0,0,0,0.2)')
+    
     // Create group for zoom/pan
     const g = svg.append('g').attr('class', 'tree-container')
     
@@ -166,7 +228,7 @@ export default function D3Tree({
     
     const treeLayout = d3.tree()
       .size([treeHeight, width - margin.left - margin.right - 200])
-      .separation((a, b) => (a.parent === b.parent ? 1 : 1.5))
+      .separation((a, b) => (a.parent === b.parent ? 1.2 : 1.8))
     
     treeLayout(root)
     
@@ -184,9 +246,16 @@ export default function D3Tree({
       .join('path')
       .attr('class', 'link')
       .attr('fill', 'none')
-      .attr('stroke', '#cbd5e1')
+      .attr('stroke', '#cbd5e1')  // slate-300
       .attr('stroke-width', 1.5)
       .attr('d', linkGenerator)
+    
+    // Determine node colors
+    const getNodeColor = (d) => {
+      if (d.depth === 0) return nodeColors.root
+      if (d.data._children || d.data.children) return nodeColors.expandable
+      return nodeColors.leaf
+    }
     
     // Draw nodes as groups
     const nodes = g.selectAll('.node')
@@ -197,38 +266,37 @@ export default function D3Tree({
       .attr('transform', d => `translate(${d.y}, ${d.x})`)
       .style('cursor', 'pointer')
     
-    // Determine node colors
-    const getNodeColor = (d) => {
-      if (d.depth === 0) return nodeColors.root
-      if (d.data._children || d.data.children) return nodeColors.expandable
-      return nodeColors.leaf
-    }
-    
     // Node rectangles with rounded corners
     nodes.each(function(d) {
       const node = d3.select(this)
       const colors = getNodeColor(d)
+      const size = getNodeSize(d.depth)
       const title = d.data.title || 'Untitled'
       const displayTitle = title.length > 35 ? title.slice(0, 35) + '...' : title
       const hasChildren = d.data._children || d.data.children
       const isExpanded = expandedNodes.has(d.data.id || 'root')
       
-      // Calculate text width (approximate)
-      const textWidth = displayTitle.length * 7 + 24
-      const boxWidth = Math.max(textWidth, 80)
-      const boxHeight = 28
+      // Calculate text width (approximate based on font size)
+      const charWidth = size.fontSize * 0.6
+      const textWidth = displayTitle.length * charWidth + size.padding * 2
+      const boxWidth = Math.max(textWidth, 100)
+      const boxHeight = size.height
       
       // Background rectangle
-      node.append('rect')
-        .attr('x', -10)
+      const rect = node.append('rect')
+        .attr('x', -12)
         .attr('y', -boxHeight / 2)
         .attr('width', boxWidth)
         .attr('height', boxHeight)
-        .attr('rx', 6)
-        .attr('ry', 6)
+        .attr('rx', 8)
+        .attr('ry', 8)
         .attr('fill', colors.bg)
         .attr('stroke', colors.border)
-        .attr('stroke-width', 1)
+        .attr('stroke-width', d.depth === 0 ? 2 : 1)
+        .attr('filter', isExpanded && hasChildren ? 'url(#node-shadow)' : null)
+      
+      // Hover and click handlers
+      rect
         .on('click', (event) => {
           event.stopPropagation()
           if (hasChildren) {
@@ -239,36 +307,44 @@ export default function D3Tree({
         })
         .on('mouseover', function() {
           d3.select(this)
-            .attr('stroke-width', 2)
-            .attr('filter', 'drop-shadow(0 2px 4px rgba(0,0,0,0.1))')
+            .transition()
+            .duration(150)
+            .attr('fill', colors.hoverBg)
+            .attr('filter', 'url(#node-hover-shadow)')
+            .attr('transform', 'translate(0, -2)')
         })
         .on('mouseout', function() {
           d3.select(this)
-            .attr('stroke-width', 1)
-            .attr('filter', null)
+            .transition()
+            .duration(150)
+            .attr('fill', colors.bg)
+            .attr('filter', isExpanded && hasChildren ? 'url(#node-shadow)' : null)
+            .attr('transform', null)
         })
       
       // Text label
       node.append('text')
-        .attr('x', 4)
+        .attr('x', size.padding - 4)
         .attr('dy', '0.35em')
         .attr('fill', colors.text)
-        .attr('font-size', '12px')
-        .attr('font-weight', d.depth === 0 ? '600' : '400')
+        .attr('font-size', `${size.fontSize}px`)
+        .attr('font-weight', size.fontWeight)
         .attr('pointer-events', 'none')
         .text(displayTitle)
       
-      // Chevron indicator for expandable nodes
+      // Chevron indicator for expandable nodes (animated rotation would need more work)
       if (hasChildren) {
+        const chevronX = boxWidth - 20
         node.append('text')
-          .attr('x', boxWidth - 16)
+          .attr('class', 'chevron')
+          .attr('x', chevronX)
           .attr('dy', '0.35em')
           .attr('fill', colors.text)
-          .attr('font-size', '14px')
+          .attr('font-size', `${size.fontSize + 2}px`)
           .attr('font-weight', 'bold')
           .attr('pointer-events', 'none')
-          .attr('opacity', 0.6)
-          .text(isExpanded ? '<' : '>')
+          .attr('opacity', 0.5)
+          .text(isExpanded ? '‹' : '›')
       }
     })
     
@@ -278,9 +354,9 @@ export default function D3Tree({
       (width - 40) / bounds.width,
       (height - 40) / bounds.height,
       1
-    ) * 0.9
+    ) * 0.85
     
-    const translateX = 40
+    const translateX = 50
     const translateY = (height - bounds.height * scale) / 2 - bounds.y * scale
     
     svg.call(zoom.transform, d3.zoomIdentity
@@ -292,36 +368,36 @@ export default function D3Tree({
   return (
     <div className={`bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden ${className}`}>
       {/* Header */}
-      <div className="px-4 py-3 border-b border-gray-200 flex items-center justify-between bg-gradient-to-r from-gray-50 to-white">
+      <div className="px-4 py-3 border-b border-gray-200 flex items-center justify-between bg-gradient-to-r from-slate-50 to-white">
         <h3 className="font-semibold text-gray-900">{title}</h3>
         <div className="flex gap-2">
           <button
             onClick={expandAll}
-            className="text-xs px-3 py-1.5 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-md transition-colors"
+            className="text-xs px-3 py-1.5 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-md transition-all duration-150"
           >
             Expand All
           </button>
           <button
             onClick={collapseAll}
-            className="text-xs px-3 py-1.5 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-md transition-colors"
+            className="text-xs px-3 py-1.5 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-md transition-all duration-150"
           >
             Collapse
           </button>
         </div>
       </div>
       
-      {/* Legend */}
-      <div className="px-4 py-2 bg-gray-50 border-b border-gray-100 flex items-center gap-6 text-xs text-gray-600">
-        <span className="font-medium">Legend:</span>
+      {/* Legend - refined colors */}
+      <div className="px-4 py-2 bg-slate-50 border-b border-slate-100 flex items-center gap-6 text-xs text-slate-600">
+        <span className="font-medium text-slate-700">Legend:</span>
         <span className="flex items-center gap-1.5">
           <span className="w-3 h-3 rounded" style={{ background: nodeColors.expandable.bg, border: `1px solid ${nodeColors.expandable.border}` }} />
-          Section (click to expand)
+          Section
         </span>
         <span className="flex items-center gap-1.5">
           <span className="w-3 h-3 rounded" style={{ background: nodeColors.leaf.bg, border: `1px solid ${nodeColors.leaf.border}` }} />
-          Content (click to view)
+          Content
         </span>
-        <span className="ml-auto text-gray-400">Drag to pan • Scroll to zoom</span>
+        <span className="ml-auto text-slate-400">Drag to pan • Scroll to zoom</span>
       </div>
       
       {/* Tree visualization */}
@@ -330,7 +406,7 @@ export default function D3Tree({
           ref={svgRef}
           width="100%"
           height={dimensions.height}
-          className="bg-gradient-to-br from-slate-50 via-white to-blue-50/20"
+          className="bg-gradient-to-br from-slate-50 via-white to-slate-50"
         />
       </div>
       
@@ -344,7 +420,7 @@ export default function D3Tree({
               1.3
             )
           }}
-          className="px-3 py-2 hover:bg-gray-100 text-gray-600 text-sm font-medium"
+          className="px-3 py-2 hover:bg-gray-100 text-gray-600 text-sm font-medium transition-colors"
         >
           +
         </button>
@@ -357,7 +433,7 @@ export default function D3Tree({
               0.7
             )
           }}
-          className="px-3 py-2 hover:bg-gray-100 text-gray-600 text-sm font-medium"
+          className="px-3 py-2 hover:bg-gray-100 text-gray-600 text-sm font-medium transition-colors"
         >
           −
         </button>
