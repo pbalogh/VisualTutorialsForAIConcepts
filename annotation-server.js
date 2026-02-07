@@ -1227,16 +1227,20 @@ READER ANNOTATIONS (questions/explanations that were added):
 ${annSummary}
 
 TASK: Rewrite the section text to incorporate the insights from these annotations.
-- Weave explanations naturally into the prose
-- Answer questions inline where they arise
-- Make the text self-sufficient (reader shouldn't need the annotations)
-- Keep the same overall structure and flow
-- Don't add new subsections or headers
 
-Return ONLY the rewritten text (plain prose, no JSON, no markdown headers).`
+CRITICAL INSTRUCTIONS:
+1. DON'T just insert annotation text - truly WEAVE the insights into the narrative
+2. Use smooth transitions between concepts - no jarring jumps
+3. Introduce new concepts BEFORE using them (e.g., define "dot product" before explaining what it measures)
+4. Maintain a consistent voice and flow throughout
+5. The reader should feel like they're reading a polished textbook, not patched-together explanations
+6. Keep the same overall structure and length - don't make it 3x longer
+7. Don't add new subsections, headers, or bullet points
+
+Return ONLY the rewritten text (plain prose, no JSON, no markdown).`
 
           const rewrittenText = await callAI(
-            'You are an educational content editor. Improve tutorial text by incorporating reader feedback.',
+            'You are an expert educational content editor. Your specialty is seamlessly integrating clarifications into prose without making it feel stitched together.',
             rewritePrompt
           )
           
