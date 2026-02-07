@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import SummaryTree from '../components/SummaryTree/SummaryTree.jsx'
 import { Container } from '../components/SharedUI.jsx'
+import { TutorialEngine } from '../components/TutorialEngine/ElementRenderer.jsx'
 
 // JSON-based tutorials that can have tree views
 const jsonTutorials = ['vector-projection', 'engine-demo', 'matrix-from-vectors-engine', 'matrix-discovery-engine', 'lead-lag-correlation-engine', 'least-squares-engine', 'schankian-paper-draft', 'rotate-paper', 'neural-oscillations']
@@ -26,30 +27,57 @@ function generateTreeFromContent(content, tutorialTitle) {
       const sectionId = `section-${idx}`
       const sectionTitle = section.props?.title || `Section ${idx + 1}`
       
-      // Extract subsections (h3, h4 elements)
+      // Extract subsections (h3, h4 elements) with their content
       const subsections = []
       if (section.children) {
         const sectionChildren = Array.isArray(section.children) ? section.children : [section.children]
+        let currentSubsection = null
+        let currentContent = []
+        
         sectionChildren.forEach((child, subIdx) => {
           if (child.type === 'h3' || child.type === 'h4') {
+            // Save previous subsection if exists
+            if (currentSubsection) {
+              subsections.push({
+                id: currentSubsection.id,
+                title: currentSubsection.title,
+                excerpt: extractExcerpt(currentContent),
+                content: currentContent.length > 0 ? { type: 'Fragment', children: currentContent } : null
+              })
+            }
+            
             const text = typeof child.children === 'string' 
               ? child.children 
               : (Array.isArray(child.children) 
                   ? child.children.find(c => typeof c === 'string') || `Subsection ${subIdx}`
                   : `Subsection ${subIdx}`)
-            subsections.push({
-              id: `${sectionId}-sub-${subIdx}`,
-              title: text,
-              excerpt: ''
-            })
+            currentSubsection = {
+              id: `${sectionId}-sub-${subsections.length}`,
+              title: text
+            }
+            currentContent = []
+          } else if (currentSubsection) {
+            // Add content to current subsection
+            currentContent.push(child)
           }
         })
+        
+        // Don't forget the last subsection
+        if (currentSubsection) {
+          subsections.push({
+            id: currentSubsection.id,
+            title: currentSubsection.title,
+            excerpt: extractExcerpt(currentContent),
+            content: currentContent.length > 0 ? { type: 'Fragment', children: currentContent } : null
+          })
+        }
       }
       
       return {
         id: sectionId,
         title: sectionTitle,
         excerpt: extractExcerpt(section.children),
+        content: section, // Store full section content
         children: subsections.length > 0 ? subsections : undefined
       }
     })
@@ -57,7 +85,8 @@ function generateTreeFromContent(content, tutorialTitle) {
   return {
     id: 'root',
     title: tutorialTitle,
-    children
+    children,
+    content: content // Store full tutorial content for root
   }
 }
 
@@ -128,8 +157,6 @@ function TreeHeader({ title, subtitle, tutorialId }) {
           View Full Tutorial
         </Link>
       </div>
-      
-      <div className="absolute bottom-0 left-0 right-0 h-16 bg-gradient-to-t from-[#fafafa] to-transparent" />
     </header>
   )
 }
@@ -195,6 +222,12 @@ export default function TreeWrapper() {
           data={treeData}
           title={`${tutorial.title} — Structure`}
           className="shadow-lg"
+          renderContent={(node) => {
+            if (node.content) {
+              return <TutorialEngine content={node.content} state={tutorial.state || {}} />
+            }
+            return <p className="text-gray-500 italic">No detailed content available for this section.</p>
+          }}
         />
       </Container>
     </div>
