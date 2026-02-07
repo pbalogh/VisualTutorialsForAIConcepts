@@ -939,21 +939,48 @@ Only return valid JSON, no markdown or explanation.`
       
       let updatedContent
       try {
-        // Try to parse the response as JSON
+        // Try to parse the response as JSON directly
         updatedContent = JSON.parse(response.trim())
       } catch {
-        // Try to extract JSON from response
-        const jsonMatch = response.match(/\{[\s\S]*\}/)
-        if (jsonMatch) {
-          try {
-            updatedContent = JSON.parse(jsonMatch[0])
-          } catch {
-            console.error('Failed to parse AI response as JSON')
-            return sendJson(res, 500, { error: 'AI returned invalid JSON' })
-          }
-        } else {
-          return sendJson(res, 500, { error: 'AI returned invalid JSON' })
+        // Try to extract JSON from markdown code blocks or raw response
+        let jsonStr = response.trim()
+        
+        // Remove markdown code blocks if present
+        if (jsonStr.startsWith('```json')) {
+          jsonStr = jsonStr.slice(7)
+        } else if (jsonStr.startsWith('```')) {
+          jsonStr = jsonStr.slice(3)
         }
+        if (jsonStr.endsWith('```')) {
+          jsonStr = jsonStr.slice(0, -3)
+        }
+        jsonStr = jsonStr.trim()
+        
+        try {
+          updatedContent = JSON.parse(jsonStr)
+        } catch {
+          // Last resort: find the outermost JSON object
+          const jsonMatch = jsonStr.match(/\{[\s\S]*\}/)
+          if (jsonMatch) {
+            try {
+              updatedContent = JSON.parse(jsonMatch[0])
+            } catch (e) {
+              console.error('Failed to parse AI response as JSON:', e.message)
+              console.error('Response preview:', response.slice(0, 500))
+              return sendJson(res, 500, { error: 'AI returned invalid JSON - try again' })
+            }
+          } else {
+            console.error('No JSON found in response')
+            console.error('Response preview:', response.slice(0, 500))
+            return sendJson(res, 500, { error: 'AI returned invalid JSON - try again' })
+          }
+        }
+      }
+      
+      // Validate the response has the expected structure
+      if (!updatedContent || !updatedContent.content) {
+        console.error('AI response missing content field')
+        return sendJson(res, 500, { error: 'AI returned incomplete tutorial structure' })
       }
       
       // Count annotations before and after
