@@ -488,6 +488,79 @@ function getAtPath(content, path) {
 }
 
 /**
+ * Remove inline markers (❓, 💡) that point to a removed annotation
+ * These markers are usually in the element BEFORE the annotation
+ */
+function removeInlineMarker(content, annotationPath) {
+  // Parse the path to find the parent and annotation index
+  const match = annotationPath.match(/^(.*)\.children\[(\d+)\]$/)
+  if (!match) return false
+  
+  const parentPath = match[1]
+  const annotationIndex = parseInt(match[2])
+  
+  // Get the parent element
+  let parent = content
+  if (parentPath) {
+    const parts = parentPath.match(/\.children\[(\d+)\]/g) || []
+    for (const part of parts) {
+      const idx = parseInt(part.match(/\d+/)[0])
+      if (!parent.children || !Array.isArray(parent.children)) return false
+      parent = parent.children[idx]
+    }
+  }
+  
+  if (!parent.children || !Array.isArray(parent.children)) return false
+  
+  // Look at the element BEFORE the annotation for inline markers
+  // The marker is typically a span with ❓ or 💡 or 📝 that was inserted
+  for (let i = annotationIndex - 1; i >= 0 && i >= annotationIndex - 2; i--) {
+    const sibling = parent.children[i]
+    if (sibling && typeof sibling === 'object') {
+      // Check if this element contains a marker
+      const text = extractTextContent(sibling)
+      if (text.includes('❓') || text.includes('💡') || text.includes('📝')) {
+        // This might be a marker element - check if it's small (just the marker)
+        if (text.length < 10) {
+          parent.children.splice(i, 1)
+          return true
+        }
+        // Or it might be embedded in text - try to clean it
+        cleanMarkersFromElement(sibling)
+        return true
+      }
+    }
+  }
+  
+  return false
+}
+
+/**
+ * Remove marker characters from text content recursively
+ */
+function cleanMarkersFromElement(node) {
+  if (!node) return
+  
+  if (typeof node.children === 'string') {
+    node.children = node.children.replace(/[❓💡📝]\s*/g, '')
+  } else if (Array.isArray(node.children)) {
+    for (let i = node.children.length - 1; i >= 0; i--) {
+      const child = node.children[i]
+      if (typeof child === 'string') {
+        const cleaned = child.replace(/[❓💡📝]\s*/g, '')
+        if (cleaned) {
+          node.children[i] = cleaned
+        } else {
+          node.children.splice(i, 1)
+        }
+      } else if (typeof child === 'object') {
+        cleanMarkersFromElement(child)
+      }
+    }
+  }
+}
+
+/**
  * Recursively find all Sidebar elements in content (legacy, for backward compat)
  */
 function findSidebars(node, path = '') {
@@ -950,11 +1023,12 @@ const server = http.createServer(async (req, res) => {
   if (url.pathname === '/regroup' && req.method === 'POST') {
     try {
       const body = await parseBody(req)
-      const { tutorialId, aggressive = false } = body
+      const { tutorialId, aggressive = false, apply = false } = body
       
       console.log('\n🔄 Regroup Request:')
       console.log(`  Tutorial: ${tutorialId}`)
       console.log(`  Mode: ${aggressive ? 'aggressive' : 'conservative'}`)
+      console.log(`  Apply: ${apply ? 'YES' : 'preview only'}`)
       
       if (!tutorialId) {
         return sendJson(res, 400, { error: 'Missing tutorialId' })
@@ -1113,7 +1187,68 @@ Return ONLY valid JSON, no markdown.`
       
       console.log(`📊 Results: ${parts.join(', ')}`)
       
-      // Now apply the changes
+      // Build preview of what will change
+      const changes = []
+      
+      for (const idx of toRemove) {
+        const ann = annotations[idx - 1]
+        if (ann) changes.push({
+          action: 'remove',
+          index: idx,
+          type: ann.type,
+          title: ann.title,
+          preview: ann.content?.slice(0, 100)
+        })
+      }
+      
+      for (const idx of toIntegrate) {
+        const ann = annotations[idx - 1]
+        if (ann) changes.push({
+          action: 'integrate',
+          index: idx,
+          type: ann.type,
+          title: ann.title,
+          preview: ann.content?.slice(0, 100)
+        })
+      }
+      
+      for (const { from, to } of toMerge) {
+        const ann = annotations[from - 1]
+        if (ann) changes.push({
+          action: 'merge',
+          index: from,
+          mergeInto: to,
+          type: ann.type,
+          preview: ann.content?.slice(0, 100)
+        })
+      }
+      
+      // If preview mode, return without applying
+      if (!apply) {
+        const previewMessage = `Preview: ${parts.join(', ')}. ${decisions.summary || ''}`
+        console.log('📋 Preview only - no changes applied')
+        
+        return sendJson(res, 200, {
+          success: true,
+          preview: true,
+          tutorialId,
+          annotationCount: annotations.length,
+          decisions: {
+            keep: toKeep.length,
+            remove: toRemove.length,
+            integrate: toIntegrate.length,
+            merge: toMerge.length
+          },
+          changes,
+          details: decisions,
+          message: previewMessage,
+          // Return unchanged content for preview
+          updatedContent: content
+        })
+      }
+      
+      // APPLY MODE: Actually make the changes
+      console.log('🔧 Applying changes...')
       let updatedContent = JSON.parse(JSON.stringify(content)) // Deep clone
       let changesApplied = 0
       
@@ -1186,8 +1321,12 @@ Return ONLY the rewritten paragraph. Keep it concise. Don't add markdown or expl
         return idxB - idxA
       })
       
-      // Apply removals
+      // Apply removals (and clean up associated inline markers)
       for (const { path, reason } of pathsToRemove) {
+        // First, try to remove any inline marker pointing to this annotation
+        removeInlineMarker(updatedContent.content, path)
+        
+        // Then remove the annotation itself
         if (removeAtPath(updatedContent.content, path)) {
           changesApplied++
           console.log(`  ✅ Removed (${reason}): ${path}`)
@@ -1210,6 +1349,7 @@ Return ONLY the rewritten paragraph. Keep it concise. Don't add markdown or expl
       
       return sendJson(res, 200, {
         success: true,
+        preview: false,
         tutorialId,
         annotationCount: annotations.length,
         decisions: {

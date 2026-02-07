@@ -11,6 +11,85 @@ import { Container } from '../components/SharedUI.jsx'
 import { AnnotatableContent } from '../components/AnnotationSystem.jsx'
 import { TutorialEngine } from '../components/TutorialEngine/ElementRenderer.jsx'
 
+// Preview Modal Component for Regroup changes
+function RegroupPreviewModal({ preview, onApply, onCancel }) {
+  if (!preview) return null
+  
+  const { changes, decisions, summary } = preview
+  
+  const actionColors = {
+    remove: 'bg-red-500/20 text-red-300 border-red-500/30',
+    integrate: 'bg-amber-500/20 text-amber-300 border-amber-500/30',
+    merge: 'bg-blue-500/20 text-blue-300 border-blue-500/30'
+  }
+  
+  const actionLabels = {
+    remove: '🗑️ Remove',
+    integrate: '📝 Integrate into main text',
+    merge: '🔗 Merge'
+  }
+  
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+      <div className="bg-gray-900 rounded-xl border border-gray-700 max-w-2xl w-full max-h-[80vh] overflow-hidden flex flex-col">
+        {/* Header */}
+        <div className="p-6 border-b border-gray-700">
+          <h2 className="text-xl font-semibold text-white mb-2">Preview Changes</h2>
+          <p className="text-gray-400 text-sm">
+            {decisions.keep} keep • {decisions.remove} remove • {decisions.integrate} integrate
+            {decisions.merge > 0 && ` • ${decisions.merge} merge`}
+          </p>
+          {summary && (
+            <p className="text-gray-500 text-sm mt-2 italic">"{summary}"</p>
+          )}
+        </div>
+        
+        {/* Changes list */}
+        <div className="flex-1 overflow-y-auto p-6 space-y-3">
+          {changes.map((change, i) => (
+            <div 
+              key={i}
+              className={`p-4 rounded-lg border ${actionColors[change.action]}`}
+            >
+              <div className="flex items-center gap-2 mb-2">
+                <span className="text-sm font-medium">
+                  {actionLabels[change.action]}
+                  {change.mergeInto && ` with #${change.mergeInto}`}
+                </span>
+                <span className="text-xs opacity-60">
+                  [{change.type}]
+                </span>
+              </div>
+              {change.title && (
+                <div className="text-sm font-medium mb-1">{change.title}</div>
+              )}
+              <div className="text-sm opacity-80 line-clamp-2">
+                {change.preview}...
+              </div>
+            </div>
+          ))}
+        </div>
+        
+        {/* Footer */}
+        <div className="p-6 border-t border-gray-700 flex justify-end gap-3">
+          <button
+            onClick={onCancel}
+            className="px-4 py-2 rounded-lg text-gray-300 hover:bg-gray-800 transition-colors"
+          >
+            Cancel
+          </button>
+          <button
+            onClick={onApply}
+            className="px-4 py-2 rounded-lg bg-indigo-600 text-white hover:bg-indigo-500 transition-colors"
+          >
+            Apply Changes
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 // Legacy JSX component tutorials
 const tutorialComponents = {
   'matrix-discovery': MatrixDiscovery,
@@ -505,9 +584,10 @@ export default function TutorialWrapper({ tutorial: propTutorial }) {
     }
   }
 
-  // Regroup and Tidy handler - applies changes immediately
+  // Regroup and Tidy handler - with preview modal
   const [regroupStatus, setRegroupStatus] = useState(null) // null | 'loading' | { type: 'success'|'error', message }
   const [canUndo, setCanUndo] = useState(false)
+  const [previewData, setPreviewData] = useState(null) // null or { changes, decisions, summary }
   
   const handleRegroup = async (aggressive = false) => {
     if (!tutorialId) return
@@ -515,33 +595,33 @@ export default function TutorialWrapper({ tutorial: propTutorial }) {
     setRegroupStatus('loading')
     
     try {
+      // First call: get preview (apply=false)
       const response = await fetch('http://localhost:5190/regroup', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ tutorialId, aggressive })
+        body: JSON.stringify({ tutorialId, aggressive, apply: false })
       })
       
       if (response.ok) {
         const data = await response.json()
-        console.log('📊 Regroup result:', data)
+        console.log('📊 Regroup preview:', data)
         
-        if (data.changes > 0) {
-          // Update the tutorial content
-          setJsonTutorial(data.updatedContent)
-          setCanUndo(true)
-          setRegroupStatus({ 
-            type: 'success', 
-            message: data.message 
+        if (data.changes && data.changes.length > 0) {
+          // Show preview modal
+          setPreviewData({
+            changes: data.changes,
+            decisions: data.decisions,
+            summary: data.details?.summary || '',
+            aggressive
           })
+          setRegroupStatus(null)
         } else {
           setRegroupStatus({ 
             type: 'info', 
-            message: data.message || 'No changes needed'
+            message: data.message || 'No changes recommended'
           })
+          setTimeout(() => setRegroupStatus(null), 4000)
         }
-        
-        // Clear status after 4 seconds
-        setTimeout(() => setRegroupStatus(null), 4000)
       } else {
         const error = await response.json()
         setRegroupStatus({ type: 'error', message: error.error })
@@ -550,6 +630,39 @@ export default function TutorialWrapper({ tutorial: propTutorial }) {
     } catch (e) {
       console.error('Failed to call regroup:', e)
       setRegroupStatus({ type: 'error', message: 'Server not running' })
+      setTimeout(() => setRegroupStatus(null), 4000)
+    }
+  }
+  
+  const handleApplyRegroup = async () => {
+    if (!previewData) return
+    
+    setPreviewData(null)
+    setRegroupStatus('loading')
+    
+    try {
+      const response = await fetch('http://localhost:5190/regroup', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ tutorialId, aggressive: previewData.aggressive, apply: true })
+      })
+      
+      if (response.ok) {
+        const data = await response.json()
+        setJsonTutorial(data.updatedContent)
+        setCanUndo(true)
+        setRegroupStatus({ 
+          type: 'success', 
+          message: data.message 
+        })
+        setTimeout(() => setRegroupStatus(null), 5000)
+      } else {
+        const error = await response.json()
+        setRegroupStatus({ type: 'error', message: error.error })
+        setTimeout(() => setRegroupStatus(null), 4000)
+      }
+    } catch (e) {
+      setRegroupStatus({ type: 'error', message: 'Apply failed' })
       setTimeout(() => setRegroupStatus(null), 4000)
     }
   }
@@ -633,6 +746,13 @@ export default function TutorialWrapper({ tutorial: propTutorial }) {
             />
           </Container>
         </AnnotatableContent>
+        
+        {/* Preview modal */}
+        <RegroupPreviewModal 
+          preview={previewData}
+          onApply={handleApplyRegroup}
+          onCancel={() => setPreviewData(null)}
+        />
       </div>
     )
   }
@@ -645,6 +765,12 @@ export default function TutorialWrapper({ tutorial: propTutorial }) {
         <TutorialHeader meta={meta} tutorialId={tutorialId} onRegroup={handleRegroup} regroupStatus={regroupStatus} canUndo={canUndo} onUndo={handleUndo} />
         {meta.sections && <SectionProgress sections={meta.sections} glowColor={meta.glowColor} />}
         <TutorialComponent />
+        
+        <RegroupPreviewModal 
+          preview={previewData}
+          onApply={handleApplyRegroup}
+          onCancel={() => setPreviewData(null)}
+        />
       </div>
     )
   }
@@ -662,6 +788,12 @@ export default function TutorialWrapper({ tutorial: propTutorial }) {
       >
         <TutorialComponent />
       </AnnotatableContent>
+      
+      <RegroupPreviewModal 
+        preview={previewData}
+        onApply={handleApplyRegroup}
+        onCancel={() => setPreviewData(null)}
+      />
     </div>
   )
 }

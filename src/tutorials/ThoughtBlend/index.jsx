@@ -169,54 +169,60 @@ export default function ThoughtBlend() {
   )
 }
 
-// Getting started panel
+// Getting started panel - collapsible
 function GettingStarted({ onStart }) {
+  const [isExpanded, setIsExpanded] = useState(true)
+  
   return (
-    <div className="bg-white/5 backdrop-blur-md rounded-2xl border border-white/10 p-6">
-      <h2 className="text-xl font-bold text-white mb-4">How it works</h2>
+    <div className="bg-slate-800/80 backdrop-blur-md rounded-2xl border border-slate-700/50 overflow-hidden">
+      {/* Header - always visible, clickable to toggle */}
+      <button
+        onClick={() => setIsExpanded(!isExpanded)}
+        className="w-full px-5 py-4 flex items-center justify-between hover:bg-white/5 transition-colors"
+      >
+        <div className="flex items-center gap-3">
+          <span className="text-xl">💡</span>
+          <span className="text-white font-semibold">How it works</span>
+        </div>
+        <svg 
+          className={`w-5 h-5 text-slate-400 transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`}
+          fill="none" 
+          stroke="currentColor" 
+          viewBox="0 0 24 24"
+        >
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+        </svg>
+      </button>
       
-      <div className="space-y-4 text-slate-300 text-sm leading-relaxed">
-        <div className="flex gap-3">
-          <span className="text-2xl">🟢</span>
-          <p>
-            <strong className="text-white">Add your first source</strong> — 
-            an ebook, article, or URL that represents one perspective.
-          </p>
-        </div>
-        
-        <div className="flex gap-3">
-          <span className="text-2xl">🔴</span>
-          <p>
-            <strong className="text-white">Find its opposite</strong> — 
-            we'll suggest sources that contradict or challenge your first one.
-          </p>
-        </div>
-        
-        <div className="flex gap-3">
-          <span className="text-2xl">🟡</span>
-          <p>
-            <strong className="text-white">Add orthogonal voices</strong> — 
-            fill in the wheel with perspectives that span the space between.
-          </p>
-        </div>
-        
-        <div className="flex gap-3">
-          <span className="text-2xl">⚪</span>
-          <p>
-            <strong className="text-white">Generate a synthesis</strong> — 
-            the center of the wheel blends all voices into structured text or dialogue.
-          </p>
+      {/* Collapsible content */}
+      <div className={`transition-all duration-300 ease-in-out overflow-hidden ${isExpanded ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'}`}>
+        <div className="px-5 pb-5 space-y-3">
+          {[
+            { icon: '🟢', title: 'Add your first source', desc: 'an ebook, article, or URL' },
+            { icon: '🔴', title: 'Find its opposite', desc: 'a contrasting perspective' },
+            { icon: '🟡', title: 'Add orthogonal voices', desc: 'fill the space between' },
+            { icon: '⚪', title: 'Generate synthesis', desc: 'blend into text or dialogue' },
+          ].map((step, i) => (
+            <div key={i} className="flex items-center gap-3 text-sm">
+              <span className="text-lg flex-shrink-0">{step.icon}</span>
+              <span className="text-white font-medium">{step.title}</span>
+              <span className="text-slate-400">— {step.desc}</span>
+            </div>
+          ))}
         </div>
       </div>
 
-      <button
-        onClick={onStart}
-        className="mt-6 w-full py-3 px-4 bg-gradient-to-r from-emerald-500 to-teal-500 
-          text-white font-medium rounded-xl hover:from-emerald-600 hover:to-teal-600
-          transition-all duration-200 shadow-lg shadow-emerald-500/25"
-      >
-        Add your first source →
-      </button>
+      {/* CTA button - always visible */}
+      <div className="px-5 pb-5">
+        <button
+          onClick={onStart}
+          className="w-full py-3 px-4 bg-gradient-to-r from-emerald-500 to-teal-500 
+            text-white font-medium rounded-xl hover:from-emerald-600 hover:to-teal-600
+            transition-all duration-200 shadow-lg shadow-emerald-500/25"
+        >
+          Add your first source →
+        </button>
+      </div>
     </div>
   )
 }
