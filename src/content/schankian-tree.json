@@ -1,0 +1,779 @@
+{
+  "id": "root",
+  "title": "Schankian Operators Research",
+  "excerpt": "Four papers on learning semantic operators from data using geometric transformations in complex vector space",
+  "children": [
+    {
+      "id": "paper1",
+      "title": "Paper 1: Core Method — Learned Schankian Operators",
+      "excerpt": "Semantic operators can be LEARNED from data rather than hand-coded, using RotatE-style rotations in complex space",
+      "children": [
+        {
+          "id": "paper1-problem",
+          "title": "The Problem",
+          "excerpt": "Events like 'cop shot frank' have asymmetric structure. Current approaches treat relations as symmetric.",
+          "children": [
+            {
+              "id": "paper1-problem-asymmetry",
+              "title": "Asymmetry in Events",
+              "excerpt": "The cop does something TO frank. Order matters fundamentally.",
+              "content": {
+                "type": "Fragment",
+                "children": [
+                  { "type": "p", "children": "Events like 'cop shot frank' have asymmetric structure. The cop does something TO frank — this is fundamentally different from 'frank shot cop'." },
+                  { "type": "p", "children": "This asymmetry is lost in many current approaches that treat relations as symmetric or use simple vector addition." }
+                ]
+              }
+            },
+            {
+              "id": "paper1-problem-current",
+              "title": "Current Approaches Fall Short",
+              "excerpt": "TransE uses addition (symmetric). DistMult is bilinear (can't capture direction).",
+              "content": {
+                "type": "Fragment",
+                "children": [
+                  { "type": "p", "children": "Current knowledge graph embedding approaches have limitations:" },
+                  { "type": "ul", "children": [
+                    { "type": "li", "children": "TransE: h + r ≈ t — addition is commutative, can't capture asymmetry" },
+                    { "type": "li", "children": "DistMult: bilinear model, struggles with antisymmetric relations" },
+                    { "type": "li", "children": "Most models treat relations as static, not as transformations" }
+                  ]}
+                ]
+              }
+            },
+            {
+              "id": "paper1-problem-key-insight",
+              "title": "Key Insight: Non-Commutativity",
+              "excerpt": "(agent, operator, patient) ≠ (patient, operator, agent)",
+              "content": {
+                "type": "Fragment",
+                "children": [
+                  { "type": "Callout", "props": { "type": "info" }, "children": "Key insight: (agent, operator, patient) ≠ (patient, operator, agent). Non-commutativity is essential for capturing event semantics." },
+                  { "type": "p", "children": "This is why we need OPERATORS (transformations) rather than simple RELATIONS (static links)." }
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "id": "paper1-approach",
+          "title": "Our Approach",
+          "excerpt": "Entities as complex vectors, operators as diagonal rotation matrices, RotatE-style scoring",
+          "children": [
+            {
+              "id": "paper1-approach-entities",
+              "title": "Entities as Complex Vectors",
+              "excerpt": "Each entity is a d-dimensional complex vector — but what does that really mean?",
+              "children": [
+                {
+                  "id": "paper1-approach-entities-what",
+                  "title": "What is a Complex Vector?",
+                  "excerpt": "Each dimension has two parts: real and imaginary (a + bi)",
+                  "content": {
+                    "type": "Fragment",
+                    "children": [
+                      { "type": "p", "children": "Each entity (person, object, concept) is represented as a d-dimensional complex vector." },
+                      { "type": "ComplexVectorViz" },
+                      { "type": "p", "children": "A 64-dimensional complex vector actually has 128 parameters (64 real + 64 imaginary parts)." }
+                    ]
+                  }
+                },
+                {
+                  "id": "paper1-approach-entities-why",
+                  "title": "Why Complex Numbers?",
+                  "excerpt": "Complex multiplication = rotation. Euler's identity: e^(iθ) = cos(θ) + i·sin(θ)",
+                  "content": {
+                    "type": "Fragment",
+                    "children": [
+                      { "type": "p", "children": "Complex numbers naturally represent rotations via Euler's identity:" },
+                      { "type": "p", "children": "e^(iθ) = cos(θ) + i·sin(θ)" },
+                      { "type": "ComplexRotationViz", "props": { "initialAngle": 45 } },
+                      { "type": "p", "children": "When you multiply a complex number by e^(iθ), you rotate it by angle θ. This is EXACTLY what we want operators to do — rotate entities in semantic space." }
+                    ]
+                  }
+                },
+                {
+                  "id": "paper1-approach-entities-dims",
+                  "title": "How Many Dimensions?",
+                  "excerpt": "768 like BERT? Or smaller like RotatE (64-500)?",
+                  "content": {
+                    "type": "Fragment",
+                    "children": [
+                      { "type": "p", "children": "You might be used to 768-dimensional vectors from BERT. With complex vectors, we have choices:" },
+                      { "type": "DimensionalityChoiceViz" },
+                      { "type": "Callout", "props": { "type": "tip" }, "children": "Our Phase 1 used 64 complex dimensions (128 params) and achieved 88% operator recovery. Start small, scale up if needed." }
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "id": "paper1-approach-operators",
+              "title": "Operators as Rotations",
+              "excerpt": "Each operator is a diagonal rotation matrix in complex space",
+              "content": {
+                "type": "Fragment",
+                "children": [
+                  { "type": "p", "children": "Each semantic operator (HARM, TRANSFER, MOVE, etc.) is represented as a diagonal rotation matrix in complex space." },
+                  { "type": "p", "children": "Diagonal means we rotate each dimension independently — simpler than full matrices but still expressive." },
+                  { "type": "p", "children": "This follows RotatE (Sun et al., 2019) but extends it to event semantics rather than static knowledge graphs." }
+                ]
+              }
+            },
+            {
+              "id": "paper1-approach-scoring",
+              "title": "Scoring Function",
+              "excerpt": "||agent ⊙ operator - patient|| — how well does the rotation predict the patient?",
+              "content": {
+                "type": "Fragment",
+                "children": [
+                  { "type": "p", "children": "Scoring function: ||agent ⊙ operator - patient||" },
+                  { "type": "p", "children": "Read as: 'If I rotate the agent by the operator, how close do I get to the patient?'" },
+                  { "type": "p", "children": "Lower score = better match. The operator should transform the agent into something close to the patient." }
+                ]
+              }
+            },
+            {
+              "id": "paper1-approach-training",
+              "title": "Training: Margin-Based Ranking",
+              "excerpt": "Learn to score correct triples higher than corrupted ones",
+              "content": {
+                "type": "Fragment",
+                "children": [
+                  { "type": "p", "children": "Training uses margin-based ranking loss:" },
+                  { "type": "p", "children": "loss = max(0, margin - score_positive + score_negative)" },
+                  { "type": "p", "children": "We want correct (agent, op, patient) triples to score LOWER (closer) than corrupted triples where we've swapped in a wrong entity." }
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "id": "paper1-results",
+          "title": "Phase 1 Results",
+          "excerpt": "88.2% average operator recovery on synthetic data with 5 operators and 20 entities",
+          "children": [
+            {
+              "id": "paper1-results-setup",
+              "title": "Experimental Setup",
+              "excerpt": "5 ground-truth operators, 20 entities, 5000 training triples",
+              "content": {
+                "type": "Fragment",
+                "children": [
+                  { "type": "p", "children": "We created a controlled experiment with known ground truth:" },
+                  { "type": "ul", "children": [
+                    { "type": "li", "children": "5 ground-truth operators: HARM, TRANSFER, LEARN, MOVE, RECEIVE" },
+                    { "type": "li", "children": "20 entities with random initial embeddings (64 complex dimensions each)" },
+                    { "type": "li", "children": "5000 synthetic (agent, operator, patient) triples" },
+                    { "type": "li", "children": "80/20 train/test split, 200 epochs of training" }
+                  ]},
+                  { "type": "Callout", "props": { "type": "info" }, "children": "Key: We KNOW the ground truth operators. The question is: can the model RECOVER them from just seeing examples?" }
+                ]
+              }
+            },
+            {
+              "id": "paper1-results-operators",
+              "title": "Ground Truth Operator Design",
+              "excerpt": "Each operator has clear geometric meaning as a rotation pattern",
+              "content": {
+                "type": "Fragment",
+                "children": [
+                  { "type": "p", "children": "Each operator is a diagonal rotation matrix with clear semantics:" },
+                  { "type": "ComparisonTable", "props": {
+                    "headers": ["Operator", "Rotation Pattern", "Meaning"],
+                    "rows": [
+                      ["HARM", "Agent +45°, Patient -45°", "Adversarial: agent acts against patient"],
+                      ["TRANSFER", "Both +30°", "Symmetric: both move together"],
+                      ["LEARN", "Both toward knowledge axis", "Both entities gain knowledge"],
+                      ["MOVE", "Agent +60°, Patient -30°", "Agent-dominant action"],
+                      ["RECEIVE", "Agent -30°, Patient +60°", "Patient-dominant reception"]
+                    ]
+                  }}
+                ]
+              }
+            },
+            {
+              "id": "paper1-results-algorithm",
+              "title": "The Training Algorithm",
+              "excerpt": "Margin-based ranking loss: score correct triples lower than corrupted ones",
+              "content": {
+                "type": "Fragment",
+                "children": [
+                  { "type": "p", "children": "The learner uses margin-based ranking loss:" },
+                  { "type": "Code", "props": { "language": "python" }, "children": "# For each triple (agent, operator, patient):\n\n# 1. Score correct triple (should be LOW)\nscore_pos = ||agent ⊙ operator - patient||\n\n# 2. Score corrupted triple (swap agent/patient)\nscore_neg = ||wrong_agent ⊙ operator - patient||\n\n# 3. Loss: push positive below negative\nloss = max(0, margin + score_pos - score_neg)" },
+                  { "type": "Callout", "props": { "type": "tip" }, "children": "We never tell the model WHAT the operators are. It discovers them by learning to score correct triples lower than incorrect ones." }
+                ]
+              }
+            },
+            {
+              "id": "paper1-results-recovery",
+              "title": "Results: 88.2% Recovery",
+              "excerpt": "All 5 operators recovered with 84-90% fidelity",
+              "content": {
+                "type": "Fragment",
+                "children": [
+                  { "type": "Callout", "props": { "type": "success" }, "children": "✅ Result: 88.2% average operator recovery. All 5 operators successfully learned from data." },
+                  { "type": "ComparisonTable", "props": {
+                    "headers": ["Operator", "Recovery", "Interpretation"],
+                    "rows": [
+                      ["HARM", "0.896", "Adversarial structure preserved"],
+                      ["TRANSFER", "0.899", "Symmetric structure preserved"],
+                      ["LEARN", "0.844", "Best recovery — cleanest geometry"],
+                      ["MOVE", "0.876", "Agent-dominance captured"],
+                      ["RECEIVE", "0.893", "Patient-dominance captured"]
+                    ]
+                  }},
+                  { "type": "p", "children": "The code: projects/graph-nn/code/schankian_learner_v1.py" }
+                ]
+              }
+            },
+            {
+              "id": "paper1-results-implications",
+              "title": "What This Proves",
+              "excerpt": "Operators CAN be learned. Non-commutativity emerges naturally. Ready for real data.",
+              "content": {
+                "type": "Fragment",
+                "children": [
+                  { "type": "ul", "children": [
+                    { "type": "li", "children": "✅ Operators CAN be learned from data alone — not hardcoded by humans" },
+                    { "type": "li", "children": "✅ Non-commutativity emerges naturally — (agent, op, patient) ≠ (patient, op, agent)" },
+                    { "type": "li", "children": "✅ Simple diagonal rotations are sufficient — no need for full matrices" },
+                    { "type": "li", "children": "✅ Ranking loss works — no reconstruction term needed" },
+                    { "type": "li", "children": "✅ Architecture validated — ready to try real data" }
+                  ]},
+                  { "type": "Callout", "props": { "type": "info" }, "children": "This is why Phase 1 matters: it proves the CONCEPT before we invest in messy real-world data. The architecture works." }
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "paper2",
+      "title": "Paper 2: Entity State Tracking",
+      "excerpt": "Track how entities evolve through narratives. Frank-before-shooting ≠ Frank-after-shooting.",
+      "children": [
+        {
+          "id": "paper2-trajectory",
+          "title": "State as Trajectory",
+          "excerpt": "Entity state is not a snapshot but a trajectory through vector space — the path taken matters",
+          "children": [
+            {
+              "id": "paper2-trajectory-not-snapshot",
+              "title": "Not a Snapshot",
+              "excerpt": "A sequence of vectors, not a single point",
+              "content": {
+                "type": "Fragment",
+                "children": [
+                  { "type": "p", "children": "The 'state' of an entity is not a single vector but a trajectory through vector space — a sequence representing the entity at different points in time." },
+                  { "type": "p", "children": "Frank-before-shooting ≠ Frank-after-shooting, even if both are 'Frank'." }
+                ]
+              }
+            },
+            {
+              "id": "paper2-trajectory-path-matters",
+              "title": "The Path Matters",
+              "excerpt": "How you got there determines meaning",
+              "content": {
+                "type": "Fragment",
+                "children": [
+                  { "type": "p", "children": "The path taken to get to a state matters. Two entities might end up at the same vector location, but with very different histories." },
+                  { "type": "Callout", "props": { "type": "info" }, "children": "State depends on sequence. The implicit actions that preceded a state matter." }
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "id": "paper2-implicit",
+          "title": "Implicit Preconditions",
+          "excerpt": "'Marlowe tumbled out of bed' implies: got INTO bed first, which implies: took off shoes",
+          "children": [
+            {
+              "id": "paper2-implicit-lego",
+              "title": "The Lego Example",
+              "excerpt": "Stepping on Legos barefoot implies getting out of bed implies taking off shoes earlier",
+              "content": {
+                "type": "Fragment",
+                "children": [
+                  { "type": "Example", "props": { "title": "The Lego Example" }, "children": [
+                    { "type": "p", "children": "'Marlowe rolled out of bed and staggered down the dark hallway, forgetting about the Lego blocks. \"Dammit!\" he screamed, limping the rest of the way to the bathroom.'" }
+                  ]},
+                  { "type": "p", "children": "Implicit state chain:" },
+                  { "type": "ul", "children": [
+                    { "type": "li", "children": "Getting into bed → removal of shoes (implicit)" },
+                    { "type": "li", "children": "Getting out of bed → still shoeless (implicit)" },
+                    { "type": "li", "children": "Stepping on Legos barefoot → pain (implicit, explains the scream)" }
+                  ]},
+                  { "type": "p", "children": "None of this is stated. All inferred from world knowledge." }
+                ]
+              }
+            },
+            {
+              "id": "paper2-implicit-general",
+              "title": "General Principle",
+              "excerpt": "To leave a place, you must first have gone there",
+              "content": {
+                "type": "Fragment",
+                "children": [
+                  { "type": "p", "children": "More foundationally: To leave a place, you must first have gone to that place." },
+                  { "type": "p", "children": "Every action has implicit preconditions (what must be true before) and postconditions (what becomes true after)." },
+                  { "type": "p", "children": "A couple at the altar in fancy dress → getting married → implies: were dating, someone proposed, someone said yes, will be married couple." }
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "id": "paper2-annotation",
+          "title": "⭐ The Big Idea: Implicit-Explicit Document Enrichment",
+          "excerpt": "Annotate ALL implicit state, then use hierarchical summarization for efficient RAG. THIS MAY BE THE MOST IMPACTFUL IDEA.",
+          "children": [
+            {
+              "id": "paper2-annotation-problem",
+              "title": "The Problem with Current RAG",
+              "excerpt": "RAG retrieves surface text but misses implicit information humans infer automatically",
+              "content": {
+                "type": "Fragment",
+                "children": [
+                  { "type": "p", "children": "Retrieval-Augmented Generation (RAG) systems retrieve chunks based on surface similarity. They miss IMPLICIT information." },
+                  { "type": "Example", "props": { "title": "What RAG Misses" }, "children": [
+                    { "type": "p", "children": "Document: 'Marlowe tumbled out of bed and stepped on a Lego.'" },
+                    { "type": "p", "children": "Query: 'Was Marlowe wearing shoes?'" },
+                    { "type": "p", "children": "RAG: 'No mention of shoes.' Human: 'No — he's barefoot because he just got out of bed.'" }
+                  ]}
+                ]
+              }
+            },
+            {
+              "id": "paper2-annotation-solution",
+              "title": "The Solution: Two-Phase Architecture",
+              "excerpt": "Phase 1: Annotate offline. Phase 2: Hierarchical retrieval.",
+              "content": {
+                "type": "Fragment",
+                "children": [
+                  { "type": "p", "children": "Phase 1 (Offline): Annotate documents with ALL implicit state:" },
+                  { "type": "Code", "props": { "language": "text" }, "children": "Original: 'Marlowe tumbled out of bed'\n\nAnnotated:\n  [IMPLICIT: Was in bed → shoes removed]\n  [IMPLICIT: Now standing, barefoot, near bed]" },
+                  { "type": "p", "children": "Phase 2 (Query Time): Hierarchical summarization:" },
+                  { "type": "ul", "children": [
+                    { "type": "li", "children": "Top: 'Document about Marlowe's morning'" },
+                    { "type": "li", "children": "Mid: 'Gets out of bed, steps on Lego'" },
+                    { "type": "li", "children": "Detail: Full annotated text" }
+                  ]}
+                ]
+              }
+            },
+            {
+              "id": "paper2-annotation-why",
+              "title": "Why This Matters",
+              "excerpt": "Separates knowledge capture from retrieval efficiency. Could be a standalone paper.",
+              "content": {
+                "type": "Fragment",
+                "children": [
+                  { "type": "Callout", "props": { "type": "warning" }, "children": "This may be the most practically impactful idea in this research." },
+                  { "type": "ul", "children": [
+                    { "type": "li", "children": "RAG systems currently fail on implicit reasoning" },
+                    { "type": "li", "children": "Making implicit explicit is one-time preprocessing" },
+                    { "type": "li", "children": "Hierarchy keeps retrieval fast despite bloat" },
+                    { "type": "li", "children": "Annotated corpus could train implicit-state models" },
+                    { "type": "li", "children": "Separates: (1) capturing knowledge, (2) efficient retrieval" }
+                  ]},
+                  { "type": "p", "children": "Potential standalone paper: 'Implicit-Explicit Document Enrichment for Retrieval-Augmented Generation'" }
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "paper3",
+      "title": "Paper 3: Temporal Structure & Entity Chains",
+      "excerpt": "Multiple entities traveling through time = multiple arrows. Handle chronology and coreference.",
+      "children": [
+        {
+          "id": "paper3-chronology",
+          "title": "The Chronology Challenge",
+          "excerpt": "Non-commutative operators need sequence. Time has one arrow, but multiple entities = a fusillade of arrows",
+          "content": {
+            "type": "Fragment",
+            "children": [
+              { "type": "p", "children": "A Schankian primitive neuron + two entity neurons tells us the operator is relevant. But it doesn't tell us SEQUENCE — critical for non-commutative operators." },
+              { "type": "p", "children": "Time has one arrow, but multiple entities traveling through time = multiple arrows (a 'fusillade')." },
+              { "type": "p", "children": "We need separate state chains for each entity, with synchronization links between them." }
+            ]
+          }
+        },
+        {
+          "id": "paper3-coreference",
+          "title": "Entity Identification (Coreference)",
+          "excerpt": "'The detective' = 'Marlowe'. Can't track state without resolving anaphora.",
+          "children": [
+            {
+              "id": "paper3-coreference-example",
+              "title": "The Marlowe Chair Example",
+              "excerpt": "Must resolve: detective = Marlowe; chair = the one he's sitting in; linoleum = same floor",
+              "content": {
+                "type": "Fragment",
+                "children": [
+                  { "type": "Example", "props": { "title": "The Marlowe Chair Example" }, "children": [
+                    { "type": "p", "children": "'The detective leaned too far back. The chair's feet slid on the linoleum floor. Marlowe grunted as his head clunked against the linoleum.'" }
+                  ]},
+                  { "type": "p", "children": "Must resolve:" },
+                  { "type": "ul", "children": [
+                    { "type": "li", "children": "detective = Marlowe (same person)" },
+                    { "type": "li", "children": "chair = the one he's sitting in (implicit)" },
+                    { "type": "li", "children": "linoleum (first mention) = linoleum (second mention) = same floor" }
+                  ]}
+                ]
+              }
+            },
+            {
+              "id": "paper3-coreference-importance",
+              "title": "Why This Matters",
+              "excerpt": "Can't track Frank's state if you don't know 'the detective' IS Frank",
+              "content": {
+                "type": "Fragment",
+                "children": [
+                  { "type": "Callout", "props": { "type": "info" }, "children": "Anaphora resolution feeds directly into state tracking. Can't track Frank's state if you don't know 'the detective' IS Frank." },
+                  { "type": "p", "children": "Entity identification is a prerequisite for entity state tracking. They must be solved together or in sequence." }
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "paper4",
+      "title": "Paper 4: Vision Paper (Synthesis)",
+      "excerpt": "The big picture: complete system for understanding narratives through learned operators + state tracking + temporal structure",
+      "children": [
+        {
+          "id": "paper4-title",
+          "title": "Potential Title",
+          "excerpt": "'Entities, Operators, Anaphora, and Arrows: Oh My'",
+          "content": {
+            "type": "Fragment",
+            "children": [
+              { "type": "Callout", "props": { "type": "tip" }, "children": "🎯 Potential title: 'Entities, Operators, Anaphora, and Arrows: Oh My'" }
+            ]
+          }
+        },
+        {
+          "id": "paper4-contributions",
+          "title": "Key Theoretical Contributions",
+          "excerpt": "Empirical → Theoretical. CNN analogy. Operators as transformations. State as trajectory.",
+          "content": {
+            "type": "Fragment",
+            "children": [
+              { "type": "ul", "children": [
+                { "type": "li", "children": "Empirical → Theoretical: Let data discover primitives, then analyze" },
+                { "type": "li", "children": "CNN analogy: Don't hand-design Gabor filters, let them emerge" },
+                { "type": "li", "children": "Operators as geometric transformations, not symbolic rules" },
+                { "type": "li", "children": "State as trajectory, not snapshot" }
+              ]}
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "reading-list",
+      "title": "📚 Reading List",
+      "excerpt": "Key papers to read: RotatE, TransE, Schank 1972, ProPara, VerbNet...",
+      "children": [
+        {
+          "id": "reading-kg",
+          "title": "Knowledge Graph Embeddings",
+          "excerpt": "RotatE (your inspiration), TransE, ComplEx, KG Survey",
+          "children": [
+            {
+              "id": "reading-kg-rotate",
+              "title": "RotatE (Sun et al., ICLR 2019)",
+              "excerpt": "YOUR DIRECT INSPIRATION — Relations as rotations in complex space",
+              "content": {
+                "type": "Fragment",
+                "children": [
+                  { "type": "p", "children": [
+                    "🔲 ",
+                    { "type": "a", "props": { "href": "https://arxiv.org/abs/1902.10197", "target": "_blank" }, "children": "RotatE: Knowledge Graph Embedding by Relational Rotation in Complex Space" }
+                  ]},
+                  { "type": "p", "children": "Sun et al., ICLR 2019" },
+                  { "type": "p", "children": "YOUR DIRECT INSPIRATION. Defines relations as rotations in complex vector space. You're extending this from static relations to event operators." },
+                  { "type": "p", "children": [
+                    "GitHub: ",
+                    { "type": "a", "props": { "href": "https://github.com/DeepGraphLearning/KnowledgeGraphEmbedding", "target": "_blank" }, "children": "DeepGraphLearning/KnowledgeGraphEmbedding" }
+                  ]}
+                ]
+              }
+            },
+            {
+              "id": "reading-kg-transe",
+              "title": "TransE (Bordes et al., NeurIPS 2013)",
+              "excerpt": "The original KG embedding — h + r ≈ t",
+              "content": {
+                "type": "Fragment",
+                "children": [
+                  { "type": "p", "children": [
+                    "🔲 ",
+                    { "type": "a", "props": { "href": "https://proceedings.neurips.cc/paper/2013/hash/1cecc7a77928ca8133fa24680a88d2f9-Abstract.html", "target": "_blank" }, "children": "Translating Embeddings for Modeling Multi-relational Data" }
+                  ]},
+                  { "type": "p", "children": "Bordes et al., NeurIPS 2013" },
+                  { "type": "p", "children": "The original knowledge graph embedding. Uses h + r ≈ t (head + relation ≈ tail). Foundational but can't handle asymmetry well." }
+                ]
+              }
+            },
+            {
+              "id": "reading-kg-complex",
+              "title": "ComplEx (Trouillon et al., ICML 2016)",
+              "excerpt": "Complex embeddings for asymmetric relations",
+              "content": {
+                "type": "Fragment",
+                "children": [
+                  { "type": "p", "children": [
+                    "🔲 ",
+                    { "type": "a", "props": { "href": "https://arxiv.org/abs/1606.06357", "target": "_blank" }, "children": "Complex Embeddings for Simple Link Prediction" }
+                  ]},
+                  { "type": "p", "children": "Trouillon et al., ICML 2016" },
+                  { "type": "p", "children": "Introduces complex-valued embeddings to handle asymmetric relations. Predecessor to RotatE." }
+                ]
+              }
+            },
+            {
+              "id": "reading-kg-survey",
+              "title": "KG Embedding Survey (Wang et al., 2017)",
+              "excerpt": "Comprehensive overview of the field",
+              "content": {
+                "type": "Fragment",
+                "children": [
+                  { "type": "p", "children": [
+                    "🔲 ",
+                    { "type": "a", "props": { "href": "https://ieeexplore.ieee.org/document/8047276", "target": "_blank" }, "children": "Knowledge Graph Embedding: A Survey of Approaches and Applications" }
+                  ]},
+                  { "type": "p", "children": "Wang et al., IEEE TKDE 2017" },
+                  { "type": "p", "children": "Comprehensive survey covering TransE, DistMult, ComplEx, and many others. Good for positioning your work." }
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "id": "reading-schank",
+          "title": "Classic NLP: Conceptual Dependency",
+          "excerpt": "Schank 1972, Scripts/Plans/Goals book — what you're reviving",
+          "children": [
+            {
+              "id": "reading-schank-1972",
+              "title": "Schank (1972) — THE ORIGINAL",
+              "excerpt": "Conceptual Dependency: A Theory of Natural Language Understanding",
+              "content": {
+                "type": "Fragment",
+                "children": [
+                  { "type": "p", "children": [
+                    "🔲 ",
+                    { "type": "a", "props": { "href": "https://www.sciencedirect.com/science/article/pii/0010028572900229", "target": "_blank" }, "children": "Conceptual Dependency: A Theory of Natural Language Understanding" }
+                  ]},
+                  { "type": "p", "children": "Roger Schank, Cognitive Psychology, 1972" },
+                  { "type": "p", "children": "THE ORIGINAL primitive acts paper. Introduces ~14 primitives like PTRANS (physical transfer), ATRANS (abstract transfer), PROPEL, etc. You're asking: can these be LEARNED instead of hand-coded?" }
+                ]
+              }
+            },
+            {
+              "id": "reading-schank-1977",
+              "title": "Schank & Abelson (1977) — Scripts Book",
+              "excerpt": "Scripts, Plans, Goals and Understanding",
+              "content": {
+                "type": "Fragment",
+                "children": [
+                  { "type": "p", "children": [
+                    "🔲 ",
+                    { "type": "a", "props": { "href": "https://www.amazon.com/Scripts-Plans-Goals-Understanding-Intelligence/dp/0898591384", "target": "_blank" }, "children": "Scripts, Plans, Goals and Understanding: An Inquiry into Human Knowledge Structures" }
+                  ]},
+                  { "type": "p", "children": "Schank & Abelson, 1977 (Book)" },
+                  { "type": "p", "children": "Extends CD theory to scripts (stereotyped event sequences like 'restaurant script'). Relevant to your temporal structure / entity chain work." }
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "id": "reading-state",
+          "title": "Entity State Tracking",
+          "excerpt": "ProPara, OpenPI — benchmarks for your Paper 2",
+          "children": [
+            {
+              "id": "reading-state-propara",
+              "title": "ProPara (Dalvi et al., NAACL 2018)",
+              "excerpt": "KEY BENCHMARK — Tracking State Changes in Procedural Text",
+              "content": {
+                "type": "Fragment",
+                "children": [
+                  { "type": "p", "children": [
+                    "🔲 ",
+                    { "type": "a", "props": { "href": "https://arxiv.org/abs/1805.06975", "target": "_blank" }, "children": "Tracking State Changes in Procedural Text: A Challenge Dataset and Models for Process Paragraph Comprehension" }
+                  ]},
+                  { "type": "p", "children": "Dalvi et al., NAACL 2018" },
+                  { "type": "p", "children": "KEY BENCHMARK. Dataset for tracking entity state changes (location, existence) in procedural text. 81k datapoints. Could evaluate your entity state tracking against this." }
+                ]
+              }
+            },
+            {
+              "id": "reading-state-openpi",
+              "title": "OpenPI (Tandon et al., EMNLP 2020)",
+              "excerpt": "Open domain procedural text — WikiHow data",
+              "content": {
+                "type": "Fragment",
+                "children": [
+                  { "type": "p", "children": [
+                    "🔲 ",
+                    { "type": "a", "props": { "href": "https://aclanthology.org/2020.emnlp-main.520/", "target": "_blank" }, "children": "A Dataset for Tracking Entities in Open Domain Procedural Text" }
+                  ]},
+                  { "type": "p", "children": "Tandon et al., EMNLP 2020" },
+                  { "type": "p", "children": "29,928 state changes from WikiHow. More open-domain than ProPara. Another potential evaluation benchmark." }
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "id": "reading-events",
+          "title": "Event/Script Learning",
+          "excerpt": "Narrative graphs, script learning — closest to your vision",
+          "children": [
+            {
+              "id": "reading-events-neeg",
+              "title": "Narrative Event Evolutionary Graph (2018)",
+              "excerpt": "Graph-based event representation for script prediction",
+              "content": {
+                "type": "Fragment",
+                "children": [
+                  { "type": "p", "children": [
+                    "🔲 ",
+                    { "type": "a", "props": { "href": "https://arxiv.org/abs/1805.05081", "target": "_blank" }, "children": "Constructing Narrative Event Evolutionary Graph for Script Event Prediction" }
+                  ]},
+                  { "type": "p", "children": "Li et al., 2018" },
+                  { "type": "p", "children": "Graph-based event representation using network embedding. Relevant to your temporal structure ideas." }
+                ]
+              }
+            },
+            {
+              "id": "reading-events-verbnet",
+              "title": "VerbNet + Generative Lexicon (2022)",
+              "excerpt": "Hand-crafted subevent semantics — what you're trying to LEARN",
+              "content": {
+                "type": "Fragment",
+                "children": [
+                  { "type": "p", "children": [
+                    "🔲 ",
+                    { "type": "a", "props": { "href": "https://www.frontiersin.org/articles/10.3389/frai.2022.821697/full", "target": "_blank" }, "children": "Semantic Representations for NLP Using VerbNet and the Generative Lexicon" }
+                  ]},
+                  { "type": "p", "children": "Frontiers in AI, 2022" },
+                  { "type": "p", "children": "Hand-crafted semantic representations for verbs including subevent structure. This is what you're trying to LEARN from data instead of hand-coding." }
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "brainstorming",
+      "title": "🧠 Brainstorming",
+      "excerpt": "Far-flung connections, unexpected implications — updated hourly",
+      "children": [
+        {
+          "id": "brainstorm-oscillations",
+          "title": "Neural Oscillation Patterns",
+          "excerpt": "What if primitives ARE brain frequency patterns?",
+          "content": {
+            "type": "Fragment",
+            "children": [
+              { "type": "Callout", "props": { "type": "info" }, "children": "Wild Connection — Speculative but intriguing" },
+              { "type": "p", "children": "If Schankian primitives are truly universal, maybe they correspond to distinct neural oscillatory signatures. Our 'rotation in complex space' could be a mathematical analog of phase relationships between neural oscillators." },
+              { "type": "ul", "children": [
+                { "type": "li", "children": "Gamma oscillations for feature binding → primitives bind entity features?" },
+                { "type": "li", "children": "Theta phase for episodic encoding → operators as phase transitions?" },
+                { "type": "li", "children": "Complex-number representation might be biologically plausible" }
+              ]},
+              { "type": "p", "children": [
+                "Links: ",
+                { "type": "a", "props": { "href": "https://www.ncbi.nlm.nih.gov/pmc/articles/PMC4141622/", "target": "_blank" }, "children": "Gamma oscillations" },
+                ", ",
+                { "type": "a", "props": { "href": "https://www.nature.com/articles/nrn3917", "target": "_blank" }, "children": "Theta and memory" }
+              ]}
+            ]
+          }
+        },
+        {
+          "id": "brainstorm-frame",
+          "title": "The Frame Problem Connection",
+          "excerpt": "Our implicit state approach as a practical solution",
+          "content": {
+            "type": "Fragment",
+            "children": [
+              { "type": "Callout", "props": { "type": "tip" }, "children": "Philosophical Connection — Potentially significant" },
+              { "type": "p", "children": "The 'implicit state' idea directly connects to the Frame Problem — one of the oldest unsolved problems in AI. How does an intelligent system know what DOESN'T change?" },
+              { "type": "p", "children": "Our approach flips it: Instead of asking 'what didn't change?', we ask 'what MUST be true given what happened?' Getting out of bed → was in bed → removed shoes. We enumerate implicit preconditions/postconditions." },
+              { "type": "p", "children": [
+                "Links: ",
+                { "type": "a", "props": { "href": "https://plato.stanford.edu/entries/frame-problem/", "target": "_blank" }, "children": "Stanford Encyclopedia" },
+                ", ",
+                { "type": "a", "props": { "href": "https://www-formal.stanford.edu/jmc/mcchay69.pdf", "target": "_blank" }, "children": "McCarthy & Hayes 1969" }
+              ]}
+            ]
+          }
+        },
+        {
+          "id": "brainstorm-counterfactuals",
+          "title": "Learning Counterfactuals",
+          "excerpt": "Can operators model 'what if' scenarios?",
+          "content": {
+            "type": "Fragment",
+            "children": [
+              { "type": "Callout", "props": { "type": "info" }, "children": "Future Direction — Exciting for Paper 4" },
+              { "type": "p", "children": "Counterfactual reasoning: 'If Frank hadn't been shot, he wouldn't have gone to the hospital.'" },
+              { "type": "ul", "children": [
+                { "type": "li", "children": "Operator inverses already exist (r₂ = r̄₁ in RotatE terms)" },
+                { "type": "li", "children": "Counterfactual = apply inverse, then apply alternative operator" },
+                { "type": "li", "children": "'If NOT shot' = invert HARM, then apply alternative sequence" }
+              ]},
+              { "type": "p", "children": "Implication: Learning operators might enable counterfactual reasoning without explicit causal graphs — the geometry encodes causal structure implicitly." },
+              { "type": "p", "children": [
+                "Links: ",
+                { "type": "a", "props": { "href": "https://ftp.cs.ucla.edu/pub/stat_ser/r481.pdf", "target": "_blank" }, "children": "Pearl's Causal Hierarchy" },
+                ", ",
+                { "type": "a", "props": { "href": "https://arxiv.org/abs/2106.03041", "target": "_blank" }, "children": "Causal Transformers" }
+              ]}
+            ]
+          }
+        },
+        {
+          "id": "brainstorm-benchmark",
+          "title": "ImplicitState-1K Benchmark",
+          "excerpt": "Turn Marlowe/Lego into a dataset — concrete action item",
+          "content": {
+            "type": "Fragment",
+            "children": [
+              { "type": "Callout", "props": { "type": "warning" }, "children": "Practical Idea — Should do this" },
+              { "type": "p", "children": "Turn the Marlowe/Lego example into a benchmark: 1000 short narratives with annotated implicit states." },
+              { "type": "Example", "props": { "title": "Benchmark Entry" }, "children": [
+                { "type": "p", "children": "Text: 'Marlowe rolled out of bed and stepped on a Lego.'" },
+                { "type": "p", "children": "Implicit: was in bed, took off shoes, now barefoot, Lego on floor near bed, stepping barefoot hurts, now in pain" }
+              ]},
+              { "type": "p", "children": [
+                "Related: ",
+                { "type": "a", "props": { "href": "https://homes.cs.washington.edu/~msap/atomic/", "target": "_blank" }, "children": "ATOMIC" },
+                ", ",
+                { "type": "a", "props": { "href": "https://uwnlp.github.io/event2mind/", "target": "_blank" }, "children": "Event2Mind" },
+                ", ",
+                { "type": "a", "props": { "href": "https://allenai.org/data/propara", "target": "_blank" }, "children": "ProPara" }
+              ]}
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

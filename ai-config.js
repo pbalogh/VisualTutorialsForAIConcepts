@@ -26,7 +26,7 @@ export const AI_CONFIG = {
   },
   
   // Shared settings
-  maxTokens: 1024,
+  maxTokens: 4096,
 }
 
 // ============================================================================

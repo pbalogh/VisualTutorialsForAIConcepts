@@ -1,0 +1,148 @@
+{
+  "id": "matrix-discovery",
+  "title": "Matrix Discovery Tool",
+  "subtitle": "Discover transformation matrices from input-output pairs using K-means clustering",
+  "difficulty": 3,
+  "readTime": "12 min",
+  "tags": ["linear algebra", "matrices", "clustering", "machine learning"],
+  "state": {},
+  "content": {
+    "type": "Fragment",
+    "children": [
+      {
+        "type": "Section",
+        "props": { "title": "1. The Problem" },
+        "children": [
+          {
+            "type": "p",
+            "children": "You have a collection of input-output vector pairs. Some were produced by one transformation matrix, others by a different matrix. Your challenge: figure out how many matrices there are, and which pairs belong to which matrix."
+          },
+          {
+            "type": "Analogy",
+            "children": "Imagine you have a bag of mixed coins from different countries, but the labels rubbed off. By examining their weights and sizes, you try to figure out how many different currencies are in the bag and sort them accordingly."
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "2. Interactive Tool" },
+        "children": [
+          {
+            "type": "p",
+            "children": "Use the tool below to generate synthetic data or enter your own input-output pairs. Then adjust K (the number of matrices to discover) and watch how the clustering algorithm finds the best-fit matrices."
+          },
+          {
+            "type": "InteractiveCard",
+            "children": [
+              {
+                "type": "MatrixDiscoveryTool"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "3. The Algorithm" },
+        "children": [
+          {
+            "type": "p",
+            "children": "This tool uses a K-means-like algorithm adapted for transformation matrices:"
+          },
+          {
+            "type": "Steps",
+            "props": {
+              "steps": [
+                {
+                  "title": "Initialize",
+                  "description": "Randomly assign each input-output pair to one of K clusters."
+                },
+                {
+                  "title": "E-Step: Fit Matrices",
+                  "description": "For each cluster, stack all the inputs (X) and outputs (Y), then solve X × M ≈ Y using least squares: M = (X^T X)^(-1) X^T Y"
+                },
+                {
+                  "title": "M-Step: Reassign Pairs",
+                  "description": "For each pair, test it against all K matrices and assign it to the one with lowest prediction error."
+                },
+                {
+                  "title": "Repeat",
+                  "description": "Continue until assignments stabilize or max iterations reached."
+                }
+              ]
+            }
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "4. Choosing K (Model Selection)" },
+        "children": [
+          {
+            "type": "p",
+            "children": "How do you know how many matrices (K) to use? This is the classic bias-variance tradeoff:"
+          },
+          {
+            "type": "DefinitionList",
+            "props": {
+              "items": [
+                {
+                  "term": "K too small",
+                  "definition": "Underfitting — you're forcing different transformations to share a matrix, leading to high error."
+                },
+                {
+                  "term": "K just right",
+                  "definition": "The 'elbow' — total loss drops sharply, then levels off."
+                },
+                {
+                  "term": "K too large",
+                  "definition": "Overfitting — each pair gets its own matrix, loss approaches zero but you've learned nothing generalizable."
+                }
+              ]
+            }
+          },
+          {
+            "type": "Callout",
+            "props": { "type": "tip" },
+            "children": "Try generating synthetic data with a known number of true matrices, then see if you can find the 'elbow' in the loss curve as you adjust K."
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "5. Applications" },
+        "children": [
+          {
+            "type": "p",
+            "children": "This technique appears in many real-world scenarios:"
+          },
+          {
+            "type": "ul",
+            "children": [
+              { "type": "li", "children": "Motion segmentation — different objects moving differently in a video" },
+              { "type": "li", "children": "Subspace clustering — data lies on multiple low-dimensional subspaces" },
+              { "type": "li", "children": "Mixture of linear experts — different linear models for different regions of input space" },
+              { "type": "li", "children": "System identification — discovering multiple operating modes of a physical system" }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "6. Key Takeaways" },
+        "children": [
+          {
+            "type": "ul",
+            "props": { "className": "space-y-2" },
+            "children": [
+              { "type": "li", "children": "K-means can be adapted to cluster by transformation matrices, not just points" },
+              { "type": "li", "children": "Each cluster's matrix is found via least squares on all pairs in that cluster" },
+              { "type": "li", "children": "The 'elbow' in the loss-vs-K curve suggests the true number of matrices" },
+              { "type": "li", "children": "Overfitting (K too high) gives low loss but poor generalization" }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}

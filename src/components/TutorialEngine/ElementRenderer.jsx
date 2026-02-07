@@ -12,6 +12,11 @@ import { Annotation, FootnoteAnnotation, AnnotatableContent } from '../Annotatio
 
 // Visualization components
 import { VectorProjectionViz } from '../visualizations/VectorProjectionViz'
+import { InfiniteMatricesDemo, MatrixCalculator, TwoSystemCalculator } from '../visualizations/MatrixFromVectorsViz'
+import { MatrixDiscoveryTool } from '../visualizations/MatrixDiscoveryViz'
+import { LeadLagPlayground } from '../visualizations/LeadLagCorrelationViz'
+import { LeastSquaresPlayground } from '../visualizations/LeastSquaresViz'
+import { ComplexRotationViz, ComplexVectorViz, DimensionalityChoiceViz } from '../visualizations/ComplexRotationViz'
 
 /**
  * Registry of components that can be rendered from JSON
@@ -20,6 +25,15 @@ import { VectorProjectionViz } from '../visualizations/VectorProjectionViz'
 const componentMap = {
   // Visualization components
   VectorProjectionViz,
+  InfiniteMatricesDemo,
+  MatrixCalculator,
+  TwoSystemCalculator,
+  MatrixDiscoveryTool,
+  LeadLagPlayground,
+  LeastSquaresPlayground,
+  ComplexRotationViz,
+  ComplexVectorViz,
+  DimensionalityChoiceViz,
   
   // State bindings
   StateValue,
@@ -290,7 +304,7 @@ const componentMap = {
   ),
   
   // Collapsible deep dive section with spring animation feel
-  DeepDive: ({ title, children, defaultOpen = false, id }) => {
+  DeepDive: ({ title, children, defaultOpen = false, id, sourceId }) => {
     const [isOpen, setIsOpen] = React.useState(defaultOpen)
     return (
       <div 
@@ -308,11 +322,30 @@ const componentMap = {
             </span>
             {title}
           </span>
-          <span className={`transform transition-transform duration-300 text-violet-400 ${
-            isOpen ? 'rotate-180' : ''
-          }`}>
-            ▼
-          </span>
+          <div className="flex items-center gap-3">
+            {sourceId && (
+              <span
+                onClick={(e) => {
+                  e.stopPropagation()
+                  const source = document.getElementById(sourceId)
+                  if (source) {
+                    source.scrollIntoView({ behavior: 'smooth', block: 'center' })
+                    source.classList.add('bg-yellow-200', 'transition-colors')
+                    setTimeout(() => source.classList.remove('bg-yellow-200'), 2000)
+                  }
+                }}
+                className="text-xs text-violet-500 hover:text-violet-700 hover:underline cursor-pointer"
+                title="Jump back to source text"
+              >
+                ↑ back
+              </span>
+            )}
+            <span className={`transform transition-transform duration-300 text-violet-400 ${
+              isOpen ? 'rotate-180' : ''
+            }`}>
+              ▼
+            </span>
+          </div>
         </button>
         <div className={`overflow-hidden transition-all duration-300 ${
           isOpen ? 'max-h-[2000px] opacity-100' : 'max-h-0 opacity-0'
@@ -385,7 +418,8 @@ const componentMap = {
   ),
   
   // Comparison table - for before/after, pros/cons
-  ComparisonTable: ({ headers, rows }) => (
+  // highlightRows: array of row indices to highlight (for annotations)
+  ComparisonTable: ({ headers, rows, highlightRows = [], highlightId }) => (
     <div className="my-6 overflow-x-auto">
       <table className="w-full text-sm border-collapse">
         <thead>
@@ -398,15 +432,46 @@ const componentMap = {
           </tr>
         </thead>
         <tbody>
-          {rows?.map((row, i) => (
-            <tr key={i} className="border-b border-gray-100 hover:bg-gray-50">
-              {row.map((cell, j) => (
-                <td key={j} className="px-4 py-3 text-gray-600">
-                  {cell}
-                </td>
-              ))}
-            </tr>
-          ))}
+          {rows?.map((row, i) => {
+            const isHighlighted = highlightRows.includes(i)
+            return (
+              <tr 
+                key={i} 
+                id={isHighlighted && highlightId ? `${highlightId}-row-${i}` : undefined}
+                className={`
+                  border-b border-gray-100 transition-colors
+                  ${isHighlighted 
+                    ? 'bg-indigo-50 hover:bg-indigo-100' 
+                    : 'hover:bg-gray-50'
+                  }
+                `}
+              >
+                {row.map((cell, j) => (
+                  <td key={j} className={`px-4 py-3 ${isHighlighted ? 'text-indigo-900' : 'text-gray-600'}`}>
+                    {cell}
+                  </td>
+                ))}
+                {isHighlighted && (
+                  <td className="px-2 py-3">
+                    <span 
+                      onClick={() => {
+                        const target = document.getElementById(highlightId)
+                        if (target) {
+                          target.scrollIntoView({ behavior: 'smooth', block: 'center' })
+                          target.classList.add('ring-2', 'ring-indigo-400', 'ring-offset-2')
+                          setTimeout(() => target.classList.remove('ring-2', 'ring-indigo-400', 'ring-offset-2'), 2000)
+                        }
+                      }}
+                      className="cursor-pointer text-indigo-500 hover:text-indigo-700 text-xs"
+                      title="Jump to annotation"
+                    >
+                      ❓
+                    </span>
+                  </td>
+                )}
+              </tr>
+            )
+          })}
         </tbody>
       </table>
     </div>

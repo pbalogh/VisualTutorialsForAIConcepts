@@ -722,6 +722,239 @@
       {
         "type": "Section",
         "props": {
+          "title": "Paper 2c: Hierarchical Operator Trees with Learned Embeddings"
+        },
+        "children": [
+          {
+            "type": "Callout",
+            "props": {
+              "type": "tip"
+            },
+            "children": "🌟 NEW SECTION — This may be a major standalone contribution. Combines symbolic structure (tree) with geometric learning (embeddings)."
+          },
+          {
+            "type": "h3",
+            "children": "The Core Idea"
+          },
+          {
+            "type": "p",
+            "children": "Operators aren't flat — they're hierarchical. Abstract operators (TRANSFER) branch into specific ones (PHYSICAL_TRANSFER, INFORMATION_TRANSFER). We build a tree where each node is BOTH a symbolic label AND a region in embedding space."
+          },
+          {
+            "type": "h3",
+            "children": "The Architecture"
+          },
+          {
+            "type": "Code",
+            "props": {
+              "language": "text"
+            },
+            "children": "OPERATOR TREE\n├── TRANSFER (abstract region)\n│   ├── PHYSICAL_TRANSFER\n│   │   ├── \"gave him the book\" [emb: [0.2, 0.8, ...]]\n│   │   └── \"handed her the keys\" [emb: [0.3, 0.7, ...]]\n│   └── INFORMATION_TRANSFER  \n│       ├── \"told him the news\" [emb: [0.5, 0.4, ...]]\n│       └── \"shot him a glance\" [emb: [0.6, 0.3, ...]]  ← same verb!\n├── HARM (abstract region)\n│   ├── \"shot him dead\" [emb: [0.9, 0.1, ...]]\n│   └── \"killed the engine\" [emb: [0.85, 0.15, ...]]"
+          },
+          {
+            "type": "Callout",
+            "props": {
+              "type": "info"
+            },
+            "children": "Key insight: 'shot him a glance' and 'shot him dead' use the same verb but activate DIFFERENT operators. The tree disambiguates via embedding similarity, not surface form."
+          },
+          {
+            "type": "h3",
+            "children": "What Each Node Stores"
+          },
+          {
+            "type": "DefinitionList",
+            "props": {
+              "items": [
+                {
+                  "term": "Symbolic label",
+                  "definition": "Human-readable name (TRANSFER, HARM, etc.)"
+                },
+                {
+                  "term": "Exemplar phrases",
+                  "definition": "The actual text spans that activated this operator"
+                },
+                {
+                  "term": "Embedding centroid",
+                  "definition": "Mean of all exemplar embeddings — defines the 'center' of this operator's region"
+                },
+                {
+                  "term": "Boundary/radius",
+                  "definition": "How far from centroid is still 'this operator'?"
+                },
+                {
+                  "term": "Parent pointer",
+                  "definition": "Link to more abstract operator (for inheritance)"
+                }
+              ]
+            }
+          },
+          {
+            "type": "h3",
+            "children": "The Pipeline"
+          },
+          {
+            "type": "h4",
+            "children": "Training: Building the Tree"
+          },
+          {
+            "type": "ol",
+            "children": [
+              {
+                "type": "li",
+                "children": "Start with Dowty anchors at the top level (CAUSE, BECOME, GO, DO)"
+              },
+              {
+                "type": "li",
+                "children": "For each new (agent, verb-phrase, patient) triple:"
+              },
+              {
+                "type": "li",
+                "children": "Get phrase embedding from transformer (BERT, etc.)"
+              },
+              {
+                "type": "li",
+                "children": "Project into operator space (learned projection)"
+              },
+              {
+                "type": "li",
+                "children": "Find nearest existing node in tree"
+              },
+              {
+                "type": "li",
+                "children": "If close enough → add as exemplar to that node"
+              },
+              {
+                "type": "li",
+                "children": "If not close → create new child node (subdivision)"
+              },
+              {
+                "type": "li",
+                "children": "Periodically re-cluster to balance tree"
+              }
+            ]
+          },
+          {
+            "type": "h4",
+            "children": "Inference: Classifying New Phrases"
+          },
+          {
+            "type": "ol",
+            "children": [
+              {
+                "type": "li",
+                "children": "Encounter new phrase: 'fired him a look'"
+              },
+              {
+                "type": "li",
+                "children": "Get embedding, project to operator space"
+              },
+              {
+                "type": "li",
+                "children": "Tree search: start at root, descend toward nearest centroid"
+              },
+              {
+                "type": "li",
+                "children": "Find closest leaf: INFORMATION_TRANSFER (near 'shot him a glance')"
+              },
+              {
+                "type": "li",
+                "children": "Inherit operator properties from path: TRANSFER → INFO_TRANSFER"
+              }
+            ]
+          },
+          {
+            "type": "h3",
+            "children": "The Technical Question: What Embedding?"
+          },
+          {
+            "type": "p",
+            "children": "Three options for what we store at each node:"
+          },
+          {
+            "type": "ComparisonTable",
+            "props": {
+              "headers": ["Option", "What it stores", "Pros", "Cons"],
+              "rows": [
+                ["A: Raw BERT", "Contextual phrase embedding", "Captures context, disambiguates", "Different every time, hard to compare"],
+                ["B: Projected", "BERT → operator space projection", "Consistent, learnable", "Requires training the projection"],
+                ["C: Centroid", "Mean of all exemplar embeddings", "Stable, interpretable", "Loses individual variation"]
+              ]
+            }
+          },
+          {
+            "type": "Callout",
+            "props": {
+              "type": "tip"
+            },
+            "children": "Recommendation: Use B + C combined. Train a projection from BERT space → operator space. Each tree node stores the centroid of projected exemplars. New phrases get projected and compared to centroids."
+          },
+          {
+            "type": "h3",
+            "children": "Why This Matters"
+          },
+          {
+            "type": "ul",
+            "children": [
+              {
+                "type": "li",
+                "children": "Interpretability: Tree structure is human-readable, unlike flat embedding space"
+              },
+              {
+                "type": "li",
+                "children": "Polysemy handling: Same verb maps to different operators based on context"
+              },
+              {
+                "type": "li",
+                "children": "Incremental learning: Add new operators without retraining everything"
+              },
+              {
+                "type": "li",
+                "children": "Hierarchical inference: Uncertain? Return parent operator (graceful degradation)"
+              },
+              {
+                "type": "li",
+                "children": "Bridges symbolic and neural: Best of both worlds"
+              }
+            ]
+          },
+          {
+            "type": "h3",
+            "children": "Connection to Prior Work"
+          },
+          {
+            "type": "ul",
+            "children": [
+              {
+                "type": "li",
+                "children": "WordNet: Verbs in hypernym trees, but no embeddings"
+              },
+              {
+                "type": "li",
+                "children": "VerbNet: Syntactic classes, but not geometric"
+              },
+              {
+                "type": "li",
+                "children": "Hyperbolic embeddings: Hierarchies as geometry (Poincaré embeddings)"
+              },
+              {
+                "type": "li",
+                "children": "Prototype theory: Categories as regions around exemplars"
+              }
+            ]
+          },
+          {
+            "type": "Callout",
+            "props": {
+              "type": "warning"
+            },
+            "children": "Open question: Should we use hyperbolic space instead of Euclidean? Hyperbolic geometry naturally represents trees (distance grows exponentially with depth). This could be Paper 2c's novel contribution."
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
           "title": "Paper 3: Temporal Structure & Entity Chains"
         },
         "children": [

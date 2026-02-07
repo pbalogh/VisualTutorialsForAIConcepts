@@ -472,27 +472,100 @@ function insertAnnotation(content, selectedText, annotation, action) {
   if (searchResult.found) {
     console.log(`✅ Found text at path: ${searchResult.path.join('.')}`)
     
-    // Try to insert inline marker by converting the string to an array with marker
-    // This only works if the text is in a children array
-    const parentPath = searchResult.path.slice(0, -1)
-    const textIndex = searchResult.path[searchResult.path.length - 1]
-    const parent = getAtPath(newContent.content, parentPath)
+    // FIRST: Check if this is inside a structured data component where inline markers don't work
+    const isInStructuredData = searchResult.path.some((p, i) => {
+      if (p === 'rows' || p === 'headers') return true // ComparisonTable
+      if (p === 'items' && searchResult.path[i-1] === 'props') return true // DefinitionList
+      return false
+    })
     
-    if (Array.isArray(parent) && typeof textIndex === 'number') {
-      // Replace the string with: [textBefore, selectedText, marker, textAfter]
-      const originalText = parent[textIndex]
-      const selectIndex = originalText.indexOf(selectedText)
+    if (isInStructuredData) {
+      console.log(`⚠️ Text found in structured data component (table/list) - using row highlight instead of inline marker`)
       
-      if (selectIndex !== -1) {
-        const before = originalText.slice(0, selectIndex + selectedText.length)
-        const after = originalText.slice(selectIndex + selectedText.length)
+      // For ComparisonTable: add row highlighting
+      const rowsIndex = searchResult.path.indexOf('rows')
+      if (rowsIndex !== -1) {
+        // Path looks like: [..., 'props', 'rows', rowIndex, cellIndex]
+        const rowIndex = searchResult.path[rowsIndex + 1]
+        const tablePath = searchResult.path.slice(0, rowsIndex - 1) // Path to the ComparisonTable element
+        const tableNode = getAtPath(newContent.content, tablePath)
         
-        // Replace the single string with multiple elements
-        const replacement = [before, inlineMarker]
-        if (after.trim()) replacement.push(after)
+        if (tableNode && tableNode.type === 'ComparisonTable') {
+          // Add highlight info to the table
+          tableNode.props = tableNode.props || {}
+          tableNode.props.highlightRows = tableNode.props.highlightRows || []
+          if (!tableNode.props.highlightRows.includes(rowIndex)) {
+            tableNode.props.highlightRows.push(rowIndex)
+          }
+          tableNode.props.highlightId = annotationId
+          console.log(`✅ Added row ${rowIndex} highlight to ComparisonTable, linking to ${annotationId}`)
+        }
+      }
+      // Skip inline marker insertion - go directly to DeepDive insertion
+    } else {
+      // Try to insert inline marker by converting the string to an array with marker
+      const parentPath = searchResult.path.slice(0, -1)
+      const textKey = searchResult.path[searchResult.path.length - 1]
+      const parent = getAtPath(newContent.content, parentPath)
+      
+      // Case 1: Parent is an array, text is at index textKey
+      if (Array.isArray(parent) && typeof textKey === 'number') {
+        const originalText = parent[textKey]
+        const selectIndex = originalText.indexOf(selectedText)
         
-        parent.splice(textIndex, 1, ...replacement)
-        console.log(`✅ Inserted inline marker after "${selectedText.slice(0, 30)}..."`)
+        if (selectIndex !== -1) {
+          const before = originalText.slice(0, selectIndex + selectedText.length)
+          const after = originalText.slice(selectIndex + selectedText.length)
+          
+          // Replace the single string with multiple elements
+          const replacement = [before, inlineMarker]
+          if (after.trim()) replacement.push(after)
+          
+          parent.splice(textKey, 1, ...replacement)
+          console.log(`✅ Inserted inline marker (array case) after "${selectedText.slice(0, 30)}..."`)
+        }
+      }
+      // Case 2: Parent is an object, text is at key 'children' (e.g., { type: "p", children: "text" })
+      else if (parent && typeof parent === 'object' && textKey === 'children' && typeof parent.children === 'string') {
+        const originalText = parent.children
+        const selectIndex = originalText.indexOf(selectedText)
+        
+        if (selectIndex !== -1) {
+          const before = originalText.slice(0, selectIndex + selectedText.length)
+          const after = originalText.slice(selectIndex + selectedText.length)
+          
+          // Convert children from string to array with marker
+          const newChildren = [before, inlineMarker]
+          if (after.trim()) newChildren.push(after)
+          
+          parent.children = newChildren
+          console.log(`✅ Inserted inline marker (object.children case) after "${selectedText.slice(0, 30)}..."`)
+        }
+      }
+      // Case 3: Nested in props.children
+      else if (parent && typeof parent === 'object' && textKey === 'children' && parent.props?.children) {
+        // This handles cases where the path ends in props.children
+        const grandparentPath = searchResult.path.slice(0, -2)
+        const grandparent = getAtPath(newContent.content, grandparentPath)
+        
+        if (grandparent && typeof grandparent.props?.children === 'string') {
+          const originalText = grandparent.props.children
+          const selectIndex = originalText.indexOf(selectedText)
+          
+          if (selectIndex !== -1) {
+            const before = originalText.slice(0, selectIndex + selectedText.length)
+            const after = originalText.slice(selectIndex + selectedText.length)
+            
+            const newChildren = [before, inlineMarker]
+            if (after.trim()) newChildren.push(after)
+            
+            grandparent.props.children = newChildren
+            console.log(`✅ Inserted inline marker (props.children case) after "${selectedText.slice(0, 30)}..."`)
+          }
+        }
+      }
+      else {
+        console.log(`⚠️ Could not insert inline marker - unhandled parent structure`)
       }
     }
     
@@ -614,7 +687,16 @@ const server = http.createServer(async (req, res) => {
         return sendJson(res, 400, { error: 'Question is required for ask action' })
       }
       
-      const jsonPath = path.join(CONTENT_DIR, `${tutorialId}.json`)
+      // Map engine tutorial IDs to their JSON filenames
+      const jsonFilenames = {
+        'matrix-from-vectors-engine': 'matrix-from-vectors',
+        'matrix-discovery-engine': 'matrix-discovery',
+        'lead-lag-correlation-engine': 'lead-lag-correlation',
+        'least-squares-engine': 'least-squares'
+      }
+      const jsonFilename = jsonFilenames[tutorialId] || tutorialId
+      
+      const jsonPath = path.join(CONTENT_DIR, `${jsonFilename}.json`)
       let content
       try {
         content = JSON.parse(await fs.readFile(jsonPath, 'utf-8'))
@@ -653,6 +735,129 @@ const server = http.createServer(async (req, res) => {
       
     } catch (error) {
       console.error('❌ Error:', error)
+      return sendJson(res, 500, { error: error.message })
+    }
+  }
+  
+  if (url.pathname === '/generate' && req.method === 'POST') {
+    try {
+      const body = await parseBody(req)
+      const { topic } = body
+      
+      console.log('\n✨ Generate Tutorial Request:')
+      console.log(`  Topic: "${topic}"`)
+      
+      if (!topic || topic.trim().length < 3) {
+        return sendJson(res, 400, { error: 'Topic must be at least 3 characters' })
+      }
+      
+      // Generate a URL-safe ID from the topic
+      const tutorialId = topic.trim()
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/^-+|-+$/g, '')
+        .slice(0, 50)
+      
+      const jsonPath = path.join(CONTENT_DIR, `${tutorialId}.json`)
+      
+      // Check if it already exists
+      try {
+        await fs.access(jsonPath)
+        return sendJson(res, 409, { error: `Tutorial "${tutorialId}" already exists` })
+      } catch {
+        // Good, it doesn't exist
+      }
+      
+      console.log(`🤖 Generating tutorial structure for: "${topic}"`)
+      
+      const systemPrompt = `You are an expert educator creating interactive tutorials. 
+Your tutorials are clear, engaging, and use concrete examples.
+You break complex topics into digestible sections with progressive disclosure.`
+      
+      const generatePrompt = `Create an interactive tutorial about: "${topic}"
+
+Return a JSON object with this exact structure:
+{
+  "id": "${tutorialId}",
+  "title": "Clear, engaging title",
+  "subtitle": "One-line description of what users will learn",
+  "readTime": "X min",
+  "state": {},
+  "content": {
+    "type": "Fragment",
+    "children": [
+      // Array of Section objects
+    ]
+  }
+}
+
+Each Section should have:
+{
+  "type": "Section",
+  "props": { "title": "Section Title" },
+  "children": [
+    // Mix of these element types:
+    { "type": "p", "children": "Paragraph text explaining concepts" },
+    { "type": "Callout", "props": { "type": "info|tip|warning" }, "children": "Important callout" },
+    { "type": "h3", "children": "Subsection heading" },
+    { "type": "ul", "children": [{ "type": "li", "children": "Bullet point" }] },
+    { "type": "ol", "children": [{ "type": "li", "children": "Numbered item" }] },
+    { "type": "Code", "props": { "language": "python|javascript" }, "children": "code here" },
+    { "type": "Example", "props": { "title": "Example: ..." }, "children": [...] },
+    { "type": "Blockquote", "children": "Key insight or quote" },
+    { "type": "DefinitionList", "props": { "items": [{ "term": "Term", "definition": "..." }] } },
+    { "type": "ComparisonTable", "props": { "headers": ["A", "B"], "rows": [["x", "y"]] } }
+  ]
+}
+
+Create 4-6 sections that:
+1. Start with "Why This Matters" or motivation
+2. Build up concepts progressively
+3. Include concrete examples and code where relevant
+4. End with "Key Takeaways" or next steps
+
+Return ONLY valid JSON. No markdown, no preamble, no explanation outside the JSON.`
+
+      const response = await callAI(systemPrompt, generatePrompt)
+      
+      // Parse the response
+      let tutorialContent
+      try {
+        // Try to extract JSON from response
+        const jsonMatch = response.match(/\{[\s\S]*\}/)
+        if (jsonMatch) {
+          tutorialContent = JSON.parse(jsonMatch[0])
+        } else {
+          throw new Error('No JSON object found in response')
+        }
+      } catch (parseError) {
+        console.error('❌ Failed to parse AI response:', parseError.message)
+        console.log('Response preview:', response.slice(0, 500))
+        return sendJson(res, 500, { error: 'Failed to parse generated tutorial' })
+      }
+      
+      // Ensure required fields
+      tutorialContent.id = tutorialId
+      if (!tutorialContent.title) tutorialContent.title = topic
+      if (!tutorialContent.state) tutorialContent.state = {}
+      
+      // Save the file
+      await fs.writeFile(jsonPath, JSON.stringify(tutorialContent, null, 2))
+      console.log(`💾 Saved: ${jsonPath}`)
+      
+      // Commit to git
+      const commitMsg = `[generate] New tutorial: ${topic.slice(0, 50)}`
+      commitAndPush(jsonPath, commitMsg).catch(() => {})
+      
+      return sendJson(res, 200, {
+        success: true,
+        tutorialId,
+        title: tutorialContent.title,
+        message: `Tutorial "${tutorialContent.title}" created successfully`
+      })
+      
+    } catch (error) {
+      console.error('❌ Generate error:', error)
       return sendJson(res, 500, { error: error.message })
     }
   }

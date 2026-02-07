@@ -1,6 +1,126 @@
-import React from 'react'
-import { Link } from 'react-router-dom'
+import React, { useState } from 'react'
+import { Link, useNavigate } from 'react-router-dom'
 import { Container } from '../components/SharedUI.jsx'
+
+// Modal for creating a new tutorial
+function CreateTutorialModal({ isOpen, onClose }) {
+  const [topic, setTopic] = useState('')
+  const [isGenerating, setIsGenerating] = useState(false)
+  const [error, setError] = useState(null)
+  const navigate = useNavigate()
+  
+  const handleSubmit = async (e) => {
+    e.preventDefault()
+    if (!topic.trim()) return
+    
+    setIsGenerating(true)
+    setError(null)
+    
+    try {
+      const response = await fetch('http://localhost:5190/generate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ topic: topic.trim() })
+      })
+      
+      if (!response.ok) {
+        const data = await response.json()
+        throw new Error(data.error || 'Failed to generate tutorial')
+      }
+      
+      const data = await response.json()
+      onClose()
+      setTopic('')
+      // Navigate to the new tutorial
+      navigate(`/tutorial/${data.tutorialId}`)
+    } catch (err) {
+      setError(err.message)
+    } finally {
+      setIsGenerating(false)
+    }
+  }
+  
+  if (!isOpen) return null
+  
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4" onClick={onClose}>
+      <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
+      <div 
+        className="relative bg-white rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden"
+        onClick={e => e.stopPropagation()}
+      >
+        {/* Header */}
+        <div className="bg-gradient-to-r from-indigo-500 to-purple-600 px-6 py-5">
+          <h2 className="text-xl font-bold text-white flex items-center gap-2">
+            <span>✨</span> Create New Tutorial
+          </h2>
+          <p className="text-indigo-100 text-sm mt-1">
+            AI will generate an interactive tutorial based on your topic
+          </p>
+        </div>
+        
+        {/* Form */}
+        <form onSubmit={handleSubmit} className="p-6">
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            What would you like to learn about?
+          </label>
+          <textarea
+            value={topic}
+            onChange={e => setTopic(e.target.value)}
+            placeholder="e.g., How gradient descent works, The basics of Fourier transforms, Understanding attention mechanisms in transformers..."
+            className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent resize-none text-gray-800 placeholder-gray-400"
+            rows={4}
+            disabled={isGenerating}
+            autoFocus
+          />
+          
+          {error && (
+            <div className="mt-3 p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
+              {error}
+            </div>
+          )}
+          
+          <div className="flex justify-end gap-3 mt-5">
+            <button
+              type="button"
+              onClick={onClose}
+              className="px-4 py-2 text-gray-600 hover:text-gray-800 transition-colors"
+              disabled={isGenerating}
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              disabled={!topic.trim() || isGenerating}
+              className="px-6 py-2 bg-gradient-to-r from-indigo-500 to-purple-600 text-white font-medium rounded-xl
+                hover:from-indigo-600 hover:to-purple-700 disabled:opacity-50 disabled:cursor-not-allowed
+                transition-all duration-200 flex items-center gap-2"
+            >
+              {isGenerating ? (
+                <>
+                  <svg className="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                  </svg>
+                  Generating...
+                </>
+              ) : (
+                <>Create Tutorial</>
+              )}
+            </button>
+          </div>
+        </form>
+        
+        {/* Footer tip */}
+        <div className="px-6 py-3 bg-gray-50 border-t border-gray-100">
+          <p className="text-xs text-gray-500">
+            💡 Tip: Be specific! "How backpropagation calculates gradients" works better than just "neural networks"
+          </p>
+        </div>
+      </div>
+    </div>
+  )
+}
 
 const tutorials = [
   {
@@ -53,6 +173,18 @@ const tutorials = [
     difficulty: 2,
   },
   {
+    id: 'matrix-from-vectors-engine',
+    title: 'Matrix from Vectors (Engine)',
+    description: 'Find the transformation matrix from input-output observations — JSON-driven version',
+    tags: ['linear algebra', 'matrices', 'experimental'],
+    icon: '🎯',
+    gradient: 'from-pink-500 to-rose-500',
+    shadowColor: 'shadow-pink-500/30',
+    glowColor: 'rgba(236, 72, 153, 0.4)',
+    readTime: '10 min',
+    difficulty: 2,
+  },
+  {
     id: 'matrix-from-vectors',
     title: 'Matrix from Vectors',
     description: 'Explore how vectors transform through matrices and visualize the geometric transformation',
@@ -75,6 +207,54 @@ const tutorials = [
     glowColor: 'rgba(99, 102, 241, 0.4)',
     readTime: '15 min',
     difficulty: 3,
+  },
+  {
+    id: 'schankian-paper-draft',
+    title: 'Schankian Operators Paper Draft',
+    description: 'Working draft: Learning Semantic Operators from Event Data — add annotations and questions',
+    tags: ['experimental', 'NLP', 'research draft'],
+    icon: '📝',
+    gradient: 'from-amber-500 to-orange-600',
+    shadowColor: 'shadow-amber-500/30',
+    glowColor: 'rgba(245, 158, 11, 0.4)',
+    readTime: '30 min',
+    difficulty: 3,
+  },
+  {
+    id: 'schankian-tree',
+    title: 'Schankian Paper Tree View',
+    description: 'Hierarchical summary tree of the paper draft — click nodes to expand and see details',
+    tags: ['experimental', 'NLP', 'summary tree'],
+    icon: '🌳',
+    gradient: 'from-emerald-500 to-teal-600',
+    shadowColor: 'shadow-emerald-500/30',
+    glowColor: 'rgba(16, 185, 129, 0.4)',
+    readTime: '5 min',
+    difficulty: 1,
+  },
+  {
+    id: 'rotate-paper',
+    title: 'RotatE Paper: Annotated Tutorial',
+    description: 'Interactive annotated version of the foundational RotatE paper (Sun et al., ICLR 2019)',
+    tags: ['experimental', 'NLP', 'knowledge graphs'],
+    icon: '🔄',
+    gradient: 'from-cyan-500 to-blue-600',
+    shadowColor: 'shadow-cyan-500/30',
+    glowColor: 'rgba(6, 182, 212, 0.4)',
+    readTime: '45 min',
+    difficulty: 3,
+  },
+  {
+    id: 'neural-oscillations',
+    title: 'Neural Oscillations & Memory',
+    description: 'How theta and gamma rhythms encode memories — and connections to semantic operators',
+    tags: ['experimental', 'neuroscience', 'memory'],
+    icon: '🧠',
+    gradient: 'from-purple-500 to-pink-600',
+    shadowColor: 'shadow-purple-500/30',
+    glowColor: 'rgba(168, 85, 247, 0.4)',
+    readTime: '30 min',
+    difficulty: 2,
   }
 ]
 
@@ -225,9 +405,15 @@ const heroStyles = `
 `
 
 export default function Listing() {
+  const [showCreateModal, setShowCreateModal] = useState(false)
+  
   return (
     <div className="min-h-screen bg-[#fafafa]">
       <style>{heroStyles}</style>
+      <CreateTutorialModal 
+        isOpen={showCreateModal} 
+        onClose={() => setShowCreateModal(false)} 
+      />
       
       {/* Hero Section with Atmospheric Depth */}
       <header className="relative overflow-hidden">
@@ -285,6 +471,18 @@ export default function Listing() {
               <span>AI-powered explanations</span>
             </div>
           </div>
+          
+          {/* Create tutorial button */}
+          <button
+            onClick={() => setShowCreateModal(true)}
+            className="mt-8 px-6 py-3 bg-gradient-to-r from-indigo-500 to-purple-600 text-white font-medium rounded-xl
+              hover:from-indigo-600 hover:to-purple-700 hover:scale-105
+              transition-all duration-200 shadow-lg shadow-indigo-500/30
+              flex items-center gap-2 mx-auto"
+          >
+            <span>✨</span>
+            Create tutorial about...
+          </button>
         </div>
         
         {/* Bottom fade */}

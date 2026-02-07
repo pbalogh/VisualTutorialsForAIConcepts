@@ -6,6 +6,7 @@ import LeastSquares from '../tutorials/LeastSquares.jsx'
 import VectorProjectionLegacy from '../tutorials/VectorProjection.jsx'
 import LeadLagCorrelation from '../tutorials/LeadLagCorrelation.jsx'
 import EngineDemo from '../tutorials/EngineDemo.jsx'
+import SchankianTreeView from '../tutorials/SchankianTreeView.jsx'
 import { Container } from '../components/SharedUI.jsx'
 import { AnnotatableContent } from '../components/AnnotationSystem.jsx'
 import { TutorialEngine } from '../components/TutorialEngine/ElementRenderer.jsx'
@@ -17,11 +18,12 @@ const tutorialComponents = {
   'least-squares': LeastSquares,
   'vector-projection-legacy': VectorProjectionLegacy,
   'lead-lag-correlation': LeadLagCorrelation,
-  'engine-demo': EngineDemo
+  'engine-demo': EngineDemo,
+  'schankian-tree': SchankianTreeView
 }
 
 // JSON-based tutorials (loaded dynamically)
-const jsonTutorials = ['vector-projection', 'engine-demo']
+const jsonTutorials = ['vector-projection', 'engine-demo', 'matrix-from-vectors-engine', 'matrix-discovery-engine', 'lead-lag-correlation-engine', 'least-squares-engine', 'schankian-paper-draft', 'rotate-paper', 'neural-oscillations']
 
 const tutorialMeta = {
   'matrix-discovery': {
@@ -84,11 +86,95 @@ const tutorialMeta = {
     exercises: 3,
     isExperimental: true,
     sections: ['Live State Bindings', 'Conditional Content', 'Computed Expressions', 'Layout Components', 'Code Blocks', 'AI Annotations']
+  },
+  'matrix-from-vectors-engine': {
+    title: 'Matrix from Vectors (Engine)',
+    subtitle: 'Find the transformation matrix from input-output observations — JSON-driven version',
+    icon: '🎯',
+    gradient: 'from-pink-500 to-rose-500',
+    glowColor: 'rgba(236, 72, 153, 0.4)',
+    readTime: '10 min',
+    exercises: 3,
+    sections: ['The Core Problem', 'One Pair Isn\'t Enough', 'Multiple Pairs', 'Interactive Calculator', 'Two Systems', 'Deep Dives', 'Takeaways', 'Learn More']
+  },
+  'matrix-discovery-engine': {
+    title: 'Matrix Discovery (Engine)',
+    subtitle: 'Discover transformation matrices from input-output pairs using K-means clustering — JSON-driven version',
+    icon: '🔍',
+    gradient: 'from-orange-500 to-amber-500',
+    glowColor: 'rgba(249, 115, 22, 0.4)',
+    readTime: '12 min',
+    exercises: 2,
+    sections: ['The Problem', 'Interactive Tool', 'The Algorithm', 'Choosing K', 'Applications', 'Key Takeaways']
+  },
+  'lead-lag-correlation-engine': {
+    title: 'Lead-Lag Correlation (Engine)',
+    subtitle: 'Find predictive relationships in time series data using cross-correlation — JSON-driven version',
+    icon: '📈',
+    gradient: 'from-blue-500 to-cyan-500',
+    glowColor: 'rgba(59, 130, 246, 0.4)',
+    readTime: '10 min',
+    exercises: 2,
+    sections: ['What is Lead-Lag?', 'Interactive Playground', 'Key Concepts', 'Why Lag 0 Fails', 'The Math', 'Efficiency', 'Takeaways']
+  },
+  'least-squares-engine': {
+    title: 'Least Squares (Engine)',
+    subtitle: 'Finding the line that best fits your data by minimizing squared errors — JSON-driven version',
+    icon: '📊',
+    gradient: 'from-indigo-500 to-blue-500',
+    glowColor: 'rgba(99, 102, 241, 0.4)',
+    readTime: '15 min',
+    exercises: 2,
+    sections: ['The Problem', 'Interactive Playground', 'Why Squared?', 'The Formula', 'Matrix View', 'Geometry', 'Takeaways']
+  },
+  'schankian-paper-draft': {
+    title: 'Schankian Operators Paper Draft',
+    subtitle: 'Working draft: Learning Semantic Operators from Event Data',
+    icon: '📝',
+    gradient: 'from-amber-500 to-orange-600',
+    glowColor: 'rgba(245, 158, 11, 0.4)',
+    readTime: '30 min',
+    exercises: 0,
+    isExperimental: true,
+    sections: ['Paper 1: Core Method', 'Paper 2: Entity State', 'Paper 2b: Implicit State', 'Paper 3: Temporal Structure', 'Paper 4: Vision', 'Connections', 'Implementation', 'Questions']
+  },
+  'schankian-tree': {
+    title: 'Schankian Paper Tree View',
+    subtitle: 'Hierarchical summary tree of the paper draft — click nodes to expand',
+    icon: '🌳',
+    gradient: 'from-emerald-500 to-teal-600',
+    glowColor: 'rgba(16, 185, 129, 0.4)',
+    readTime: '5 min',
+    exercises: 0,
+    isExperimental: true,
+    sections: ['Overview']
+  },
+  'rotate-paper': {
+    title: 'RotatE Paper: Annotated Tutorial',
+    subtitle: 'Knowledge Graph Embedding by Relational Rotation in Complex Space — Sun et al., ICLR 2019',
+    icon: '🔄',
+    gradient: 'from-cyan-500 to-blue-600',
+    glowColor: 'rgba(6, 182, 212, 0.4)',
+    readTime: '45 min',
+    exercises: 0,
+    isExperimental: true,
+    sections: ['Big Picture', 'Relation Patterns', 'The Model', 'Why It Works', 'Comparison', 'Results', 'Schankian Connection', 'Implementation']
+  },
+  'neural-oscillations': {
+    title: 'Neural Oscillations & Memory',
+    subtitle: 'How brain rhythms encode information — and why this matters for semantic operators',
+    icon: '🧠',
+    gradient: 'from-purple-500 to-pink-600',
+    glowColor: 'rgba(168, 85, 247, 0.4)',
+    readTime: '30 min',
+    exercises: 0,
+    isExperimental: true,
+    sections: ['Brain Rhythms', 'Theta Oscillations', 'Gamma & Binding', 'Superior Pattern Processing', 'Schankian Connection', 'Takeaways']
   }
 }
 
 // Tutorials that handle their own content layout (but we still wrap with header)
-const selfContainedTutorials = ['engine-demo']
+const selfContainedTutorials = ['engine-demo', 'schankian-tree']
 
 // Animated progress bar component
 function ProgressBar() {
@@ -190,7 +276,7 @@ function SectionProgress({ sections, glowColor }) {
 }
 
 // Premium tutorial header with atmospheric effects (matching listing page)
-function TutorialHeader({ meta }) {
+function TutorialHeader({ meta, tutorialId }) {
   return (
     <header className="relative overflow-hidden">
       {/* Atmospheric gradient background */}
@@ -284,15 +370,25 @@ function TutorialHeader({ meta }) {
         </div>
         
         {/* Annotation hint */}
-        <div className="mt-8 inline-flex items-center gap-2 px-3 py-1.5 rounded-full 
-          bg-white/5 border border-white/10 text-sm text-gray-400">
-          <span className="text-yellow-400">✨</span>
-          Select any text to get AI explanations
+        <div className="mt-8 flex flex-wrap items-center gap-4">
+          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full 
+            bg-white/5 border border-white/10 text-sm text-gray-400">
+            <span className="text-yellow-400">✨</span>
+            Select any text to get AI explanations
+          </div>
+          
+          {/* Tree view link */}
+          <Link 
+            to={`/tree/${tutorialId || ''}`}
+            className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full 
+              bg-emerald-500/10 border border-emerald-500/20 text-sm text-emerald-400
+              hover:bg-emerald-500/20 transition-colors"
+          >
+            <span>🌳</span>
+            View as Tree
+          </Link>
         </div>
       </div>
-      
-      {/* Bottom fade */}
-      <div className="absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-[#fafafa] to-transparent" />
     </header>
   )
 }
@@ -309,8 +405,17 @@ export default function TutorialWrapper({ tutorial: propTutorial }) {
     
     const loadTutorial = async () => {
       try {
-        const module = await import(`../content/${tutorialId}.json`)
-        setJsonTutorial(module.default)
+        // Map tutorial IDs to JSON filenames (for cases where they differ)
+        const jsonFilenames = {
+          'matrix-from-vectors-engine': 'matrix-from-vectors',
+          'matrix-discovery-engine': 'matrix-discovery',
+          'lead-lag-correlation-engine': 'lead-lag-correlation',
+          'least-squares-engine': 'least-squares'
+        }
+        const filename = jsonFilenames[tutorialId] || tutorialId
+        const module = await import(`../content/${filename}.json`)
+        // Vite may return the JSON directly or under .default
+        setJsonTutorial(module.default || module)
       } catch (e) {
         console.error('Failed to load tutorial JSON:', e)
       } finally {
@@ -393,7 +498,7 @@ export default function TutorialWrapper({ tutorial: propTutorial }) {
     return (
       <div className="min-h-screen bg-[#fafafa]">
         <ProgressBar />
-        <TutorialHeader meta={jsonMeta} />
+        <TutorialHeader meta={jsonMeta} tutorialId={tutorialId} />
         {jsonMeta.sections.length > 0 && (
           <SectionProgress sections={jsonMeta.sections} glowColor={jsonMeta.glowColor} />
         )}
@@ -418,7 +523,7 @@ export default function TutorialWrapper({ tutorial: propTutorial }) {
     return (
       <div className="min-h-screen bg-[#fafafa]">
         <ProgressBar />
-        <TutorialHeader meta={meta} />
+        <TutorialHeader meta={meta} tutorialId={tutorialId} />
         {meta.sections && <SectionProgress sections={meta.sections} glowColor={meta.glowColor} />}
         <TutorialComponent />
       </div>
@@ -429,7 +534,7 @@ export default function TutorialWrapper({ tutorial: propTutorial }) {
   return (
     <div className="min-h-screen bg-[#fafafa]">
       <ProgressBar />
-      <TutorialHeader meta={meta} />
+      <TutorialHeader meta={meta} tutorialId={tutorialId} />
       {meta.sections && <SectionProgress sections={meta.sections} glowColor={meta.glowColor} />}
       
       <AnnotatableContent 

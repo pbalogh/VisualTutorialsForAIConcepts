@@ -1,0 +1,150 @@
+{
+  "id": "least-squares",
+  "title": "Least Squares Regression",
+  "subtitle": "Finding the line that best fits your data by minimizing squared errors",
+  "difficulty": 2,
+  "readTime": "15 min",
+  "tags": ["linear algebra", "regression", "statistics", "machine learning"],
+  "state": {},
+  "content": {
+    "type": "Fragment",
+    "children": [
+      {
+        "type": "Section",
+        "props": { "title": "1. The Problem" },
+        "children": [
+          {
+            "type": "p",
+            "children": "You have data points scattered on a graph. You want to find the line y = mx + b that 'best' describes the data. But what does 'best' mean?"
+          },
+          {
+            "type": "Analogy",
+            "children": "Imagine stretching rubber bands from each data point vertically to a proposed line. The 'best' line minimizes the total tension in all the rubber bands."
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "2. Interactive Playground" },
+        "children": [
+          {
+            "type": "p",
+            "children": "Click on the graph to add data points. Toggle 'Manual Mode' to adjust the line yourself and see how the Sum of Squared Residuals (SSR) changes. Can you find the best fit?"
+          },
+          {
+            "type": "InteractiveCard",
+            "children": [
+              {
+                "type": "LeastSquaresPlayground"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "3. Why 'Squared' Residuals?" },
+        "children": [
+          {
+            "type": "p",
+            "children": "A residual is the vertical distance from a data point to the line. We could minimize the sum of residuals, but positive and negative residuals would cancel out. We could minimize absolute residuals, but that's not differentiable."
+          },
+          {
+            "type": "DefinitionList",
+            "props": {
+              "items": [
+                {
+                  "term": "Squaring makes all residuals positive",
+                  "definition": "A point 2 units above the line contributes +4, and a point 2 units below also contributes +4."
+                },
+                {
+                  "term": "Squaring penalizes large errors more",
+                  "definition": "An error of 4 contributes 16, while four errors of 1 contribute only 4. This pushes the line toward outliers."
+                },
+                {
+                  "term": "Squaring is differentiable",
+                  "definition": "We can take derivatives and set them to zero to find the minimum analytically."
+                }
+              ]
+            }
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "4. The Formula" },
+        "children": [
+          {
+            "type": "p",
+            "children": "Given n data points (x₁, y₁), ..., (xₙ, yₙ), the least squares solution for y = mx + b is:"
+          },
+          {
+            "type": "Formula",
+            "props": { "label": "Slope" },
+            "children": "m = (n·Σxᵢyᵢ - Σxᵢ·Σyᵢ) / (n·Σxᵢ² - (Σxᵢ)²)"
+          },
+          {
+            "type": "Formula",
+            "props": { "label": "Intercept" },
+            "children": "b = (Σyᵢ - m·Σxᵢ) / n"
+          },
+          {
+            "type": "p",
+            "children": "These formulas come from setting the partial derivatives of the SSR to zero and solving the resulting system of equations."
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "5. The Matrix View" },
+        "children": [
+          {
+            "type": "p",
+            "children": "Least squares has a beautiful geometric interpretation. We're projecting the target vector y onto the column space of the design matrix X. The solution:"
+          },
+          {
+            "type": "Formula",
+            "props": { "label": "Normal Equations" },
+            "children": "x̂ = (XᵀX)⁻¹Xᵀy"
+          },
+          {
+            "type": "Callout",
+            "props": { "type": "tip" },
+            "children": "This is the same pseudoinverse formula that appears in matrix-from-vectors! Least squares is everywhere in linear algebra."
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "6. Geometric Intuition" },
+        "children": [
+          {
+            "type": "p",
+            "children": "Imagine your data y as a vector in n-dimensional space. The column space of X is a plane (or hyperplane) containing all possible predictions Xβ. The least squares solution finds the point in this plane closest to y."
+          },
+          {
+            "type": "Blockquote",
+            "children": "The error vector (y - Xβ̂) is perpendicular to the column space of X. That's why it minimizes squared error — it's the shortest path to the plane!"
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "7. Key Takeaways" },
+        "children": [
+          {
+            "type": "ul",
+            "props": { "className": "space-y-2" },
+            "children": [
+              { "type": "li", "children": "Least squares minimizes the sum of squared residuals (vertical distances to the line)" },
+              { "type": "li", "children": "Squaring ensures positive contributions and penalizes large errors" },
+              { "type": "li", "children": "The solution is a projection: y projected onto the column space of X" },
+              { "type": "li", "children": "The normal equations (XᵀX)⁻¹Xᵀy give the closed-form solution" },
+              { "type": "li", "children": "The error vector is perpendicular to the column space — that's the geometric meaning of 'best fit'" }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}
