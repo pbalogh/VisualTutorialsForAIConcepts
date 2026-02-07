@@ -223,6 +223,7 @@ export default function TreeWrapper() {
           title={`${tutorial.title} — Structure`}
           className="shadow-lg"
           height={600}
+          orientation="horizontal"
           renderContent={(node) => {
             if (node.content) {
               return <TutorialEngine content={node.content} state={tutorial.state || {}} />
