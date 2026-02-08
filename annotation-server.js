@@ -2518,14 +2518,15 @@ Return ONLY valid JSON array.`
   if (url.pathname === '/expand-semantic-node' && req.method === 'POST') {
     try {
       const body = await parseBody(req)
-      const { tutorialId, nodeId, node, parentContext } = body
+      const { tutorialId, nodeId, node, parentContext, mode = 'faithful' } = body
       
       console.log('\n🔍 Expand Node Request:')
       console.log(`  Tutorial: ${tutorialId}`)
       console.log(`  Node: ${node?.title || nodeId}`)
+      console.log(`  Mode: ${mode}`)
       
       // Expand the node
-      const result = await expandNode(node, parentContext)
+      const result = await expandNode(node, parentContext, mode)
       
       if (!result.atomic) {
         // Update the cached tree with new children AND bubble up enriched summaries

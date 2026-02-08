@@ -323,39 +323,67 @@ function averageEmbeddings(embeddings) {
 /**
  * Expand a leaf node into sub-concepts
  * Returns the new children to add to the node
+ * 
+ * Mode:
+ * - 'faithful' (default): Only explain what's in the source text
+ * - 'enriched': Can add external knowledge (clearly marked)
  */
-export async function expandNode(node, parentContext = '') {
-  console.log(`\n🔍 Expanding node: ${node.title}`)
+export async function expandNode(node, parentContext = '', mode = 'faithful') {
+  console.log(`\n🔍 Expanding node: ${node.title} (mode: ${mode})`)
   
   // Use sourceText if available, otherwise just summary
   const sourceContent = node.sourceText || node.summary
   const hasSourceText = !!node.sourceText
   
-  const expandPrompt = `You are analyzing a concept to help learners understand it deeply.
+  const faithfulPrompt = `You are analyzing SOURCE TEXT to help learners understand what it says.
 
 CONCEPT: ${node.title}
 SUMMARY: ${node.summary}
 ${hasSourceText ? `\nSOURCE TEXT:\n${sourceContent.slice(0, 3000)}` : ''}
 PARENT CONTEXT: ${parentContext || 'Top-level concept'}
 
-Your job is to break this into 2-5 sub-concepts that a learner would need to understand.
+CRITICAL RULE: You must ONLY explain what is actually stated or directly implied by the source text above.
+- Do NOT add external knowledge, even if you know it's correct
+- Do NOT make claims the source doesn't support
+- If the source is vague, your explanation should acknowledge that vagueness
+
+Your job is to break the SOURCE TEXT into 2-5 sub-concepts that help explain what IT says.
 
 Return a JSON array of sub-concepts, each with:
-- "title": Clear title (3-8 words) naming the concept or process
-- "summary": A TEACHING explanation (2-4 sentences) that helps someone understand WHY and HOW, not just WHAT. Include analogies or examples where helpful.
-- "sourceQuote": ${hasSourceText ? 'A verbatim quote (20+ words) from the source text that this sub-concept covers' : '"" (empty string)'}
-- "isAtomic": true ONLY if this is a single-word scientific term that can be looked up in a dictionary (e.g., "neuron", "synapse", "axon"). Complex processes are NEVER atomic.
+- "title": Clear title (3-8 words) naming the concept as described in the source
+- "summary": A 2-4 sentence explanation of what the SOURCE TEXT says about this. Use phrases like "According to the text..." or "The source explains that..."
+- "sourceQuote": ${hasSourceText ? 'A VERBATIM quote (20+ words) from the source text that supports this sub-concept. This is REQUIRED.' : '"" (empty string)'}
+- "isAtomic": true ONLY for single scientific terms (neuron, synapse, axon)
 
-IMPORTANT: 
-- "GABAergic interneurons creating rhythmic inhibition" is NOT atomic — it's a complex mechanism
-- "Synchronized neuronal firing" is NOT atomic — it's a process with multiple components
-- Only basic scientific VOCABULARY is atomic (neuron, synapse, dendrite, axon, ion channel)
+If you cannot find source text to support a sub-concept, do NOT include it.
 
-Return ONLY valid JSON array. Do NOT return {"atomic": true} — always provide sub-concepts.`
+Return ONLY valid JSON array.`
+
+  const enrichedPrompt = `You are helping learners understand a concept by adding helpful context.
+
+CONCEPT: ${node.title}
+SUMMARY: ${node.summary}
+${hasSourceText ? `\nSOURCE TEXT:\n${sourceContent.slice(0, 3000)}` : ''}
+PARENT CONTEXT: ${parentContext || 'Top-level concept'}
+
+You may add external knowledge to help explain this concept, but clearly distinguish:
+- What the source text says
+- What you're adding from general knowledge
+
+Return a JSON array of sub-concepts, each with:
+- "title": Clear title (3-8 words)
+- "summary": 2-4 sentence teaching explanation
+- "sourceQuote": Verbatim quote from source if applicable, or "" if adding external knowledge
+- "isExternal": true if this adds knowledge beyond what the source says
+- "isAtomic": true ONLY for single scientific terms
+
+Return ONLY valid JSON array.`
 
   const response = await callAI(
-    'You are an expert teacher who breaks down complex concepts into understandable pieces. Your summaries should TEACH, not just label. Never mark processes or mechanisms as atomic.',
-    expandPrompt
+    mode === 'faithful' 
+      ? 'You are a careful reader who explains ONLY what a source text says. Never add external knowledge.'
+      : 'You are an expert teacher who explains concepts thoroughly, clearly marking when you add external knowledge.',
+    mode === 'faithful' ? faithfulPrompt : enrichedPrompt
   )
   
   try {
@@ -391,29 +419,64 @@ Return ONLY valid JSON array. Do NOT return {"atomic": true} — always provide 
     
     console.log(`  📊 Generated ${parsed.length} sub-concepts`)
     
-    const children = parsed.map((sub, i) => {
-      // Try to find the sourceQuote in the parent's sourceText
+    // In faithful mode, verify each sub-concept has source support
+    const validChildren = []
+    for (const sub of parsed) {
       let sourceText = sub.sourceQuote || ''
-      if (sourceText && node.sourceText) {
-        const idx = node.sourceText.indexOf(sourceText.slice(0, 30))
-        if (idx === -1) {
-          // Quote not found verbatim, just use it as-is
-          console.log(`    ⚠️ Quote not found verbatim for "${sub.title}"`)
+      let isGrounded = true
+      
+      if (mode === 'faithful') {
+        // Verify the quote exists in the source
+        if (sourceText && node.sourceText) {
+          const idx = node.sourceText.indexOf(sourceText.slice(0, 30))
+          if (idx === -1) {
+            console.log(`    ⚠️ Quote not found for "${sub.title}" - checking if grounded...`)
+            // Check if key terms from summary appear in source
+            const summaryWords = sub.summary.toLowerCase().split(/\s+/).filter(w => w.length > 4)
+            const sourceWords = (node.sourceText || node.summary).toLowerCase()
+            const foundWords = summaryWords.filter(w => sourceWords.includes(w))
+            isGrounded = foundWords.length >= summaryWords.length * 0.3
+            
+            if (!isGrounded) {
+              console.log(`    ❌ Rejecting "${sub.title}" - not grounded in source`)
+              continue
+            }
+          }
+        } else if (!sourceText && mode === 'faithful') {
+          // No source quote in faithful mode - skip unless summary seems grounded
+          const summaryWords = sub.summary.toLowerCase().split(/\s+/).filter(w => w.length > 4)
+          const sourceWords = (node.sourceText || node.summary).toLowerCase()
+          const foundWords = summaryWords.filter(w => sourceWords.includes(w))
+          isGrounded = foundWords.length >= summaryWords.length * 0.3
+          
+          if (!isGrounded) {
+            console.log(`    ❌ Rejecting "${sub.title}" - no source support`)
+            continue
+          }
         }
       }
       
-      return {
-        id: `${node.id}-sub-${i}`,
+      validChildren.push({
+        id: `${node.id}-sub-${validChildren.length}`,
         title: sub.title,
         summary: sub.summary,
-        sourceText: sourceText,  // Anchored to parent's text
+        sourceText: sourceText,
         isLeaf: true,
-        canExpand: !sub.isAtomic,  // Allow expansion if not atomic, regardless of sourceText
+        canExpand: !sub.isAtomic,
         expanded: false,
         isAtomic: sub.isAtomic || false,
+        isExternal: sub.isExternal || false,  // Track if this adds external knowledge
+        isGrounded: isGrounded,
         generatedAt: new Date().toISOString()
-      }
-    })
+      })
+    }
+    
+    if (validChildren.length === 0) {
+      console.log(`  ⚠️ No grounded children found, keeping node as-is`)
+      return { atomic: true, reason: 'Could not find grounded sub-concepts in source text' }
+    }
+    
+    const children = validChildren
     
     // Generate an enriched parent summary that encompasses the children
     const childSummaries = children.map(c => `• ${c.title}: ${c.summary}`).join('\n')
