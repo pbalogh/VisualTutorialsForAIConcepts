@@ -38,26 +38,43 @@ function generateTreeFromContent(content, tutorialTitle) {
   }
   
   // Recursively extract notable elements from content
+  // Now captures following sibling content as part of the element
   function extractNotableElements(node, parentId, indexOffset = 0) {
     const elements = []
     if (!node) return elements
     
     const children = Array.isArray(node) ? node : (node.children ? (Array.isArray(node.children) ? node.children : [node.children]) : [])
     
-    children.forEach((child, idx) => {
-      if (!child || typeof child !== 'object') return
+    for (let idx = 0; idx < children.length; idx++) {
+      const child = children[idx]
+      if (!child || typeof child !== 'object') continue
       
       const notable = NOTABLE_TYPES[child.type]
       if (notable) {
         const title = child.props?.title || 
                      (child.type === 'Callout' ? extractExcerpt([child], 50) : null) ||
                      `${notable.label}`
+        
+        // Collect following siblings until next notable element or h3
+        const followingContent = []
+        for (let j = idx + 1; j < children.length; j++) {
+          const sibling = children[j]
+          if (!sibling || typeof sibling !== 'object') continue
+          if (NOTABLE_TYPES[sibling.type] || sibling.type === 'h3' || sibling.type === 'h4') break
+          followingContent.push(sibling)
+        }
+        
+        // Build combined content for this element
+        const combinedContent = followingContent.length > 0
+          ? { type: 'Fragment', children: [child, ...followingContent] }
+          : child
+        
         elements.push({
           id: `${parentId}-${child.type.toLowerCase()}-${indexOffset + idx}`,
           title: `${notable.icon} ${title}`,
           type: child.type,
-          excerpt: extractExcerpt([child], 80),
-          content: child
+          excerpt: extractExcerpt([child, ...followingContent], 120),
+          content: combinedContent
         })
       }
       
@@ -65,7 +82,7 @@ function generateTreeFromContent(content, tutorialTitle) {
       if (child.children) {
         elements.push(...extractNotableElements(child.children, parentId, indexOffset + idx * 100))
       }
-    })
+    }
     
     return elements
   }
