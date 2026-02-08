@@ -110,6 +110,10 @@ export default function D3Tree({
   // Track expanded nodes
   const [expandedNodes, setExpandedNodes] = useState(new Set(['root']))
   
+  // Selection mode for tree operations
+  const [selectionMode, setSelectionMode] = useState(false)
+  const [selectedNodes, setSelectedNodes] = useState(new Set())
+  
   const toggleExpand = useCallback((nodeId) => {
     setExpandedNodes(prev => {
       const next = new Set(prev)
@@ -120,6 +124,31 @@ export default function D3Tree({
       }
       return next
     })
+  }, [])
+  
+  const toggleNodeSelection = useCallback((nodeId, event) => {
+    if (!selectionMode) return
+    
+    setSelectedNodes(prev => {
+      const next = new Set(prev)
+      if (event?.shiftKey && prev.size > 0) {
+        // Shift-click: select range (simplified - just toggle for now)
+        if (next.has(nodeId)) {
+          next.delete(nodeId)
+        } else {
+          next.add(nodeId)
+        }
+      } else if (next.has(nodeId)) {
+        next.delete(nodeId)
+      } else {
+        next.add(nodeId)
+      }
+      return next
+    })
+  }, [selectionMode])
+  
+  const clearSelection = useCallback(() => {
+    setSelectedNodes(new Set())
   }, [])
   
   const expandAll = useCallback(() => {
@@ -291,15 +320,47 @@ export default function D3Tree({
         .attr('rx', 8)
         .attr('ry', 8)
         .attr('fill', colors.bg)
-        .attr('stroke', colors.border)
-        .attr('stroke-width', d.depth === 0 ? 2 : 1)
+        .attr('stroke', selectedNodes.has(d.data.id || 'root') ? '#6366f1' : colors.border)
+        .attr('stroke-width', selectedNodes.has(d.data.id || 'root') ? 3 : (d.depth === 0 ? 2 : 1))
         .attr('filter', isExpanded && hasChildren ? 'url(#node-shadow)' : null)
+      
+      // Selection checkbox (only in selection mode)
+      if (selectionMode) {
+        const isSelected = selectedNodes.has(d.data.id || 'root')
+        node.append('rect')
+          .attr('x', -24)
+          .attr('y', -8)
+          .attr('width', 16)
+          .attr('height', 16)
+          .attr('rx', 3)
+          .attr('fill', isSelected ? '#6366f1' : 'white')
+          .attr('stroke', '#6366f1')
+          .attr('stroke-width', 1.5)
+          .style('cursor', 'pointer')
+          .on('click', (event) => {
+            event.stopPropagation()
+            toggleNodeSelection(d.data.id || 'root', event)
+          })
+        
+        if (isSelected) {
+          node.append('text')
+            .attr('x', -20)
+            .attr('y', 4)
+            .attr('fill', 'white')
+            .attr('font-size', '12px')
+            .attr('font-weight', 'bold')
+            .attr('pointer-events', 'none')
+            .text('✓')
+        }
+      }
       
       // Hover and click handlers
       rect
         .on('click', (event) => {
           event.stopPropagation()
-          if (hasChildren) {
+          if (selectionMode) {
+            toggleNodeSelection(d.data.id || 'root', event)
+          } else if (hasChildren) {
             toggleExpand(d.data.id || 'root')
           } else {
             setSelectedNode(d)
@@ -368,7 +429,7 @@ export default function D3Tree({
       .translate(translateX, translateY)
       .scale(scale))
     
-  }, [data, dimensions, expandedNodes, toggleExpand])
+  }, [data, dimensions, expandedNodes, toggleExpand, selectionMode, selectedNodes, toggleNodeSelection])
   
   return (
     <div className={`bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden ${className}`}>
@@ -376,6 +437,20 @@ export default function D3Tree({
       <div className="px-4 py-3 border-b border-gray-200 flex items-center justify-between bg-gradient-to-r from-slate-50 to-white">
         <h3 className="font-semibold text-gray-900">{title}</h3>
         <div className="flex gap-2">
+          {/* Selection mode toggle */}
+          <button
+            onClick={() => {
+              setSelectionMode(!selectionMode)
+              if (selectionMode) clearSelection()
+            }}
+            className={`text-xs px-3 py-1.5 rounded-md transition-all duration-150 ${
+              selectionMode 
+                ? 'bg-indigo-100 text-indigo-700 border border-indigo-300' 
+                : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
+            }`}
+          >
+            {selectionMode ? '✓ Select Mode' : '☐ Select'}
+          </button>
           <button
             onClick={expandAll}
             className="text-xs px-3 py-1.5 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-md transition-all duration-150"
@@ -391,6 +466,53 @@ export default function D3Tree({
         </div>
       </div>
       
+      {/* Selection toolbar - appears when nodes are selected */}
+      {selectionMode && selectedNodes.size > 0 && (
+        <div className="px-4 py-2 bg-indigo-50 border-b border-indigo-100 flex items-center gap-3">
+          <span className="text-sm text-indigo-700 font-medium">
+            {selectedNodes.size} selected
+          </span>
+          <div className="flex gap-2">
+            <button
+              onClick={() => {
+                // TODO: Implement combine
+                console.log('Combine:', Array.from(selectedNodes))
+                alert(`Combine ${selectedNodes.size} nodes - coming soon!`)
+              }}
+              className="text-xs px-3 py-1.5 bg-white border border-indigo-200 text-indigo-700 hover:bg-indigo-100 rounded-md transition-colors"
+            >
+              🔗 Combine
+            </button>
+            <button
+              onClick={() => {
+                // TODO: Implement delete
+                console.log('Delete:', Array.from(selectedNodes))
+                alert(`Delete ${selectedNodes.size} nodes - coming soon!`)
+              }}
+              className="text-xs px-3 py-1.5 bg-white border border-red-200 text-red-700 hover:bg-red-50 rounded-md transition-colors"
+            >
+              🗑️ Delete
+            </button>
+            <button
+              onClick={() => {
+                // TODO: Implement promote
+                console.log('Promote:', Array.from(selectedNodes))
+                alert(`Promote ${selectedNodes.size} nodes - coming soon!`)
+              }}
+              className="text-xs px-3 py-1.5 bg-white border border-emerald-200 text-emerald-700 hover:bg-emerald-50 rounded-md transition-colors"
+            >
+              📤 Promote
+            </button>
+          </div>
+          <button
+            onClick={clearSelection}
+            className="ml-auto text-xs text-indigo-500 hover:text-indigo-700"
+          >
+            Clear
+          </button>
+        </div>
+      )}
+      
       {/* Legend - refined colors */}
       <div className="px-4 py-2 bg-slate-50 border-b border-slate-100 flex items-center gap-6 text-xs text-slate-600">
         <span className="font-medium text-slate-700">Legend:</span>
@@ -402,7 +524,9 @@ export default function D3Tree({
           <span className="w-3 h-3 rounded" style={{ background: nodeColors.leaf.bg, border: `1px solid ${nodeColors.leaf.border}` }} />
           Content
         </span>
-        <span className="ml-auto text-slate-400">Drag to pan • Scroll to zoom</span>
+        <span className="ml-auto text-slate-400">
+          {selectionMode ? 'Click nodes to select • Shift+click for multiple' : 'Drag to pan • Scroll to zoom'}
+        </span>
       </div>
       
       {/* Tree visualization */}
