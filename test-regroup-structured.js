@@ -133,7 +133,33 @@ Return ONLY a JSON array of edits, no explanation.`
   
   result.forEach((p, i) => console.log(`  [${i}] ${p}\n`))
   
-  return { edits, result }
+  // Visual appeal critique
+  console.log('\n🎨 VISUAL APPEAL CRITIQUE:')
+  
+  const criticPrompt = `You are critiquing content for VISUAL LEARNERS. Visual appeal is paramount.
+
+RESULT AFTER EDITS:
+${result.map((p, i) => p.startsWith('[SIDEBAR') ? p : `Paragraph ${i}: "${p}"`).join('\n\n')}
+
+EVALUATE:
+1. PARAGRAPH LENGTHS - Are they short enough (3-4 sentences max)? Count sentences in each.
+2. WHITESPACE RHYTHM - Is there good variation, or is it monotonous?
+3. SCANABILITY - Can a visual learner quickly find key concepts?
+4. SIDEBAR USAGE - Were sidebars used appropriately for tangential info?
+5. OVERALL VISUAL IMPRESSION - Would this look inviting or intimidating?
+
+VISUAL SCORE: X/10
+KEY VISUAL ISSUES: [be specific about which paragraphs are too long]
+VERDICT: [one sentence]`
+
+  const critique = await callAI(
+    'You are a visual design critic who hates dense walls of text.',
+    criticPrompt
+  )
+  
+  console.log(critique.trim())
+  
+  return { edits, result, critique }
 }
 
 async function run() {

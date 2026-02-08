@@ -102,7 +102,7 @@ Return ONLY the rewritten text as multiple paragraphs (plain prose, no JSON, no 
   // Now have a critic evaluate
   console.log('\n🔍 CRITIC EVALUATION:')
   
-  const criticPrompt = `You are a harsh but fair editor evaluating whether a rewrite successfully incorporated reader feedback.
+  const criticPrompt = `You are a harsh critic evaluating educational content for VISUAL LEARNERS.
 
 ORIGINAL TEXT:
 ${section.originalText}
@@ -113,24 +113,44 @@ ${annSummary}
 REWRITTEN TEXT:
 ${rewrittenText}
 
-EVALUATE:
-1. Were ALL annotation insights incorporated? List any that were missed.
-2. Does the rewritten text flow naturally, or does it feel like patches were bolted on?
-3. Is any important information from the original lost?
-4. Would a reader still need the annotations, or is the text now self-sufficient?
+EVALUATE with heavy emphasis on VISUAL APPEAL (this is critical for our audience):
 
-Give a score from 1-10 and specific feedback. Be critical - don't give a high score unless truly deserved.
+1. VISUAL SCANABILITY (weight: 30%)
+   - Are paragraphs SHORT (3-4 sentences max)?
+   - Is there good "whitespace rhythm" - variation in paragraph lengths?
+   - Can a reader quickly scan and find key concepts?
+   - Would this look intimidating or inviting on screen?
+
+2. CONTENT INTEGRATION (weight: 25%)
+   - Were ALL annotation insights incorporated?
+   - Does it flow naturally or feel stitched together?
+
+3. INFORMATION QUALITY (weight: 25%)
+   - Is any important information lost?
+   - Are specific numbers/values preserved?
+   - Is the text self-sufficient (no need for annotations)?
+
+4. READABILITY (weight: 20%)
+   - Sentence length variety?
+   - Clear topic sentences?
+   - Accessible vocabulary?
+
+SCORING GUIDE:
+- 9-10: Visually beautiful, perfectly scannable, all content woven in seamlessly
+- 7-8: Good visual appeal, minor density issues, content mostly integrated
+- 5-6: Some wall-of-text problems, content there but feels patched
+- 3-4: Dense and intimidating, missing key insights
+- 1-2: Unreadable wall of text, major content gaps
 
 Format:
-SCORE: X/10
-MISSED INSIGHTS: [list any]
-FLOW: [assessment]
-LOST INFO: [any original content that's missing]
-SELF-SUFFICIENT: [yes/no and why]
-SPECIFIC ISSUES: [bullet points]`
+VISUAL SCORE: X/10 (with specific paragraph length critique)
+CONTENT SCORE: X/10
+OVERALL SCORE: X/10
+KEY ISSUES: [bullet points, emphasize visual problems first]
+VERDICT: [one sentence summary]`
 
   const critique = await callAI(
-    'You are a demanding editor who holds high standards for educational content.',
+    'You are a demanding editor who prioritizes visual appeal for learners who think in images. Dense text is your enemy.',
     criticPrompt
   )
   
