@@ -15,11 +15,43 @@ import { TutorialEngine } from '../components/TutorialEngine/ElementRenderer.jsx
 function RegroupPreviewModal({ preview, onApply, onCancel }) {
   if (!preview) return null
   
-  const { changes, sectionCount, annotationCount, metaAnnotationCount, message } = preview
+  const { changes, sectionCount, annotationCount, metaAnnotationCount, metaCounts, message } = preview
   
-  // Separate new section requests from regular edits
+  // Separate different types of changes
   const newSectionChanges = changes?.filter(c => c.action === 'new_section') || []
-  const editChanges = changes?.filter(c => c.action !== 'new_section') || []
+  const reorganizeChanges = changes?.filter(c => c.action === 'reorganize') || []
+  const contentGapChanges = changes?.filter(c => c.action === 'content_gap') || []
+  const editChanges = changes?.filter(c => c.action === 'edit') || []
+  
+  const actionStyles = {
+    new_section: { bg: 'bg-emerald-500/20', text: 'text-emerald-300', border: 'border-emerald-500/30', label: '🆕 New Section' },
+    reorganize: { bg: 'bg-blue-500/20', text: 'text-blue-300', border: 'border-blue-500/30', label: '🔄 Reorganize' },
+    content_gap: { bg: 'bg-amber-500/20', text: 'text-amber-300', border: 'border-amber-500/30', label: '📝 Content Gap' },
+    edit: { bg: 'bg-indigo-500/20', text: 'text-indigo-300', border: 'border-indigo-500/30', label: '✏️ Edit Section' }
+  }
+  
+  const renderChange = (change, i) => {
+    const style = actionStyles[change.action] || actionStyles.edit
+    return (
+      <div 
+        key={`${change.action}-${i}`}
+        className={`p-4 rounded-lg border ${style.bg} ${style.text} ${style.border}`}
+      >
+        <div className="flex items-center gap-2 mb-2">
+          <span className="text-sm font-medium">{style.label}</span>
+          {change.sectionTitle && (
+            <span className="text-xs opacity-60">({change.sectionTitle})</span>
+          )}
+          {change.annotationCount && (
+            <span className="text-xs opacity-60">({change.annotationCount} annotations)</span>
+          )}
+        </div>
+        <div className="text-sm opacity-80 line-clamp-2">
+          {change.annotation || change.preview}...
+        </div>
+      </div>
+    )
+  }
   
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
@@ -28,11 +60,6 @@ function RegroupPreviewModal({ preview, onApply, onCancel }) {
         <div className="p-6 border-b border-gray-700">
           <h2 className="text-xl font-semibold text-white mb-2">✨ Incorporate Annotations</h2>
           <p className="text-gray-400 text-sm">{message}</p>
-          {metaAnnotationCount > 0 && (
-            <p className="text-emerald-400/80 text-xs mt-2">
-              🆕 Found {metaAnnotationCount} request(s) for new sections!
-            </p>
-          )}
           <p className="text-amber-400/80 text-xs mt-2">
             ⚠️ AI will modify content. Use Undo if needed.
           </p>
@@ -40,40 +67,13 @@ function RegroupPreviewModal({ preview, onApply, onCancel }) {
         
         {/* Changes list */}
         <div className="flex-1 overflow-y-auto p-6 space-y-3">
-          {/* New section requests first */}
-          {newSectionChanges.map((change, i) => (
-            <div 
-              key={`new-${i}`}
-              className="p-4 rounded-lg border bg-emerald-500/20 text-emerald-300 border-emerald-500/30"
-            >
-              <div className="flex items-center gap-2 mb-2">
-                <span className="text-sm font-medium">🆕 New Section Requested</span>
-              </div>
-              <div className="text-sm opacity-80">
-                "{change.annotation}..."
-              </div>
-            </div>
-          ))}
+          {/* Meta changes first (new sections, reorganize, content gaps) */}
+          {newSectionChanges.map((c, i) => renderChange(c, i))}
+          {reorganizeChanges.map((c, i) => renderChange(c, i))}
+          {contentGapChanges.map((c, i) => renderChange(c, i))}
           
           {/* Regular section edits */}
-          {editChanges.map((change, i) => (
-            <div 
-              key={`edit-${i}`}
-              className="p-4 rounded-lg border bg-indigo-500/20 text-indigo-300 border-indigo-500/30"
-            >
-              <div className="flex items-center gap-2 mb-2">
-                <span className="text-sm font-medium">
-                  📝 Edit: {change.sectionTitle}
-                </span>
-                <span className="text-xs opacity-60">
-                  ({change.annotationCount} annotations)
-                </span>
-              </div>
-              <div className="text-sm opacity-80 line-clamp-2">
-                {change.preview}...
-              </div>
-            </div>
-          ))}
+          {editChanges.map((c, i) => renderChange(c, i))}
         </div>
         
         {/* Footer */}

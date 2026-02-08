@@ -1109,24 +1109,73 @@ const server = http.createServer(async (req, res) => {
         })
       }
       
-      // PHASE 1: Scan for META-ANNOTATIONS (requests for new sections, major restructuring)
-      const metaPatterns = [
-        /should (have|add|create|include) (a |an )?(new |major |entire )?section/i,
-        /needs? (its own|a dedicated|a separate) (section|chapter)/i,
-        /missing:?\s*(section|chapter|explanation)/i,
-        /TODO:?\s*(add|create|expand|write)/i,
-        /this (deserves|warrants|needs) (its own|a) section/i,
-        /we need to (add|cover|explain)/i
-      ]
+      // PHASE 1: Scan for META-ANNOTATIONS (requests for structural changes)
+      // These are "editor's notes" about how to reorganize, not just content to add
       
-      const metaAnnotations = annotations.filter(ann => {
+      const metaPatterns = {
+        // New section requests
+        newSection: [
+          /should (have|add|create|include) (a |an )?(new |major |entire )?section/i,
+          /needs? (its own|a dedicated|a separate) (section|chapter)/i,
+          /missing:?\s*(section|chapter|explanation)/i,
+          /TODO:?\s*(add|create|expand|write)/i,
+          /this (deserves|warrants|needs) (its own|a) section/i,
+          /we need to (add|cover|explain)/i
+        ],
+        // Reorganization requests
+        reorganize: [
+          /move (all |the )?(references?|mentions?|discussion) (of |to |about )/i,
+          /should (come|go|be) (before|after|earlier|later)/i,
+          /consolidate (the |all )?(examples?|explanations?|references?)/i,
+          /(duplicates?|repeats?) what we (said|explained|covered)/i,
+          /reorganize|restructure|reorder/i,
+          /merge (this |these )?(with|into)/i,
+          /split (this|the) (section|paragraph)/i,
+          /belongs? (in|with|under) (the |a )?(section|part)/i
+        ],
+        // Content gaps
+        contentGap: [
+          /need(s)? (more |better |an? )?(explanation|detail|example)/i,
+          /unclear|confusing|vague/i,
+          /what (about|is|does)/i,
+          /how does this (relate|connect)/i
+        ]
+      }
+      
+      const metaAnnotations = {
+        newSection: [],
+        reorganize: [],
+        contentGap: []
+      }
+      
+      annotations.forEach(ann => {
         const text = ann.content || ''
-        return metaPatterns.some(pattern => pattern.test(text))
+        
+        if (metaPatterns.newSection.some(p => p.test(text))) {
+          metaAnnotations.newSection.push(ann)
+        } else if (metaPatterns.reorganize.some(p => p.test(text))) {
+          metaAnnotations.reorganize.push(ann)
+        } else if (metaPatterns.contentGap.some(p => p.test(text))) {
+          metaAnnotations.contentGap.push(ann)
+        }
       })
       
-      if (metaAnnotations.length > 0) {
-        console.log(`  📋 Found ${metaAnnotations.length} META-ANNOTATION(S) requesting structural changes`)
-        metaAnnotations.forEach(m => console.log(`     - "${m.content?.slice(0, 60)}..."`))
+      const totalMeta = metaAnnotations.newSection.length + metaAnnotations.reorganize.length + metaAnnotations.contentGap.length
+      
+      if (totalMeta > 0) {
+        console.log(`  📋 Found ${totalMeta} META-ANNOTATION(S):`)
+        if (metaAnnotations.newSection.length > 0) {
+          console.log(`     🆕 New sections: ${metaAnnotations.newSection.length}`)
+          metaAnnotations.newSection.forEach(m => console.log(`        - "${m.content?.slice(0, 50)}..."`))
+        }
+        if (metaAnnotations.reorganize.length > 0) {
+          console.log(`     🔄 Reorganization: ${metaAnnotations.reorganize.length}`)
+          metaAnnotations.reorganize.forEach(m => console.log(`        - "${m.content?.slice(0, 50)}..."`))
+        }
+        if (metaAnnotations.contentGap.length > 0) {
+          console.log(`     📝 Content gaps: ${metaAnnotations.contentGap.length}`)
+          metaAnnotations.contentGap.forEach(m => console.log(`        - "${m.content?.slice(0, 50)}..."`))
+        }
       }
       
       // Build rich annotation summary with context
@@ -1178,7 +1227,7 @@ const server = http.createServer(async (req, res) => {
       
       console.log(`📚 Found annotations in ${sectionAnnotations.size} section(s)`)
       
-      if (sectionAnnotations.size === 0) {
+      if (sectionAnnotations.size === 0 && totalMeta === 0) {
         return sendJson(res, 200, {
           success: true,
           preview: true,
@@ -1192,7 +1241,7 @@ const server = http.createServer(async (req, res) => {
       const changes = []
       for (const [path, { sectionTitle, annotations: sectionAnns }] of sectionAnnotations) {
         changes.push({
-          action: 'rewrite',
+          action: 'edit',
           sectionTitle,
           sectionPath: path,
           annotationCount: sectionAnns.length,
@@ -1202,30 +1251,68 @@ const server = http.createServer(async (req, res) => {
       
       // Add meta-annotation changes to preview
       const metaChanges = []
-      if (metaAnnotations.length > 0) {
-        for (const meta of metaAnnotations) {
-          metaChanges.push({
-            action: 'new_section',
-            annotation: meta.content?.slice(0, 100),
-            suggestion: 'AI will generate a new section based on this request'
-          })
-        }
+      
+      // New section requests
+      for (const meta of metaAnnotations.newSection) {
+        metaChanges.push({
+          action: 'new_section',
+          annotation: meta.content?.slice(0, 100),
+          icon: '🆕'
+        })
+      }
+      
+      // Reorganization requests
+      for (const meta of metaAnnotations.reorganize) {
+        metaChanges.push({
+          action: 'reorganize',
+          annotation: meta.content?.slice(0, 100),
+          icon: '🔄'
+        })
+      }
+      
+      // Content gap requests
+      for (const meta of metaAnnotations.contentGap) {
+        metaChanges.push({
+          action: 'content_gap',
+          annotation: meta.content?.slice(0, 100),
+          icon: '📝'
+        })
       }
       
       // If preview mode, return the plan
       if (!apply) {
         console.log('📋 Preview only - no changes applied')
+        
+        const metaCounts = {
+          newSection: metaAnnotations.newSection.length,
+          reorganize: metaAnnotations.reorganize.length,
+          contentGap: metaAnnotations.contentGap.length
+        }
+        
+        let message = ''
+        if (totalMeta > 0) {
+          const parts = []
+          if (metaCounts.newSection) parts.push(`${metaCounts.newSection} new section request(s)`)
+          if (metaCounts.reorganize) parts.push(`${metaCounts.reorganize} reorganization request(s)`)
+          if (metaCounts.contentGap) parts.push(`${metaCounts.contentGap} content gap(s)`)
+          message = `Found: ${parts.join(', ')}`
+          if (sectionAnnotations.size > 0) {
+            message += ` + ${sectionAnnotations.size} section(s) to edit`
+          }
+        } else {
+          message = `Will edit ${sectionAnnotations.size} section(s) to incorporate ${annotations.length} annotation insights`
+        }
+        
         return sendJson(res, 200, {
           success: true,
           preview: true,
           tutorialId,
           annotationCount: annotations.length,
           sectionCount: sectionAnnotations.size,
-          metaAnnotationCount: metaAnnotations.length,
+          metaAnnotationCount: totalMeta,
+          metaCounts,
           changes: [...metaChanges, ...changes],
-          message: metaAnnotations.length > 0 
-            ? `Found ${metaAnnotations.length} request(s) for new sections + ${sectionAnnotations.size} section(s) to edit`
-            : `Will edit ${sectionAnnotations.size} section(s) to incorporate ${annotations.length} annotation insights`,
+          message,
           updatedContent: content
         })
       }
@@ -1236,11 +1323,11 @@ const server = http.createServer(async (req, res) => {
       let totalEdits = 0
       let newSectionsCreated = 0
       
-      // Process meta-annotations - create new sections
-      if (metaAnnotations.length > 0) {
-        console.log(`\n🆕 Processing ${metaAnnotations.length} meta-annotation(s) for new sections...`)
+      // Process NEW SECTION requests
+      if (metaAnnotations.newSection.length > 0) {
+        console.log(`\n🆕 Processing ${metaAnnotations.newSection.length} new section request(s)...`)
         
-        for (const meta of metaAnnotations) {
+        for (const meta of metaAnnotations.newSection) {
           console.log(`  📋 Request: "${meta.content?.slice(0, 60)}..."`)
           
           try {
