@@ -16,9 +16,57 @@ const jsonFilenames = {
 }
 
 // Generate tree from tutorial content if no explicit tree exists
+// Now includes ALL distinguishable elements: sections, subsections, sidebars, diagrams, etc.
 function generateTreeFromContent(content, tutorialTitle) {
   if (!content || !content.children) {
     return { id: 'root', title: tutorialTitle, children: [] }
+  }
+  
+  // Element types that should appear as distinct tree nodes
+  const NOTABLE_TYPES = {
+    'Sidebar': { icon: '📌', label: 'Sidebar' },
+    'DeepDive': { icon: '🔍', label: 'Deep Dive' },
+    'Callout': { icon: '💡', label: 'Callout' },
+    'Example': { icon: '📝', label: 'Example' },
+    'ComparisonTable': { icon: '📊', label: 'Comparison' },
+    'InteractiveViz': { icon: '🎮', label: 'Interactive' },
+    'Diagram': { icon: '📈', label: 'Diagram' },
+    'CodeBlock': { icon: '💻', label: 'Code' },
+    'Quiz': { icon: '❓', label: 'Quiz' },
+    'Footnote': { icon: '📎', label: 'Note' }
+  }
+  
+  // Recursively extract notable elements from content
+  function extractNotableElements(node, parentId, indexOffset = 0) {
+    const elements = []
+    if (!node) return elements
+    
+    const children = Array.isArray(node) ? node : (node.children ? (Array.isArray(node.children) ? node.children : [node.children]) : [])
+    
+    children.forEach((child, idx) => {
+      if (!child || typeof child !== 'object') return
+      
+      const notable = NOTABLE_TYPES[child.type]
+      if (notable) {
+        const title = child.props?.title || 
+                     (child.type === 'Callout' ? extractExcerpt([child], 50) : null) ||
+                     `${notable.label}`
+        elements.push({
+          id: `${parentId}-${child.type.toLowerCase()}-${indexOffset + idx}`,
+          title: `${notable.icon} ${title}`,
+          type: child.type,
+          excerpt: extractExcerpt([child], 80),
+          content: child
+        })
+      }
+      
+      // Recurse into children
+      if (child.children) {
+        elements.push(...extractNotableElements(child.children, parentId, indexOffset + idx * 100))
+      }
+    })
+    
+    return elements
   }
   
   const children = content.children
@@ -38,11 +86,15 @@ function generateTreeFromContent(content, tutorialTitle) {
           if (child.type === 'h3' || child.type === 'h4') {
             // Save previous subsection if exists
             if (currentSubsection) {
+              // Extract notable elements from this subsection's content
+              const notableElements = extractNotableElements(currentContent, currentSubsection.id)
+              
               subsections.push({
                 id: currentSubsection.id,
                 title: currentSubsection.title,
                 excerpt: extractExcerpt(currentContent),
-                content: currentContent.length > 0 ? { type: 'Fragment', children: currentContent } : null
+                content: currentContent.length > 0 ? { type: 'Fragment', children: currentContent } : null,
+                children: notableElements.length > 0 ? notableElements : undefined
               })
             }
             
@@ -59,16 +111,34 @@ function generateTreeFromContent(content, tutorialTitle) {
           } else if (currentSubsection) {
             // Add content to current subsection
             currentContent.push(child)
+          } else {
+            // Content before first h3 - check for notable elements at section level
+            const notable = NOTABLE_TYPES[child.type]
+            if (notable) {
+              const title = child.props?.title || 
+                           (child.type === 'Callout' ? extractExcerpt([child], 50) : null) ||
+                           `${notable.label}`
+              subsections.push({
+                id: `${sectionId}-${child.type.toLowerCase()}-${subIdx}`,
+                title: `${notable.icon} ${title}`,
+                type: child.type,
+                excerpt: extractExcerpt([child], 80),
+                content: child
+              })
+            }
           }
         })
         
         // Don't forget the last subsection
         if (currentSubsection) {
+          const notableElements = extractNotableElements(currentContent, currentSubsection.id)
+          
           subsections.push({
             id: currentSubsection.id,
             title: currentSubsection.title,
             excerpt: extractExcerpt(currentContent),
-            content: currentContent.length > 0 ? { type: 'Fragment', children: currentContent } : null
+            content: currentContent.length > 0 ? { type: 'Fragment', children: currentContent } : null,
+            children: notableElements.length > 0 ? notableElements : undefined
           })
         }
       }
