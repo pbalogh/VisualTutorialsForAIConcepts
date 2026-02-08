@@ -257,7 +257,7 @@ export default function D3Tree({
     // Use nodeSize instead of size for consistent spacing regardless of node count
     // This gives each node a fixed amount of vertical space
     const nodeVerticalSpacing = 45 // Vertical space per node
-    const nodeHorizontalSpacing = 220 // Horizontal space per level
+    const nodeHorizontalSpacing = 300 // Horizontal space per level (increased for long titles)
     
     const treeLayout = d3.tree()
       .nodeSize([nodeVerticalSpacing, nodeHorizontalSpacing])
