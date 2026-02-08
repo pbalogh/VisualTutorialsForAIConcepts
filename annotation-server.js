@@ -19,6 +19,7 @@ import { fileURLToPath } from 'url'
 import { callAI, getAIInfo } from './ai-config.js'
 import { generatePresentationAudio } from './tts-polly.js'
 import { generateFullSemanticTree, expandNode, computeTreeEmbeddings } from './semantic-tree.js'
+import { ragQuery, multiHopQuery, compareRetrieval } from './hierarchical-rag.js'
 import { createVersion, listVersions, getVersion, restoreVersion } from './src/utils/versioning.js'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
@@ -2710,6 +2711,66 @@ Return ONLY valid JSON array.`
       
     } catch (error) {
       console.error('❌ Semantic search error:', error)
+      return sendJson(res, 500, { error: error.message })
+    }
+  }
+  
+  // ==================== RAG QUERY ====================
+  if (url.pathname === '/rag/query' && req.method === 'POST') {
+    try {
+      const body = await parseBody(req)
+      const { tutorialId, question, maxContextTokens = 3000 } = body
+      
+      console.log('\n🤖 RAG Query:')
+      console.log(`  Tutorial: ${tutorialId}`)
+      console.log(`  Question: ${question}`)
+      
+      const result = await ragQuery(tutorialId, question, { maxContextTokens })
+      
+      return sendJson(res, 200, result)
+      
+    } catch (error) {
+      console.error('❌ RAG query error:', error)
+      return sendJson(res, 500, { error: error.message })
+    }
+  }
+  
+  // ==================== MULTI-HOP RAG ====================
+  if (url.pathname === '/rag/multi-hop' && req.method === 'POST') {
+    try {
+      const body = await parseBody(req)
+      const { tutorialId, question, maxHops = 2 } = body
+      
+      console.log('\n🔄 Multi-hop RAG Query:')
+      console.log(`  Tutorial: ${tutorialId}`)
+      console.log(`  Question: ${question}`)
+      
+      const results = await multiHopQuery(tutorialId, question, maxHops)
+      
+      return sendJson(res, 200, { hops: results })
+      
+    } catch (error) {
+      console.error('❌ Multi-hop RAG error:', error)
+      return sendJson(res, 500, { error: error.message })
+    }
+  }
+  
+  // ==================== COMPARE RETRIEVAL METHODS ====================
+  if (url.pathname === '/rag/compare' && req.method === 'POST') {
+    try {
+      const body = await parseBody(req)
+      const { tutorialId, question } = body
+      
+      console.log('\n📊 Compare Retrieval:')
+      console.log(`  Tutorial: ${tutorialId}`)
+      console.log(`  Question: ${question}`)
+      
+      const comparison = await compareRetrieval(tutorialId, question)
+      
+      return sendJson(res, 200, comparison)
+      
+    } catch (error) {
+      console.error('❌ Compare retrieval error:', error)
       return sendJson(res, 500, { error: error.message })
     }
   }

@@ -548,14 +548,47 @@ export default function TreeWrapper() {
               return <TutorialEngine content={node.content} state={tutorial.state || {}} />
             }
             
-            // Show summary for semantic non-leaf nodes (sections)
+            // Show summary for ALL nodes with summaries (sections, expanded nodes, etc)
             if (node.summary) {
               return (
                 <div className="space-y-4">
-                  <p className="text-lg text-gray-700">{node.summary}</p>
+                  {/* Summary */}
+                  <div className="bg-gradient-to-r from-slate-50 to-white p-4 rounded-lg border border-slate-200">
+                    <p className="text-sm font-medium text-slate-500 mb-2">Summary</p>
+                    <p className="text-lg text-gray-700 leading-relaxed">{node.summary}</p>
+                  </div>
+                  
+                  {/* Original summary if enriched */}
+                  {node.originalSummary && node.originalSummary !== node.summary && (
+                    <div className="text-sm text-gray-500 bg-gray-50 p-3 rounded">
+                      <p className="font-medium mb-1">Original summary (before expansion):</p>
+                      <p className="italic">{node.originalSummary}</p>
+                    </div>
+                  )}
+                  
+                  {/* Child count */}
                   {node.children?.length > 0 && (
-                    <div className="text-sm text-gray-500">
-                      Contains {node.children.length} concepts
+                    <div className="text-sm text-gray-500 flex items-center gap-2">
+                      <span className="text-violet-500">📂</span>
+                      Contains {node.children.length} {node.children.length === 1 ? 'concept' : 'concepts'}
+                    </div>
+                  )}
+                  
+                  {/* Child previews */}
+                  {node.children?.length > 0 && (
+                    <div className="space-y-2 pt-2 border-t">
+                      <p className="text-sm font-medium text-gray-600">Sub-concepts:</p>
+                      {node.children.slice(0, 5).map((child, i) => (
+                        <div key={i} className="text-sm text-gray-600 pl-4 border-l-2 border-violet-200">
+                          <span className="font-medium">{child.title}</span>
+                          {child.summary && (
+                            <span className="text-gray-500"> — {child.summary.slice(0, 100)}...</span>
+                          )}
+                        </div>
+                      ))}
+                      {node.children.length > 5 && (
+                        <p className="text-xs text-gray-400 pl-4">...and {node.children.length - 5} more</p>
+                      )}
                     </div>
                   )}
                 </div>
