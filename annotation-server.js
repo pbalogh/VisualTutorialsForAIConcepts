@@ -1231,16 +1231,18 @@ TASK: Rewrite the section text to incorporate the insights from these annotation
 CRITICAL INSTRUCTIONS:
 1. DON'T just insert annotation text - truly WEAVE the insights into the narrative
 2. Use smooth transitions between concepts - no jarring jumps
-3. Introduce new concepts BEFORE using them (e.g., define "dot product" before explaining what it measures)
+3. Introduce new concepts BEFORE using them
 4. Maintain a consistent voice and flow throughout
-5. The reader should feel like they're reading a polished textbook, not patched-together explanations
-6. Keep the same overall structure and length - don't make it 3x longer
-7. Don't add new subsections, headers, or bullet points
+5. Keep paragraphs SHORT and focused - max 3-4 sentences each
+6. One idea per paragraph - if adding new info, start a new paragraph
+7. PRESERVE specific numbers, values, and technical details from the annotations
+8. Don't make it significantly longer than the original
+9. Don't add headers, bullet points, or numbered lists
 
-Return ONLY the rewritten text (plain prose, no JSON, no markdown).`
+Return ONLY the rewritten text as multiple paragraphs (plain prose, no JSON, no markdown).`
 
           const rewrittenText = await callAI(
-            'You are an expert educational content editor. Your specialty is seamlessly integrating clarifications into prose without making it feel stitched together.',
+            'You are an expert educational content editor. Your specialty is seamlessly integrating clarifications into clear, digestible prose. You never write dense walls of text.',
             rewritePrompt
           )
           
