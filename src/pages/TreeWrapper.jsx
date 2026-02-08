@@ -214,7 +214,7 @@ function extractExcerpt(children, maxLength = 120) {
 }
 
 // Tree header component
-function TreeHeader({ title, subtitle, tutorialId, onVersionRestore, useSemanticTree, onToggleTreeMode }) {
+function TreeHeader({ title, subtitle, tutorialId, onVersionRestore, useSemanticTree, onToggleTreeMode, expansionMode, onToggleExpansionMode }) {
   return (
     <header className="relative overflow-hidden">
       <div 
@@ -281,6 +281,24 @@ function TreeHeader({ title, subtitle, tutorialId, onVersionRestore, useSemantic
             >
               <span>{useSemanticTree ? '🧠' : '📋'}</span>
               {useSemanticTree ? 'Semantic' : 'Structural'}
+            </button>
+          )}
+          
+          {/* Expansion mode toggle */}
+          {onToggleExpansionMode && (
+            <button
+              onClick={onToggleExpansionMode}
+              className={`inline-flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium transition-all duration-150 ${
+                expansionMode === 'faithful'
+                  ? 'bg-emerald-600 hover:bg-emerald-700 text-white shadow-lg shadow-emerald-500/25'
+                  : 'bg-amber-600 hover:bg-amber-700 text-white shadow-lg shadow-amber-500/25'
+              }`}
+              title={expansionMode === 'faithful' 
+                ? 'Only explains what the source says' 
+                : 'Can add external knowledge (marked)'}
+            >
+              <span>{expansionMode === 'faithful' ? '📖' : '🌐'}</span>
+              {expansionMode === 'faithful' ? 'Faithful' : 'Enriched'}
             </button>
           )}
         </div>
@@ -356,6 +374,7 @@ export default function TreeWrapper() {
   const [semanticTree, setSemanticTree] = useState(null)
   const [loadingSemanticTree, setLoadingSemanticTree] = useState(true)
   const [useSemanticTree, setUseSemanticTree] = useState(true) // Default to semantic
+  const [expansionMode, setExpansionMode] = useState('faithful') // 'faithful' or 'enriched'
   
   // Load semantic tree
   useEffect(() => {
@@ -445,7 +464,7 @@ export default function TreeWrapper() {
   
   // Handle expanding a semantic node
   const handleExpandNode = async (node) => {
-    console.log('Expanding node:', node)
+    console.log('Expanding node:', node, 'mode:', expansionMode)
     
     const response = await fetch('http://localhost:5190/expand-semantic-node', {
       method: 'POST',
@@ -453,8 +472,9 @@ export default function TreeWrapper() {
       body: JSON.stringify({
         tutorialId,
         nodeId: node.id,
-        node: { title: node.title, summary: node.summary, id: node.id },
-        parentContext: tutorial?.title
+        node: { title: node.title, summary: node.summary, id: node.id, sourceText: node.sourceText },
+        parentContext: tutorial?.title,
+        mode: expansionMode
       })
     })
     
@@ -494,6 +514,8 @@ export default function TreeWrapper() {
         onVersionRestore={handleVersionRestore}
         useSemanticTree={useSemanticTree}
         onToggleTreeMode={() => setUseSemanticTree(!useSemanticTree)}
+        expansionMode={expansionMode}
+        onToggleExpansionMode={() => setExpansionMode(m => m === 'faithful' ? 'enriched' : 'faithful')}
       />
       
       {/* Loading indicator for semantic tree */}
