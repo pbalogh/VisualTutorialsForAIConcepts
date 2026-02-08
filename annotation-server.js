@@ -1876,9 +1876,10 @@ Return ONLY valid JSON for a Section element with this structure:
 Return ONLY the JSON, no markdown or explanation.`
 
       console.log('🤖 Calling AI to combine nodes...')
-      const aiResponse = await callAI(combinePrompt, {
-        system: 'You are an expert at restructuring educational content. Return only valid JSON.'
-      })
+      const aiResponse = await callAI(
+        'You are an expert at restructuring educational content. Return only valid JSON.',
+        combinePrompt
+      )
       
       // Parse AI response
       let combinedSection
@@ -1980,9 +1981,10 @@ Select nodes whose titles OR excerpts relate to the topic.
 Return ONLY valid JSON.`
 
       console.log('🤖 Calling AI to interpret command...')
-      const aiResponse = await callAI(nlPrompt, {
-        system: 'You interpret natural language commands for tree manipulation. Return only valid JSON.'
-      })
+      const aiResponse = await callAI(
+        'You interpret natural language commands for tree manipulation. Return only valid JSON.',
+        nlPrompt
+      )
       
       // Parse AI response
       let result
