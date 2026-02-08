@@ -124,6 +124,10 @@ export default function D3Tree({
   const [combineNote, setCombineNote] = useState('')
   const [isCombining, setIsCombining] = useState(false)
   
+  // Natural language command state
+  const [nlCommand, setNlCommand] = useState('')
+  const [isProcessingNL, setIsProcessingNL] = useState(false)
+  
   const toggleExpand = useCallback((nodeId) => {
     setExpandedNodes(prev => {
       const next = new Set(prev)
@@ -160,6 +164,89 @@ export default function D3Tree({
   const clearSelection = useCallback(() => {
     setSelectedNodes(new Set())
   }, [])
+  
+  // Collect all node info for NL search
+  const collectAllNodes = useCallback((node, parentPath = []) => {
+    if (!node) return []
+    const nodeId = node.id || 'root'
+    const nodes = [{
+      id: nodeId,
+      title: node.title || '',
+      excerpt: node.excerpt || node.contentPreview || '',
+      path: parentPath
+    }]
+    
+    if (node.children) {
+      node.children.forEach(child => {
+        nodes.push(...collectAllNodes(child, [...parentPath, nodeId]))
+      })
+    }
+    return nodes
+  }, [])
+  
+  // Expand all ancestors of given node IDs
+  const expandAncestors = useCallback((nodeIds, allNodes) => {
+    const toExpand = new Set(expandedNodes)
+    nodeIds.forEach(nodeId => {
+      const nodeInfo = allNodes.find(n => n.id === nodeId)
+      if (nodeInfo) {
+        nodeInfo.path.forEach(ancestorId => toExpand.add(ancestorId))
+      }
+    })
+    setExpandedNodes(toExpand)
+  }, [expandedNodes])
+  
+  // Process natural language command
+  const processNLCommand = useCallback(async (command) => {
+    if (!command.trim()) return
+    
+    setIsProcessingNL(true)
+    try {
+      const allNodes = collectAllNodes(data)
+      
+      // Call AI to interpret the command
+      const response = await fetch('http://localhost:5190/nl-tree-command', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          command,
+          nodes: allNodes.map(n => ({
+            id: n.id,
+            title: n.title,
+            excerpt: n.excerpt?.slice(0, 100)
+          }))
+        })
+      })
+      
+      if (!response.ok) throw new Error('Command failed')
+      
+      const result = await response.json()
+      console.log('NL command result:', result)
+      
+      if (result.action === 'select' && result.nodeIds?.length > 0) {
+        // Expand ancestors and select nodes
+        expandAncestors(result.nodeIds, allNodes)
+        setSelectedNodes(new Set(result.nodeIds))
+        setSelectionMode(true)
+        setNlCommand('')
+      } else if (result.action === 'combine' && result.nodeIds?.length >= 2) {
+        // Expand ancestors, select nodes, and open combine modal
+        expandAncestors(result.nodeIds, allNodes)
+        setSelectedNodes(new Set(result.nodeIds))
+        setSelectionMode(true)
+        setCombineNote(result.editorNote || '')
+        setShowCombineModal(true)
+        setNlCommand('')
+      } else if (result.message) {
+        alert(result.message)
+      }
+    } catch (err) {
+      console.error('NL command error:', err)
+      alert('Failed to process command: ' + err.message)
+    } finally {
+      setIsProcessingNL(false)
+    }
+  }, [data, collectAllNodes, expandAncestors])
   
   const expandAll = useCallback(() => {
     const allIds = new Set()
@@ -496,6 +583,33 @@ export default function D3Tree({
             Collapse
           </button>
         </div>
+      </div>
+      
+      {/* Natural language command bar */}
+      <div className="px-4 py-2 bg-gradient-to-r from-violet-50 to-indigo-50 border-b border-violet-100">
+        <form 
+          onSubmit={(e) => {
+            e.preventDefault()
+            processNLCommand(nlCommand)
+          }}
+          className="flex gap-2"
+        >
+          <input
+            type="text"
+            value={nlCommand}
+            onChange={(e) => setNlCommand(e.target.value)}
+            placeholder='Try: "Select all nodes about pacemaker cells" or "Combine sections on theta rhythms"'
+            className="flex-1 px-3 py-1.5 text-sm border border-violet-200 rounded-lg focus:ring-2 focus:ring-violet-500 focus:border-violet-500 bg-white"
+            disabled={isProcessingNL}
+          />
+          <button
+            type="submit"
+            disabled={isProcessingNL || !nlCommand.trim()}
+            className="px-4 py-1.5 text-sm bg-violet-600 text-white rounded-lg hover:bg-violet-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+          >
+            {isProcessingNL ? '...' : '✨ Go'}
+          </button>
+        </form>
       </div>
       
       {/* Selection toolbar - appears when nodes are selected */}

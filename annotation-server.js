@@ -1940,6 +1940,72 @@ Return ONLY the JSON, no markdown or explanation.`
     }
   }
   
+  // ==================== NATURAL LANGUAGE TREE COMMAND ====================
+  if (url.pathname === '/nl-tree-command' && req.method === 'POST') {
+    try {
+      const body = await parseBody(req)
+      const { command, nodes } = body
+      
+      console.log('\n✨ Natural Language Tree Command:')
+      console.log(`  Command: "${command}"`)
+      console.log(`  Available nodes: ${nodes?.length}`)
+      
+      if (!command || !nodes) {
+        return sendJson(res, 400, { error: 'command and nodes required' })
+      }
+      
+      // Build node list for AI
+      const nodeList = nodes.map(n => `- ${n.id}: "${n.title}"${n.excerpt ? ` (${n.excerpt})` : ''}`).join('\n')
+      
+      const nlPrompt = `You are helping a user navigate and manipulate a tree-structured tutorial document.
+
+USER COMMAND: "${command}"
+
+AVAILABLE NODES:
+${nodeList}
+
+Interpret the user's command and return a JSON response:
+
+1. If they want to SELECT nodes (e.g., "select all nodes about X", "find nodes mentioning Y"):
+   Return: { "action": "select", "nodeIds": ["id1", "id2", ...], "reasoning": "why these nodes" }
+
+2. If they want to COMBINE nodes (e.g., "combine sections on X", "merge the Y nodes"):
+   Return: { "action": "combine", "nodeIds": ["id1", "id2", ...], "editorNote": "suggested guidance for combination", "reasoning": "why these nodes" }
+
+3. If no nodes match or command is unclear:
+   Return: { "action": "none", "message": "explanation to user" }
+
+Consider synonyms and related terms (e.g., "pacemaker cells" relates to "interneurons", "rhythm generators").
+Select nodes whose titles OR excerpts relate to the topic.
+Return ONLY valid JSON.`
+
+      console.log('🤖 Calling AI to interpret command...')
+      const aiResponse = await callAI(nlPrompt, {
+        system: 'You interpret natural language commands for tree manipulation. Return only valid JSON.'
+      })
+      
+      // Parse AI response
+      let result
+      try {
+        const jsonMatch = aiResponse.match(/\{[\s\S]*\}/)
+        if (!jsonMatch) throw new Error('No JSON found')
+        result = JSON.parse(jsonMatch[0])
+      } catch (e) {
+        console.error('❌ Failed to parse AI response:', e.message)
+        return sendJson(res, 200, { action: 'none', message: 'Could not interpret command' })
+      }
+      
+      console.log(`  Result: ${result.action} - ${result.nodeIds?.length || 0} nodes`)
+      if (result.reasoning) console.log(`  Reasoning: ${result.reasoning}`)
+      
+      return sendJson(res, 200, result)
+      
+    } catch (error) {
+      console.error('❌ NL command error:', error)
+      return sendJson(res, 500, { error: error.message })
+    }
+  }
+  
   if (url.pathname === '/generate' && req.method === 'POST') {
     try {
       const body = await parseBody(req)
