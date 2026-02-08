@@ -474,14 +474,20 @@ export default function TreeWrapper() {
           onAnnotationRequest={handleAnnotationRequest}
           onCombineNodes={handleCombineNodes}
           renderContent={(node) => {
-            // For semantic tree leaves, get content from tutorial by section index
-            if (node.isLeaf && node.sectionIndex !== undefined && tutorial?.content?.children) {
-              const sections = tutorial.content.children.filter(c => c.type === 'Section')
-              const section = sections[node.sectionIndex]
-              if (section) {
-                // For now, render the whole section - could be refined to use elementIndices
-                return <TutorialEngine content={section} state={tutorial.state || {}} />
-              }
+            // For semantic tree leaves, show the summary and chunk info
+            if (node.isLeaf && node.summary) {
+              return (
+                <div className="space-y-4">
+                  <p className="text-lg text-gray-700 leading-relaxed">{node.summary}</p>
+                  <div className="text-sm text-gray-500 border-t pt-4">
+                    <p className="font-medium text-gray-600 mb-2">This chunk covers:</p>
+                    <p className="italic">{node.title}</p>
+                  </div>
+                  <p className="text-xs text-gray-400">
+                    Click "Present" to see an animated explanation of this concept.
+                  </p>
+                </div>
+              )
             }
             
             // For structural tree or nodes with direct content
@@ -489,14 +495,14 @@ export default function TreeWrapper() {
               return <TutorialEngine content={node.content} state={tutorial.state || {}} />
             }
             
-            // Show summary for semantic non-leaf nodes
+            // Show summary for semantic non-leaf nodes (sections)
             if (node.summary) {
               return (
                 <div className="space-y-4">
                   <p className="text-lg text-gray-700">{node.summary}</p>
                   {node.children?.length > 0 && (
                     <div className="text-sm text-gray-500">
-                      {node.children.length} subsections
+                      Contains {node.children.length} concepts
                     </div>
                   )}
                 </div>
