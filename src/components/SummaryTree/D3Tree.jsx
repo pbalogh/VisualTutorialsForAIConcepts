@@ -68,14 +68,14 @@ function DetailModal({ node, onClose, renderContent, tutorialId, onAnnotationReq
   
   // Handle text selection actions - for tree view, create child nodes
   const handleTreeAnnotation = async ({ action, selectedText, context, question }) => {
-    if ((action === 'explain' || action === 'branch') && onExplainSelection) {
+    if ((action === 'explain' || action === 'ask') && onExplainSelection) {
       setIsExpanding(true)
       try {
         await onExplainSelection(nodeData, selectedText, question)
         onClose() // Close modal, tree will update
       } catch (err) {
-        console.error('Failed to explain selection:', err)
-        alert('Failed to explain: ' + err.message)
+        console.error('Failed to create child node:', err)
+        alert('Failed: ' + err.message)
       } finally {
         setIsExpanding(false)
       }

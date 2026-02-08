@@ -2524,44 +2524,52 @@ Return ONLY valid JSON array.`
       console.log(`  Tutorial: ${tutorialId}`)
       console.log(`  Parent: ${parentNode?.title}`)
       console.log(`  Selected: "${selectedText}"`)
+      console.log(`  Question: ${question || '(none)'}`)
       console.log(`  Mode: ${mode}`)
+      
+      // Different prompts for explain vs ask
+      const isQuestion = !!question
       
       // Generate explanation as child node(s)
       const explainPrompt = mode === 'faithful'
-        ? `You are explaining a term/phrase that a reader selected from educational content.
+        ? `You are ${isQuestion ? 'answering a question' : 'explaining a term/phrase'} for a reader of educational content.
 
-SELECTED TEXT: "${selectedText}"
-${question ? `USER QUESTION: ${question}` : ''}
+${isQuestion ? `QUESTION: ${question}` : `SELECTED TEXT: "${selectedText}"`}
+${isQuestion && selectedText ? `REGARDING: "${selectedText}"` : ''}
 
 CONTEXT (from the source):
 ${parentNode.sourceText || parentNode.summary}
 
-Explain what "${selectedText}" means IN THE CONTEXT of this source material.
+${isQuestion 
+  ? 'Answer the question using ONLY information from or directly implied by the context above.'
+  : `Explain what "${selectedText}" means IN THE CONTEXT of this source material.`}
 - Only use information from or directly implied by the context
-- If the context doesn't explain this term, say so
+- If the context doesn't ${isQuestion ? 'answer this' : 'explain this term'}, say so
 - Be educational and clear
 
 Return a JSON object with:
-- "title": A clear title for this explanation (e.g., "What are GABAergic interneurons?")
-- "summary": 2-4 sentence explanation based on the source context
-- "needsMoreDetail": true if this concept could be further broken down
+- "title": ${isQuestion ? 'A clear title summarizing the Q&A' : 'A clear title for this explanation (e.g., "What are GABAergic interneurons?")'}
+- "summary": 2-4 sentence ${isQuestion ? 'answer' : 'explanation'} based on the source context
+- "needsMoreDetail": true if this ${isQuestion ? 'answer' : 'concept'} could be further broken down
 
 Return ONLY valid JSON.`
-        : `You are explaining a term/phrase that a reader wants to understand better.
+        : `You are ${isQuestion ? 'answering a question' : 'explaining a term/phrase'} for a reader.
 
-SELECTED TEXT: "${selectedText}"
-${question ? `USER QUESTION: ${question}` : ''}
+${isQuestion ? `QUESTION: ${question}` : `SELECTED TEXT: "${selectedText}"`}
+${isQuestion && selectedText ? `REGARDING: "${selectedText}"` : ''}
 
 CONTEXT (from the source):
 ${parentNode.sourceText || parentNode.summary}
 
-Explain what "${selectedText}" means. You may add general knowledge beyond the source to help understanding, but prioritize what the source says.
+${isQuestion 
+  ? 'Answer the question. You may add general knowledge beyond the source to help understanding, but prioritize what the source says.'
+  : `Explain what "${selectedText}" means. You may add general knowledge beyond the source to help understanding, but prioritize what the source says.`}
 
 Return a JSON object with:
-- "title": A clear title for this explanation
-- "summary": 2-4 sentence educational explanation
+- "title": ${isQuestion ? 'A clear title summarizing the Q&A' : 'A clear title for this explanation'}
+- "summary": 2-4 sentence educational ${isQuestion ? 'answer' : 'explanation'}
 - "isExternal": true if you added information beyond what the source says
-- "needsMoreDetail": true if this concept could be further broken down
+- "needsMoreDetail": true if this ${isQuestion ? 'answer' : 'concept'} could be further broken down
 
 Return ONLY valid JSON.`
       
@@ -2584,16 +2592,18 @@ Return ONLY valid JSON.`
       
       // Create the child node
       const childNode = {
-        id: `${parentNodeId}-explain-${Date.now()}`,
+        id: `${parentNodeId}-${isQuestion ? 'qa' : 'explain'}-${Date.now()}`,
         title: explanation.title,
         summary: explanation.summary,
         sourceText: selectedText,
+        question: question || null,  // Store the original question if it was a Q&A
         isLeaf: true,
         canExpand: explanation.needsMoreDetail || false,
         expanded: false,
         isAtomic: false,
         isExternal: explanation.isExternal || false,
-        isExplanation: true,  // Mark as user-requested explanation
+        isExplanation: !isQuestion,  // Mark as user-requested explanation
+        isQA: isQuestion,            // Mark as Q&A
         generatedAt: new Date().toISOString()
       }
       
