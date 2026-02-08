@@ -30,7 +30,8 @@ function DetailModal({ node, onClose, renderContent, tutorialId, onAnnotationReq
   if (!node) return null
   
   const nodeData = node.data || node
-  const canExpand = nodeData.canExpand && !nodeData.isAtomic && nodeData.isLeaf && onExpandNode
+  // Allow expansion for any leaf node that has a summary and isn't marked atomic
+  const canExpand = (nodeData.canExpand !== false) && !nodeData.isAtomic && nodeData.isLeaf && nodeData.summary && onExpandNode
   
   const handlePresent = async () => {
     setIsGenerating(true)

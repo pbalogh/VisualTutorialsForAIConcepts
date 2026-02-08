@@ -322,7 +322,7 @@ Return ONLY valid JSON.`
         summary: sub.summary,
         sourceText: sourceText,  // Anchored to parent's text
         isLeaf: true,
-        canExpand: !sub.isAtomic && sourceText.length > 100,  // Need enough content to expand
+        canExpand: !sub.isAtomic,  // Allow expansion if not atomic, regardless of sourceText
         expanded: false,
         isAtomic: sub.isAtomic || false,
         generatedAt: new Date().toISOString()
