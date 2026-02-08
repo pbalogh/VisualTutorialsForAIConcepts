@@ -1109,7 +1109,26 @@ const server = http.createServer(async (req, res) => {
         })
       }
       
-      // Summarize annotations for the AI
+      // PHASE 1: Scan for META-ANNOTATIONS (requests for new sections, major restructuring)
+      const metaPatterns = [
+        /should (have|add|create|include) (a |an )?(new |major |entire )?section/i,
+        /needs? (its own|a dedicated|a separate) (section|chapter)/i,
+        /missing:?\s*(section|chapter|explanation)/i,
+        /TODO:?\s*(add|create|expand|write)/i,
+        /this (deserves|warrants|needs) (its own|a) section/i,
+        /we need to (add|cover|explain)/i
+      ]
+      
+      const metaAnnotations = annotations.filter(ann => {
+        const text = ann.content || ''
+        return metaPatterns.some(pattern => pattern.test(text))
+      })
+      
+      if (metaAnnotations.length > 0) {
+        console.log(`  📋 Found ${metaAnnotations.length} META-ANNOTATION(S) requesting structural changes`)
+        metaAnnotations.forEach(m => console.log(`     - "${m.content?.slice(0, 60)}..."`))
+      }
+      
       // Build rich annotation summary with context
       const annotationSummary = annotations.map((a, i) => {
         let summary = `${i+1}. [${a.type}${a.subtype ? ':'+a.subtype : ''}] ${a.title || ''}\n`
@@ -1122,9 +1141,6 @@ const server = http.createServer(async (req, res) => {
         }
         return summary
       }).join('\n')
-      
-      // NEW APPROACH: Rewrite sections to incorporate annotation insights
-      // Instead of removing annotations, we improve the main text so annotations become unnecessary
       
       // Group annotations by their parent section
       const sectionAnnotations = new Map() // sectionPath -> { section, annotations }
@@ -1184,6 +1200,18 @@ const server = http.createServer(async (req, res) => {
         })
       }
       
+      // Add meta-annotation changes to preview
+      const metaChanges = []
+      if (metaAnnotations.length > 0) {
+        for (const meta of metaAnnotations) {
+          metaChanges.push({
+            action: 'new_section',
+            annotation: meta.content?.slice(0, 100),
+            suggestion: 'AI will generate a new section based on this request'
+          })
+        }
+      }
+      
       // If preview mode, return the plan
       if (!apply) {
         console.log('📋 Preview only - no changes applied')
@@ -1193,17 +1221,108 @@ const server = http.createServer(async (req, res) => {
           tutorialId,
           annotationCount: annotations.length,
           sectionCount: sectionAnnotations.size,
-          changes,
-          message: `Will rewrite ${sectionAnnotations.size} section(s) to incorporate ${annotations.length} annotation insights`,
+          metaAnnotationCount: metaAnnotations.length,
+          changes: [...metaChanges, ...changes],
+          message: metaAnnotations.length > 0 
+            ? `Found ${metaAnnotations.length} request(s) for new sections + ${sectionAnnotations.size} section(s) to edit`
+            : `Will edit ${sectionAnnotations.size} section(s) to incorporate ${annotations.length} annotation insights`,
           updatedContent: content
         })
       }
       
-      // APPLY MODE: Get structured edits for each section
-      console.log('🔧 Getting structured edits for sections...')
+      // APPLY MODE: First handle meta-annotations (new sections)
+      console.log('🔧 Applying changes...')
       let updatedContent = JSON.parse(JSON.stringify(content)) // Deep clone
       let totalEdits = 0
+      let newSectionsCreated = 0
       
+      // Process meta-annotations - create new sections
+      if (metaAnnotations.length > 0) {
+        console.log(`\n🆕 Processing ${metaAnnotations.length} meta-annotation(s) for new sections...`)
+        
+        for (const meta of metaAnnotations) {
+          console.log(`  📋 Request: "${meta.content?.slice(0, 60)}..."`)
+          
+          try {
+            const newSectionPrompt = `A reader has requested a new section be added to an educational tutorial.
+
+READER REQUEST:
+"${meta.content}"
+
+CONTEXT (where this was noted):
+${meta.contextBefore ? `Before: "${meta.contextBefore}"` : ''}
+${meta.contextAfter ? `After: "${meta.contextAfter}"` : ''}
+
+Generate a new tutorial section that addresses this request. Return JSON:
+{
+  "title": "Section Title",
+  "content": [
+    { "type": "p", "text": "First paragraph..." },
+    { "type": "p", "text": "Second paragraph..." }
+  ]
+}
+
+GUIDELINES:
+- Keep paragraphs SHORT (3-4 sentences)
+- Be educational and clear
+- Include 2-4 paragraphs
+- Title should be descriptive
+
+Return ONLY valid JSON.`
+
+            const response = await callAI(
+              'You are an expert educational content creator. Write clear, engaging tutorial content.',
+              newSectionPrompt
+            )
+            
+            let sectionData
+            try {
+              let jsonStr = response.trim()
+              if (jsonStr.startsWith('```json')) jsonStr = jsonStr.slice(7)
+              if (jsonStr.startsWith('```')) jsonStr = jsonStr.slice(3)
+              if (jsonStr.endsWith('```')) jsonStr = jsonStr.slice(0, -3)
+              sectionData = JSON.parse(jsonStr.trim())
+            } catch (e) {
+              console.log(`    ❌ Failed to parse new section: ${e.message}`)
+              continue
+            }
+            
+            // Build the new section structure
+            const newSection = {
+              type: 'Section',
+              props: { title: sectionData.title },
+              children: [
+                { type: 'h3', children: sectionData.title },
+                ...sectionData.content.map(p => ({
+                  type: 'p',
+                  children: p.text || p
+                }))
+              ]
+            }
+            
+            // Insert before References section (or at end)
+            const contentChildren = updatedContent.content.children
+            let insertIndex = contentChildren.length
+            for (let i = 0; i < contentChildren.length; i++) {
+              if (contentChildren[i].props?.title?.toLowerCase().includes('reference') ||
+                  contentChildren[i].props?.title?.toLowerCase().includes('takeaway')) {
+                insertIndex = i
+                break
+              }
+            }
+            
+            contentChildren.splice(insertIndex, 0, newSection)
+            newSectionsCreated++
+            totalEdits++
+            console.log(`    ✅ Created new section: "${sectionData.title}"`)
+            
+          } catch (e) {
+            console.error(`    ❌ Failed to create section: ${e.message}`)
+          }
+        }
+      }
+      
+      // Then process regular section edits
       for (const [sectionPath, { section, sectionTitle, annotations: sectionAnns }] of sectionAnnotations) {
         console.log(`\n📝 Processing section: "${sectionTitle}" (${sectionAnns.length} annotations)`)
         
@@ -1360,7 +1479,9 @@ Return ONLY a JSON array, no explanation.`
         }
       }
       
-      const message = `Applied ${totalEdits} edits across ${sectionAnnotations.size} section(s)`
+      const message = newSectionsCreated > 0
+        ? `Created ${newSectionsCreated} new section(s) + applied ${totalEdits - newSectionsCreated} edits`
+        : `Applied ${totalEdits} edits across ${sectionAnnotations.size} section(s)`
       
       if (totalEdits > 0) {
         // Save the updated content
@@ -1368,7 +1489,9 @@ Return ONLY a JSON array, no explanation.`
         console.log(`\n💾 Saved: ${jsonPath}`)
         
         // Commit to git (for undo capability)
-        const commitMsg = `[regroup] ${totalEdits} edits in ${tutorialId}`
+        const commitMsg = newSectionsCreated > 0
+          ? `[regroup] +${newSectionsCreated} sections, ${totalEdits - newSectionsCreated} edits in ${tutorialId}`
+          : `[regroup] ${totalEdits} edits in ${tutorialId}`
         commitAndPush(jsonPath, commitMsg).catch(() => {})
       }
       
@@ -1377,6 +1500,7 @@ Return ONLY a JSON array, no explanation.`
         preview: false,
         tutorialId,
         editsApplied: totalEdits,
+        newSectionsCreated,
         sectionsProcessed: sectionAnnotations.size,
         message,
         updatedContent

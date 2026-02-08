@@ -15,7 +15,11 @@ import { TutorialEngine } from '../components/TutorialEngine/ElementRenderer.jsx
 function RegroupPreviewModal({ preview, onApply, onCancel }) {
   if (!preview) return null
   
-  const { changes, sectionCount, annotationCount, message } = preview
+  const { changes, sectionCount, annotationCount, metaAnnotationCount, message } = preview
+  
+  // Separate new section requests from regular edits
+  const newSectionChanges = changes?.filter(c => c.action === 'new_section') || []
+  const editChanges = changes?.filter(c => c.action !== 'new_section') || []
   
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
@@ -23,32 +27,50 @@ function RegroupPreviewModal({ preview, onApply, onCancel }) {
         {/* Header */}
         <div className="p-6 border-b border-gray-700">
           <h2 className="text-xl font-semibold text-white mb-2">✨ Incorporate Annotations</h2>
-          <p className="text-gray-400 text-sm">
-            {message || `Will rewrite ${sectionCount} section(s) to incorporate ${annotationCount} annotation insights`}
-          </p>
-          <p className="text-amber-400/80 text-xs mt-3">
-            ⚠️ The AI will rewrite each section's prose to weave in the annotation insights. 
-            Original formatting may change. Use Undo if needed.
+          <p className="text-gray-400 text-sm">{message}</p>
+          {metaAnnotationCount > 0 && (
+            <p className="text-emerald-400/80 text-xs mt-2">
+              🆕 Found {metaAnnotationCount} request(s) for new sections!
+            </p>
+          )}
+          <p className="text-amber-400/80 text-xs mt-2">
+            ⚠️ AI will modify content. Use Undo if needed.
           </p>
         </div>
         
-        {/* Sections to rewrite */}
+        {/* Changes list */}
         <div className="flex-1 overflow-y-auto p-6 space-y-3">
-          {changes && changes.map((change, i) => (
+          {/* New section requests first */}
+          {newSectionChanges.map((change, i) => (
             <div 
-              key={i}
+              key={`new-${i}`}
+              className="p-4 rounded-lg border bg-emerald-500/20 text-emerald-300 border-emerald-500/30"
+            >
+              <div className="flex items-center gap-2 mb-2">
+                <span className="text-sm font-medium">🆕 New Section Requested</span>
+              </div>
+              <div className="text-sm opacity-80">
+                "{change.annotation}..."
+              </div>
+            </div>
+          ))}
+          
+          {/* Regular section edits */}
+          {editChanges.map((change, i) => (
+            <div 
+              key={`edit-${i}`}
               className="p-4 rounded-lg border bg-indigo-500/20 text-indigo-300 border-indigo-500/30"
             >
               <div className="flex items-center gap-2 mb-2">
                 <span className="text-sm font-medium">
-                  📝 Rewrite: {change.sectionTitle}
+                  📝 Edit: {change.sectionTitle}
                 </span>
                 <span className="text-xs opacity-60">
                   ({change.annotationCount} annotations)
                 </span>
               </div>
               <div className="text-sm opacity-80 line-clamp-2">
-                Insights to incorporate: {change.preview}...
+                {change.preview}...
               </div>
             </div>
           ))}
