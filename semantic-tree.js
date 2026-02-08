@@ -259,30 +259,30 @@ export async function expandNode(node, parentContext = '') {
   const sourceContent = node.sourceText || node.summary
   const hasSourceText = !!node.sourceText
   
-  const expandPrompt = `You are analyzing a concept to determine if it can be broken into meaningful sub-concepts.
+  const expandPrompt = `You are analyzing a concept to help learners understand it deeply.
 
 CONCEPT: ${node.title}
 SUMMARY: ${node.summary}
 ${hasSourceText ? `\nSOURCE TEXT:\n${sourceContent.slice(0, 3000)}` : ''}
 PARENT CONTEXT: ${parentContext || 'Top-level concept'}
 
-Analyze this ${hasSourceText ? 'source text' : 'concept'}. Can it be meaningfully decomposed into 2-5 sub-concepts that would help someone understand it better?
+Your job is to break this into 2-5 sub-concepts that a learner would need to understand.
 
-If YES: Return a JSON array of sub-concepts, each with:
-- "title": Brief title (3-8 words)
-- "summary": One-sentence explanation
+Return a JSON array of sub-concepts, each with:
+- "title": Clear title (3-8 words) naming the concept or process
+- "summary": A TEACHING explanation (2-4 sentences) that helps someone understand WHY and HOW, not just WHAT. Include analogies or examples where helpful.
 - "sourceQuote": ${hasSourceText ? 'A verbatim quote (20+ words) from the source text that this sub-concept covers' : '"" (empty string)'}
-- "isAtomic": true if this sub-concept is fundamental and doesn't need further breakdown
+- "isAtomic": true ONLY if this is a single-word scientific term that can be looked up in a dictionary (e.g., "neuron", "synapse", "axon"). Complex processes are NEVER atomic.
 
-If NO (the concept is already atomic/fundamental): Return {"atomic": true, "reason": "brief explanation"}
+IMPORTANT: 
+- "GABAergic interneurons creating rhythmic inhibition" is NOT atomic — it's a complex mechanism
+- "Synchronized neuronal firing" is NOT atomic — it's a process with multiple components
+- Only basic scientific VOCABULARY is atomic (neuron, synapse, dendrite, axon, ion channel)
 
-Examples of atomic concepts: "action potential", "neuron", "frequency"
-Examples of expandable concepts: "how neurons communicate", "memory encoding process"
-
-Return ONLY valid JSON.`
+Return ONLY valid JSON array. Do NOT return {"atomic": true} — always provide sub-concepts.`
 
   const response = await callAI(
-    'You are an expert at decomposing complex concepts into learnable sub-concepts. Be judicious - only expand when it genuinely helps understanding.',
+    'You are an expert teacher who breaks down complex concepts into understandable pieces. Your summaries should TEACH, not just label. Never mark processes or mechanisms as atomic.',
     expandPrompt
   )
   
@@ -292,10 +292,24 @@ Return ONLY valid JSON.`
     
     const parsed = JSON.parse(jsonMatch[0])
     
-    // Check if atomic
+    // If AI returned atomic anyway, force expansion with a simpler prompt
     if (parsed.atomic) {
-      console.log(`  ⚛️ Node is atomic: ${parsed.reason}`)
-      return { atomic: true, reason: parsed.reason }
+      console.log(`  ⚠️ AI claimed atomic, forcing expansion...`)
+      // Return a single "deep explanation" child instead
+      return {
+        atomic: false,
+        children: [{
+          id: `${node.id}-explain`,
+          title: `Understanding: ${node.title}`,
+          summary: `${node.summary}\n\nThis concept involves understanding the underlying mechanism and why it matters in the broader context of ${parentContext || 'this topic'}.`,
+          sourceText: node.sourceText || '',
+          isLeaf: true,
+          canExpand: true,
+          expanded: false,
+          isAtomic: false,
+          generatedAt: new Date().toISOString()
+        }]
+      }
     }
     
     // It's an array of sub-concepts
