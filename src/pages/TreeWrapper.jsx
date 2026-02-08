@@ -163,12 +163,33 @@ function generateTreeFromContent(content, tutorialTitle) {
 // Extract first paragraph text as excerpt
 function extractExcerpt(children, maxLength = 120) {
   if (!children) return ''
+  
+  // Handle direct string content
+  if (typeof children === 'string') {
+    return children.length > maxLength ? children.slice(0, maxLength) + '...' : children
+  }
+  
   const arr = Array.isArray(children) ? children : [children]
   
   for (const child of arr) {
+    // Direct string in array
+    if (typeof child === 'string') {
+      return child.length > maxLength ? child.slice(0, maxLength) + '...' : child
+    }
+    // Paragraph with string content
     if (child.type === 'p' && typeof child.children === 'string') {
       const text = child.children
       return text.length > maxLength ? text.slice(0, maxLength) + '...' : text
+    }
+    // Element with direct string children (like Callout)
+    if (typeof child.children === 'string') {
+      const text = child.children
+      return text.length > maxLength ? text.slice(0, maxLength) + '...' : text
+    }
+    // Recurse into children
+    if (child.children) {
+      const excerpt = extractExcerpt(child.children, maxLength)
+      if (excerpt) return excerpt
     }
   }
   return ''
