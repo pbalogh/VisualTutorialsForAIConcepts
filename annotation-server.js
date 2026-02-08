@@ -1120,7 +1120,8 @@ const server = http.createServer(async (req, res) => {
           /missing:?\s*(section|chapter|explanation)/i,
           /TODO:?\s*(add|create|expand|write)/i,
           /this (deserves|warrants|needs) (its own|a) section/i,
-          /we need to (add|cover|explain)/i
+          /we need to (add|cover|explain)/i,
+          /go deeper/i  // "Go Deeper" annotations suggest structural expansion
         ],
         // Reorganization requests
         reorganize: [
@@ -1151,7 +1152,10 @@ const server = http.createServer(async (req, res) => {
       annotations.forEach(ann => {
         const text = ann.content || ''
         
-        if (metaPatterns.newSection.some(p => p.test(text))) {
+        // DeepDive elements are always structural expansion requests
+        if (ann.type === 'deepdive') {
+          metaAnnotations.newSection.push(ann)
+        } else if (metaPatterns.newSection.some(p => p.test(text))) {
           metaAnnotations.newSection.push(ann)
         } else if (metaPatterns.reorganize.some(p => p.test(text))) {
           metaAnnotations.reorganize.push(ann)
