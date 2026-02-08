@@ -395,11 +395,6 @@ export default function D3Tree({
     zoomRef.current = zoom
     svg.call(zoom)
     
-    // Restore previous transform if exists
-    if (transformRef.current) {
-      svg.call(zoom.transform, transformRef.current)
-    }
-    
     // Filter data based on expanded nodes
     const filterData = (node) => {
       const nodeId = node.id || 'root'
@@ -593,8 +588,13 @@ export default function D3Tree({
       }
     })
     
-    // Only center tree initially (when no saved transform)
-    if (!transformRef.current) {
+    // Restore previous transform OR set initial centering
+    if (transformRef.current) {
+      // Restore saved transform immediately (no animation to avoid jump)
+      g.attr('transform', transformRef.current)
+      svg.call(zoom.transform, transformRef.current)
+    } else {
+      // First render - center the tree
       const bounds = g.node().getBBox()
       const scale = Math.min(
         (width - 40) / bounds.width,
