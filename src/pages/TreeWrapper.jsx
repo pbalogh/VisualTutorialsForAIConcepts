@@ -214,7 +214,7 @@ function extractExcerpt(children, maxLength = 120) {
 }
 
 // Tree header component
-function TreeHeader({ title, subtitle, tutorialId, onVersionRestore }) {
+function TreeHeader({ title, subtitle, tutorialId, onVersionRestore, useSemanticTree, onToggleTreeMode }) {
   return (
     <header className="relative overflow-hidden">
       <div 
@@ -268,6 +268,21 @@ function TreeHeader({ title, subtitle, tutorialId, onVersionRestore }) {
           </Link>
           
           <VersionDropdown tutorialId={tutorialId} onVersionChange={onVersionRestore} />
+          
+          {/* Tree mode toggle */}
+          {onToggleTreeMode && (
+            <button
+              onClick={onToggleTreeMode}
+              className={`inline-flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium transition-all duration-150 ${
+                useSemanticTree 
+                  ? 'bg-violet-600 hover:bg-violet-700 text-white shadow-lg shadow-violet-500/25'
+                  : 'bg-gray-700 hover:bg-gray-600 text-gray-200'
+              }`}
+            >
+              <span>{useSemanticTree ? '🧠' : '📋'}</span>
+              {useSemanticTree ? 'Semantic' : 'Structural'}
+            </button>
+          )}
         </div>
       </div>
     </header>
@@ -337,6 +352,37 @@ export default function TreeWrapper() {
     loadTutorial()
   }
   
+  // Semantic tree state
+  const [semanticTree, setSemanticTree] = useState(null)
+  const [loadingSemanticTree, setLoadingSemanticTree] = useState(true)
+  const [useSemanticTree, setUseSemanticTree] = useState(true) // Default to semantic
+  
+  // Load semantic tree
+  useEffect(() => {
+    const loadSemanticTree = async () => {
+      setLoadingSemanticTree(true)
+      try {
+        const response = await fetch('http://localhost:5190/generate-semantic-tree', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ tutorialId })
+        })
+        if (response.ok) {
+          const data = await response.json()
+          setSemanticTree(data.tree)
+        }
+      } catch (e) {
+        console.error('Failed to load semantic tree:', e)
+      } finally {
+        setLoadingSemanticTree(false)
+      }
+    }
+    
+    if (tutorialId) {
+      loadSemanticTree()
+    }
+  }, [tutorialId])
+  
   useEffect(() => {
     loadTutorial()
   }, [tutorialId])
@@ -364,8 +410,9 @@ export default function TreeWrapper() {
     )
   }
   
-  // Use explicit tree if present, otherwise generate from content
-  const treeData = tutorial.tree || generateTreeFromContent(tutorial.content, tutorial.title)
+  // Use semantic tree if available and enabled, otherwise structural
+  const structuralTree = tutorial?.tree || generateTreeFromContent(tutorial?.content, tutorial?.title)
+  const treeData = (useSemanticTree && semanticTree) ? semanticTree : structuralTree
   
   // Handle combine nodes
   const handleCombineNodes = async (nodeIds, editorNote) => {
@@ -403,7 +450,16 @@ export default function TreeWrapper() {
         subtitle={tutorial.subtitle}
         tutorialId={tutorialId}
         onVersionRestore={handleVersionRestore}
+        useSemanticTree={useSemanticTree}
+        onToggleTreeMode={() => setUseSemanticTree(!useSemanticTree)}
       />
+      
+      {/* Loading indicator for semantic tree */}
+      {loadingSemanticTree && useSemanticTree && (
+        <div className="fixed top-4 right-4 z-50 bg-violet-600 text-white px-4 py-2 rounded-lg shadow-lg text-sm">
+          🧠 Loading semantic tree...
+        </div>
+      )}
       
       {/* Gradient bridge from dark header to light content */}
       <div className="h-16 bg-gradient-to-b from-[#1a1825] via-slate-200 to-slate-50" />
@@ -411,16 +467,42 @@ export default function TreeWrapper() {
       <Container className="py-8 pb-16 max-w-6xl -mt-8">
         <D3Tree 
           data={treeData}
-          title={`${tutorial.title} — Structure`}
+          title={`${tutorial.title} — ${useSemanticTree ? 'Semantic' : 'Structural'}`}
           className="shadow-lg"
           height={600}
           tutorialId={tutorialId}
           onAnnotationRequest={handleAnnotationRequest}
           onCombineNodes={handleCombineNodes}
           renderContent={(node) => {
+            // For semantic tree leaves, get content from tutorial by section index
+            if (node.isLeaf && node.sectionIndex !== undefined && tutorial?.content?.children) {
+              const sections = tutorial.content.children.filter(c => c.type === 'Section')
+              const section = sections[node.sectionIndex]
+              if (section) {
+                // For now, render the whole section - could be refined to use elementIndices
+                return <TutorialEngine content={section} state={tutorial.state || {}} />
+              }
+            }
+            
+            // For structural tree or nodes with direct content
             if (node.content) {
               return <TutorialEngine content={node.content} state={tutorial.state || {}} />
             }
+            
+            // Show summary for semantic non-leaf nodes
+            if (node.summary) {
+              return (
+                <div className="space-y-4">
+                  <p className="text-lg text-gray-700">{node.summary}</p>
+                  {node.children?.length > 0 && (
+                    <div className="text-sm text-gray-500">
+                      {node.children.length} subsections
+                    </div>
+                  )}
+                </div>
+              )
+            }
+            
             return <p className="text-gray-500 italic">No detailed content available for this section.</p>
           }}
         />
