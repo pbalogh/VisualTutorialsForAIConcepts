@@ -265,6 +265,31 @@ export default function D3Tree({
           }
         }
         setNlCommand('')
+      } else if (result.action === 'lint') {
+        // Structure lint - analyze and optionally auto-fix
+        if (confirm(`Run structure lint with auto-fix?\n\n${result.reasoning}`)) {
+          const lintResponse = await fetch('http://localhost:5190/structure-lint', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              tutorialId,
+              autoFix: result.autoFix !== false
+            })
+          })
+          
+          const lintResult = await lintResponse.json()
+          
+          if (lintResult.status === 'clean') {
+            alert('✅ No structural issues found!')
+          } else if (lintResult.status === 'fixed') {
+            alert(`✅ Fixed ${lintResult.fixedCount} issues! Reloading...`)
+            window.location.reload()
+          } else if (lintResult.issues?.length > 0) {
+            alert(`Found ${lintResult.issues.length} issues:\n\n` + 
+              lintResult.issues.map(i => `• ${i.title}: ${i.suggestion}`).join('\n'))
+          }
+        }
+        setNlCommand('')
       } else if (result.action === 'delete' && result.nodeIds?.length > 0) {
         // Show what will be deleted and confirm
         expandAncestors(result.nodeIds, allNodes)

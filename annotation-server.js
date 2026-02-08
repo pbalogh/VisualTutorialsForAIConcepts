@@ -2066,7 +2066,10 @@ Interpret the user's command and return a JSON response:
 6. If they want to MOVE nodes (e.g., "move X under Y", "reorder X before Y"):
    Return: { "action": "move", "nodeIds": ["id1"], "targetId": "destination parent id", "position": "before|after|inside", "reasoning": "explanation" }
 
-7. If no nodes match or command is unclear:
+7. If they want to LINT/REORGANIZE the structure (e.g., "lint the structure", "reorganize large sections", "fix structural issues", "clean up the tree"):
+   Return: { "action": "lint", "autoFix": true, "reasoning": "explanation" }
+
+8. If no nodes match or command is unclear:
    Return: { "action": "none", "message": "explanation to user" }
 
 Consider synonyms and related terms (e.g., "pacemaker cells" relates to "interneurons", "rhythm generators").
@@ -2097,6 +2100,220 @@ Return ONLY valid JSON.`
       
     } catch (error) {
       console.error('❌ NL command error:', error)
+      return sendJson(res, 500, { error: error.message })
+    }
+  }
+  
+  // ==================== STRUCTURE LINT (analyze and suggest splits) ====================
+  if (url.pathname === '/structure-lint' && req.method === 'POST') {
+    try {
+      const body = await parseBody(req)
+      const { tutorialId, autoFix = false } = body
+      
+      console.log('\n🔍 Structure Lint Request:')
+      console.log(`  Tutorial: ${tutorialId}`)
+      console.log(`  Auto-fix: ${autoFix}`)
+      
+      // Load tutorial
+      const jsonPath = path.join(CONTENT_DIR, `${tutorialId}.json`)
+      const content = JSON.parse(await fs.readFile(jsonPath, 'utf-8'))
+      
+      // Thresholds for "too large"
+      const MAX_DIRECT_CHILDREN = 8
+      const MAX_TEXT_LENGTH = 2000 // chars
+      
+      // Analyze structure
+      const issues = []
+      
+      function analyzeNode(node, path = '', depth = 0) {
+        if (!node || typeof node !== 'object') return
+        
+        const children = Array.isArray(node.children) ? node.children : (node.children ? [node.children] : [])
+        const nodeTitle = node.props?.title || node.type || 'unnamed'
+        
+        // Count direct element children (not strings)
+        const elementChildren = children.filter(c => typeof c === 'object' && c !== null)
+        
+        // Estimate text length
+        let textLength = 0
+        function countText(n) {
+          if (typeof n === 'string') textLength += n.length
+          if (n?.children) {
+            const arr = Array.isArray(n.children) ? n.children : [n.children]
+            arr.forEach(countText)
+          }
+        }
+        countText(node)
+        
+        // Check for issues
+        if (node.type === 'Section' || path.includes('sub')) {
+          if (elementChildren.length > MAX_DIRECT_CHILDREN) {
+            issues.push({
+              type: 'too_many_children',
+              path,
+              title: nodeTitle,
+              childCount: elementChildren.length,
+              suggestion: `Split into ${Math.ceil(elementChildren.length / 5)} subsections`
+            })
+          }
+          
+          if (textLength > MAX_TEXT_LENGTH && elementChildren.length <= 2) {
+            issues.push({
+              type: 'text_too_long',
+              path,
+              title: nodeTitle,
+              textLength,
+              suggestion: `Break into smaller paragraphs or add subsection headers`
+            })
+          }
+        }
+        
+        // Recurse
+        elementChildren.forEach((child, i) => {
+          analyzeNode(child, path ? `${path}.children[${i}]` : `children[${i}]`, depth + 1)
+        })
+      }
+      
+      analyzeNode(content.content)
+      
+      console.log(`  Found ${issues.length} structural issues`)
+      
+      if (issues.length === 0) {
+        return sendJson(res, 200, { 
+          status: 'clean',
+          message: 'No structural issues found',
+          issues: []
+        })
+      }
+      
+      if (!autoFix) {
+        // Just return the analysis
+        return sendJson(res, 200, {
+          status: 'issues_found',
+          message: `Found ${issues.length} structural issues`,
+          issues
+        })
+      }
+      
+      // Auto-fix: Ask AI to reorganize each problematic section
+      console.log('🤖 Auto-fixing structural issues...')
+      
+      // Save backup
+      await fs.writeFile(jsonPath + '.backup', JSON.stringify(content, null, 2))
+      
+      let fixedCount = 0
+      for (const issue of issues) {
+        if (issue.type !== 'too_many_children') continue
+        
+        // Find the node
+        const pathParts = issue.path.split('.').filter(p => p)
+        let targetNode = content.content
+        let parentNode = null
+        let targetIndex = -1
+        
+        for (const part of pathParts) {
+          const match = part.match(/children\[(\d+)\]/)
+          if (match) {
+            parentNode = targetNode
+            targetIndex = parseInt(match[1])
+            targetNode = Array.isArray(targetNode.children) 
+              ? targetNode.children[targetIndex]
+              : targetNode.children
+          }
+        }
+        
+        if (!targetNode) continue
+        
+        const children = Array.isArray(targetNode.children) ? targetNode.children : [targetNode.children]
+        
+        // Ask AI how to group these children
+        const childSummary = children.map((c, i) => {
+          const type = c?.type || 'text'
+          const title = c?.props?.title || (typeof c === 'string' ? c.slice(0, 50) : '')
+          return `${i}: [${type}] ${title}`
+        }).join('\n')
+        
+        const groupPrompt = `Analyze these ${children.length} elements from a tutorial section and group them into 3-6 logical subsections.
+
+SECTION: "${issue.title}"
+
+CHILDREN:
+${childSummary}
+
+Return a JSON array where each item is a subsection:
+[
+  { "title": "Subsection Title", "childIndices": [0, 1, 2], "summary": "What this subsection covers" },
+  ...
+]
+
+Group by semantic similarity and logical flow. Each subsection should have 3-8 items.
+Return ONLY valid JSON array.`
+
+        try {
+          const aiResponse = await callAI(
+            'You organize educational content into logical sections. Return only valid JSON.',
+            groupPrompt
+          )
+          
+          const jsonMatch = aiResponse.match(/\[[\s\S]*\]/)
+          if (!jsonMatch) continue
+          
+          const groupings = JSON.parse(jsonMatch[0])
+          
+          // Restructure the children based on groupings
+          const newChildren = []
+          
+          for (const group of groupings) {
+            if (!group.childIndices || group.childIndices.length === 0) continue
+            
+            // Create h3 header for this group
+            newChildren.push({
+              type: 'h3',
+              children: group.title
+            })
+            
+            // Add the grouped children
+            for (const idx of group.childIndices) {
+              if (children[idx]) {
+                newChildren.push(children[idx])
+              }
+            }
+          }
+          
+          // Replace the children
+          targetNode.children = newChildren
+          fixedCount++
+          console.log(`  ✅ Reorganized "${issue.title}" into ${groupings.length} subsections`)
+          
+        } catch (e) {
+          console.log(`  ⚠️ Failed to fix "${issue.title}": ${e.message}`)
+        }
+      }
+      
+      if (fixedCount > 0) {
+        // Save
+        await fs.writeFile(jsonPath, JSON.stringify(content, null, 2))
+        console.log('💾 Saved restructured content')
+        
+        // Git commit
+        try {
+          execSync(`git add "${jsonPath}"`, { cwd: TUTORIALS_REPO, stdio: 'pipe' })
+          execSync(`git commit -m "[lint-fix] Reorganized ${fixedCount} sections in ${tutorialId}"`, { cwd: TUTORIALS_REPO, stdio: 'pipe' })
+          console.log('✅ Git commit: lint-fix')
+        } catch (e) {
+          console.log('⚠️ Git commit skipped')
+        }
+      }
+      
+      return sendJson(res, 200, {
+        status: 'fixed',
+        message: `Fixed ${fixedCount} of ${issues.length} issues`,
+        fixedCount,
+        issues
+      })
+      
+    } catch (error) {
+      console.error('❌ Structure lint error:', error)
       return sendJson(res, 500, { error: error.message })
     }
   }
