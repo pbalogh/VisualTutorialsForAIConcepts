@@ -351,10 +351,16 @@ export default function TreeWrapper() {
     const result = await response.json()
     console.log('Combine result:', result)
     
-    // Reload tutorial
+    // Reload tutorial via fetch (not dynamic import, to avoid Vite cache)
     const filename = jsonFilenames[tutorialId] || tutorialId
-    const module = await import(`../content/${filename}.json?t=${Date.now()}`)
-    setTutorial(module.default || module)
+    const contentResponse = await fetch(`/src/content/${filename}.json?t=${Date.now()}`)
+    if (contentResponse.ok) {
+      const updatedTutorial = await contentResponse.json()
+      setTutorial(updatedTutorial)
+    } else {
+      // Fallback: just reload the page
+      window.location.reload()
+    }
     
     return result
   }
