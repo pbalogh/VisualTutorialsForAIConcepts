@@ -280,6 +280,108 @@ Do not use markdown. Write naturally.`
       }
     }
     
+    // Source: Find additional learning resources
+    if (action === 'source') {
+      const prompt = `The user is learning about "${tutorialTitle}".
+
+They selected the phrase: "${selectedText}"
+Context: "${context.slice(0, 300)}"
+
+Find and recommend 4-6 high-quality learning resources about this specific topic. Include a mix of:
+1. **Video tutorials** (YouTube, Khan Academy, 3Blue1Brown style)
+2. **Interactive resources** (online tools, visualizations, playgrounds)
+3. **Articles/blog posts** (clear explanations, good examples)
+4. **Academic/reference** (Wikipedia, textbooks, papers for deeper study)
+
+For each resource, provide:
+- Title (be specific)
+- Type (Video/Interactive/Article/Reference)
+- URL (use real, working URLs - if unsure, use search URLs)
+- One sentence explaining why it's helpful for understanding "${selectedText}"
+
+Format your response as a JSON array:
+[
+  {"title": "...", "type": "Video", "url": "...", "why": "..."},
+  ...
+]
+
+Only output the JSON array, nothing else.`
+
+      console.log(`📚 Finding sources for: "${selectedText.slice(0, 50)}..."`)
+      let sources = []
+      try {
+        const response = await callAI(systemPrompt, prompt)
+        // Parse JSON from response
+        const jsonMatch = response.match(/\[[\s\S]*\]/)
+        if (jsonMatch) {
+          sources = JSON.parse(jsonMatch[0])
+        }
+      } catch (parseErr) {
+        console.error('Failed to parse sources JSON:', parseErr.message)
+        // Fallback: generate search links
+        sources = [
+          { title: `Search YouTube for "${selectedText}"`, type: 'Video', url: `https://www.youtube.com/results?search_query=${encodeURIComponent(selectedText + ' tutorial')}`, why: 'Video explanations often make concepts click' },
+          { title: `Search Khan Academy`, type: 'Interactive', url: `https://www.khanacademy.org/search?referer=%2F&page_search_query=${encodeURIComponent(selectedText)}`, why: 'Free, structured lessons with practice problems' },
+          { title: `Wikipedia: ${selectedText}`, type: 'Reference', url: `https://en.wikipedia.org/wiki/${encodeURIComponent(selectedText.replace(/ /g, '_'))}`, why: 'Good starting point for definitions and context' },
+        ]
+      }
+      
+      // Create a Sidebar with clickable source links
+      const typeIcons = {
+        'Video': '🎬',
+        'Interactive': '🎮',
+        'Article': '📄',
+        'Reference': '📖',
+        'Course': '🎓'
+      }
+      
+      return {
+        type: 'Sidebar',
+        props: { 
+          type: 'tip',
+          title: `📚 Learn More: ${selectedText.length > 30 ? selectedText.slice(0, 30) + '...' : selectedText}`
+        },
+        children: [
+          {
+            type: 'p',
+            props: { className: 'text-sm text-gray-600 mb-3' },
+            children: 'Curated resources to deepen your understanding:'
+          },
+          ...sources.map(src => ({
+            type: 'p',
+            props: { className: 'mb-2' },
+            children: [
+              {
+                type: 'a',
+                props: { 
+                  href: src.url, 
+                  target: '_blank',
+                  rel: 'noopener noreferrer',
+                  className: 'text-blue-600 hover:text-blue-800 font-medium'
+                },
+                children: `${typeIcons[src.type] || '🔗'} ${src.title}`
+              },
+              {
+                type: 'span',
+                props: { className: 'text-xs text-gray-500 ml-2' },
+                children: `(${src.type})`
+              },
+              src.why ? {
+                type: 'span',
+                props: { className: 'block text-sm text-gray-600 ml-6' },
+                children: src.why
+              } : null
+            ].filter(Boolean)
+          })),
+          {
+            type: 'p',
+            props: { className: 'text-xs text-gray-400 mt-3' },
+            children: `Sources for "${selectedText.slice(0, 25)}..." — ${timestamp}`
+          }
+        ]
+      }
+    }
+    
     return null
     
   } catch (error) {
@@ -1003,8 +1105,8 @@ const server = http.createServer(async (req, res) => {
         return sendJson(res, 400, { error: 'Missing required fields' })
       }
       
-      if (!['explain', 'branch', 'ask', 'footnote'].includes(action)) {
-        return sendJson(res, 400, { error: 'Action must be explain, branch, ask, or footnote' })
+      if (!['explain', 'branch', 'ask', 'footnote', 'source'].includes(action)) {
+        return sendJson(res, 400, { error: 'Action must be explain, branch, ask, footnote, or source' })
       }
       
       if (action === 'ask' && !question) {
@@ -2105,6 +2207,175 @@ Suggest contrasting perspectives that would create productive intellectual tensi
       return sendJson(res, 500, { error: error.message })
     }
   }
+
+  // ============================================================================
+  // Quiz Generation Endpoint
+  // ============================================================================
+  
+  if (url.pathname === '/api/generate-quiz' && req.method === 'POST') {
+    try {
+      const body = await parseBody(req)
+      const { tutorialId, questionCount = 5, difficultyMix } = body
+      
+      if (!tutorialId) {
+        return sendJson(res, 400, { error: 'Missing tutorialId' })
+      }
+      
+      console.log(`\n📝 Generating quiz for: ${tutorialId}`)
+      
+      // Load the tutorial JSON
+      const tutorialPath = path.join(CONTENT_DIR, `${tutorialId}.json`)
+      let tutorial
+      try {
+        const content = await fs.readFile(tutorialPath, 'utf-8')
+        tutorial = JSON.parse(content)
+      } catch (e) {
+        return sendJson(res, 404, { error: `Tutorial not found: ${tutorialId}` })
+      }
+      
+      // Extract key concepts from the tutorial
+      const extractText = (node) => {
+        if (!node) return ''
+        if (typeof node === 'string') return node
+        if (Array.isArray(node)) return node.map(extractText).join(' ')
+        if (node.children) return extractText(node.children)
+        return ''
+      }
+      
+      const tutorialText = extractText(tutorial.content).slice(0, 10000)
+      const sectionTitles = tutorial.content?.children
+        ?.filter(c => c.type === 'Section')
+        ?.map(s => s.props?.title)
+        ?.filter(Boolean) || []
+      
+      // Generate quiz questions using AI
+      const systemPrompt = `You are creating a quiz for an educational tutorial called "${tutorial.title}".
+
+The quiz should test understanding of the key concepts, not just memorization.
+Create questions that help learners validate and reinforce their understanding.
+
+Question types available:
+1. multiple-choice: 4 options, one correct
+2. true-false: statement is true or false
+3. fill-in-blank: complete a statement (use ____ for blank)
+4. ordering: put steps/items in correct order
+
+Each question needs:
+- id: unique identifier (q1, q2, etc.)
+- type: one of the above types
+- difficulty: 1 (easy), 2 (medium), 3 (hard)
+- points: 10 for easy, 15 for medium, 20 for hard
+- concept: what concept this tests
+- question: the question text
+- For multiple-choice: options array with {id, text}, correctAnswer (option id)
+- For true-false: correctAnswer (boolean)
+- For fill-in-blank: correctAnswer (string or array of acceptable answers)
+- For ordering: items array with {id, text}, correctOrder (array of item ids)
+- explanation: why the answer is correct (educational!)
+- hint: optional hint for struggling learners`
+
+      const generatePrompt = `Tutorial: "${tutorial.title}"
+Subtitle: "${tutorial.subtitle || ''}"
+
+Section topics: ${sectionTitles.join(', ')}
+
+Tutorial content excerpt:
+${tutorialText.slice(0, 5000)}
+
+Create ${questionCount} quiz questions that test understanding of this material.
+
+Mix of difficulties: ${JSON.stringify(difficultyMix || { easy: 2, medium: 2, hard: 1 })}
+Mix of question types (use at least 2 different types).
+
+Return a JSON object with this structure:
+{
+  "id": "${tutorialId}-quiz",
+  "tutorialId": "${tutorialId}",
+  "title": "${tutorial.title} Quiz",
+  "description": "Test your understanding of ${tutorial.title}",
+  "version": 1,
+  "settings": {
+    "shuffleQuestions": false,
+    "shuffleOptions": true,
+    "showExplanations": true,
+    "passingScore": 70,
+    "allowRetry": true
+  },
+  "questions": [
+    // Your generated questions here
+  ]
+}
+
+Return ONLY valid JSON. No markdown, no explanation outside JSON.`
+
+      console.log(`  🤖 Generating ${questionCount} questions...`)
+      const response = await callAI(systemPrompt, generatePrompt)
+      
+      // Parse the quiz JSON
+      let quizContent
+      try {
+        const jsonMatch = response.match(/\{[\s\S]*\}/)
+        if (jsonMatch) {
+          quizContent = JSON.parse(jsonMatch[0])
+        } else {
+          throw new Error('No JSON object found in response')
+        }
+      } catch (parseError) {
+        console.error('❌ Failed to parse quiz JSON:', parseError.message)
+        console.log('Response preview:', response.slice(0, 500))
+        return sendJson(res, 500, { error: 'Failed to parse generated quiz' })
+      }
+      
+      // Validate and fix the quiz structure
+      quizContent.id = `${tutorialId}-quiz`
+      quizContent.tutorialId = tutorialId
+      quizContent.createdAt = new Date().toISOString()
+      quizContent.updatedAt = new Date().toISOString()
+      
+      if (!quizContent.settings) {
+        quizContent.settings = {
+          shuffleQuestions: false,
+          shuffleOptions: true,
+          showExplanations: true,
+          passingScore: 70,
+          allowRetry: true
+        }
+      }
+      
+      // Validate questions
+      if (!Array.isArray(quizContent.questions)) {
+        return sendJson(res, 500, { error: 'Generated quiz has no questions array' })
+      }
+      
+      // Fix any missing question fields
+      quizContent.questions = quizContent.questions.map((q, i) => ({
+        id: q.id || `q${i + 1}`,
+        type: q.type || 'multiple-choice',
+        difficulty: q.difficulty || 2,
+        points: q.points || (q.difficulty === 1 ? 10 : q.difficulty === 3 ? 20 : 15),
+        ...q
+      }))
+      
+      // Save the quiz
+      const quizPath = path.join(CONTENT_DIR, `${tutorialId}-quiz.json`)
+      await fs.writeFile(quizPath, JSON.stringify(quizContent, null, 2))
+      console.log(`  💾 Saved: ${quizPath}`)
+      
+      // Commit to git
+      const commitMsg = `[quiz] Generated quiz for: ${tutorial.title}`
+      commitAndPush(quizPath, commitMsg).catch(() => {})
+      
+      return sendJson(res, 200, {
+        success: true,
+        quiz: quizContent,
+        message: `Generated ${quizContent.questions.length} questions for ${tutorial.title}`
+      })
+      
+    } catch (error) {
+      console.error('❌ Quiz generation error:', error)
+      return sendJson(res, 500, { error: error.message })
+    }
+  }
   
   sendJson(res, 404, { error: 'Not found' })
 })
@@ -2121,6 +2392,7 @@ server.listen(PORT, () => {
   console.log(`  POST /annotate              - Create annotation`)
   console.log(`  POST /generate              - Generate new tutorial`)
   console.log(`  POST /regroup               - Reorganize annotations`)
+  console.log(`  POST /api/generate-quiz     - Generate quiz for tutorial`)
   console.log(`  GET  /health                - Health check`)
   console.log(`  GET  /tutorials             - List tutorials`)
   console.log(`\nThoughtBlend:`)

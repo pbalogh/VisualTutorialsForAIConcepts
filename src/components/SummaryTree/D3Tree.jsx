@@ -253,7 +253,12 @@ export default function D3Tree({
     
     // Calculate layout - horizontal tree
     const margin = { top: 20, right: 200, bottom: 20, left: 20 }
-    const treeHeight = height - margin.top - margin.bottom
+    
+    // Dynamic height based on number of visible nodes
+    const nodeCount = root.descendants().length
+    const minNodeSpacing = 40 // Minimum vertical space per node
+    const dynamicHeight = Math.max(height, nodeCount * minNodeSpacing)
+    const treeHeight = dynamicHeight - margin.top - margin.bottom
     
     const treeLayout = d3.tree()
       .size([treeHeight, width - margin.left - margin.right - 200])
@@ -423,10 +428,10 @@ export default function D3Tree({
     ) * 0.85
     
     const translateX = 50
-    const translateY = (height - bounds.height * scale) / 2 - bounds.y * scale
+    const translateY = (dynamicHeight - bounds.height * scale) / 2 - bounds.y * scale
     
     svg.call(zoom.transform, d3.zoomIdentity
-      .translate(translateX, translateY)
+      .translate(translateX, Math.max(20, translateY))
       .scale(scale))
     
   }, [data, dimensions, expandedNodes, toggleExpand, selectionMode, selectedNodes, toggleNodeSelection])

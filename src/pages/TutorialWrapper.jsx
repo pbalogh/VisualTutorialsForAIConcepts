@@ -483,6 +483,17 @@ function TutorialHeader({ meta, tutorialId, onRegroup, regroupStatus, canUndo, o
             View as Tree
           </Link>
           
+          {/* Quiz link */}
+          <Link 
+            to={`/quiz/${tutorialId || ''}`}
+            className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full 
+              bg-indigo-500/10 border border-indigo-500/20 text-sm text-indigo-400
+              hover:bg-indigo-500/20 transition-colors"
+          >
+            <span>📝</span>
+            Take Quiz
+          </Link>
+          
           {/* Regroup button */}
           {onRegroup && (
             <button

@@ -102,7 +102,7 @@ export const SelectionPopup = ({
   position, 
   onAction, 
   onClose,
-  actions = ['explain', 'branch', 'ask', 'footnote']
+  actions = ['explain', 'branch', 'ask', 'source', 'footnote']
 }) => {
   const popupRef = useRef(null)
   const inputRef = useRef(null)
@@ -210,6 +210,13 @@ export const SelectionPopup = ({
       restingText: 'text-slate-300/80',
       hoverText: 'group-hover:text-slate-200',
       hoverBg: 'hover:bg-slate-500/20',
+    },
+    source: { 
+      icon: '📚', 
+      label: 'Sources',
+      restingText: 'text-rose-300/80',
+      hoverText: 'group-hover:text-rose-300',
+      hoverBg: 'hover:bg-rose-500/20',
     },
   }
 

@@ -12,7 +12,8 @@ export default function SourceUploader({
   existingSources,
   onAdd, 
   onCancel,
-  suggestions 
+  suggestions,
+  isLoadingSuggestions 
 }) {
   const [mode, setMode] = useState('upload') // 'upload' | 'url' | 'paste'
   const [url, setUrl] = useState('')
@@ -422,29 +423,56 @@ export default function SourceUploader({
         )}
 
         {/* Suggestions (for opposite/orthogonal sources) */}
-        {suggestions && suggestions.length > 0 && (
+        {(suggestions && suggestions.length > 0) || isLoadingSuggestions ? (
           <div className="pt-4 border-t border-white/10">
-            <div className="text-xs text-slate-400 uppercase tracking-wider mb-3">
-              Suggested contrasts
+            <div className="flex items-center gap-2 mb-3">
+              <div className="text-xs text-slate-400 uppercase tracking-wider">
+                {getOppositePosition(Object.keys(existingSources)[0]) === position 
+                  ? '🎯 Suggested opposites'
+                  : '💡 Related perspectives'
+                }
+              </div>
+              {isLoadingSuggestions && (
+                <svg className="animate-spin w-3 h-3 text-slate-400" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                </svg>
+              )}
             </div>
-            <div className="space-y-2">
-              {suggestions.map((sug, i) => (
-                <button
-                  key={i}
-                  onClick={() => {
-                    setMode('url')
-                    setUrl(sug.searchQuery || '')
-                    setTitle(sug.title)
-                  }}
-                  className="w-full p-3 bg-white/5 rounded-lg text-left hover:bg-white/10 transition-colors"
-                >
-                  <div className="text-sm text-white font-medium">{sug.title}</div>
-                  <div className="text-xs text-slate-400 mt-1">{sug.author || sug.description}</div>
-                </button>
-              ))}
-            </div>
+            {suggestions && suggestions.length > 0 ? (
+              <div className="space-y-2">
+                {suggestions.map((sug, i) => (
+                  <button
+                    key={i}
+                    onClick={() => {
+                      // If it has a URL-like searchQuery, use URL mode
+                      if (sug.searchQuery?.startsWith('http')) {
+                        setMode('url')
+                        setUrl(sug.searchQuery)
+                      }
+                      setTitle(sug.title)
+                    }}
+                    className="w-full p-3 bg-white/5 rounded-lg text-left hover:bg-white/10 transition-colors group"
+                  >
+                    <div className="text-sm text-white font-medium group-hover:text-emerald-400 transition-colors">
+                      {sug.title}
+                    </div>
+                    {sug.author && (
+                      <div className="text-xs text-slate-500 mt-0.5">by {sug.author}</div>
+                    )}
+                    {sug.description && (
+                      <div className="text-xs text-slate-400 mt-1">{sug.description}</div>
+                    )}
+                  </button>
+                ))}
+              </div>
+            ) : isLoadingSuggestions ? (
+              <div className="text-sm text-slate-500 text-center py-2">
+                Finding contrasting perspectives...
+              </div>
+            ) : null}
           </div>
-        )}
+        ) : null}
       </div>
     </div>
   )

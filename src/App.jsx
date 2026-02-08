@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
 import Listing from './pages/Listing.jsx'
 import TutorialWrapper from './pages/TutorialWrapper.jsx'
 import TreeWrapper from './pages/TreeWrapper.jsx'
+import QuizWrapper from './pages/QuizWrapper.jsx'
 import GoogleDriveDemo from './pages/GoogleDriveDemo.jsx'
 import ThoughtBlend from './tutorials/ThoughtBlend/index.jsx'
 import PasswordGate from './components/PasswordGate.jsx'
@@ -21,6 +22,7 @@ function App() {
           <Route path="/" element={<Listing />} />
           <Route path="/tutorial/:tutorialId" element={<TutorialWrapper />} />
           <Route path="/tree/:tutorialId" element={<TreeWrapper />} />
+          <Route path="/quiz/:tutorialId" element={<QuizWrapper />} />
           <Route path="/drive-demo" element={<GoogleDriveDemo />} />
           <Route path="/thoughtblend" element={<ThoughtBlend />} />
         </Routes>

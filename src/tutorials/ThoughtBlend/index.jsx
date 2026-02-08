@@ -6,11 +6,13 @@
  * helps them find opposing/orthogonal sources to create rich mixtures.
  */
 
-import React, { useState, useCallback } from 'react'
-import ColorWheel from './ColorWheel'
+import React, { useState, useCallback, useEffect } from 'react'
+import ColorWheel, { getOppositePosition } from './ColorWheel'
 import SourcePanel from './SourcePanel'
 import MixturePanel from './MixturePanel'
 import SourceUploader from './SourceUploader'
+
+const API_BASE = 'http://localhost:5190'
 
 // Initial state with no sources
 const createEmptyWheel = () => ({
@@ -27,12 +29,42 @@ export default function ThoughtBlend() {
   const [selectedPosition, setSelectedPosition] = useState(null)
   const [isUploading, setIsUploading] = useState(false)
   const [suggestions, setSuggestions] = useState(null)
+  const [isLoadingSuggestions, setIsLoadingSuggestions] = useState(false)
+
+  // Fetch suggestions when sources change
+  const fetchSuggestions = useCallback(async (sources) => {
+    const sourceList = Object.values(sources)
+    if (sourceList.length === 0) {
+      setSuggestions(null)
+      return
+    }
+    
+    // Use the first source (or the one with most content) to generate suggestions
+    const primarySource = sourceList[0]
+    
+    setIsLoadingSuggestions(true)
+    try {
+      const response = await fetch(`${API_BASE}/thoughtblend/suggest-opposite`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ source: primarySource })
+      })
+      
+      if (response.ok) {
+        const data = await response.json()
+        setSuggestions(data.suggestions || [])
+      }
+    } catch (err) {
+      console.error('Failed to fetch suggestions:', err)
+    } finally {
+      setIsLoadingSuggestions(false)
+    }
+  }, [])
 
   // Add a source at a position
   const addSource = useCallback((position, source) => {
-    setWheel(prev => ({
-      ...prev,
-      sources: {
+    setWheel(prev => {
+      const newSources = {
         ...prev.sources,
         [position]: {
           ...source,
@@ -40,10 +72,20 @@ export default function ThoughtBlend() {
           addedAt: Date.now(),
         }
       }
-    }))
+      
+      // Fetch suggestions after adding first source
+      if (Object.keys(prev.sources).length === 0) {
+        setTimeout(() => fetchSuggestions(newSources), 100)
+      }
+      
+      return {
+        ...prev,
+        sources: newSources
+      }
+    })
     setIsUploading(false)
     setSelectedPosition(null)
-  }, [])
+  }, [fetchSuggestions])
 
   // Update source magnitude
   const updateMagnitude = useCallback((position, magnitude) => {
@@ -80,12 +122,39 @@ export default function ThoughtBlend() {
     const existingSource = wheel.sources[position]
     if (existingSource) {
       setSelectedPosition(position)
+      setIsUploading(false)
     } else {
       // Empty slot - open uploader
       setSelectedPosition(position)
       setIsUploading(true)
     }
   }, [wheel.sources])
+
+  // Determine if this position should show suggestions (opposite or adjacent to existing sources)
+  const getSuggestionsForPosition = useCallback((position) => {
+    if (!suggestions || suggestions.length === 0) return null
+    
+    const sourcePositions = Object.keys(wheel.sources).map(Number)
+    if (sourcePositions.length === 0) return null
+    
+    // Check if this is the opposite position of any source
+    const isOpposite = sourcePositions.some(p => getOppositePosition(p) === position)
+    
+    // Check if this is adjacent to any source (within 2 positions)
+    const isNearSource = sourcePositions.some(p => {
+      const diff = Math.abs(p - position)
+      return diff <= 2 || diff >= 10 // adjacent on the wheel (wraps around)
+    })
+    
+    // Prioritize opposite positions, then adjacent
+    if (isOpposite) {
+      return suggestions // Show all suggestions for opposite
+    } else if (isNearSource) {
+      return suggestions.slice(0, 2) // Show fewer for adjacent
+    }
+    
+    return null
+  }, [suggestions, wheel.sources])
 
   // Count active sources
   const sourceCount = Object.keys(wheel.sources).length
@@ -140,7 +209,8 @@ export default function ThoughtBlend() {
                   setIsUploading(false)
                   setSelectedPosition(null)
                 }}
-                suggestions={suggestions}
+                suggestions={getSuggestionsForPosition(selectedPosition)}
+                isLoadingSuggestions={isLoadingSuggestions}
               />
             ) : selectedPosition !== null && wheel.sources[selectedPosition] ? (
               <SourcePanel

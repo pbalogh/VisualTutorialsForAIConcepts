@@ -82,9 +82,9 @@ export default function MixturePanel({
   }
 
   return (
-    <div className="bg-white/5 backdrop-blur-md rounded-2xl border border-white/10 overflow-hidden">
+    <div className="bg-slate-800/80 backdrop-blur-md rounded-2xl border border-slate-700/50 overflow-hidden">
       {/* Header */}
-      <div className="px-6 py-4 border-b border-white/10 bg-gradient-to-r from-white/5 to-transparent">
+      <div className="px-6 py-4 border-b border-slate-700/50">
         <h2 className="text-xl font-bold text-white">Mixture Settings</h2>
         <p className="text-sm text-slate-400 mt-1">
           Configure how sources blend together
