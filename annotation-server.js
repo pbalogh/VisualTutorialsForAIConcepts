@@ -2415,6 +2415,34 @@ Return ONLY valid JSON array.`
       }
       
       if (fixedCount > 0) {
+        // Clean up empty h3s (headers with no following content)
+        console.log('🧹 Cleaning up empty subsection headers...')
+        let emptyH3sRemoved = 0
+        
+        const allSections = content.content.children.filter(c => c.type === 'Section')
+        allSections.forEach(section => {
+          if (!section.children) return
+          const children = Array.isArray(section.children) ? section.children : [section.children]
+          
+          const newChildren = []
+          for (let i = 0; i < children.length; i++) {
+            const child = children[i]
+            if (child.type === 'h3') {
+              const next = children[i + 1]
+              if (!next || next.type === 'h3') {
+                emptyH3sRemoved++
+                continue // Skip empty h3
+              }
+            }
+            newChildren.push(child)
+          }
+          section.children = newChildren
+        })
+        
+        if (emptyH3sRemoved > 0) {
+          console.log(`  🗑️ Removed ${emptyH3sRemoved} empty h3 headers`)
+        }
+        
         // Save
         await fs.writeFile(jsonPath, JSON.stringify(content, null, 2))
         console.log('💾 Saved restructured content')
