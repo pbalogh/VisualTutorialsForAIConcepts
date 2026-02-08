@@ -254,15 +254,14 @@ export default function D3Tree({
     // Calculate layout - horizontal tree
     const margin = { top: 20, right: 200, bottom: 20, left: 20 }
     
-    // Dynamic height based on number of visible nodes
-    const nodeCount = root.descendants().length
-    const minNodeSpacing = 40 // Minimum vertical space per node
-    const dynamicHeight = Math.max(height, nodeCount * minNodeSpacing)
-    const treeHeight = dynamicHeight - margin.top - margin.bottom
+    // Use nodeSize instead of size for consistent spacing regardless of node count
+    // This gives each node a fixed amount of vertical space
+    const nodeVerticalSpacing = 45 // Vertical space per node
+    const nodeHorizontalSpacing = 220 // Horizontal space per level
     
     const treeLayout = d3.tree()
-      .size([treeHeight, width - margin.left - margin.right - 200])
-      .separation((a, b) => (a.parent === b.parent ? 1.2 : 1.8))
+      .nodeSize([nodeVerticalSpacing, nodeHorizontalSpacing])
+      .separation((a, b) => (a.parent === b.parent ? 1 : 1.3))
     
     treeLayout(root)
     
@@ -428,7 +427,7 @@ export default function D3Tree({
     ) * 0.85
     
     const translateX = 50
-    const translateY = (dynamicHeight - bounds.height * scale) / 2 - bounds.y * scale
+    const translateY = (height - bounds.height * scale) / 2 - bounds.y * scale
     
     svg.call(zoom.transform, d3.zoomIdentity
       .translate(translateX, Math.max(20, translateY))
