@@ -17,6 +17,7 @@ import path from 'path'
 import { execSync } from 'child_process'
 import { fileURLToPath } from 'url'
 import { callAI, getAIInfo } from './ai-config.js'
+import { generatePresentationAudio } from './tts-polly.js'
 import { createVersion, listVersions, getVersion, restoreVersion } from './src/utils/versioning.js'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
@@ -2193,6 +2194,22 @@ Return ONLY valid JSON array.`
       }
       
       console.log(`  Generated ${script.length} slides`)
+      
+      // Generate audio with AWS Polly
+      let audioUrls = []
+      try {
+        console.log('  🔊 Generating Polly audio...')
+        audioUrls = await generatePresentationAudio(script, cacheKey)
+        console.log(`  ✅ Generated ${audioUrls.filter(Boolean).length} audio files`)
+      } catch (e) {
+        console.log('  ⚠️ Polly audio failed, will use browser TTS:', e.message)
+      }
+      
+      // Attach audio URLs to script
+      script = script.map((slide, i) => ({
+        ...slide,
+        audioUrl: audioUrls[i] || null
+      }))
       
       // Cache the result
       const result = { script, generatedAt: new Date().toISOString() }

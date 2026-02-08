@@ -8,22 +8,20 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 
-// Simple text-to-speech wrapper with better voice selection
-function useSpeech() {
-  const utteranceRef = useRef(null)
+// Audio playback hook - uses Polly audio URL if available, falls back to browser TTS
+function useAudio() {
+  const audioRef = useRef(null)
   const [voice, setVoice] = useState(null)
   
-  // Find a good voice on mount
+  // Find a good voice for fallback TTS
   useEffect(() => {
     const findVoice = () => {
       const voices = window.speechSynthesis?.getVoices() || []
-      // Prefer natural-sounding voices
       const preferred = voices.find(v => 
-        v.name.includes('Samantha') || // macOS
-        v.name.includes('Google') ||   // Chrome
-        v.name.includes('Microsoft Zira') || // Windows
-        v.name.includes('Natural') ||
-        v.name.includes('Premium')
+        v.name.includes('Samantha') || 
+        v.name.includes('Google') ||   
+        v.name.includes('Microsoft Zira') || 
+        v.name.includes('Natural')
       ) || voices.find(v => v.lang.startsWith('en')) || voices[0]
       
       if (preferred) setVoice(preferred)
@@ -34,24 +32,51 @@ function useSpeech() {
     return () => window.speechSynthesis?.removeEventListener('voiceschanged', findVoice)
   }, [])
   
-  const speak = useCallback((text, onEnd) => {
-    if ('speechSynthesis' in window) {
-      window.speechSynthesis.cancel()
-      const utterance = new SpeechSynthesisUtterance(text)
-      utterance.rate = 0.95  // Slightly slower for clarity
-      utterance.pitch = 1.05 // Slightly higher for friendliness
-      if (voice) utterance.voice = voice
-      utterance.onend = onEnd
-      utterance.onerror = onEnd // Don't block on errors
-      utteranceRef.current = utterance
-      window.speechSynthesis.speak(utterance)
+  const speak = useCallback((text, audioUrl, onEnd) => {
+    // Stop any existing audio
+    if (audioRef.current) {
+      audioRef.current.pause()
+      audioRef.current = null
+    }
+    window.speechSynthesis?.cancel()
+    
+    // Prefer Polly audio URL if available
+    if (audioUrl) {
+      const audio = new Audio(audioUrl)
+      audioRef.current = audio
+      audio.onended = onEnd
+      audio.onerror = () => {
+        console.warn('Audio playback failed, falling back to TTS')
+        speakWithTTS(text, onEnd)
+      }
+      audio.play().catch(() => {
+        console.warn('Audio play() failed, falling back to TTS')
+        speakWithTTS(text, onEnd)
+      })
     } else {
-      // Fallback: estimate speaking time
-      setTimeout(onEnd, text.length * 60)
+      speakWithTTS(text, onEnd)
+    }
+    
+    function speakWithTTS(text, onEnd) {
+      if ('speechSynthesis' in window && text) {
+        const utterance = new SpeechSynthesisUtterance(text)
+        utterance.rate = 0.95
+        utterance.pitch = 1.05
+        if (voice) utterance.voice = voice
+        utterance.onend = onEnd
+        utterance.onerror = onEnd
+        window.speechSynthesis.speak(utterance)
+      } else {
+        setTimeout(onEnd, (text?.length || 50) * 60)
+      }
     }
   }, [voice])
   
   const stop = useCallback(() => {
+    if (audioRef.current) {
+      audioRef.current.pause()
+      audioRef.current = null
+    }
     window.speechSynthesis?.cancel()
   }, [])
   
@@ -196,7 +221,7 @@ export default function NodePlayer({
   const [currentSlide, setCurrentSlide] = useState(0)
   const [isPlaying, setIsPlaying] = useState(autoPlay)
   const [progress, setProgress] = useState(0)
-  const { speak, stop } = useSpeech()
+  const { speak, stop } = useAudio()
   const timerRef = useRef(null)
   const startTimeRef = useRef(null)
   
@@ -221,9 +246,9 @@ export default function NodePlayer({
       }
     }
     
-    // Start narration
-    if (slide.narration) {
-      speak(slide.narration, () => {
+    // Start narration (use Polly audio if available)
+    if (slide.narration || slide.audioUrl) {
+      speak(slide.narration, slide.audioUrl, () => {
         narrationDone = true
         checkAdvance()
       })
