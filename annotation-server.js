@@ -2054,7 +2054,19 @@ Interpret the user's command and return a JSON response:
 2. If they want to COMBINE nodes (e.g., "combine sections on X", "merge the Y nodes"):
    Return: { "action": "combine", "nodeIds": ["id1", "id2", ...], "editorNote": "suggested guidance for combination", "reasoning": "why these nodes" }
 
-3. If no nodes match or command is unclear:
+3. If they want to PROMOTE nodes (e.g., "promote children of X to sections", "make X's subsections into top-level sections"):
+   Return: { "action": "promote", "parentNodeId": "id of parent", "reasoning": "explanation" }
+
+4. If they want to SPLIT a large section (e.g., "split X into separate sections", "break up the Y section"):
+   Return: { "action": "split", "nodeId": "id of node to split", "reasoning": "explanation" }
+
+5. If they want to DELETE nodes:
+   Return: { "action": "delete", "nodeIds": ["id1", "id2", ...], "reasoning": "why" }
+
+6. If they want to MOVE nodes (e.g., "move X under Y", "reorder X before Y"):
+   Return: { "action": "move", "nodeIds": ["id1"], "targetId": "destination parent id", "position": "before|after|inside", "reasoning": "explanation" }
+
+7. If no nodes match or command is unclear:
    Return: { "action": "none", "message": "explanation to user" }
 
 Consider synonyms and related terms (e.g., "pacemaker cells" relates to "interneurons", "rhythm generators").
@@ -2085,6 +2097,119 @@ Return ONLY valid JSON.`
       
     } catch (error) {
       console.error('❌ NL command error:', error)
+      return sendJson(res, 500, { error: error.message })
+    }
+  }
+  
+  // ==================== STRUCTURE CHANGE (promote, split, etc) ====================
+  if (url.pathname === '/structure-change' && req.method === 'POST') {
+    try {
+      const body = await parseBody(req)
+      const { tutorialId, action, parentNodeId, nodeId, reasoning } = body
+      
+      console.log('\n🔧 Structure Change Request:')
+      console.log(`  Tutorial: ${tutorialId}`)
+      console.log(`  Action: ${action}`)
+      console.log(`  Target: ${parentNodeId || nodeId}`)
+      
+      // Load tutorial
+      const jsonPath = path.join(CONTENT_DIR, `${tutorialId}.json`)
+      const content = JSON.parse(await fs.readFile(jsonPath, 'utf-8'))
+      
+      // Save backup
+      await fs.writeFile(jsonPath + '.backup', JSON.stringify(content, null, 2))
+      
+      if (action === 'promote') {
+        // Find the parent section and promote its subsections to top-level sections
+        // parentNodeId format: "section-N-sub-M" or "section-N"
+        
+        const sectionMatch = parentNodeId.match(/section-(\d+)/)
+        if (!sectionMatch) {
+          return sendJson(res, 400, { error: 'Invalid parent node ID' })
+        }
+        
+        const sectionIdx = parseInt(sectionMatch[1])
+        const sections = content.content.children.filter(c => c.type === 'Section')
+        const targetSection = sections[sectionIdx]
+        
+        if (!targetSection) {
+          return sendJson(res, 400, { error: 'Section not found' })
+        }
+        
+        console.log(`  Found section: ${targetSection.props?.title}`)
+        
+        // Extract subsections (h3 boundaries) as new sections
+        const newSections = []
+        let currentSection = null
+        let currentChildren = []
+        
+        const sectionChildren = Array.isArray(targetSection.children) ? targetSection.children : [targetSection.children]
+        
+        for (const child of sectionChildren) {
+          if (child.type === 'h3') {
+            // Save previous section
+            if (currentSection) {
+              newSections.push({
+                type: 'Section',
+                props: { title: currentSection },
+                children: currentChildren
+              })
+            }
+            currentSection = typeof child.children === 'string' ? child.children : 'Subsection'
+            currentChildren = []
+          } else if (currentSection) {
+            currentChildren.push(child)
+          } else {
+            // Content before first h3 - keep in original section intro
+            currentChildren.push(child)
+          }
+        }
+        
+        // Don't forget last section
+        if (currentSection && currentChildren.length > 0) {
+          newSections.push({
+            type: 'Section',
+            props: { title: currentSection },
+            children: currentChildren
+          })
+        }
+        
+        console.log(`  Created ${newSections.length} new sections`)
+        
+        // Find the actual index in content.children (not filtered)
+        const actualIdx = content.content.children.findIndex(c => c === targetSection)
+        
+        // Replace the original section with the new sections
+        content.content.children.splice(actualIdx, 1, ...newSections)
+        
+        // Save
+        await fs.writeFile(jsonPath, JSON.stringify(content, null, 2))
+        console.log('💾 Saved restructured content')
+        
+        // Git commit
+        try {
+          execSync(`git add "${jsonPath}"`, { cwd: TUTORIALS_REPO, stdio: 'pipe' })
+          execSync(`git commit -m "[promote] ${parentNodeId} → ${newSections.length} sections in ${tutorialId}"`, { cwd: TUTORIALS_REPO, stdio: 'pipe' })
+          console.log('✅ Git commit: promote')
+        } catch (e) {
+          console.log('⚠️ Git commit skipped')
+        }
+        
+        return sendJson(res, 200, { 
+          success: true, 
+          message: `Promoted to ${newSections.length} new sections`,
+          newSectionCount: newSections.length
+        })
+        
+      } else if (action === 'split') {
+        // Similar to promote but for a specific node
+        return sendJson(res, 400, { error: 'Split not yet implemented - use promote on the parent section' })
+      }
+      
+      return sendJson(res, 400, { error: `Unknown action: ${action}` })
+      
+    } catch (error) {
+      console.error('❌ Structure change error:', error)
       return sendJson(res, 500, { error: error.message })
     }
   }

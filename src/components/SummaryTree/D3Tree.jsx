@@ -214,7 +214,8 @@ export default function D3Tree({
             id: n.id,
             title: n.title,
             excerpt: n.excerpt?.slice(0, 100)
-          }))
+          })),
+          tutorialId
         })
       })
       
@@ -237,8 +238,47 @@ export default function D3Tree({
         setCombineNote(result.editorNote || '')
         setShowCombineModal(true)
         setNlCommand('')
+      } else if (result.action === 'promote' || result.action === 'split') {
+        // These are structural changes - show confirmation then execute
+        const confirmMsg = result.action === 'promote' 
+          ? `Promote children of "${result.parentNodeId}" to top-level sections?\n\n${result.reasoning}`
+          : `Split "${result.nodeId}" into separate sections?\n\n${result.reasoning}`
+        
+        if (confirm(confirmMsg)) {
+          // Execute the structural change
+          const execResponse = await fetch('http://localhost:5190/structure-change', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              tutorialId,
+              action: result.action,
+              ...result
+            })
+          })
+          
+          if (execResponse.ok) {
+            alert('Structure updated! Reloading...')
+            window.location.reload()
+          } else {
+            const err = await execResponse.json()
+            alert('Failed: ' + (err.error || 'Unknown error'))
+          }
+        }
+        setNlCommand('')
+      } else if (result.action === 'delete' && result.nodeIds?.length > 0) {
+        // Show what will be deleted and confirm
+        expandAncestors(result.nodeIds, allNodes)
+        setSelectedNodes(new Set(result.nodeIds))
+        setSelectionMode(true)
+        
+        if (confirm(`Delete ${result.nodeIds.length} nodes?\n\n${result.reasoning}`)) {
+          // TODO: Implement delete endpoint
+          alert('Delete not yet implemented')
+        }
+        setNlCommand('')
       } else if (result.message) {
         alert(result.message)
+        setNlCommand('')
       }
     } catch (err) {
       console.error('NL command error:', err)
@@ -246,7 +286,7 @@ export default function D3Tree({
     } finally {
       setIsProcessingNL(false)
     }
-  }, [data, collectAllNodes, expandAncestors])
+  }, [data, collectAllNodes, expandAncestors, tutorialId])
   
   const expandAll = useCallback(() => {
     const allIds = new Set()
