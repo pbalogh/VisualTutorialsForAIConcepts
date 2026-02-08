@@ -168,3 +168,72 @@ async function callAnthropic(systemPrompt, userPrompt) {
     req.end()
   })
 }
+
+// ============================================================================
+// Embedding support
+// ============================================================================
+
+/**
+ * Generate embeddings using AWS Bedrock Titan
+ * Returns a 1024-dimensional vector
+ */
+export async function generateEmbedding(text) {
+  const { region } = AI_CONFIG.bedrock
+  const model = 'amazon.titan-embed-text-v2:0'
+  
+  // Truncate text if too long (Titan has 8k token limit)
+  const truncatedText = text.slice(0, 20000)
+  
+  const payload = {
+    inputText: truncatedText,
+    dimensions: 1024,  // Titan v2 supports 256, 512, or 1024
+    normalize: true
+  }
+  
+  const tempFile = path.join(__dirname, '.embed-payload.json')
+  const outputFile = path.join(__dirname, '.embed-output.json')
+  
+  try {
+    await fs.writeFile(tempFile, JSON.stringify(payload))
+    
+    execSync(`aws bedrock-runtime invoke-model \
+      --model-id "${model}" \
+      --region "${region}" \
+      --body "fileb://${tempFile}" \
+      --content-type "application/json" \
+      --accept "application/json" \
+      "${outputFile}"`, { stdio: 'pipe' })
+    
+    const output = await fs.readFile(outputFile, 'utf-8')
+    const response = JSON.parse(output)
+    
+    if (response.embedding) {
+      return response.embedding
+    } else {
+      throw new Error(`Unexpected embedding response format`)
+    }
+    
+  } finally {
+    await fs.unlink(tempFile).catch(() => {})
+    await fs.unlink(outputFile).catch(() => {})
+  }
+}
+
+/**
+ * Compute cosine similarity between two embedding vectors
+ */
+export function cosineSimilarity(a, b) {
+  if (a.length !== b.length) throw new Error('Vectors must have same length')
+  
+  let dotProduct = 0
+  let normA = 0
+  let normB = 0
+  
+  for (let i = 0; i < a.length; i++) {
+    dotProduct += a[i] * b[i]
+    normA += a[i] * a[i]
+    normB += b[i] * b[i]
+  }
+  
+  return dotProduct / (Math.sqrt(normA) * Math.sqrt(normB))
+}

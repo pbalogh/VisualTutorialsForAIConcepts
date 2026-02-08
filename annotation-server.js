@@ -18,7 +18,7 @@ import { execSync } from 'child_process'
 import { fileURLToPath } from 'url'
 import { callAI, getAIInfo } from './ai-config.js'
 import { generatePresentationAudio } from './tts-polly.js'
-import { generateFullSemanticTree, expandNode } from './semantic-tree.js'
+import { generateFullSemanticTree, expandNode, computeTreeEmbeddings } from './semantic-tree.js'
 import { createVersion, listVersions, getVersion, restoreVersion } from './src/utils/versioning.js'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
@@ -2598,6 +2598,118 @@ Return ONLY valid JSON array.`
       
     } catch (error) {
       console.error('❌ Expand node error:', error)
+      return sendJson(res, 500, { error: error.message })
+    }
+  }
+  
+  // ==================== COMPUTE EMBEDDINGS ====================
+  if (url.pathname === '/compute-embeddings' && req.method === 'POST') {
+    try {
+      const body = await parseBody(req)
+      const { tutorialId } = body
+      
+      console.log('\n🧮 Compute Embeddings Request:')
+      console.log(`  Tutorial: ${tutorialId}`)
+      
+      const cachePath = path.join(CONTENT_DIR, `${tutorialId}-semantic-tree.json`)
+      const cached = JSON.parse(await fs.readFile(cachePath, 'utf-8'))
+      
+      // Compute embeddings
+      await computeTreeEmbeddings(cached.tree)
+      
+      // Save updated tree
+      cached.embeddingsComputedAt = new Date().toISOString()
+      await fs.writeFile(cachePath, JSON.stringify(cached, null, 2))
+      
+      // Count embeddings
+      let embeddingCount = 0
+      const countEmbeddings = (n) => {
+        if (n.embedding) embeddingCount++
+        if (n.children) n.children.forEach(countEmbeddings)
+      }
+      countEmbeddings(cached.tree)
+      
+      return sendJson(res, 200, { 
+        status: 'ok', 
+        embeddingCount,
+        embeddingsComputedAt: cached.embeddingsComputedAt
+      })
+      
+    } catch (error) {
+      console.error('❌ Compute embeddings error:', error)
+      return sendJson(res, 500, { error: error.message })
+    }
+  }
+  
+  // ==================== SEMANTIC SEARCH ====================
+  if (url.pathname === '/semantic-search' && req.method === 'POST') {
+    try {
+      const body = await parseBody(req)
+      const { tutorialId, query, maxResults = 5 } = body
+      
+      console.log('\n🔍 Semantic Search:')
+      console.log(`  Tutorial: ${tutorialId}`)
+      console.log(`  Query: ${query}`)
+      
+      // Load tree
+      const cachePath = path.join(CONTENT_DIR, `${tutorialId}-semantic-tree.json`)
+      const cached = JSON.parse(await fs.readFile(cachePath, 'utf-8'))
+      
+      // Generate query embedding
+      const { generateEmbedding, cosineSimilarity } = await import('./ai-config.js')
+      const queryEmbedding = await generateEmbedding(query)
+      
+      // Search tree hierarchically
+      const results = []
+      
+      function searchNode(node, depth = 0, parentScore = 1.0) {
+        if (!node.embedding) return
+        
+        // Compute similarity to this node's summary
+        const summaryScore = cosineSimilarity(queryEmbedding, node.embedding)
+        
+        // Also check child aggregate if available (backdoor match)
+        let childScore = 0
+        if (node.childEmbeddingAggregate) {
+          childScore = cosineSimilarity(queryEmbedding, node.childEmbeddingAggregate)
+        }
+        
+        const score = Math.max(summaryScore, childScore * 0.9) // Slight penalty for indirect match
+        
+        results.push({
+          id: node.id,
+          title: node.title,
+          summary: node.summary,
+          score,
+          summaryScore,
+          childScore,
+          depth,
+          isLeaf: node.isLeaf || !node.children
+        })
+        
+        // Only drill into children if parent seems relevant
+        if (score > 0.3 && node.children) {
+          for (const child of node.children) {
+            searchNode(child, depth + 1, score)
+          }
+        }
+      }
+      
+      searchNode(cached.tree)
+      
+      // Sort by score and return top results
+      results.sort((a, b) => b.score - a.score)
+      const topResults = results.slice(0, maxResults)
+      
+      console.log(`  Found ${results.length} nodes, returning top ${topResults.length}`)
+      
+      return sendJson(res, 200, { 
+        query,
+        results: topResults
+      })
+      
+    } catch (error) {
+      console.error('❌ Semantic search error:', error)
       return sendJson(res, 500, { error: error.message })
     }
   }

@@ -6,9 +6,13 @@
  * 
  * Supports recursive expansion: nodes can be expanded on-demand,
  * with results cached in the tree structure.
+ * 
+ * Each node stores:
+ * - summary: Text summary for humans and RAG text matching
+ * - embedding: 1024-dim vector for semantic similarity
  */
 
-import { callAI } from './ai-config.js'
+import { callAI, generateEmbedding } from './ai-config.js'
 import crypto from 'crypto'
 
 /**
@@ -246,6 +250,74 @@ Return ONLY the summary sentence.`
   tree.generatedAt = new Date().toISOString()
   
   return tree
+}
+
+/**
+ * Generate embeddings for all nodes in a tree
+ * Computes embeddings for summaries and aggregates for parents
+ */
+export async function computeTreeEmbeddings(tree) {
+  console.log('\n🧮 Computing embeddings for tree...')
+  
+  let count = 0
+  
+  async function processNode(node) {
+    // Generate embedding for this node's summary
+    if (node.summary && !node.embedding) {
+      const textToEmbed = `${node.title}. ${node.summary}`
+      try {
+        node.embedding = await generateEmbedding(textToEmbed)
+        count++
+        console.log(`  ✓ Embedded: ${node.title.slice(0, 40)}...`)
+      } catch (e) {
+        console.log(`  ⚠️ Failed to embed: ${node.title} - ${e.message}`)
+      }
+    }
+    
+    // Process children first (depth-first)
+    if (node.children) {
+      for (const child of node.children) {
+        await processNode(child)
+      }
+      
+      // After children are processed, compute aggregate embedding for this parent
+      const childEmbeddings = node.children
+        .filter(c => c.embedding)
+        .map(c => c.embedding)
+      
+      if (childEmbeddings.length > 0 && node.embedding) {
+        // Store both the summary embedding and child aggregate
+        node.childEmbeddingAggregate = averageEmbeddings(childEmbeddings)
+        console.log(`  📊 Aggregated ${childEmbeddings.length} child embeddings for: ${node.title.slice(0, 30)}...`)
+      }
+    }
+  }
+  
+  await processNode(tree)
+  console.log(`\n✅ Generated ${count} embeddings`)
+  
+  return tree
+}
+
+/**
+ * Average multiple embedding vectors
+ */
+function averageEmbeddings(embeddings) {
+  if (embeddings.length === 0) return null
+  if (embeddings.length === 1) return embeddings[0]
+  
+  const dim = embeddings[0].length
+  const result = new Array(dim).fill(0)
+  
+  for (const emb of embeddings) {
+    for (let i = 0; i < dim; i++) {
+      result[i] += emb[i]
+    }
+  }
+  
+  // Normalize
+  const norm = Math.sqrt(result.reduce((sum, v) => sum + v * v, 0))
+  return result.map(v => v / norm)
 }
 
 /**
