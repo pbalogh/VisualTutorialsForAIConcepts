@@ -1,6 +1,7 @@
 import React, { useRef, useEffect, useState, useCallback } from 'react'
 import * as d3 from 'd3'
 import { AnnotatableContent } from '../AnnotationSystem.jsx'
+import NodePlayer, { generatePresentationScript } from '../NodePlayer/NodePlayer.jsx'
 
 /**
  * D3Tree - Polished hierarchical tree visualization
@@ -21,11 +22,44 @@ const X = ({ className }) => (
 
 // Detail modal component
 function DetailModal({ node, onClose, renderContent, tutorialId, onAnnotationRequest }) {
+  const [showPlayer, setShowPlayer] = useState(false)
+  const [presentationScript, setPresentationScript] = useState(null)
+  const [isGenerating, setIsGenerating] = useState(false)
+  
   if (!node) return null
+  
+  const handlePresent = async () => {
+    setIsGenerating(true)
+    try {
+      const script = await generatePresentationScript(
+        node.data?.content || node.data || node,
+        node.data?.title || node.title || 'Untitled'
+      )
+      setPresentationScript(script)
+      setShowPlayer(true)
+    } catch (err) {
+      console.error('Failed to generate presentation:', err)
+      alert('Failed to generate presentation: ' + err.message)
+    } finally {
+      setIsGenerating(false)
+    }
+  }
   
   const content = renderContent ? renderContent(node.data || node) : (
     <p className="text-gray-500 italic">No detailed content available.</p>
   )
+  
+  if (showPlayer && presentationScript) {
+    return (
+      <NodePlayer 
+        script={presentationScript}
+        onClose={() => {
+          setShowPlayer(false)
+          setPresentationScript(null)
+        }}
+      />
+    )
+  }
   
   return (
     <div 
@@ -41,9 +75,18 @@ function DetailModal({ node, onClose, renderContent, tutorialId, onAnnotationReq
           <h2 className="text-lg font-semibold text-gray-900 truncate pr-4">
             {node.data?.title || node.title}
           </h2>
-          <button onClick={onClose} className="p-2 hover:bg-gray-100 rounded-full transition-colors">
-            <X className="w-5 h-5 text-gray-500" />
-          </button>
+          <div className="flex items-center gap-2">
+            <button 
+              onClick={handlePresent}
+              disabled={isGenerating}
+              className="px-3 py-1.5 bg-emerald-600 text-white text-sm rounded-lg hover:bg-emerald-500 disabled:opacity-50 transition-colors"
+            >
+              {isGenerating ? '⏳ Generating...' : '🎬 Present'}
+            </button>
+            <button onClick={onClose} className="p-2 hover:bg-gray-100 rounded-full transition-colors">
+              <X className="w-5 h-5 text-gray-500" />
+            </button>
+          </div>
         </div>
         <div className="p-6 overflow-y-auto max-h-[calc(85vh-80px)]">
           {tutorialId ? (

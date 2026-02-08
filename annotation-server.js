@@ -2104,6 +2104,74 @@ Return ONLY valid JSON.`
     }
   }
   
+  // ==================== GENERATE PRESENTATION ====================
+  if (url.pathname === '/generate-presentation' && req.method === 'POST') {
+    try {
+      const body = await parseBody(req)
+      const { nodeContent, nodeTitle } = body
+      
+      console.log('\n🎬 Generate Presentation Request:')
+      console.log(`  Node: ${nodeTitle}`)
+      
+      const contentStr = typeof nodeContent === 'string' 
+        ? nodeContent 
+        : JSON.stringify(nodeContent, null, 2)
+      
+      const prompt = `Create an animated presentation script for this educational content.
+
+TITLE: ${nodeTitle}
+
+CONTENT:
+${contentStr.slice(0, 3000)}
+
+Generate a JSON array of 5-8 slides. Each slide has:
+- type: "title" | "bullets" | "concept" | "analogy" | "summary"
+- content: object with type-specific fields (see below)
+- narration: what to speak (1-2 sentences, conversational)
+- duration: milliseconds (3000-8000)
+
+Slide type schemas:
+- title: { title, subtitle? }
+- bullets: { heading, points: string[] }
+- concept: { emoji?, concept, explanation }
+- analogy: { left, leftEmoji?, right, rightEmoji? }
+- summary: { takeaway }
+
+Make it engaging like Schoolhouse Rock! Use analogies, emojis, and conversational narration.
+Start with a title slide, end with a summary.
+
+Return ONLY valid JSON array.`
+
+      console.log('🤖 Generating presentation script...')
+      const aiResponse = await callAI(
+        'You create engaging educational presentations like Schoolhouse Rock. Return only valid JSON array.',
+        prompt
+      )
+      
+      let script
+      try {
+        const jsonMatch = aiResponse.match(/\[[\s\S]*\]/)
+        if (!jsonMatch) throw new Error('No JSON array found')
+        script = JSON.parse(jsonMatch[0])
+      } catch (e) {
+        console.error('❌ Failed to parse script:', e.message)
+        // Return a basic fallback script
+        script = [
+          { type: 'title', content: { title: nodeTitle }, narration: `Let's learn about ${nodeTitle}`, duration: 3000 },
+          { type: 'concept', content: { concept: 'Content', explanation: 'This presentation could not be generated.' }, narration: 'Sorry, the presentation script failed to generate.', duration: 5000 }
+        ]
+      }
+      
+      console.log(`  Generated ${script.length} slides`)
+      
+      return sendJson(res, 200, { script })
+      
+    } catch (error) {
+      console.error('❌ Generate presentation error:', error)
+      return sendJson(res, 500, { error: error.message })
+    }
+  }
+  
   // ==================== STRUCTURE LINT (analyze and suggest splits) ====================
   if (url.pathname === '/structure-lint' && req.method === 'POST') {
     try {
