@@ -2514,6 +2514,127 @@ Return ONLY valid JSON array.`
     }
   }
   
+  // ==================== EXPLAIN SELECTED TEXT ====================
+  if (url.pathname === '/explain-selection' && req.method === 'POST') {
+    try {
+      const body = await parseBody(req)
+      const { tutorialId, parentNodeId, parentNode, selectedText, question, mode = 'faithful' } = body
+      
+      console.log('\n💡 Explain Selection Request:')
+      console.log(`  Tutorial: ${tutorialId}`)
+      console.log(`  Parent: ${parentNode?.title}`)
+      console.log(`  Selected: "${selectedText}"`)
+      console.log(`  Mode: ${mode}`)
+      
+      // Generate explanation as child node(s)
+      const explainPrompt = mode === 'faithful'
+        ? `You are explaining a term/phrase that a reader selected from educational content.
+
+SELECTED TEXT: "${selectedText}"
+${question ? `USER QUESTION: ${question}` : ''}
+
+CONTEXT (from the source):
+${parentNode.sourceText || parentNode.summary}
+
+Explain what "${selectedText}" means IN THE CONTEXT of this source material.
+- Only use information from or directly implied by the context
+- If the context doesn't explain this term, say so
+- Be educational and clear
+
+Return a JSON object with:
+- "title": A clear title for this explanation (e.g., "What are GABAergic interneurons?")
+- "summary": 2-4 sentence explanation based on the source context
+- "needsMoreDetail": true if this concept could be further broken down
+
+Return ONLY valid JSON.`
+        : `You are explaining a term/phrase that a reader wants to understand better.
+
+SELECTED TEXT: "${selectedText}"
+${question ? `USER QUESTION: ${question}` : ''}
+
+CONTEXT (from the source):
+${parentNode.sourceText || parentNode.summary}
+
+Explain what "${selectedText}" means. You may add general knowledge beyond the source to help understanding, but prioritize what the source says.
+
+Return a JSON object with:
+- "title": A clear title for this explanation
+- "summary": 2-4 sentence educational explanation
+- "isExternal": true if you added information beyond what the source says
+- "needsMoreDetail": true if this concept could be further broken down
+
+Return ONLY valid JSON.`
+      
+      const response = await callAI(
+        mode === 'faithful'
+          ? 'You explain terms based only on provided context. Return valid JSON.'
+          : 'You explain terms educationally, clearly marking external knowledge. Return valid JSON.',
+        explainPrompt
+      )
+      
+      let explanation
+      try {
+        const jsonMatch = response.match(/\{[\s\S]*\}/)
+        if (!jsonMatch) throw new Error('No JSON found')
+        explanation = JSON.parse(jsonMatch[0])
+      } catch (e) {
+        console.error('  ❌ Failed to parse explanation:', e.message)
+        return sendJson(res, 500, { error: 'Failed to generate explanation' })
+      }
+      
+      // Create the child node
+      const childNode = {
+        id: `${parentNodeId}-explain-${Date.now()}`,
+        title: explanation.title,
+        summary: explanation.summary,
+        sourceText: selectedText,
+        isLeaf: true,
+        canExpand: explanation.needsMoreDetail || false,
+        expanded: false,
+        isAtomic: false,
+        isExternal: explanation.isExternal || false,
+        isExplanation: true,  // Mark as user-requested explanation
+        generatedAt: new Date().toISOString()
+      }
+      
+      // Add to cached tree
+      const cachePath = path.join(CONTENT_DIR, `${tutorialId}-semantic-tree.json`)
+      try {
+        const cached = JSON.parse(await fs.readFile(cachePath, 'utf-8'))
+        
+        // Find parent and add child
+        const addChild = (n) => {
+          if (n.id === parentNodeId) {
+            if (!n.children) n.children = []
+            n.children.push(childNode)
+            n.isLeaf = false
+            return true
+          }
+          if (n.children) {
+            for (const child of n.children) {
+              if (addChild(child)) return true
+            }
+          }
+          return false
+        }
+        
+        if (addChild(cached.tree)) {
+          cached.lastExplained = new Date().toISOString()
+          await fs.writeFile(cachePath, JSON.stringify(cached, null, 2))
+          console.log('  💾 Added explanation child node')
+        }
+      } catch (e) {
+        console.log('  ⚠️ Could not update cache:', e.message)
+      }
+      
+      return sendJson(res, 200, { child: childNode })
+      
+    } catch (error) {
+      console.error('❌ Explain selection error:', error)
+      return sendJson(res, 500, { error: error.message })
+    }
+  }
+  
   // ==================== EXPAND SEMANTIC NODE ====================
   if (url.pathname === '/expand-semantic-node' && req.method === 'POST') {
     try {

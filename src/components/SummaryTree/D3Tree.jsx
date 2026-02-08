@@ -21,7 +21,7 @@ const X = ({ className }) => (
 )
 
 // Detail modal component
-function DetailModal({ node, onClose, renderContent, tutorialId, onAnnotationRequest, onExpandNode }) {
+function DetailModal({ node, onClose, renderContent, tutorialId, onAnnotationRequest, onExpandNode, expansionMode, onExplainSelection }) {
   const [showPlayer, setShowPlayer] = useState(false)
   const [presentationScript, setPresentationScript] = useState(null)
   const [isGenerating, setIsGenerating] = useState(false)
@@ -63,6 +63,25 @@ function DetailModal({ node, onClose, renderContent, tutorialId, onAnnotationReq
       alert('Failed to expand: ' + err.message)
     } finally {
       setIsExpanding(false)
+    }
+  }
+  
+  // Handle text selection actions - for tree view, create child nodes
+  const handleTreeAnnotation = async ({ action, selectedText, context, question }) => {
+    if ((action === 'explain' || action === 'branch') && onExplainSelection) {
+      setIsExpanding(true)
+      try {
+        await onExplainSelection(nodeData, selectedText, question)
+        onClose() // Close modal, tree will update
+      } catch (err) {
+        console.error('Failed to explain selection:', err)
+        alert('Failed to explain: ' + err.message)
+      } finally {
+        setIsExpanding(false)
+      }
+    } else if (onAnnotationRequest) {
+      // Fall back to regular annotation for other actions
+      onAnnotationRequest({ action, selectedText, context, question })
     }
   }
   
@@ -122,7 +141,8 @@ function DetailModal({ node, onClose, renderContent, tutorialId, onAnnotationReq
           {tutorialId ? (
             <AnnotatableContent 
               tutorialId={tutorialId}
-              onAnnotationRequest={onAnnotationRequest}
+              onAnnotationRequest={handleTreeAnnotation}
+              actions={['explain', 'ask']}
             >
               {content}
             </AnnotatableContent>
@@ -176,6 +196,8 @@ export default function D3Tree({
   onAnnotationRequest,
   onCombineNodes,  // Callback for combine operation
   onExpandNode,    // Callback for expanding semantic nodes
+  expansionMode,   // 'faithful' or 'enriched'
+  onExplainSelection, // Callback for explaining selected text
 }) {
   const svgRef = useRef(null)
   const containerRef = useRef(null)
@@ -931,6 +953,8 @@ export default function D3Tree({
         tutorialId={tutorialId}
         onAnnotationRequest={onAnnotationRequest}
         onExpandNode={onExpandNode}
+        expansionMode={expansionMode}
+        onExplainSelection={onExplainSelection}
       />
     </div>
   )

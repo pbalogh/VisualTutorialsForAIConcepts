@@ -505,6 +505,50 @@ export default function TreeWrapper() {
     return result
   }
   
+  // Handle explaining selected text - creates a targeted child node
+  const handleExplainSelection = async (parentNode, selectedText, question) => {
+    console.log('Explain selection:', selectedText, 'in node:', parentNode.title, 'mode:', expansionMode)
+    
+    const response = await fetch('http://localhost:5190/explain-selection', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        tutorialId,
+        parentNodeId: parentNode.id,
+        parentNode: { 
+          title: parentNode.title, 
+          summary: parentNode.summary, 
+          id: parentNode.id, 
+          sourceText: parentNode.sourceText 
+        },
+        selectedText,
+        question,
+        mode: expansionMode
+      })
+    })
+    
+    if (!response.ok) {
+      const error = await response.json()
+      throw new Error(error.error || 'Explain failed')
+    }
+    
+    const result = await response.json()
+    
+    // Reload semantic tree to show new children
+    const treeResponse = await fetch('http://localhost:5190/generate-semantic-tree', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ tutorialId })
+    })
+    
+    if (treeResponse.ok) {
+      const data = await treeResponse.json()
+      setSemanticTree(data.tree)
+    }
+    
+    return result
+  }
+  
   return (
     <div className="min-h-screen bg-slate-50">
       <TreeHeader 
@@ -538,6 +582,8 @@ export default function TreeWrapper() {
           onAnnotationRequest={handleAnnotationRequest}
           onCombineNodes={handleCombineNodes}
           onExpandNode={handleExpandNode}
+          expansionMode={expansionMode}
+          onExplainSelection={handleExplainSelection}
           renderContent={(node) => {
             // For semantic tree leaves, show the summary and chunk info
             if (node.isLeaf && node.summary) {
