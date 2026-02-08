@@ -343,7 +343,34 @@ Return ONLY valid JSON array. Do NOT return {"atomic": true} — always provide 
       }
     })
     
-    return { atomic: false, children }
+    // Generate an enriched parent summary that encompasses the children
+    const childSummaries = children.map(c => `• ${c.title}: ${c.summary}`).join('\n')
+    const enrichPrompt = `A concept has been expanded into sub-concepts. Update the parent summary to encompass all child content.
+
+PARENT CONCEPT: ${node.title}
+ORIGINAL SUMMARY: ${node.summary}
+
+CHILD CONCEPTS:
+${childSummaries}
+
+Write a NEW summary (2-4 sentences) for the parent that:
+1. Retains the core meaning of the original
+2. Hints at the key sub-concepts so queries about them will match
+3. Is self-contained (someone reading just this summary understands the scope)
+
+Return ONLY the new summary text, no JSON or formatting.`
+
+    console.log('  📝 Generating enriched parent summary...')
+    const enrichedSummary = await callAI(
+      'You write concise, comprehensive summaries for hierarchical knowledge retrieval.',
+      enrichPrompt
+    )
+    
+    return { 
+      atomic: false, 
+      children,
+      enrichedParentSummary: enrichedSummary.trim()
+    }
     
   } catch (e) {
     console.error('  ❌ Failed to parse expansion:', e.message)

@@ -2527,32 +2527,67 @@ Return ONLY valid JSON array.`
       const result = await expandNode(node, parentContext)
       
       if (!result.atomic) {
-        // Update the cached tree with new children
+        // Update the cached tree with new children AND bubble up enriched summaries
         const cachePath = path.join(CONTENT_DIR, `${tutorialId}-semantic-tree.json`)
         try {
           const cached = JSON.parse(await fs.readFile(cachePath, 'utf-8'))
           
-          // Find and update the node in the tree
-          const updateNode = (n) => {
+          // Find and update the node, tracking the path for bubble-up
+          const updateNode = (n, ancestors = []) => {
             if (n.id === nodeId) {
+              // Update this node
               n.children = result.children
               n.expanded = true
               n.expandedAt = new Date().toISOString()
               n.isLeaf = false
-              return true
+              
+              // Apply enriched summary if provided
+              if (result.enrichedParentSummary) {
+                console.log('  📝 Updating parent summary')
+                n.originalSummary = n.originalSummary || n.summary  // Preserve original
+                n.summary = result.enrichedParentSummary
+              }
+              
+              return { found: true, ancestors }
             }
             if (n.children) {
               for (const child of n.children) {
-                if (updateNode(child)) return true
+                const res = updateNode(child, [...ancestors, n])
+                if (res.found) return res
               }
             }
-            return false
+            return { found: false }
           }
           
-          if (updateNode(cached.tree)) {
+          const updateResult = updateNode(cached.tree)
+          
+          if (updateResult.found) {
+            // Bubble up: update ancestor summaries to reflect new content
+            if (result.enrichedParentSummary && updateResult.ancestors.length > 0) {
+              console.log(`  🫧 Bubbling up through ${updateResult.ancestors.length} ancestors...`)
+              
+              // For each ancestor (from immediate parent up to root)
+              for (let i = updateResult.ancestors.length - 1; i >= 0; i--) {
+                const ancestor = updateResult.ancestors[i]
+                
+                // Collect all child summaries
+                const childSummaries = ancestor.children
+                  .map(c => `${c.title}: ${c.summary.slice(0, 100)}...`)
+                  .join('; ')
+                
+                // Mark that this ancestor has been enriched by expansion
+                ancestor.enrichedFromExpansion = true
+                ancestor.lastEnrichedAt = new Date().toISOString()
+                
+                // Note: We could regenerate ancestor summaries here too,
+                // but that's expensive. For now, just mark them as potentially stale.
+                // A separate "recompute summaries" job could refresh them.
+              }
+            }
+            
             cached.lastExpanded = new Date().toISOString()
             await fs.writeFile(cachePath, JSON.stringify(cached, null, 2))
-            console.log('  💾 Updated cached tree')
+            console.log('  💾 Updated cached tree with enriched summaries')
           }
         } catch (e) {
           console.log('  ⚠️ Could not update cache:', e.message)
