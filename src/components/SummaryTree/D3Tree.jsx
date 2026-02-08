@@ -585,6 +585,13 @@ export default function D3Tree({
             setSelectedNode(d)
           }
         })
+        .on('dblclick', (event) => {
+          // Double-click opens detail modal for ANY node (including sections)
+          event.stopPropagation()
+          if (!selectionMode) {
+            setSelectedNode(d)
+          }
+        })
         .on('mouseover', function() {
           d3.select(this)
             .transition()
@@ -776,7 +783,9 @@ export default function D3Tree({
           Content
         </span>
         <span className="ml-auto text-slate-400">
-          {selectionMode ? 'Click nodes to select • Shift+click for multiple' : 'Drag to pan • Scroll to zoom'}
+          {selectionMode 
+            ? 'Click nodes to select • Shift+click for multiple' 
+            : 'Click to expand • Double-click to present • Drag to pan'}
         </span>
       </div>
       
