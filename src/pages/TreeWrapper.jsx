@@ -527,13 +527,18 @@ export default function TreeWrapper() {
                       ⚛️ Atomic concept
                     </div>
                   )}
-                  <div className="text-sm text-gray-500 border-t pt-4">
-                    <p className="font-medium text-gray-600 mb-2">This chunk covers:</p>
-                    <p className="italic">{node.title}</p>
-                  </div>
-                  <p className="text-xs text-gray-400">
-                    Click "Present" to see an animated explanation of this concept.
-                  </p>
+                  {node.sourceText && (
+                    <div className="bg-slate-50 border-l-4 border-slate-300 p-4 text-sm text-gray-600 leading-relaxed max-h-64 overflow-y-auto">
+                      <p className="font-medium text-gray-500 mb-2 text-xs uppercase tracking-wide">Source Text</p>
+                      {node.sourceText}
+                    </div>
+                  )}
+                  {!node.sourceText && (
+                    <div className="text-sm text-gray-500 border-t pt-4">
+                      <p className="font-medium text-gray-600 mb-2">This chunk covers:</p>
+                      <p className="italic">{node.title}</p>
+                    </div>
+                  )}
                 </div>
               )
             }

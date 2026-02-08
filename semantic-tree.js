@@ -84,14 +84,17 @@ ${flatText.slice(0, 6000)}
 Return a JSON array of chunks. For each chunk:
 - "title": Brief descriptive title (5-10 words)
 - "summary": One-sentence summary of the concept
-- "startMarker": A unique phrase (5+ words) from the START of this chunk's content
-- "endMarker": A unique phrase (5+ words) from the END of this chunk's content
+- "startMarker": A unique phrase (8+ words, VERBATIM from content) marking the START
+- "endMarker": A unique phrase (8+ words, VERBATIM from content) marking the END
+
+CRITICAL: startMarker and endMarker must be EXACT quotes from the content above. They define what text belongs to this chunk.
 
 Guidelines:
 - A question and its answer should be ONE chunk
 - Related explanations should be grouped together
 - Don't split analogies from what they're explaining
 - Each chunk should be 100-500 words of content
+- Chunks should not overlap
 
 Return ONLY valid JSON array.`
 
@@ -108,47 +111,62 @@ Return ONLY valid JSON array.`
   } catch (e) {
     console.error('Failed to parse chunks:', e.message)
     // Fallback: single chunk with all content
-    return [{
-      title: sectionTitle,
-      summary: 'All section content',
-      elements: elements.map(e => e.index)
-    }]
+    return {
+      chunks: [{
+        title: sectionTitle,
+        summary: 'All section content',
+        sourceText: flatText,
+        sourceAnchor: { startChar: 0, endChar: flatText.length }
+      }],
+      elements,
+      flatText
+    }
   }
   
-  // Map chunks to element indices using markers
+  // Map chunks to actual source text using markers
   const result = []
   for (const chunk of chunks) {
-    // Find elements between start and end markers
+    // Find the actual text range
     const startIdx = flatText.indexOf(chunk.startMarker)
-    const endIdx = chunk.endMarker ? flatText.indexOf(chunk.endMarker) + chunk.endMarker.length : flatText.length
+    let endIdx = chunk.endMarker ? flatText.indexOf(chunk.endMarker) : -1
     
     if (startIdx === -1) {
       console.log(`  ⚠️ Couldn't find start marker for "${chunk.title}"`)
+      // Try fuzzy match
+      const words = chunk.startMarker.split(' ').slice(0, 3).join(' ')
+      const fuzzyIdx = flatText.indexOf(words)
+      if (fuzzyIdx !== -1) {
+        console.log(`    Found fuzzy match at ${fuzzyIdx}`)
+      }
       continue
     }
     
-    // Find which elements fall within this range
-    // This is approximate - we'll include elements whose text appears in the range
-    const chunkElements = []
-    let currentPos = 0
-    
-    for (const el of elements) {
-      const elText = flattenContent(el.node, [], [])
-      const elStart = flatText.indexOf(elText, currentPos)
-      if (elStart >= startIdx && elStart < endIdx) {
-        chunkElements.push(el.index)
-      }
-      if (elStart !== -1) currentPos = elStart + 1
+    if (endIdx === -1) {
+      // Find next chunk's start or end of text
+      endIdx = flatText.length
+    } else {
+      endIdx += chunk.endMarker.length
     }
+    
+    // Extract the actual source text for this chunk
+    const sourceText = flatText.slice(startIdx, endIdx).trim()
     
     result.push({
       title: chunk.title,
       summary: chunk.summary,
-      elementIndices: chunkElements.length > 0 ? chunkElements : [0] // Fallback
+      sourceText: sourceText,  // The actual content!
+      sourceAnchor: {
+        startChar: startIdx,
+        endChar: endIdx,
+        startMarker: chunk.startMarker,
+        endMarker: chunk.endMarker
+      }
     })
+    
+    console.log(`  ✓ "${chunk.title}" (${sourceText.length} chars)`)
   }
   
-  return { chunks: result, elements }
+  return { chunks: result, elements, flatText }
 }
 
 /**
@@ -213,8 +231,9 @@ Return ONLY the summary sentence.`
         id: `section-${i}-chunk-${j}`,
         title: chunk.title,
         summary: chunk.summary,
-        // Store element references for rendering
-        elementIndices: chunk.elementIndices,
+        // Store actual source text for this chunk
+        sourceText: chunk.sourceText,
+        sourceAnchor: chunk.sourceAnchor,
         sectionIndex: i,
         isLeaf: true,
         canExpand: true,  // All leaves can potentially be expanded
@@ -236,17 +255,23 @@ Return ONLY the summary sentence.`
 export async function expandNode(node, parentContext = '') {
   console.log(`\n🔍 Expanding node: ${node.title}`)
   
+  // Use sourceText if available, otherwise just summary
+  const sourceContent = node.sourceText || node.summary
+  const hasSourceText = !!node.sourceText
+  
   const expandPrompt = `You are analyzing a concept to determine if it can be broken into meaningful sub-concepts.
 
 CONCEPT: ${node.title}
 SUMMARY: ${node.summary}
+${hasSourceText ? `\nSOURCE TEXT:\n${sourceContent.slice(0, 3000)}` : ''}
 PARENT CONTEXT: ${parentContext || 'Top-level concept'}
 
-Analyze this concept. Can it be meaningfully decomposed into 2-5 sub-concepts that would help someone understand it better?
+Analyze this ${hasSourceText ? 'source text' : 'concept'}. Can it be meaningfully decomposed into 2-5 sub-concepts that would help someone understand it better?
 
 If YES: Return a JSON array of sub-concepts, each with:
 - "title": Brief title (3-8 words)
 - "summary": One-sentence explanation
+- "sourceQuote": ${hasSourceText ? 'A verbatim quote (20+ words) from the source text that this sub-concept covers' : '"" (empty string)'}
 - "isAtomic": true if this sub-concept is fundamental and doesn't need further breakdown
 
 If NO (the concept is already atomic/fundamental): Return {"atomic": true, "reason": "brief explanation"}
@@ -280,16 +305,29 @@ Return ONLY valid JSON.`
     
     console.log(`  📊 Generated ${parsed.length} sub-concepts`)
     
-    const children = parsed.map((sub, i) => ({
-      id: `${node.id}-sub-${i}`,
-      title: sub.title,
-      summary: sub.summary,
-      isLeaf: true,
-      canExpand: !sub.isAtomic,
-      expanded: false,
-      isAtomic: sub.isAtomic || false,
-      generatedAt: new Date().toISOString()
-    }))
+    const children = parsed.map((sub, i) => {
+      // Try to find the sourceQuote in the parent's sourceText
+      let sourceText = sub.sourceQuote || ''
+      if (sourceText && node.sourceText) {
+        const idx = node.sourceText.indexOf(sourceText.slice(0, 30))
+        if (idx === -1) {
+          // Quote not found verbatim, just use it as-is
+          console.log(`    ⚠️ Quote not found verbatim for "${sub.title}"`)
+        }
+      }
+      
+      return {
+        id: `${node.id}-sub-${i}`,
+        title: sub.title,
+        summary: sub.summary,
+        sourceText: sourceText,  // Anchored to parent's text
+        isLeaf: true,
+        canExpand: !sub.isAtomic && sourceText.length > 100,  // Need enough content to expand
+        expanded: false,
+        isAtomic: sub.isAtomic || false,
+        generatedAt: new Date().toISOString()
+      }
+    })
     
     return { atomic: false, children }
     
