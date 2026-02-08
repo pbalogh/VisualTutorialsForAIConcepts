@@ -1787,46 +1787,88 @@ Return ONLY a JSON array, no explanation.`
       const content = JSON.parse(await fs.readFile(jsonPath, 'utf-8'))
       
       // Find the nodes to combine
+      // We need to replicate the tree ID generation logic to find nodes
+      const NOTABLE_TYPES = ['Sidebar', 'DeepDive', 'Callout', 'Example', 'ComparisonTable', 'InteractiveViz', 'Diagram', 'CodeBlock', 'Quiz', 'Footnote']
+      
+      // Build a map of tree-generated IDs to actual nodes with parent info
+      const nodeMap = new Map()
+      
+      function mapNotableElements(children, parentId, parentNode, indexOffset = 0) {
+        if (!children) return
+        const arr = Array.isArray(children) ? children : [children]
+        
+        arr.forEach((child, idx) => {
+          if (!child || typeof child !== 'object') return
+          
+          if (NOTABLE_TYPES.includes(child.type)) {
+            const nodeId = `${parentId}-${child.type.toLowerCase()}-${indexOffset + idx}`
+            nodeMap.set(nodeId, { node: child, parent: parentNode, index: idx })
+          }
+          
+          if (child.children) {
+            mapNotableElements(child.children, parentId, child, indexOffset + idx * 100)
+          }
+        })
+      }
+      
+      // Process sections like the tree generator does
+      const contentChildren = content.content.children
+      if (contentChildren) {
+        let sectionIdx = 0
+        contentChildren.forEach((section, secArrayIdx) => {
+          if (section.type !== 'Section') return
+          
+          const sectionId = `section-${sectionIdx}`
+          nodeMap.set(sectionId, { node: section, parent: content.content, index: secArrayIdx })
+          
+          if (section.children) {
+            const sectionChildren = Array.isArray(section.children) ? section.children : [section.children]
+            let subIdx = 0
+            let currentSubId = null
+            let currentSubContent = []
+            
+            sectionChildren.forEach((child, childIdx) => {
+              if (child.type === 'h3' || child.type === 'h4') {
+                // Process previous subsection's notable elements
+                if (currentSubId && currentSubContent.length > 0) {
+                  mapNotableElements(currentSubContent, currentSubId, section)
+                }
+                currentSubId = `${sectionId}-sub-${subIdx}`
+                currentSubContent = []
+                subIdx++
+              } else if (currentSubId) {
+                currentSubContent.push(child)
+                // Also check if this child itself is notable
+                if (NOTABLE_TYPES.includes(child.type)) {
+                  const nodeId = `${currentSubId}-${child.type.toLowerCase()}-${childIdx}`
+                  nodeMap.set(nodeId, { node: child, parent: section, index: childIdx })
+                }
+              } else {
+                // Notable at section level (before first h3)
+                if (NOTABLE_TYPES.includes(child.type)) {
+                  const nodeId = `${sectionId}-${child.type.toLowerCase()}-${childIdx}`
+                  nodeMap.set(nodeId, { node: child, parent: section, index: childIdx })
+                }
+              }
+            })
+            
+            // Don't forget last subsection
+            if (currentSubId && currentSubContent.length > 0) {
+              mapNotableElements(currentSubContent, currentSubId, section)
+            }
+          }
+          sectionIdx++
+        })
+      }
+      
+      console.log(`  Built node map with ${nodeMap.size} entries`)
+      
       const nodesToCombine = []
       const nodeContents = []
       
-      function findNodeById(node, targetId, path = '') {
-        if (!node) return null
-        const nodeId = node.id || (path === '' ? 'root' : null)
-        
-        // Check if this matches by generated ID pattern
-        if (targetId === nodeId) {
-          return { node, path }
-        }
-        
-        // Check children
-        if (node.children && Array.isArray(node.children)) {
-          for (let i = 0; i < node.children.length; i++) {
-            const child = node.children[i]
-            const childPath = path ? `${path}.children[${i}]` : `children[${i}]`
-            
-            // Generate ID based on element type and position (matching tree generation)
-            let childId = null
-            if (child.type === 'Section') {
-              childId = `section-${i}`
-            } else if (child.props?.title) {
-              childId = `${path}-${child.type?.toLowerCase()}-${i}`
-            }
-            
-            if (targetId === childId) {
-              return { node: child, path: childPath, index: i, parent: node }
-            }
-            
-            const found = findNodeById(child, targetId, childPath)
-            if (found) return found
-          }
-        }
-        return null
-      }
-      
-      // Collect nodes to combine
+      // Collect nodes to combine using the map
       for (const nodeId of nodeIds) {
-        const found = findNodeById(content.content, nodeId)
+        const found = nodeMap.get(nodeId)
         if (found) {
           nodesToCombine.push(found)
           nodeContents.push({
@@ -1834,6 +1876,7 @@ Return ONLY a JSON array, no explanation.`
             title: found.node.props?.title || found.node.type || 'Untitled',
             content: JSON.stringify(found.node, null, 2).slice(0, 2000)
           })
+          console.log(`  ✅ Found node: ${nodeId}`)
         } else {
           console.log(`  ⚠️ Node not found: ${nodeId}`)
         }
@@ -1896,24 +1939,41 @@ Return ONLY the JSON, no markdown or explanation.`
       const backup = JSON.stringify(content, null, 2)
       await fs.writeFile(jsonPath + '.backup', backup)
       
-      // Replace the first node with combined content, remove others
-      // Sort by path length (process deepest first to avoid index shifts)
-      nodesToCombine.sort((a, b) => b.path.length - a.path.length)
+      // Remove nodes from their parents (in reverse index order to avoid shifts)
+      // Group by parent and sort indices descending
+      const byParent = new Map()
+      nodesToCombine.forEach(info => {
+        const parentKey = info.parent
+        if (!byParent.has(parentKey)) byParent.set(parentKey, [])
+        byParent.get(parentKey).push(info)
+      })
       
-      // Remove all but the first (we'll replace that one)
-      const firstNode = nodesToCombine[nodesToCombine.length - 1] // Shallowest
-      const toRemove = nodesToCombine.slice(0, -1) // All others
+      let firstNode = nodesToCombine[0]
+      let removedCount = 0
       
-      // Remove the other nodes
-      for (const nodeInfo of toRemove) {
-        if (nodeInfo.parent && typeof nodeInfo.index === 'number') {
-          nodeInfo.parent.children.splice(nodeInfo.index, 1)
+      for (const [parent, nodes] of byParent) {
+        // Sort by index descending to remove from end first
+        nodes.sort((a, b) => b.index - a.index)
+        
+        for (const nodeInfo of nodes) {
+          if (nodeInfo === firstNode) continue // Keep first node for replacement
+          
+          if (parent.children && Array.isArray(parent.children)) {
+            parent.children.splice(nodeInfo.index, 1)
+            removedCount++
+            console.log(`  🗑️ Removed node at index ${nodeInfo.index}`)
+          }
         }
       }
       
       // Replace the first node with combined content
-      if (firstNode.parent && typeof firstNode.index === 'number') {
-        firstNode.parent.children[firstNode.index] = combinedSection
+      if (firstNode.parent?.children && Array.isArray(firstNode.parent.children)) {
+        // Find current index (may have shifted)
+        const currentIdx = firstNode.parent.children.indexOf(firstNode.node)
+        if (currentIdx !== -1) {
+          firstNode.parent.children[currentIdx] = combinedSection
+          console.log(`  ✅ Replaced node at index ${currentIdx} with combined section`)
+        }
       }
       
       // Save
