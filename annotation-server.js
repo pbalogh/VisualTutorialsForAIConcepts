@@ -2108,43 +2108,67 @@ Return ONLY valid JSON.`
   if (url.pathname === '/generate-presentation' && req.method === 'POST') {
     try {
       const body = await parseBody(req)
-      const { nodeContent, nodeTitle } = body
+      const { nodeContent, nodeTitle, tutorialId, nodeId } = body
       
       console.log('\n🎬 Generate Presentation Request:')
       console.log(`  Node: ${nodeTitle}`)
+      
+      // Check cache first
+      const cacheDir = path.join(CONTENT_DIR, '.presentations')
+      const cacheKey = `${tutorialId || 'unknown'}-${nodeId || nodeTitle}`.replace(/[^a-z0-9-]/gi, '_')
+      const cachePath = path.join(cacheDir, `${cacheKey}.json`)
+      
+      try {
+        await fs.mkdir(cacheDir, { recursive: true })
+        const cached = await fs.readFile(cachePath, 'utf-8')
+        console.log('  ✅ Using cached presentation')
+        return sendJson(res, 200, JSON.parse(cached))
+      } catch {
+        // Not cached, generate new
+      }
       
       const contentStr = typeof nodeContent === 'string' 
         ? nodeContent 
         : JSON.stringify(nodeContent, null, 2)
       
-      const prompt = `Create an animated presentation script for this educational content.
+      const prompt = `Create an animated educational presentation for this content. Your job is NOT to just reformat the text - you must EXPAND and CLARIFY it for someone watching a video.
 
 TITLE: ${nodeTitle}
 
-CONTENT:
+SOURCE CONTENT:
 ${contentStr.slice(0, 3000)}
 
-Generate a JSON array of 5-8 slides. Each slide has:
-- type: "title" | "bullets" | "concept" | "analogy" | "summary"
-- content: object with type-specific fields (see below)
-- narration: what to speak (1-2 sentences, conversational)
-- duration: milliseconds (3000-8000)
+Generate a JSON array of 5-8 slides. Make it like Schoolhouse Rock - vivid, memorable, with concrete analogies.
 
-Slide type schemas:
-- title: { title, subtitle? }
-- bullets: { heading, points: string[] }
-- concept: { emoji?, concept, explanation }
-- analogy: { left, leftEmoji?, right, rightEmoji? }
-- summary: { takeaway }
+CRITICAL INSTRUCTIONS:
+1. DON'T just copy text from the source - EXPLAIN it more clearly
+2. Use concrete analogies and metaphors (e.g., "neurons are like musicians in an orchestra")
+3. Break down any abstract concepts into visual/tangible examples
+4. The narration should be conversational, like a friendly teacher explaining to a curious student
+5. Each slide should make ONE clear point with vivid imagery
 
-Make it engaging like Schoolhouse Rock! Use analogies, emojis, and conversational narration.
-Start with a title slide, end with a summary.
+Slide types and schemas:
+- "title": { title, subtitle } - Opening hook
+- "bullets": { heading, points: string[] } - Key points (max 4 bullets, each should be a complete thought)
+- "concept": { emoji, concept, explanation } - One big idea with simple explanation
+- "analogy": { left, leftEmoji, right, rightEmoji } - "X is like Y" comparison
+- "summary": { takeaway } - One memorable sentence to remember
+
+Each slide needs:
+- type: one of the above
+- content: matching schema
+- narration: 2-3 sentences, CONVERSATIONAL tone, ~10-15 seconds when spoken
+- duration: 8000-15000 (milliseconds - give time for narration!)
+
+Example of GOOD vs BAD:
+BAD narration: "Theta oscillations occur at 4-8 Hz in the hippocampus."
+GOOD narration: "Imagine your brain has a metronome clicking 4 to 8 times per second. That's theta - the rhythm your hippocampus uses to organize memories, like a librarian sorting books into the right shelves."
 
 Return ONLY valid JSON array.`
 
       console.log('🤖 Generating presentation script...')
       const aiResponse = await callAI(
-        'You create engaging educational presentations like Schoolhouse Rock. Return only valid JSON array.',
+        'You create vivid, memorable educational presentations like Schoolhouse Rock. Expand and clarify concepts, dont just reformat. Return only valid JSON array.',
         prompt
       )
       
@@ -2153,18 +2177,33 @@ Return ONLY valid JSON array.`
         const jsonMatch = aiResponse.match(/\[[\s\S]*\]/)
         if (!jsonMatch) throw new Error('No JSON array found')
         script = JSON.parse(jsonMatch[0])
+        
+        // Ensure minimum durations based on narration length
+        script = script.map(slide => ({
+          ...slide,
+          duration: Math.max(slide.duration || 8000, (slide.narration?.length || 0) * 80) // ~80ms per char for speech
+        }))
+        
       } catch (e) {
         console.error('❌ Failed to parse script:', e.message)
-        // Return a basic fallback script
         script = [
-          { type: 'title', content: { title: nodeTitle }, narration: `Let's learn about ${nodeTitle}`, duration: 3000 },
-          { type: 'concept', content: { concept: 'Content', explanation: 'This presentation could not be generated.' }, narration: 'Sorry, the presentation script failed to generate.', duration: 5000 }
+          { type: 'title', content: { title: nodeTitle }, narration: `Let's learn about ${nodeTitle}`, duration: 4000 },
+          { type: 'concept', content: { concept: 'Error', explanation: 'Presentation generation failed.' }, narration: 'Sorry, something went wrong generating this presentation.', duration: 5000 }
         ]
       }
       
       console.log(`  Generated ${script.length} slides`)
       
-      return sendJson(res, 200, { script })
+      // Cache the result
+      const result = { script, generatedAt: new Date().toISOString() }
+      try {
+        await fs.writeFile(cachePath, JSON.stringify(result, null, 2))
+        console.log('  💾 Cached presentation')
+      } catch (e) {
+        console.log('  ⚠️ Failed to cache:', e.message)
+      }
+      
+      return sendJson(res, 200, result)
       
     } catch (error) {
       console.error('❌ Generate presentation error:', error)

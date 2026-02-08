@@ -8,24 +8,48 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 
-// Simple text-to-speech wrapper
+// Simple text-to-speech wrapper with better voice selection
 function useSpeech() {
   const utteranceRef = useRef(null)
+  const [voice, setVoice] = useState(null)
+  
+  // Find a good voice on mount
+  useEffect(() => {
+    const findVoice = () => {
+      const voices = window.speechSynthesis?.getVoices() || []
+      // Prefer natural-sounding voices
+      const preferred = voices.find(v => 
+        v.name.includes('Samantha') || // macOS
+        v.name.includes('Google') ||   // Chrome
+        v.name.includes('Microsoft Zira') || // Windows
+        v.name.includes('Natural') ||
+        v.name.includes('Premium')
+      ) || voices.find(v => v.lang.startsWith('en')) || voices[0]
+      
+      if (preferred) setVoice(preferred)
+    }
+    
+    findVoice()
+    window.speechSynthesis?.addEventListener('voiceschanged', findVoice)
+    return () => window.speechSynthesis?.removeEventListener('voiceschanged', findVoice)
+  }, [])
   
   const speak = useCallback((text, onEnd) => {
     if ('speechSynthesis' in window) {
       window.speechSynthesis.cancel()
       const utterance = new SpeechSynthesisUtterance(text)
-      utterance.rate = 0.9
-      utterance.pitch = 1
+      utterance.rate = 0.95  // Slightly slower for clarity
+      utterance.pitch = 1.05 // Slightly higher for friendliness
+      if (voice) utterance.voice = voice
       utterance.onend = onEnd
+      utterance.onerror = onEnd // Don't block on errors
       utteranceRef.current = utterance
       window.speechSynthesis.speak(utterance)
     } else {
-      // Fallback: just wait a bit
-      setTimeout(onEnd, text.length * 50)
+      // Fallback: estimate speaking time
+      setTimeout(onEnd, text.length * 60)
     }
-  }, [])
+  }, [voice])
   
   const stop = useCallback(() => {
     window.speechSynthesis?.cancel()
@@ -182,16 +206,34 @@ export default function NodePlayer({
   useEffect(() => {
     if (!isPlaying || !slide) return
     
+    let narrationDone = false
+    let timerDone = false
+    
+    const checkAdvance = () => {
+      // Only advance when BOTH narration and minimum time are done
+      if (narrationDone && timerDone) {
+        if (currentSlide < script.length - 1) {
+          setCurrentSlide(prev => prev + 1)
+          setProgress(0)
+        } else {
+          setIsPlaying(false)
+        }
+      }
+    }
+    
     // Start narration
     if (slide.narration) {
       speak(slide.narration, () => {
-        // Narration done - could auto-advance here
+        narrationDone = true
+        checkAdvance()
       })
+    } else {
+      narrationDone = true
     }
     
-    // Progress animation
+    // Progress animation - but don't auto-advance, just track progress
     startTimeRef.current = Date.now()
-    const duration = slide.duration || 5000
+    const duration = slide.duration || 8000
     
     const updateProgress = () => {
       const elapsed = Date.now() - startTimeRef.current
@@ -201,13 +243,8 @@ export default function NodePlayer({
       if (newProgress < 1) {
         timerRef.current = requestAnimationFrame(updateProgress)
       } else {
-        // Auto-advance to next slide
-        if (currentSlide < script.length - 1) {
-          setCurrentSlide(prev => prev + 1)
-          setProgress(0)
-        } else {
-          setIsPlaying(false)
-        }
+        timerDone = true
+        checkAdvance()
       }
     }
     
