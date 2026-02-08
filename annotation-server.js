@@ -17,6 +17,7 @@ import path from 'path'
 import { execSync } from 'child_process'
 import { fileURLToPath } from 'url'
 import { callAI, getAIInfo } from './ai-config.js'
+import { createVersion, listVersions, getVersion, restoreVersion } from './src/utils/versioning.js'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const PORT = 5190
@@ -1085,6 +1086,18 @@ const server = http.createServer(async (req, res) => {
     }
   }
   
+  // Fetch a single tutorial (avoids import caching issues)
+  if (url.pathname.startsWith('/api/tutorial/') && req.method === 'GET') {
+    try {
+      const tutorialId = url.pathname.replace('/api/tutorial/', '')
+      const jsonPath = path.join(CONTENT_DIR, `${tutorialId}.json`)
+      const content = JSON.parse(await fs.readFile(jsonPath, 'utf-8'))
+      return sendJson(res, 200, content)
+    } catch (error) {
+      return sendJson(res, 404, { error: `Tutorial not found: ${error.message}` })
+    }
+  }
+  
   if (url.pathname === '/annotate' && req.method === 'POST') {
     try {
       const body = await parseBody(req)
@@ -1677,6 +1690,14 @@ Return ONLY a JSON array, no explanation.`
         : `Applied ${totalEdits} edits across ${sectionAnnotations.size} section(s)`
       
       if (totalEdits > 0) {
+        // Create a version snapshot before saving
+        try {
+          await createVersion(jsonPath, `Before regroup: ${totalEdits} edits`, 'regroup')
+          console.log('📸 Version snapshot created')
+        } catch (versionErr) {
+          console.warn('⚠️ Could not create version:', versionErr.message)
+        }
+        
         // Save the updated content
         await fs.writeFile(jsonPath, JSON.stringify(updatedContent, null, 2))
         console.log(`\n💾 Saved: ${jsonPath}`)
@@ -2505,6 +2526,113 @@ Suggest contrasting perspectives that would create productive intellectual tensi
 
     } catch (error) {
       console.error('❌ Suggest error:', error)
+      return sendJson(res, 500, { error: error.message })
+    }
+  }
+
+  // ============================================================================
+  // Version History Endpoints
+  // ============================================================================
+  
+  // List versions for a tutorial
+  if (url.pathname === '/api/versions' && req.method === 'GET') {
+    try {
+      const tutorialId = url.searchParams.get('tutorialId')
+      if (!tutorialId) {
+        return sendJson(res, 400, { error: 'Missing tutorialId parameter' })
+      }
+      
+      const jsonPath = path.join(CONTENT_DIR, `${tutorialId}.json`)
+      const versions = await listVersions(jsonPath)
+      
+      return sendJson(res, 200, { 
+        tutorialId,
+        versions,
+        count: versions.length
+      })
+    } catch (error) {
+      console.error('❌ List versions error:', error)
+      return sendJson(res, 500, { error: error.message })
+    }
+  }
+  
+  // Get a specific version
+  if (url.pathname === '/api/versions/get' && req.method === 'GET') {
+    try {
+      const tutorialId = url.searchParams.get('tutorialId')
+      const index = parseInt(url.searchParams.get('index'), 10)
+      
+      if (!tutorialId || isNaN(index)) {
+        return sendJson(res, 400, { error: 'Missing tutorialId or index parameter' })
+      }
+      
+      const jsonPath = path.join(CONTENT_DIR, `${tutorialId}.json`)
+      const { content, versionInfo } = await getVersion(jsonPath, index)
+      
+      return sendJson(res, 200, { 
+        tutorialId,
+        index,
+        versionInfo,
+        content
+      })
+    } catch (error) {
+      console.error('❌ Get version error:', error)
+      return sendJson(res, 500, { error: error.message })
+    }
+  }
+  
+  // Restore a version
+  if (url.pathname === '/api/versions/restore' && req.method === 'POST') {
+    try {
+      const body = await parseBody(req)
+      const { tutorialId, index } = body
+      
+      if (!tutorialId || index === undefined) {
+        return sendJson(res, 400, { error: 'Missing tutorialId or index' })
+      }
+      
+      console.log(`\n🔄 Restore version request: ${tutorialId} -> index ${index}`)
+      
+      const jsonPath = path.join(CONTENT_DIR, `${tutorialId}.json`)
+      const restoredInfo = await restoreVersion(jsonPath, index)
+      
+      // Also commit to git
+      const commitMsg = `[restore] Restored to: ${restoredInfo.message}`
+      commitAndPush(jsonPath, commitMsg).catch(() => {})
+      
+      return sendJson(res, 200, { 
+        success: true,
+        tutorialId,
+        restoredFrom: restoredInfo
+      })
+    } catch (error) {
+      console.error('❌ Restore version error:', error)
+      return sendJson(res, 500, { error: error.message })
+    }
+  }
+  
+  // Create a manual version snapshot
+  if (url.pathname === '/api/versions/create' && req.method === 'POST') {
+    try {
+      const body = await parseBody(req)
+      const { tutorialId, message = 'Manual snapshot' } = body
+      
+      if (!tutorialId) {
+        return sendJson(res, 400, { error: 'Missing tutorialId' })
+      }
+      
+      console.log(`\n📸 Manual version snapshot: ${tutorialId}`)
+      
+      const jsonPath = path.join(CONTENT_DIR, `${tutorialId}.json`)
+      const versionInfo = await createVersion(jsonPath, message, 'manual')
+      
+      return sendJson(res, 200, { 
+        success: true,
+        tutorialId,
+        versionInfo
+      })
+    } catch (error) {
+      console.error('❌ Create version error:', error)
       return sendJson(res, 500, { error: error.message })
     }
   }

@@ -3,6 +3,7 @@ import { useParams, Link } from 'react-router-dom'
 import D3Tree from '../components/SummaryTree/D3Tree.jsx'
 import { Container } from '../components/SharedUI.jsx'
 import { TutorialEngine } from '../components/TutorialEngine/ElementRenderer.jsx'
+import VersionDropdown from '../components/VersionDropdown.jsx'
 
 // JSON-based tutorials that can have tree views
 const jsonTutorials = ['vector-projection', 'engine-demo', 'matrix-from-vectors-engine', 'matrix-discovery-engine', 'lead-lag-correlation-engine', 'least-squares-engine', 'schankian-paper-draft', 'rotate-paper', 'neural-oscillations']
@@ -196,7 +197,7 @@ function extractExcerpt(children, maxLength = 120) {
 }
 
 // Tree header component
-function TreeHeader({ title, subtitle, tutorialId }) {
+function TreeHeader({ title, subtitle, tutorialId, onVersionRestore }) {
   return (
     <header className="relative overflow-hidden">
       <div 
@@ -239,14 +240,18 @@ function TreeHeader({ title, subtitle, tutorialId }) {
           {subtitle || 'Hierarchical overview — click nodes to expand'}
         </p>
         
-        {/* Link back to tutorial - emerald to match header */}
-        <Link 
-          to={`/tutorial/${tutorialId}`}
-          className="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 active:scale-[0.98] text-white text-sm font-medium transition-all duration-150 shadow-lg shadow-emerald-500/25"
-        >
-          <span>📖</span>
-          View Full Tutorial
-        </Link>
+        {/* Actions row */}
+        <div className="flex items-center gap-3 flex-wrap">
+          <Link 
+            to={`/tutorial/${tutorialId}`}
+            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 active:scale-[0.98] text-white text-sm font-medium transition-all duration-150 shadow-lg shadow-emerald-500/25"
+          >
+            <span>📖</span>
+            View Full Tutorial
+          </Link>
+          
+          <VersionDropdown tutorialId={tutorialId} onVersionChange={onVersionRestore} />
+        </div>
       </div>
     </header>
   )
@@ -287,19 +292,35 @@ export default function TreeWrapper() {
     }
   }
   
-  useEffect(() => {
-    const loadTutorial = async () => {
-      try {
-        const filename = jsonFilenames[tutorialId] || tutorialId
+  // Reusable load function
+  const loadTutorial = async () => {
+    try {
+      const filename = jsonFilenames[tutorialId] || tutorialId
+      // Use fetch instead of import to avoid caching issues
+      const res = await fetch(`http://localhost:5190/api/tutorial/${filename}`)
+      if (res.ok) {
+        const data = await res.json()
+        setTutorial(data)
+      } else {
+        // Fallback to import
         const module = await import(`../content/${filename}.json`)
         setTutorial(module.default || module)
-      } catch (e) {
-        console.error('Failed to load tutorial:', e)
-        setError('Tutorial not found or has no tree view available.')
-      } finally {
-        setLoading(false)
       }
+    } catch (e) {
+      console.error('Failed to load tutorial:', e)
+      setError('Tutorial not found or has no tree view available.')
+    } finally {
+      setLoading(false)
     }
+  }
+  
+  // Reload when version is restored
+  const handleVersionRestore = () => {
+    setLoading(true)
+    loadTutorial()
+  }
+  
+  useEffect(() => {
     loadTutorial()
   }, [tutorialId])
   
@@ -351,16 +372,9 @@ export default function TreeWrapper() {
     const result = await response.json()
     console.log('Combine result:', result)
     
-    // Reload tutorial via fetch (not dynamic import, to avoid Vite cache)
-    const filename = jsonFilenames[tutorialId] || tutorialId
-    const contentResponse = await fetch(`/src/content/${filename}.json?t=${Date.now()}`)
-    if (contentResponse.ok) {
-      const updatedTutorial = await contentResponse.json()
-      setTutorial(updatedTutorial)
-    } else {
-      // Fallback: just reload the page
-      window.location.reload()
-    }
+    // Reload the page to show updated content
+    // (Dynamic imports and fetch don't work reliably with Vite's dev server caching)
+    window.location.reload()
     
     return result
   }
@@ -371,6 +385,7 @@ export default function TreeWrapper() {
         title={tutorial.title} 
         subtitle={tutorial.subtitle}
         tutorialId={tutorialId}
+        onVersionRestore={handleVersionRestore}
       />
       
       {/* Gradient bridge from dark header to light content */}
