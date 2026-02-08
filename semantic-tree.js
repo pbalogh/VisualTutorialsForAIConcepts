@@ -381,14 +381,29 @@ Return ONLY valid JSON array.`
 
   const response = await callAI(
     mode === 'faithful' 
-      ? 'You are a careful reader who explains ONLY what a source text says. Never add external knowledge.'
-      : 'You are an expert teacher who explains concepts thoroughly, clearly marking when you add external knowledge.',
+      ? 'You are a careful reader who explains ONLY what a source text says. Never add external knowledge. Always return valid JSON.'
+      : 'You are an expert teacher who explains concepts thoroughly, clearly marking when you add external knowledge. Always return valid JSON.',
     mode === 'faithful' ? faithfulPrompt : enrichedPrompt
   )
   
   try {
-    const jsonMatch = response.match(/\{[\s\S]*\}|\[[\s\S]*\]/)
-    if (!jsonMatch) throw new Error('No JSON found')
+    const jsonMatch = response.match(/\[[\s\S]*\]|\{[\s\S]*\}/)
+    if (!jsonMatch) {
+      console.log(`  ⚠️ No JSON in response, trying to extract meaning...`)
+      console.log(`  Response preview: ${response.slice(0, 200)}...`)
+      
+      // If the AI couldn't find sub-concepts to create, that's informative
+      if (response.toLowerCase().includes('cannot') || 
+          response.toLowerCase().includes('insufficient') ||
+          response.toLowerCase().includes('not enough')) {
+        return { 
+          atomic: true, 
+          reason: 'Source text does not contain enough detail to break down further' 
+        }
+      }
+      
+      throw new Error('No JSON found in response')
+    }
     
     const parsed = JSON.parse(jsonMatch[0])
     
@@ -509,6 +524,9 @@ Return ONLY the new summary text, no JSON or formatting.`
     
   } catch (e) {
     console.error('  ❌ Failed to parse expansion:', e.message)
-    return { atomic: true, reason: 'Failed to analyze' }
+    return { 
+      atomic: true, 
+      reason: `Could not break down this concept. The source text may not contain enough detail for further decomposition.`
+    }
   }
 }
