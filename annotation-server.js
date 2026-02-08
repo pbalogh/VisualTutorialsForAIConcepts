@@ -18,6 +18,7 @@ import { execSync } from 'child_process'
 import { fileURLToPath } from 'url'
 import { callAI, getAIInfo } from './ai-config.js'
 import { generatePresentationAudio } from './tts-polly.js'
+import { generateFullSemanticTree } from './semantic-tree.js'
 import { createVersion, listVersions, getVersion, restoreVersion } from './src/utils/versioning.js'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
@@ -2466,6 +2467,48 @@ Return ONLY valid JSON array.`
       
     } catch (error) {
       console.error('❌ Structure lint error:', error)
+      return sendJson(res, 500, { error: error.message })
+    }
+  }
+  
+  // ==================== SEMANTIC TREE GENERATION ====================
+  if (url.pathname === '/generate-semantic-tree' && req.method === 'POST') {
+    try {
+      const body = await parseBody(req)
+      const { tutorialId, forceRegenerate = false } = body
+      
+      console.log('\n🌳 Semantic Tree Request:')
+      console.log(`  Tutorial: ${tutorialId}`)
+      
+      // Check cache
+      const cachePath = path.join(CONTENT_DIR, `${tutorialId}-semantic-tree.json`)
+      
+      if (!forceRegenerate) {
+        try {
+          const cached = await fs.readFile(cachePath, 'utf-8')
+          console.log('  ✅ Using cached semantic tree')
+          return sendJson(res, 200, JSON.parse(cached))
+        } catch {
+          // Not cached
+        }
+      }
+      
+      // Load tutorial
+      const jsonPath = path.join(CONTENT_DIR, `${tutorialId}.json`)
+      const tutorial = JSON.parse(await fs.readFile(jsonPath, 'utf-8'))
+      
+      // Generate semantic tree
+      const tree = await generateFullSemanticTree(tutorial)
+      
+      // Cache result
+      const result = { tree, generatedAt: new Date().toISOString(), tutorialId }
+      await fs.writeFile(cachePath, JSON.stringify(result, null, 2))
+      console.log('  💾 Cached semantic tree')
+      
+      return sendJson(res, 200, result)
+      
+    } catch (error) {
+      console.error('❌ Semantic tree error:', error)
       return sendJson(res, 500, { error: error.message })
     }
   }
