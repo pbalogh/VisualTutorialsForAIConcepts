@@ -309,6 +309,14 @@ export default function D3Tree({
       const hasChildren = d.data._children || d.data.children
       const isExpanded = expandedNodes.has(d.data.id || 'root')
       
+      // Build tooltip text - include content preview for generic nodes
+      let tooltipText = title
+      const preview = d.data.contentPreview || d.data.excerpt || d.data.text
+      if (preview) {
+        const previewText = typeof preview === 'string' ? preview.slice(0, 150) : ''
+        if (previewText) tooltipText += '\n\n' + previewText + (preview.length > 150 ? '...' : '')
+      }
+      
       // Calculate text width (approximate based on font size)
       const charWidth = size.fontSize * 0.6
       const textWidth = displayTitle.length * charWidth + size.padding * 2
@@ -387,10 +395,8 @@ export default function D3Tree({
             .attr('transform', null)
         })
       
-      // Tooltip for full title (shows on hover when truncated)
-      if (title.length > 35) {
-        node.append('title').text(title)
-      }
+      // Tooltip - always show for richer context
+      node.append('title').text(tooltipText)
       
       // Text label
       node.append('text')
