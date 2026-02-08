@@ -29,6 +29,54 @@ export default function SourceUploader({
   const oppositePosition = getOppositePosition(position)
   const hasOpposite = existingSources[oppositePosition]
 
+  // Extract text from EPUB (ZIP containing XHTML)
+  const extractEpubText = async (file) => {
+    // EPUBs are ZIP files - we need to extract and parse the XHTML content
+    // Using fflate for decompression (lighter than JSZip)
+    const arrayBuffer = await file.arrayBuffer()
+    const uint8 = new Uint8Array(arrayBuffer)
+    
+    // Dynamic import fflate from CDN since we can't npm install
+    const { unzipSync } = await import('https://cdn.jsdelivr.net/npm/fflate@0.8.2/+esm')
+    
+    const unzipped = unzipSync(uint8)
+    
+    // Find all XHTML/HTML files in the EPUB
+    const textParts = []
+    for (const [filename, content] of Object.entries(unzipped)) {
+      if (filename.match(/\.(xhtml|html|htm)$/i) && !filename.includes('nav')) {
+        const text = new TextDecoder().decode(content)
+        // Strip HTML tags
+        const cleaned = text
+          .replace(/<script[^>]*>[\s\S]*?<\/script>/gi, '')
+          .replace(/<style[^>]*>[\s\S]*?<\/style>/gi, '')
+          .replace(/<[^>]+>/g, ' ')
+          .replace(/&nbsp;/g, ' ')
+          .replace(/&amp;/g, '&')
+          .replace(/&lt;/g, '<')
+          .replace(/&gt;/g, '>')
+          .replace(/&quot;/g, '"')
+          .replace(/\s+/g, ' ')
+          .trim()
+        if (cleaned.length > 100) {
+          textParts.push(cleaned)
+        }
+      }
+    }
+    
+    return textParts.join('\n\n')
+  }
+  
+  // Detect if content is binary/corrupted
+  const isLikelyBinary = (text) => {
+    // Check for high proportion of non-printable characters
+    const nonPrintable = text.slice(0, 1000).split('').filter(c => {
+      const code = c.charCodeAt(0)
+      return code < 32 && code !== 9 && code !== 10 && code !== 13
+    }).length
+    return nonPrintable > 50 // More than 5% non-printable = likely binary
+  }
+
   const handleFileSelect = async (e) => {
     const file = e.target.files?.[0]
     if (!file) return
@@ -38,8 +86,34 @@ export default function SourceUploader({
     setError(null)
 
     try {
-      const text = await file.text()
       const fileTitle = title || file.name.replace(/\.[^/.]+$/, '')
+      const extension = file.name.split('.').pop()?.toLowerCase()
+      
+      let text = ''
+      
+      // Handle different file types
+      if (extension === 'epub') {
+        setProcessingStatus('Extracting EPUB content...')
+        try {
+          text = await extractEpubText(file)
+        } catch (epubError) {
+          throw new Error(`EPUB extraction failed: ${epubError.message}. Try converting to .txt first.`)
+        }
+      } else if (extension === 'pdf') {
+        throw new Error('PDF files are not yet supported. Please convert to .txt or paste the content directly.')
+      } else {
+        // Plain text files
+        text = await file.text()
+      }
+      
+      // Check if content is actually readable
+      if (!text || text.length < 100) {
+        throw new Error('Could not extract readable text from this file. Try a different format.')
+      }
+      
+      if (isLikelyBinary(text)) {
+        throw new Error('This file appears to be binary or encoded. Please use .txt, .md, or .epub files.')
+      }
       
       setProcessingStatus('Analyzing content...')
       

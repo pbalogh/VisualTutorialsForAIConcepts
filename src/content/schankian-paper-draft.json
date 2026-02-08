@@ -617,6 +617,46 @@
             ]
           },
           {
+            "type": "Example",
+            "props": {
+              "title": "The Extreme Case: Hemingway's Six Words"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "Consider the famous six-word story attributed to Hemingway:"
+              },
+              {
+                "type": "Blockquote",
+                "children": "\"For sale: baby shoes, never worn.\""
+              },
+              {
+                "type": "p",
+                "children": "This is devastating BECAUSE of everything left unsaid. A RAG system searching for 'grief' or 'child loss' would never find this document. But humans instantly infer:"
+              },
+              {
+                "type": "ul",
+                "children": [
+                  { "type": "li", "children": "Someone was expecting a baby (shoes were purchased in anticipation)" },
+                  { "type": "li", "children": "The baby either died, was stillborn, or never came (LOSS event)" },
+                  { "type": "li", "children": "The shoes were never used (negation of intended use)" },
+                  { "type": "li", "children": "Someone is now selling them — processing grief, needing money, moving on" },
+                  { "type": "li", "children": "The brevity itself signals: too painful to elaborate" }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "Code",
+            "props": { "language": "text" },
+            "children": "Original: 'For sale: baby shoes, never worn.'\n\nAnnotated:\n  ENTITIES:\n    - baby [IMPLICIT: never explicitly mentioned]\n    - shoes [explicit]\n    - seller [IMPLICIT: someone placing this ad]\n    - intended_recipient [IMPLICIT: the expected baby]\n\n  EVENTS:\n    - TRANSFER(?, shoes, seller) — shoes were acquired\n    - ANTICIPATE(seller, baby) — someone expected a baby\n    - LOSS(seller, baby) — the baby never came/died\n    - ¬PTRANS(baby, shoes) — shoes never reached intended use\n    - TRANSFER(seller, shoes, ?) — now selling\n\n  STATES:\n    - seller.emotion = grief [high confidence]\n    - seller.processing = acceptance [selling = moving forward]\n    - shoes.condition = new [never worn]\n\n  META:\n    - brevity → too painful to elaborate\n    - specificity (baby shoes, not 'items') → visceral"
+          },
+          {
+            "type": "Callout",
+            "props": { "type": "warning" },
+            "children": "This six-word story contains more implicit information than explicit. Without annotation, it's invisible to keyword search, vector similarity, or any surface-level retrieval method."
+          },
+          {
             "type": "h4",
             "children": "The Solution: Two-Phase Architecture"
           },
