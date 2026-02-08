@@ -1199,88 +1199,176 @@ const server = http.createServer(async (req, res) => {
         })
       }
       
-      // APPLY MODE: Rewrite each section
-      console.log('🔧 Rewriting sections to incorporate annotations...')
+      // APPLY MODE: Get structured edits for each section
+      console.log('🔧 Getting structured edits for sections...')
       let updatedContent = JSON.parse(JSON.stringify(content)) // Deep clone
-      let sectionsRewritten = 0
+      let totalEdits = 0
       
       for (const [sectionPath, { section, sectionTitle, annotations: sectionAnns }] of sectionAnnotations) {
-        console.log(`\n📝 Rewriting section: "${sectionTitle}" (${sectionAnns.length} annotations)`)
+        console.log(`\n📝 Processing section: "${sectionTitle}" (${sectionAnns.length} annotations)`)
         
-        // Extract the section's text content (without annotations)
-        const sectionText = extractTextContent(section)
+        // Extract paragraphs from section (text content in p elements)
+        const paragraphs = []
+        const paragraphPaths = []
         
-        // Build annotation summary for this section
+        if (section.children && Array.isArray(section.children)) {
+          section.children.forEach((child, idx) => {
+            if (child.type === 'p') {
+              const text = extractTextContent(child)
+              if (text.trim()) {
+                paragraphs.push(text)
+                paragraphPaths.push(`${sectionPath}.children[${idx}]`)
+              }
+            }
+          })
+        }
+        
+        if (paragraphs.length === 0) {
+          console.log('  ⚠️ No paragraphs found in section, skipping')
+          continue
+        }
+        
+        // Build annotation summary
         const annSummary = sectionAnns.map((a, i) => 
           `${i+1}. [${a.type}] ${a.title || ''}: "${a.content}"`
         ).join('\n')
         
         try {
-          const rewritePrompt = `You are improving an educational tutorial section by incorporating reader feedback.
+          const editPrompt = `You are improving an educational tutorial by incorporating reader feedback.
 
-SECTION TITLE: "${sectionTitle}"
+SECTION: "${sectionTitle}"
 
-CURRENT SECTION TEXT:
-${sectionText}
+CURRENT PARAGRAPHS:
+${paragraphs.map((p, i) => `[${i}] ${p}`).join('\n\n')}
 
-READER ANNOTATIONS (questions/explanations that were added):
+ANNOTATIONS TO INCORPORATE:
 ${annSummary}
 
-TASK: Rewrite the section text to incorporate the insights from these annotations.
+Return a JSON array of edits. AVAILABLE EDIT TYPES:
 
-CRITICAL INSTRUCTIONS:
-1. DON'T just insert annotation text - truly WEAVE the insights into the narrative
-2. Use smooth transitions between concepts - no jarring jumps
-3. Introduce new concepts BEFORE using them
-4. Maintain a consistent voice and flow throughout
-5. Keep paragraphs SHORT and focused - max 3-4 sentences each
-6. One idea per paragraph - if adding new info, start a new paragraph
-7. PRESERVE specific numbers, values, and technical details from the annotations
-8. Don't make it significantly longer than the original
-9. Don't add headers, bullet points, or numbered lists
+1. "expand" - Add 1-2 sentences to an existing paragraph
+   { "type": "expand", "paragraphIndex": 0, "addSentences": "New sentences." }
 
-Return ONLY the rewritten text as multiple paragraphs (plain prose, no JSON, no markdown).`
+2. "insert_paragraph" - Add a new paragraph after an existing one  
+   { "type": "insert_paragraph", "afterIndex": 0, "text": "New paragraph." }
 
-          const rewrittenText = await callAI(
-            'You are an expert educational content editor. Your specialty is seamlessly integrating clarifications into clear, digestible prose. You never write dense walls of text.',
-            rewritePrompt
+3. "sidebar" - Add a sidebar for tangential/advanced info
+   { "type": "sidebar", "afterIndex": 0, "sidebarType": "note|definition|deeper|historical", "title": "Title", "text": "Content..." }
+
+GUIDELINES:
+- Keep paragraphs SHORT (3-4 sentences max)
+- Use sidebars for technical details that might overwhelm casual readers
+- Preserve specific numbers and values from annotations
+- Don't repeat information already in the text
+
+Return ONLY a JSON array, no explanation.`
+
+          const response = await callAI(
+            'You are an expert editor who makes precise, surgical improvements to educational content.',
+            editPrompt
           )
           
-          // Now we need to rebuild the section with the new text
-          // This is tricky - we'll create a simplified section structure
-          const newSection = {
-            type: 'Section',
-            props: section.props,
-            children: [
-              {
-                type: 'p',
-                children: rewrittenText.trim()
-              }
-            ]
+          // Parse edits
+          let edits
+          try {
+            let jsonStr = response.trim()
+            if (jsonStr.startsWith('\`\`\`json')) jsonStr = jsonStr.slice(7)
+            if (jsonStr.startsWith('\`\`\`')) jsonStr = jsonStr.slice(3)
+            if (jsonStr.endsWith('\`\`\`')) jsonStr = jsonStr.slice(0, -3)
+            edits = JSON.parse(jsonStr.trim())
+          } catch (e) {
+            console.log(`  ❌ Failed to parse edits: ${e.message}`)
+            continue
           }
           
-          // Replace the section in the content tree
-          if (setAtPath(updatedContent.content, sectionPath, newSection)) {
-            sectionsRewritten++
-            console.log(`  ✅ Section rewritten`)
-          } else {
-            console.log(`  ⚠️ Failed to replace section at ${sectionPath}`)
+          console.log(`  📋 Got ${edits.length} edits`)
+          
+          // Apply edits to the section in updatedContent
+          // We need to be careful about indices as we insert
+          const sectionNode = getAtPath(updatedContent.content, sectionPath)
+          if (!sectionNode || !sectionNode.children) continue
+          
+          // Sort edits by paragraph index (descending) so inserts don't mess up indices
+          const insertEdits = edits.filter(e => e.type === 'insert_paragraph' || e.type === 'sidebar')
+          const expandEdits = edits.filter(e => e.type === 'expand')
+          
+          // Apply expand edits first (they don't change indices)
+          for (const edit of expandEdits) {
+            // Find the actual child index for this paragraph
+            let pCount = 0
+            for (let i = 0; i < sectionNode.children.length; i++) {
+              if (sectionNode.children[i].type === 'p') {
+                if (pCount === edit.paragraphIndex) {
+                  // Found it - expand
+                  const pNode = sectionNode.children[i]
+                  if (typeof pNode.children === 'string') {
+                    pNode.children = pNode.children + ' ' + edit.addSentences
+                  } else if (Array.isArray(pNode.children)) {
+                    pNode.children.push(' ' + edit.addSentences)
+                  }
+                  console.log(`    ✅ Expanded paragraph ${edit.paragraphIndex}`)
+                  totalEdits++
+                  break
+                }
+                pCount++
+              }
+            }
+          }
+          
+          // Apply insert edits (sorted by index descending)
+          insertEdits.sort((a, b) => (b.afterIndex || 0) - (a.afterIndex || 0))
+          
+          for (const edit of insertEdits) {
+            // Find where to insert (after which paragraph)
+            let pCount = 0
+            let insertAt = -1
+            for (let i = 0; i < sectionNode.children.length; i++) {
+              if (sectionNode.children[i].type === 'p') {
+                if (pCount === edit.afterIndex) {
+                  insertAt = i + 1
+                  break
+                }
+                pCount++
+              }
+            }
+            
+            if (insertAt === -1) insertAt = sectionNode.children.length
+            
+            if (edit.type === 'insert_paragraph') {
+              sectionNode.children.splice(insertAt, 0, {
+                type: 'p',
+                children: edit.text
+              })
+              console.log(`    ✅ Inserted paragraph after index ${edit.afterIndex}`)
+              totalEdits++
+            } else if (edit.type === 'sidebar') {
+              sectionNode.children.splice(insertAt, 0, {
+                type: 'Sidebar',
+                props: {
+                  type: edit.sidebarType || 'note',
+                  title: edit.title
+                },
+                children: edit.text
+              })
+              console.log(`    ✅ Added sidebar: "${edit.title}"`)
+              totalEdits++
+            }
           }
           
         } catch (e) {
-          console.error(`  ❌ Failed to rewrite section: ${e.message}`)
+          console.error(`  ❌ Failed to process section: ${e.message}`)
         }
       }
       
-      const message = `Rewrote ${sectionsRewritten} section(s) to incorporate ${annotations.length} annotation insights`
+      const message = `Applied ${totalEdits} edits across ${sectionAnnotations.size} section(s)`
       
-      if (sectionsRewritten > 0) {
+      if (totalEdits > 0) {
         // Save the updated content
         await fs.writeFile(jsonPath, JSON.stringify(updatedContent, null, 2))
         console.log(`\n💾 Saved: ${jsonPath}`)
         
         // Commit to git (for undo capability)
-        const commitMsg = `[regroup] Rewrote ${sectionsRewritten} sections in ${tutorialId}`
+        const commitMsg = `[regroup] ${totalEdits} edits in ${tutorialId}`
         commitAndPush(jsonPath, commitMsg).catch(() => {})
       }
       
@@ -1288,8 +1376,8 @@ Return ONLY the rewritten text as multiple paragraphs (plain prose, no JSON, no 
         success: true,
         preview: false,
         tutorialId,
-        sectionsRewritten,
-        annotationsIncorporated: annotations.length,
+        editsApplied: totalEdits,
+        sectionsProcessed: sectionAnnotations.size,
         message,
         updatedContent
       })
@@ -1298,6 +1386,10 @@ Return ONLY the rewritten text as multiple paragraphs (plain prose, no JSON, no 
       console.error('❌ Regroup error:', error)
       return sendJson(res, 500, { error: error.message })
     }
+  }
+  
+  // Undo endpoint - reverts to previous git commit
+  if (url.pathname === '/undo' && req.method === 'POST') {
   }
   
   // Undo endpoint - reverts to previous git commit
