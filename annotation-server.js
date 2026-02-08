@@ -1767,6 +1767,179 @@ Return ONLY a JSON array, no explanation.`
     }
   }
   
+  // ==================== COMBINE NODES ====================
+  if (url.pathname === '/combine' && req.method === 'POST') {
+    try {
+      const body = await parseBody(req)
+      const { tutorialId, nodeIds, editorNote } = body
+      
+      console.log('\n🔗 Combine Nodes Request:')
+      console.log(`  Tutorial: ${tutorialId}`)
+      console.log(`  Nodes: ${nodeIds?.join(', ')}`)
+      console.log(`  Editor note: ${editorNote || '(none)'}`)
+      
+      if (!tutorialId || !nodeIds || nodeIds.length < 2) {
+        return sendJson(res, 400, { error: 'tutorialId and at least 2 nodeIds required' })
+      }
+      
+      // Load tutorial
+      const jsonPath = path.join(CONTENT_DIR, `${tutorialId}.json`)
+      const content = JSON.parse(await fs.readFile(jsonPath, 'utf-8'))
+      
+      // Find the nodes to combine
+      const nodesToCombine = []
+      const nodeContents = []
+      
+      function findNodeById(node, targetId, path = '') {
+        if (!node) return null
+        const nodeId = node.id || (path === '' ? 'root' : null)
+        
+        // Check if this matches by generated ID pattern
+        if (targetId === nodeId) {
+          return { node, path }
+        }
+        
+        // Check children
+        if (node.children && Array.isArray(node.children)) {
+          for (let i = 0; i < node.children.length; i++) {
+            const child = node.children[i]
+            const childPath = path ? `${path}.children[${i}]` : `children[${i}]`
+            
+            // Generate ID based on element type and position (matching tree generation)
+            let childId = null
+            if (child.type === 'Section') {
+              childId = `section-${i}`
+            } else if (child.props?.title) {
+              childId = `${path}-${child.type?.toLowerCase()}-${i}`
+            }
+            
+            if (targetId === childId) {
+              return { node: child, path: childPath, index: i, parent: node }
+            }
+            
+            const found = findNodeById(child, targetId, childPath)
+            if (found) return found
+          }
+        }
+        return null
+      }
+      
+      // Collect nodes to combine
+      for (const nodeId of nodeIds) {
+        const found = findNodeById(content.content, nodeId)
+        if (found) {
+          nodesToCombine.push(found)
+          nodeContents.push({
+            id: nodeId,
+            title: found.node.props?.title || found.node.type || 'Untitled',
+            content: JSON.stringify(found.node, null, 2).slice(0, 2000)
+          })
+        } else {
+          console.log(`  ⚠️ Node not found: ${nodeId}`)
+        }
+      }
+      
+      if (nodesToCombine.length < 2) {
+        return sendJson(res, 400, { error: 'Could not find at least 2 nodes to combine' })
+      }
+      
+      console.log(`  Found ${nodesToCombine.length} nodes to combine`)
+      
+      // Call AI to combine the content
+      const combinePrompt = `You are combining multiple sections of an educational tutorial into one cohesive section.
+
+NODES TO COMBINE:
+${nodeContents.map((n, i) => `
+--- Node ${i + 1}: ${n.title} ---
+${n.content}
+`).join('\n')}
+
+${editorNote ? `EDITOR'S GUIDANCE:
+${editorNote}
+` : ''}
+
+Create a SINGLE combined section that:
+1. Merges the content coherently (no duplication)
+2. Preserves the key insights from each source
+3. Maintains educational flow and clarity
+4. Keeps any important examples or analogies${editorNote ? '\n5. Follows the editor\'s guidance above' : ''}
+
+Return ONLY valid JSON for a Section element with this structure:
+{
+  "type": "Section",
+  "props": { "title": "Combined section title" },
+  "children": [
+    // paragraphs, callouts, etc.
+  ]
+}
+
+Return ONLY the JSON, no markdown or explanation.`
+
+      console.log('🤖 Calling AI to combine nodes...')
+      const aiResponse = await callAI(combinePrompt, {
+        system: 'You are an expert at restructuring educational content. Return only valid JSON.'
+      })
+      
+      // Parse AI response
+      let combinedSection
+      try {
+        const jsonMatch = aiResponse.match(/\{[\s\S]*\}/)
+        if (!jsonMatch) throw new Error('No JSON found in response')
+        combinedSection = JSON.parse(jsonMatch[0])
+      } catch (e) {
+        console.error('❌ Failed to parse AI response:', e.message)
+        return sendJson(res, 500, { error: 'AI returned invalid JSON' })
+      }
+      
+      // Save backup
+      const backup = JSON.stringify(content, null, 2)
+      await fs.writeFile(jsonPath + '.backup', backup)
+      
+      // Replace the first node with combined content, remove others
+      // Sort by path length (process deepest first to avoid index shifts)
+      nodesToCombine.sort((a, b) => b.path.length - a.path.length)
+      
+      // Remove all but the first (we'll replace that one)
+      const firstNode = nodesToCombine[nodesToCombine.length - 1] // Shallowest
+      const toRemove = nodesToCombine.slice(0, -1) // All others
+      
+      // Remove the other nodes
+      for (const nodeInfo of toRemove) {
+        if (nodeInfo.parent && typeof nodeInfo.index === 'number') {
+          nodeInfo.parent.children.splice(nodeInfo.index, 1)
+        }
+      }
+      
+      // Replace the first node with combined content
+      if (firstNode.parent && typeof firstNode.index === 'number') {
+        firstNode.parent.children[firstNode.index] = combinedSection
+      }
+      
+      // Save
+      await fs.writeFile(jsonPath, JSON.stringify(content, null, 2))
+      console.log('💾 Saved combined content')
+      
+      // Git commit
+      try {
+        execSync(`git add "${jsonPath}"`, { cwd: TUTORIALS_REPO, stdio: 'pipe' })
+        execSync(`git commit -m "[combine] ${nodeIds.length} nodes in ${tutorialId}"`, { cwd: TUTORIALS_REPO, stdio: 'pipe' })
+        console.log('✅ Git commit: combine nodes')
+      } catch (e) {
+        console.log('⚠️ Git commit skipped:', e.message)
+      }
+      
+      return sendJson(res, 200, { 
+        success: true, 
+        combinedTitle: combinedSection.props?.title,
+        message: `Combined ${nodesToCombine.length} nodes`
+      })
+      
+    } catch (error) {
+      console.error('❌ Combine error:', error)
+      return sendJson(res, 500, { error: error.message })
+    }
+  }
+  
   if (url.pathname === '/generate' && req.method === 'POST') {
     try {
       const body = await parseBody(req)

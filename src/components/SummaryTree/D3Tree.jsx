@@ -101,6 +101,7 @@ export default function D3Tree({
   height = 600,
   tutorialId,
   onAnnotationRequest,
+  onCombineNodes,  // Callback for combine operation
 }) {
   const svgRef = useRef(null)
   const containerRef = useRef(null)
@@ -113,6 +114,15 @@ export default function D3Tree({
   // Selection mode for tree operations
   const [selectionMode, setSelectionMode] = useState(false)
   const [selectedNodes, setSelectedNodes] = useState(new Set())
+  
+  // Preserve zoom/pan transform across re-renders
+  const transformRef = useRef(null)
+  const zoomRef = useRef(null)
+  
+  // Combine modal state
+  const [showCombineModal, setShowCombineModal] = useState(false)
+  const [combineNote, setCombineNote] = useState('')
+  const [isCombining, setIsCombining] = useState(false)
   
   const toggleExpand = useCallback((nodeId) => {
     setExpandedNodes(prev => {
@@ -227,9 +237,16 @@ export default function D3Tree({
       .scaleExtent([0.3, 2])
       .on('zoom', (event) => {
         g.attr('transform', event.transform)
+        transformRef.current = event.transform  // Save transform
       })
     
+    zoomRef.current = zoom
     svg.call(zoom)
+    
+    // Restore previous transform if exists
+    if (transformRef.current) {
+      svg.call(zoom.transform, transformRef.current)
+    }
     
     // Filter data based on expanded nodes
     const filterData = (node) => {
@@ -424,20 +441,25 @@ export default function D3Tree({
       }
     })
     
-    // Center the tree initially
-    const bounds = g.node().getBBox()
-    const scale = Math.min(
-      (width - 40) / bounds.width,
-      (height - 40) / bounds.height,
-      1
-    ) * 0.85
-    
-    const translateX = 50
-    const translateY = (height - bounds.height * scale) / 2 - bounds.y * scale
-    
-    svg.call(zoom.transform, d3.zoomIdentity
-      .translate(translateX, Math.max(20, translateY))
-      .scale(scale))
+    // Only center tree initially (when no saved transform)
+    if (!transformRef.current) {
+      const bounds = g.node().getBBox()
+      const scale = Math.min(
+        (width - 40) / bounds.width,
+        (height - 40) / bounds.height,
+        1
+      ) * 0.85
+      
+      const translateX = 50
+      const translateY = (height - bounds.height * scale) / 2 - bounds.y * scale
+      
+      const initialTransform = d3.zoomIdentity
+        .translate(translateX, Math.max(20, translateY))
+        .scale(scale)
+      
+      svg.call(zoom.transform, initialTransform)
+      transformRef.current = initialTransform
+    }
     
   }, [data, dimensions, expandedNodes, toggleExpand, selectionMode, selectedNodes, toggleNodeSelection])
   
@@ -484,12 +506,9 @@ export default function D3Tree({
           </span>
           <div className="flex gap-2">
             <button
-              onClick={() => {
-                // TODO: Implement combine
-                console.log('Combine:', Array.from(selectedNodes))
-                alert(`Combine ${selectedNodes.size} nodes - coming soon!`)
-              }}
-              className="text-xs px-3 py-1.5 bg-white border border-indigo-200 text-indigo-700 hover:bg-indigo-100 rounded-md transition-colors"
+              onClick={() => setShowCombineModal(true)}
+              disabled={selectedNodes.size < 2}
+              className="text-xs px-3 py-1.5 bg-white border border-indigo-200 text-indigo-700 hover:bg-indigo-100 rounded-md transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
               🔗 Combine
             </button>
@@ -577,6 +596,70 @@ export default function D3Tree({
           −
         </button>
       </div>
+      
+      {/* Combine Modal */}
+      {showCombineModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+          <div className="bg-white rounded-xl border border-gray-200 shadow-xl max-w-lg w-full">
+            <div className="p-6 border-b border-gray-200">
+              <h2 className="text-lg font-semibold text-gray-900">🔗 Combine {selectedNodes.size} Nodes</h2>
+              <p className="text-sm text-gray-500 mt-1">
+                AI will merge the selected content into a single cohesive section.
+              </p>
+            </div>
+            
+            <div className="p-6">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Editor's Note (optional)
+              </label>
+              <textarea
+                value={combineNote}
+                onChange={(e) => setCombineNote(e.target.value)}
+                placeholder="e.g., 'Keep the apple analogy from section 1, drop the fish analogy. Emphasize the phase-locking mechanism.'"
+                className="w-full h-32 px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 resize-none"
+              />
+              <p className="text-xs text-gray-400 mt-2">
+                Guide the AI on what to keep, remove, or emphasize when combining.
+              </p>
+            </div>
+            
+            <div className="p-4 bg-gray-50 rounded-b-xl flex justify-end gap-3">
+              <button
+                onClick={() => {
+                  setShowCombineModal(false)
+                  setCombineNote('')
+                }}
+                className="px-4 py-2 text-sm text-gray-600 hover:text-gray-900"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={async () => {
+                  setIsCombining(true)
+                  try {
+                    if (onCombineNodes) {
+                      await onCombineNodes(Array.from(selectedNodes), combineNote)
+                    }
+                    setShowCombineModal(false)
+                    setCombineNote('')
+                    clearSelection()
+                    setSelectionMode(false)
+                  } catch (err) {
+                    console.error('Combine failed:', err)
+                    alert('Failed to combine nodes: ' + err.message)
+                  } finally {
+                    setIsCombining(false)
+                  }
+                }}
+                disabled={isCombining}
+                className="px-4 py-2 text-sm bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 disabled:opacity-50"
+              >
+                {isCombining ? 'Combining...' : 'Combine'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
       
       {/* Detail modal */}
       <DetailModal

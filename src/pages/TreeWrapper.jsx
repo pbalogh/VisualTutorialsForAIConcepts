@@ -329,6 +329,36 @@ export default function TreeWrapper() {
   // Use explicit tree if present, otherwise generate from content
   const treeData = tutorial.tree || generateTreeFromContent(tutorial.content, tutorial.title)
   
+  // Handle combine nodes
+  const handleCombineNodes = async (nodeIds, editorNote) => {
+    console.log('Combining nodes:', nodeIds, 'with note:', editorNote)
+    
+    const response = await fetch('http://localhost:5190/combine', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        tutorialId,
+        nodeIds,
+        editorNote
+      })
+    })
+    
+    if (!response.ok) {
+      const error = await response.json()
+      throw new Error(error.error || 'Combine failed')
+    }
+    
+    const result = await response.json()
+    console.log('Combine result:', result)
+    
+    // Reload tutorial
+    const filename = jsonFilenames[tutorialId] || tutorialId
+    const module = await import(`../content/${filename}.json?t=${Date.now()}`)
+    setTutorial(module.default || module)
+    
+    return result
+  }
+  
   return (
     <div className="min-h-screen bg-slate-50">
       <TreeHeader 
@@ -348,6 +378,7 @@ export default function TreeWrapper() {
           height={600}
           tutorialId={tutorialId}
           onAnnotationRequest={handleAnnotationRequest}
+          onCombineNodes={handleCombineNodes}
           renderContent={(node) => {
             if (node.content) {
               return <TutorialEngine content={node.content} state={tutorial.state || {}} />
