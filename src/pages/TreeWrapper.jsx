@@ -443,6 +443,48 @@ export default function TreeWrapper() {
     return result
   }
   
+  // Handle expanding a semantic node
+  const handleExpandNode = async (node) => {
+    console.log('Expanding node:', node)
+    
+    const response = await fetch('http://localhost:5190/expand-semantic-node', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        tutorialId,
+        nodeId: node.id,
+        node: { title: node.title, summary: node.summary, id: node.id },
+        parentContext: tutorial?.title
+      })
+    })
+    
+    if (!response.ok) {
+      const error = await response.json()
+      throw new Error(error.error || 'Expand failed')
+    }
+    
+    const result = await response.json()
+    
+    if (result.atomic) {
+      alert(`This concept is atomic: ${result.reason}`)
+      return null
+    }
+    
+    // Reload semantic tree to show new children
+    const treeResponse = await fetch('http://localhost:5190/generate-semantic-tree', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ tutorialId })
+    })
+    
+    if (treeResponse.ok) {
+      const data = await treeResponse.json()
+      setSemanticTree(data.tree)
+    }
+    
+    return result
+  }
+  
   return (
     <div className="min-h-screen bg-slate-50">
       <TreeHeader 
@@ -473,12 +515,18 @@ export default function TreeWrapper() {
           tutorialId={tutorialId}
           onAnnotationRequest={handleAnnotationRequest}
           onCombineNodes={handleCombineNodes}
+          onExpandNode={handleExpandNode}
           renderContent={(node) => {
             // For semantic tree leaves, show the summary and chunk info
             if (node.isLeaf && node.summary) {
               return (
                 <div className="space-y-4">
                   <p className="text-lg text-gray-700 leading-relaxed">{node.summary}</p>
+                  {node.isAtomic && (
+                    <div className="text-xs text-amber-600 bg-amber-50 px-2 py-1 rounded inline-block">
+                      ⚛️ Atomic concept
+                    </div>
+                  )}
                   <div className="text-sm text-gray-500 border-t pt-4">
                     <p className="font-medium text-gray-600 mb-2">This chunk covers:</p>
                     <p className="italic">{node.title}</p>

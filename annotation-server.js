@@ -18,7 +18,7 @@ import { execSync } from 'child_process'
 import { fileURLToPath } from 'url'
 import { callAI, getAIInfo } from './ai-config.js'
 import { generatePresentationAudio } from './tts-polly.js'
-import { generateFullSemanticTree } from './semantic-tree.js'
+import { generateFullSemanticTree, expandNode } from './semantic-tree.js'
 import { createVersion, listVersions, getVersion, restoreVersion } from './src/utils/versioning.js'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
@@ -2509,6 +2509,60 @@ Return ONLY valid JSON array.`
       
     } catch (error) {
       console.error('❌ Semantic tree error:', error)
+      return sendJson(res, 500, { error: error.message })
+    }
+  }
+  
+  // ==================== EXPAND SEMANTIC NODE ====================
+  if (url.pathname === '/expand-semantic-node' && req.method === 'POST') {
+    try {
+      const body = await parseBody(req)
+      const { tutorialId, nodeId, node, parentContext } = body
+      
+      console.log('\n🔍 Expand Node Request:')
+      console.log(`  Tutorial: ${tutorialId}`)
+      console.log(`  Node: ${node?.title || nodeId}`)
+      
+      // Expand the node
+      const result = await expandNode(node, parentContext)
+      
+      if (!result.atomic) {
+        // Update the cached tree with new children
+        const cachePath = path.join(CONTENT_DIR, `${tutorialId}-semantic-tree.json`)
+        try {
+          const cached = JSON.parse(await fs.readFile(cachePath, 'utf-8'))
+          
+          // Find and update the node in the tree
+          const updateNode = (n) => {
+            if (n.id === nodeId) {
+              n.children = result.children
+              n.expanded = true
+              n.expandedAt = new Date().toISOString()
+              n.isLeaf = false
+              return true
+            }
+            if (n.children) {
+              for (const child of n.children) {
+                if (updateNode(child)) return true
+              }
+            }
+            return false
+          }
+          
+          if (updateNode(cached.tree)) {
+            cached.lastExpanded = new Date().toISOString()
+            await fs.writeFile(cachePath, JSON.stringify(cached, null, 2))
+            console.log('  💾 Updated cached tree')
+          }
+        } catch (e) {
+          console.log('  ⚠️ Could not update cache:', e.message)
+        }
+      }
+      
+      return sendJson(res, 200, result)
+      
+    } catch (error) {
+      console.error('❌ Expand node error:', error)
       return sendJson(res, 500, { error: error.message })
     }
   }

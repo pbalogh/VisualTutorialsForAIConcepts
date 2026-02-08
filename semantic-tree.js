@@ -3,9 +3,21 @@
  * 
  * Creates a meaning-based tree structure from tutorial content.
  * Instead of mirroring JSON structure, chunks content by semantic coherence.
+ * 
+ * Supports recursive expansion: nodes can be expanded on-demand,
+ * with results cached in the tree structure.
  */
 
 import { callAI } from './ai-config.js'
+import crypto from 'crypto'
+
+/**
+ * Generate a hash of content for cache invalidation
+ */
+function hashContent(content) {
+  const str = JSON.stringify(content)
+  return crypto.createHash('md5').update(str).digest('hex').slice(0, 12)
+}
 
 /**
  * Flatten a section's content into text with element markers
@@ -196,6 +208,7 @@ Return ONLY the summary sentence.`
       id: `section-${i}`,
       title: sectionTitle,
       summary: sectionSummary.trim(),
+      contentHash: hashContent(section),
       children: chunks.map((chunk, j) => ({
         id: `section-${i}-chunk-${j}`,
         title: chunk.title,
@@ -203,10 +216,85 @@ Return ONLY the summary sentence.`
         // Store element references for rendering
         elementIndices: chunk.elementIndices,
         sectionIndex: i,
-        isLeaf: true
+        isLeaf: true,
+        canExpand: true,  // All leaves can potentially be expanded
+        expanded: false
       }))
     })
   }
   
+  tree.contentHash = hashContent(tutorial.content)
+  tree.generatedAt = new Date().toISOString()
+  
   return tree
+}
+
+/**
+ * Expand a leaf node into sub-concepts
+ * Returns the new children to add to the node
+ */
+export async function expandNode(node, parentContext = '') {
+  console.log(`\n🔍 Expanding node: ${node.title}`)
+  
+  const expandPrompt = `You are analyzing a concept to determine if it can be broken into meaningful sub-concepts.
+
+CONCEPT: ${node.title}
+SUMMARY: ${node.summary}
+PARENT CONTEXT: ${parentContext || 'Top-level concept'}
+
+Analyze this concept. Can it be meaningfully decomposed into 2-5 sub-concepts that would help someone understand it better?
+
+If YES: Return a JSON array of sub-concepts, each with:
+- "title": Brief title (3-8 words)
+- "summary": One-sentence explanation
+- "isAtomic": true if this sub-concept is fundamental and doesn't need further breakdown
+
+If NO (the concept is already atomic/fundamental): Return {"atomic": true, "reason": "brief explanation"}
+
+Examples of atomic concepts: "action potential", "neuron", "frequency"
+Examples of expandable concepts: "how neurons communicate", "memory encoding process"
+
+Return ONLY valid JSON.`
+
+  const response = await callAI(
+    'You are an expert at decomposing complex concepts into learnable sub-concepts. Be judicious - only expand when it genuinely helps understanding.',
+    expandPrompt
+  )
+  
+  try {
+    const jsonMatch = response.match(/\{[\s\S]*\}|\[[\s\S]*\]/)
+    if (!jsonMatch) throw new Error('No JSON found')
+    
+    const parsed = JSON.parse(jsonMatch[0])
+    
+    // Check if atomic
+    if (parsed.atomic) {
+      console.log(`  ⚛️ Node is atomic: ${parsed.reason}`)
+      return { atomic: true, reason: parsed.reason }
+    }
+    
+    // It's an array of sub-concepts
+    if (!Array.isArray(parsed)) {
+      throw new Error('Expected array of sub-concepts')
+    }
+    
+    console.log(`  📊 Generated ${parsed.length} sub-concepts`)
+    
+    const children = parsed.map((sub, i) => ({
+      id: `${node.id}-sub-${i}`,
+      title: sub.title,
+      summary: sub.summary,
+      isLeaf: true,
+      canExpand: !sub.isAtomic,
+      expanded: false,
+      isAtomic: sub.isAtomic || false,
+      generatedAt: new Date().toISOString()
+    }))
+    
+    return { atomic: false, children }
+    
+  } catch (e) {
+    console.error('  ❌ Failed to parse expansion:', e.message)
+    return { atomic: true, reason: 'Failed to analyze' }
+  }
 }

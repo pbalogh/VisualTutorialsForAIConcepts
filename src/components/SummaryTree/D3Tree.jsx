@@ -21,12 +21,16 @@ const X = ({ className }) => (
 )
 
 // Detail modal component
-function DetailModal({ node, onClose, renderContent, tutorialId, onAnnotationRequest }) {
+function DetailModal({ node, onClose, renderContent, tutorialId, onAnnotationRequest, onExpandNode }) {
   const [showPlayer, setShowPlayer] = useState(false)
   const [presentationScript, setPresentationScript] = useState(null)
   const [isGenerating, setIsGenerating] = useState(false)
+  const [isExpanding, setIsExpanding] = useState(false)
   
   if (!node) return null
+  
+  const nodeData = node.data || node
+  const canExpand = nodeData.canExpand && !nodeData.isAtomic && nodeData.isLeaf && onExpandNode
   
   const handlePresent = async () => {
     setIsGenerating(true)
@@ -42,6 +46,22 @@ function DetailModal({ node, onClose, renderContent, tutorialId, onAnnotationReq
       alert('Failed to generate presentation: ' + err.message)
     } finally {
       setIsGenerating(false)
+    }
+  }
+  
+  const handleExpand = async () => {
+    if (!onExpandNode) return
+    setIsExpanding(true)
+    try {
+      const result = await onExpandNode(nodeData)
+      if (result && !result.atomic) {
+        onClose() // Close modal, tree will update with new children
+      }
+    } catch (err) {
+      console.error('Failed to expand:', err)
+      alert('Failed to expand: ' + err.message)
+    } finally {
+      setIsExpanding(false)
     }
   }
   
@@ -76,6 +96,15 @@ function DetailModal({ node, onClose, renderContent, tutorialId, onAnnotationReq
             {node.data?.title || node.title}
           </h2>
           <div className="flex items-center gap-2">
+            {canExpand && (
+              <button 
+                onClick={handleExpand}
+                disabled={isExpanding}
+                className="px-3 py-1.5 bg-violet-600 text-white text-sm rounded-lg hover:bg-violet-500 disabled:opacity-50 transition-colors"
+              >
+                {isExpanding ? '⏳ Thinking...' : '🔍 Go Deeper'}
+              </button>
+            )}
             <button 
               onClick={handlePresent}
               disabled={isGenerating}
@@ -145,6 +174,7 @@ export default function D3Tree({
   tutorialId,
   onAnnotationRequest,
   onCombineNodes,  // Callback for combine operation
+  onExpandNode,    // Callback for expanding semantic nodes
 }) {
   const svgRef = useRef(null)
   const containerRef = useRef(null)
@@ -899,6 +929,7 @@ export default function D3Tree({
         renderContent={renderContent}
         tutorialId={tutorialId}
         onAnnotationRequest={onAnnotationRequest}
+        onExpandNode={onExpandNode}
       />
     </div>
   )
