@@ -433,6 +433,52 @@ export default function TreeWrapper() {
   const structuralTree = tutorial?.tree || generateTreeFromContent(tutorial?.content, tutorial?.title)
   const treeData = (useSemanticTree && semanticTree) ? semanticTree : structuralTree
   
+  // Handle delete nodes from tree
+  const handleDeleteNodes = async (nodeIds) => {
+    console.log('Deleting nodes:', nodeIds)
+    
+    // Helper: recursively remove nodes by ID from a tree
+    function removeNodesFromTree(node, idsToRemove) {
+      if (!node || !node.children) return node
+      node.children = node.children
+        .filter(child => !idsToRemove.includes(child.id))
+        .map(child => removeNodesFromTree(child, idsToRemove))
+      return node
+    }
+    
+    // Try server-side delete first (persists to file)
+    try {
+      const response = await fetch('http://localhost:5190/delete-nodes', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ tutorialId, nodeIds })
+      })
+      
+      if (response.ok) {
+        const result = await response.json()
+        console.log('Server delete result:', result)
+        // Reload to show updated content
+        window.location.reload()
+        return result
+      }
+    } catch (e) {
+      console.log('Server delete not available, doing client-side delete')
+    }
+    
+    // Client-side fallback: remove from in-memory tree
+    if (useSemanticTree && semanticTree) {
+      const updated = removeNodesFromTree(JSON.parse(JSON.stringify(semanticTree)), nodeIds)
+      setSemanticTree(updated)
+    } else {
+      // For structural trees, we need to reload after removing sections from JSON
+      // Since we can't persist without the server, just do in-memory removal
+      const structTree = tutorial?.tree || generateTreeFromContent(tutorial?.content, tutorial?.title)
+      const updated = removeNodesFromTree(JSON.parse(JSON.stringify(structTree)), nodeIds)
+      // Force re-render with updated tree by setting tutorial.tree
+      setTutorial(prev => ({ ...prev, tree: updated }))
+    }
+  }
+  
   // Handle combine nodes
   const handleCombineNodes = async (nodeIds, editorNote) => {
     console.log('Combining nodes:', nodeIds, 'with note:', editorNote)
@@ -581,6 +627,7 @@ export default function TreeWrapper() {
           tutorialId={tutorialId}
           onAnnotationRequest={handleAnnotationRequest}
           onCombineNodes={handleCombineNodes}
+          onDeleteNodes={handleDeleteNodes}
           onExpandNode={handleExpandNode}
           expansionMode={expansionMode}
           onExplainSelection={handleExplainSelection}

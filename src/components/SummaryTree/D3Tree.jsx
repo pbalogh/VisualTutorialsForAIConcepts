@@ -195,6 +195,7 @@ export default function D3Tree({
   tutorialId,
   onAnnotationRequest,
   onCombineNodes,  // Callback for combine operation
+  onDeleteNodes,   // Callback for delete operation
   onExpandNode,    // Callback for expanding semantic nodes
   expansionMode,   // 'faithful' or 'enriched'
   onExplainSelection, // Callback for explaining selected text
@@ -795,10 +796,21 @@ export default function D3Tree({
               🔗 Combine
             </button>
             <button
-              onClick={() => {
-                // TODO: Implement delete
-                console.log('Delete:', Array.from(selectedNodes))
-                alert(`Delete ${selectedNodes.size} nodes - coming soon!`)
+              onClick={async () => {
+                const nodeIds = Array.from(selectedNodes)
+                const count = nodeIds.length
+                if (!confirm(`Delete ${count} node${count > 1 ? 's' : ''}? This cannot be undone.`)) return
+                
+                if (onDeleteNodes) {
+                  try {
+                    await onDeleteNodes(nodeIds)
+                    clearSelection()
+                  } catch (err) {
+                    alert('Failed to delete nodes: ' + err.message)
+                  }
+                } else {
+                  alert('Delete not available for this tree type')
+                }
               }}
               className="text-xs px-3 py-1.5 bg-white border border-red-200 text-red-700 hover:bg-red-50 rounded-md transition-colors"
             >
