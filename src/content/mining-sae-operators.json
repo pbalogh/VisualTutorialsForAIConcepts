@@ -1,0 +1,404 @@
+{
+  "id": "mining-sae-operators",
+  "title": "Mining SAE Dictionaries for Schankian Operators",
+  "subtitle": "What if Anthropic already found our semantic primitives? A guide to searching 34 million features for the building blocks of meaning.",
+  "readTime": "18 min",
+  "state": {},
+  "content": {
+    "type": "Fragment",
+    "children": [
+      {
+        "type": "Section",
+        "props": { "title": "The Lazy Genius Approach" },
+        "children": [
+          {
+            "type": "p",
+            "children": "Here's the most audacious shortcut in AI research: what if someone already did the hard work for us?"
+          },
+          {
+            "type": "p",
+            "children": "In May 2024, Anthropic published 'Scaling Monosemanticity' — a landmark study that extracted 34 million interpretable features from Claude 3 Sonnet using Sparse Autoencoders (SAEs). They found features for everything from 'Golden Gate Bridge' to 'deception' to 'uncertainty about numerical claims.'"
+          },
+          {
+            "type": "p",
+            "children": "We're researching Schankian operators — a small set of universal semantic primitives (HARM, TRANSFER, MOVE, CAUSE, etc.) that underlie all human actions. We're trying to LEARN these from data."
+          },
+          {
+            "type": "p",
+            "children": "But what if they're already in the SAE dictionary? What if, among those 34 million features, there are neurons that fire specifically on 'transfer of possession' or 'application of physical force' or 'change of mental state'?"
+          },
+          {
+            "type": "Callout",
+            "props": { "type": "tip" },
+            "children": "If true: we skip the learning step entirely. We get operators for free, pre-validated against a massive corpus, with Anthropic's visualization tools ready to use. If false: we learn something important about the granularity of neural features vs. semantic primitives."
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "Background: What Are Sparse Autoencoders?" },
+        "children": [
+          {
+            "type": "p",
+            "children": "To understand why this search might work, you need to understand what SAEs find and why."
+          },
+          {
+            "type": "h3",
+            "children": "The Superposition Problem"
+          },
+          {
+            "type": "p",
+            "children": "Neural networks have a problem: they represent more concepts than they have neurons. A layer with 4,096 neurons might encode 100,000+ distinct concepts by overlapping them — like multiple radio stations broadcasting on the same frequencies."
+          },
+          {
+            "type": "p",
+            "children": "This makes individual neurons uninterpretable. A single neuron might fire for 'dogs AND blue things AND the concept of loyalty' — not because these are related, but because the network packed multiple features into the same neuron to save space."
+          },
+          {
+            "type": "h3",
+            "children": "SAEs Untangle the Mess"
+          },
+          {
+            "type": "p",
+            "children": "A Sparse Autoencoder is trained to reconstruct a layer's activations, but through a much WIDER bottleneck with a sparsity constraint. If the original layer has 4,096 neurons, the SAE might have 4,000,000 features — but only a few dozen are active at any time."
+          },
+          {
+            "type": "Code",
+            "props": { "language": "text" },
+            "children": "Original layer:  4,096 neurons (dense, superposed)\n       ↓\nSAE encoding:    4,000,000 features (sparse, monosemantic)\n       ↓\nReconstruction:  4,096 neurons (recovers original)"
+          },
+          {
+            "type": "p",
+            "children": "The sparsity constraint forces each feature to represent ONE concept — a 'monosemantic' feature. Instead of 'dogs AND blue AND loyalty', you get separate features for each."
+          },
+          {
+            "type": "h3",
+            "children": "What Anthropic Found"
+          },
+          {
+            "type": "p",
+            "children": "At the 34M feature scale, Anthropic found features ranging from concrete to abstract:"
+          },
+          {
+            "type": "ComparisonTable",
+            "props": {
+              "headers": ["Abstraction Level", "Example Features", "Relevance to Operators"],
+              "rows": [
+                ["Concrete entities", "Golden Gate Bridge, San Francisco", "Low — these are nouns, not actions"],
+                ["Behaviors", "Sycophancy, code generation", "Medium — behaviors involve actions"],
+                ["Abstract concepts", "Deception, uncertainty, safety", "High — these ARE semantic primitives"],
+                ["Relational patterns", "Cause-effect, similarity", "Very high — these could BE operators"]
+              ]
+            }
+          },
+          {
+            "type": "Callout",
+            "props": { "type": "info" },
+            "children": "The key insight: SAE features exist at MULTIPLE levels of abstraction. If operators are a natural abstraction level — not too concrete (individual verbs) and not too abstract (vague concepts) — they should appear in the dictionary."
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "What Are We Looking For?" },
+        "children": [
+          {
+            "type": "p",
+            "children": "Schank proposed roughly 14 primitive acts. Let's define what each would look like as an SAE feature:"
+          },
+          {
+            "type": "ComparisonTable",
+            "props": {
+              "headers": ["Operator", "What It Means", "SAE Feature Would Fire On...", "Search Terms"],
+              "rows": [
+                ["PTRANS", "Physical transfer of location", "walked, ran, flew, drove, moved to", "movement, locomotion, travel"],
+                ["ATRANS", "Abstract transfer (possession)", "gave, sold, bought, stole, inherited", "transfer, possession change, transaction"],
+                ["MTRANS", "Mental transfer (communication)", "told, said, informed, taught, learned", "communication, information transfer"],
+                ["MBUILD", "Mental construction (thinking)", "decided, concluded, realized, planned", "reasoning, inference, decision"],
+                ["PROPEL", "Application of force", "pushed, hit, threw, kicked", "force, impact, physical contact"],
+                ["GRASP", "Taking control", "grabbed, caught, held, seized", "grasping, control, acquisition"],
+                ["INGEST", "Taking in", "ate, drank, breathed, absorbed", "consumption, intake"],
+                ["EXPEL", "Putting out", "exhaled, vomited, excreted", "expulsion, output"],
+                ["SPEAK", "Producing sound", "said, shouted, whispered, sang", "vocalization, speech"],
+                ["ATTEND", "Focusing senses", "looked, listened, watched, noticed", "perception, attention, observation"]
+              ]
+            }
+          },
+          {
+            "type": "h3",
+            "children": "The Critical Question: Granularity"
+          },
+          {
+            "type": "p",
+            "children": "SAE features might not match our desired abstraction level. They could be:"
+          },
+          {
+            "type": "ul",
+            "children": [
+              { "type": "li", "children": "Too fine-grained: separate features for 'stabbing', 'shooting', 'punching' but no unified HARM feature" },
+              { "type": "li", "children": "Too coarse: a single 'action' feature that doesn't distinguish HARM from HELP" },
+              { "type": "li", "children": "Just right: features at the Schankian level that capture the semantic primitive" }
+            ]
+          },
+          {
+            "type": "Callout",
+            "props": { "type": "warning" },
+            "children": "If features are too fine-grained, we need to CLUSTER them into operators. If they're too coarse, we need to SPLIT them. Either way, we learn something valuable about what level of abstraction neural networks naturally represent."
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "The Search Strategy" },
+        "children": [
+          {
+            "type": "p",
+            "children": "How would you actually search 34 million features for semantic operators? Here's the methodology:"
+          },
+          {
+            "type": "h3",
+            "children": "Approach 1: Activation Pattern Analysis"
+          },
+          {
+            "type": "p",
+            "children": "Run sentences with known operators through the model and see which SAE features activate:"
+          },
+          {
+            "type": "Code",
+            "props": { "language": "python" },
+            "children": "# Hypothesis: ATRANS-like feature exists\natrans_sentences = [\n    'John gave Mary the book',\n    'She sold her car to the dealer',\n    'The company transferred ownership',\n    'He inherited the estate from his uncle',\n    'They stole the painting from the museum'\n]\n\n# Run through model, extract SAE activations\n# Find features that activate on ALL of these\n# but NOT on non-transfer sentences\ncommon_features = find_shared_activations(atrans_sentences)\n\n# The features that survive this intersection\n# are candidate ATRANS operators"
+          },
+          {
+            "type": "p",
+            "children": "If feature #2,847,193 fires on ALL transfer-of-possession sentences and rarely fires on others — that's our ATRANS operator."
+          },
+          {
+            "type": "h3",
+            "children": "Approach 2: Feature Description Mining"
+          },
+          {
+            "type": "p",
+            "children": "Anthropic auto-generates descriptions for features. Search these descriptions:"
+          },
+          {
+            "type": "Code",
+            "props": { "language": "python" },
+            "children": "# Search feature descriptions for operator-like patterns\noperator_keywords = {\n    'PTRANS': ['movement', 'location change', 'travel', 'locomotion'],\n    'ATRANS': ['transfer', 'possession', 'ownership', 'giving'],\n    'MTRANS': ['communication', 'information', 'telling', 'learning'],\n    'PROPEL': ['force', 'impact', 'pushing', 'physical action'],\n    'HARM':   ['damage', 'injury', 'destruction', 'violence'],\n}\n\nfor operator, keywords in operator_keywords.items():\n    matches = search_feature_descriptions(keywords)\n    print(f'{operator}: {len(matches)} candidate features')\n    for feat in matches[:5]:\n        print(f'  Feature #{feat.id}: {feat.description}')"
+          },
+          {
+            "type": "h3",
+            "children": "Approach 3: Geometric Analysis"
+          },
+          {
+            "type": "p",
+            "children": "Our Schankian operators are rotations in complex space. If SAE features correspond to operators, they should have specific geometric properties:"
+          },
+          {
+            "type": "ul",
+            "children": [
+              { "type": "li", "children": "Non-commutativity: HARM(A,B) ≠ HARM(B,A) — the feature should activate differently when agent/patient swap" },
+              { "type": "li", "children": "Compositionality: Feature combinations should correspond to complex actions" },
+              { "type": "li", "children": "Conservation: Transfer features should show zero-sum patterns (giver loses what receiver gains)" }
+            ]
+          },
+          {
+            "type": "Callout",
+            "props": { "type": "tip" },
+            "children": "The geometric test is the strongest validation. If a feature not only fires on the right sentences but also shows rotation-like properties in the activation space, it's almost certainly encoding an operator."
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "What We Might Find (And What It Would Mean)" },
+        "children": [
+          {
+            "type": "h3",
+            "children": "Scenario 1: Clean Matches ✨"
+          },
+          {
+            "type": "p",
+            "children": "We find ~10-20 features that map cleanly to Schankian operators. Each fires specifically on its operator class, shows the right geometric properties, and is interpretable."
+          },
+          {
+            "type": "p",
+            "children": "This would be extraordinary. It would mean:"
+          },
+          {
+            "type": "ul",
+            "children": [
+              { "type": "li", "children": "Schankian primitives are 'natural kinds' — not a human taxonomy imposed on language, but a structure that emerges from data" },
+              { "type": "li", "children": "LLMs already represent operators internally — they just needed to be excavated" },
+              { "type": "li", "children": "We get operators for FREE, pre-trained on a massive corpus" },
+              { "type": "li", "children": "Instant validation of a 50-year-old theory using modern interpretability tools" }
+            ]
+          },
+          {
+            "type": "h3",
+            "children": "Scenario 2: Fine-Grained Features That Cluster 🔬"
+          },
+          {
+            "type": "p",
+            "children": "We find hundreds of action-related features, but they're too specific: separate features for 'stabbing', 'shooting', 'poisoning' rather than a unified HARM. However, when we cluster these features by activation similarity, the clusters align with Schankian operators."
+          },
+          {
+            "type": "p",
+            "children": "This would mean:"
+          },
+          {
+            "type": "ul",
+            "children": [
+              { "type": "li", "children": "The primitive level is NOT the natural level of representation — it's a higher-order abstraction" },
+              { "type": "li", "children": "Operators are CLUSTERS of features, not individual features" },
+              { "type": "li", "children": "LLMs represent specific actions but not (yet) their categorical relationships" },
+              { "type": "li", "children": "We still need to learn the operator abstraction — but SAE features are excellent inputs" }
+            ]
+          },
+          {
+            "type": "h3",
+            "children": "Scenario 3: No Clear Mapping 🤷"
+          },
+          {
+            "type": "p",
+            "children": "We find action-related features, but they don't organize along Schankian lines at all. Maybe they organize by syntactic role, or by frequency, or by some other principle entirely."
+          },
+          {
+            "type": "p",
+            "children": "This would mean:"
+          },
+          {
+            "type": "ul",
+            "children": [
+              { "type": "li", "children": "Schankian primitives may be a useful human abstraction but not a computational natural kind" },
+              { "type": "li", "children": "LLMs may organize action knowledge differently than Schank theorized" },
+              { "type": "li", "children": "We'd need to discover what organizing principle the network DOES use" },
+              { "type": "li", "children": "Still publishable — 'what neural networks don't represent' is valuable" }
+            ]
+          },
+          {
+            "type": "Callout",
+            "props": { "type": "info" },
+            "children": "All three scenarios produce publishable, interesting results. This is what makes it a great research direction — there's no losing outcome."
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "The Deeper Connection: SAEs as Semantic Microscopes" },
+        "children": [
+          {
+            "type": "p",
+            "children": "There's a deeper reason why this search matters beyond just finding operators."
+          },
+          {
+            "type": "p",
+            "children": "SAEs are, in a real sense, semantic microscopes. They let us see what an AI model has learned to represent internally. If we can find Schankian operators in SAE features, it suggests that these operators aren't just a theory about language — they're a theory about how intelligence represents actions."
+          },
+          {
+            "type": "h3",
+            "children": "The Othello-GPT Precedent"
+          },
+          {
+            "type": "p",
+            "children": "In 2023, researchers showed that a model trained ONLY on Othello move sequences — with no knowledge of the game rules — spontaneously learned to represent the board state internally. The model developed features corresponding to 'black piece at position C4' despite never being told what a board is."
+          },
+          {
+            "type": "p",
+            "children": "If a model trained on move sequences discovers board state, then a model trained on language might discover semantic operators. The question isn't whether LLMs have world models — it's whether those world models use the same primitives that Schank identified."
+          },
+          {
+            "type": "h3",
+            "children": "From Discovery to Interface"
+          },
+          {
+            "type": "p",
+            "children": "If we find operators in SAE features, they become an INTERFACE to the model's implicit world knowledge. Instead of hoping the model 'just knows' what happens when someone gives a gift, we can:"
+          },
+          {
+            "type": "ol",
+            "children": [
+              { "type": "li", "children": "Identify the ATRANS feature" },
+              { "type": "li", "children": "Read its activation patterns to understand what the model knows about transfer" },
+              { "type": "li", "children": "Steer the model by amplifying or suppressing specific operators" },
+              { "type": "li", "children": "Debug failures by checking which operators activated (or didn't)" }
+            ]
+          },
+          {
+            "type": "Callout",
+            "props": { "type": "tip" },
+            "children": "This reframes our entire research program. We're not just learning operators — we're building a semantic debugger for LLMs. A tool that makes the implicit reasoning visible and controllable."
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "Practical Resources" },
+        "children": [
+          {
+            "type": "h3",
+            "children": "Available Tools"
+          },
+          {
+            "type": "ul",
+            "children": [
+              { "type": "li", "children": "Anthropic's Neuronpedia — Web interface for browsing SAE features (neuronpedia.org)" },
+              { "type": "li", "children": "SAE Lens (TransformerLens) — Python library for extracting and analyzing SAE features" },
+              { "type": "li", "children": "Anthropic's published feature lists — Descriptions and activation patterns for millions of features" },
+              { "type": "li", "children": "Open-source SAEs for GPT-2 and Pythia models — Smaller scale but fully accessible for experimentation" }
+            ]
+          },
+          {
+            "type": "h3",
+            "children": "Key Papers"
+          },
+          {
+            "type": "ul",
+            "children": [
+              { "type": "li", "children": "Scaling Monosemanticity (Anthropic, May 2024) — The 34M feature study" },
+              { "type": "li", "children": "Towards Monosemanticity (Anthropic, 2023) — The original SAE paper" },
+              { "type": "li", "children": "Othello-GPT (Li et al., 2023) — Emergent world models in sequence prediction" },
+              { "type": "li", "children": "SAEs in Vision-Language Models (April 2025) — Extension to multimodal models" }
+            ]
+          },
+          {
+            "type": "h3",
+            "children": "Suggested Experiment Sequence"
+          },
+          {
+            "type": "ol",
+            "children": [
+              { "type": "li", "children": "Start with open-source SAEs on GPT-2 (fully accessible, fast iteration)" },
+              { "type": "li", "children": "Build a test suite of 50-100 sentences per operator type" },
+              { "type": "li", "children": "Run activation analysis — which features respond to which operators?" },
+              { "type": "li", "children": "Cluster responsive features — do clusters align with Schankian categories?" },
+              { "type": "li", "children": "Test geometric properties — non-commutativity, compositionality, conservation" },
+              { "type": "li", "children": "If promising, scale up to larger models (Pythia, Llama, or Anthropic's public features)" }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "Key Takeaways" },
+        "children": [
+          {
+            "type": "ol",
+            "children": [
+              { "type": "li", "children": "Anthropic's SAEs have extracted 34M interpretable features from Claude. Some of these might encode Schankian operators." },
+              { "type": "li", "children": "Three search strategies: activation pattern analysis, description mining, and geometric property testing." },
+              { "type": "li", "children": "All outcomes are interesting: clean matches validate the theory, clusters suggest operators are higher-order, no matches tells us about neural representation." },
+              { "type": "li", "children": "Finding operators in SAEs would turn them into a semantic debugger — an interface to LLMs' implicit world knowledge." },
+              { "type": "li", "children": "Open-source SAEs on GPT-2 make this immediately testable without any special access." },
+              { "type": "li", "children": "This bridges two hot research communities (mechanistic interpretability + event semantics) that don't yet know they're working on the same problem." }
+            ]
+          },
+          {
+            "type": "Callout",
+            "props": { "type": "info" },
+            "children": "This tutorial is part of a research program on learned Schankian operators. See also: the main paper draft for the full technical context, and the tutorial on implicit-explicit document enrichment for the practical application."
+          }
+        ]
+      }
+    ]
+  }
+}

@@ -1,0 +1,459 @@
+{
+  "id": "implicit-explicit-enrichment",
+  "title": "Implicit-Explicit Document Enrichment",
+  "subtitle": "Why RAG systems fail on implicit reasoning — and a two-phase architecture to fix it",
+  "readTime": "20 min",
+  "state": {},
+  "content": {
+    "type": "Fragment",
+    "children": [
+      {
+        "type": "Section",
+        "props": { "title": "The Problem: What Machines Can't See" },
+        "children": [
+          {
+            "type": "p",
+            "children": "Human language is an iceberg. The words on the page are the tip. The vast bulk of meaning — the part that matters — is underwater, implicit, unstated. Humans navigate this effortlessly. Machines don't."
+          },
+          {
+            "type": "p",
+            "children": "This isn't a minor gap. It's a fundamental limitation of every retrieval system in production today."
+          },
+          {
+            "type": "Example",
+            "props": { "title": "The Barefoot Detective" },
+            "children": [
+              {
+                "type": "p",
+                "children": "Consider this passage:"
+              },
+              {
+                "type": "Blockquote",
+                "children": "Marlowe rolled out of bed and staggered down the dark hallway, forgetting about the Lego blocks. \"Dammit!\" he screamed, limping the rest of the way to the bathroom."
+              },
+              {
+                "type": "p",
+                "children": "Now ask: Was Marlowe wearing shoes?"
+              },
+              {
+                "type": "p",
+                "children": "Any human answers instantly: No. He just got out of bed, so he's barefoot. That's why stepping on the Lego hurt. That's why he screamed. That's why he limped."
+              },
+              {
+                "type": "p",
+                "children": "But shoes are never mentioned. Not once. A RAG system retrieving chunks based on keyword or vector similarity will find nothing about footwear in this passage. It will either hallucinate an answer or say \"I don't see any mention of shoes in the document.\""
+              }
+            ]
+          },
+          {
+            "type": "Callout",
+            "props": { "type": "warning" },
+            "children": "This isn't a cherry-picked edge case. This is how ALL natural language works. Nearly every sentence relies on unstated background knowledge, implied preconditions, and assumed world state."
+          },
+          {
+            "type": "h3",
+            "children": "The Implicit State Chain"
+          },
+          {
+            "type": "p",
+            "children": "Let's trace the chain of implications that a human processes unconsciously:"
+          },
+          {
+            "type": "ol",
+            "children": [
+              { "type": "li", "children": "\"Rolled out of bed\" → He was IN bed → People in bed have removed their shoes → He is barefoot" },
+              { "type": "li", "children": "\"Staggered down the hallway\" → He is upright, walking → He is moving through a house → It's dark (nighttime or early morning)" },
+              { "type": "li", "children": "\"Forgetting about the Lego blocks\" → There are Legos on the floor → He knew they were there (forgot implies prior knowledge) → Probably has children" },
+              { "type": "li", "children": "\"Dammit!\" → Pain response → Stepping on Lego barefoot causes sharp pain (world knowledge) → The scream is proportional to the pain" },
+              { "type": "li", "children": "\"Limping the rest of the way\" → Foot injury → Changed gait → He continued despite pain → The bathroom was the destination all along" }
+            ]
+          },
+          {
+            "type": "p",
+            "children": "Five sentences. At least fifteen implicit facts. None stated. All required for comprehension."
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "The Extreme Case: Six Words That Break Every Retrieval System" },
+        "children": [
+          {
+            "type": "p",
+            "children": "If the Marlowe example doesn't convince you, consider what may be the most devastating demonstration of implicit meaning in the English language:"
+          },
+          {
+            "type": "Blockquote",
+            "children": "\"For sale: baby shoes, never worn.\""
+          },
+          {
+            "type": "p",
+            "children": "This famous six-word story (attributed to Hemingway) is devastating precisely because of what it doesn't say. Let's inventory what a human reader infers:"
+          },
+          {
+            "type": "h3",
+            "children": "Entities (Mostly Invisible)"
+          },
+          {
+            "type": "ComparisonTable",
+            "props": {
+              "headers": ["Entity", "Explicit?", "How We Know"],
+              "rows": [
+                ["Baby shoes", "✅ Yes", "Directly mentioned"],
+                ["A baby", "❌ No", "Implied by 'baby shoes' — shoes were bought FOR someone"],
+                ["A seller", "❌ No", "Implied by 'for sale' — someone is placing this ad"],
+                ["A buyer (audience)", "❌ No", "Implied by 'for sale' — ads presume a reader"],
+                ["A prior expectation", "❌ No", "Shoes were bought in anticipation of a baby arriving"]
+              ]
+            }
+          },
+          {
+            "type": "h3",
+            "children": "Events (All Implicit)"
+          },
+          {
+            "type": "p",
+            "children": "Not a single event is explicitly stated. Yet the reader reconstructs an entire narrative:"
+          },
+          {
+            "type": "ol",
+            "children": [
+              { "type": "li", "children": "Someone expected a baby (the shoes were purchased in anticipation)" },
+              { "type": "li", "children": "The baby never arrived — died, was stillborn, or the pregnancy failed (LOSS event)" },
+              { "type": "li", "children": "The shoes were never used (\"never worn\" = negation of intended purpose)" },
+              { "type": "li", "children": "Time has passed — enough for grief, enough for the decision to sell" },
+              { "type": "li", "children": "Someone is now selling them — processing grief? Needing money? Moving on?" }
+            ]
+          },
+          {
+            "type": "h3",
+            "children": "Emotional State (Entirely Inferred)"
+          },
+          {
+            "type": "ul",
+            "children": [
+              { "type": "li", "children": "Grief (high confidence)" },
+              { "type": "li", "children": "Possible acceptance (the act of selling = processing the loss)" },
+              { "type": "li", "children": "The brevity itself is a signal: too painful to elaborate" },
+              { "type": "li", "children": "The specificity ('baby shoes', not 'baby items') makes it visceral — these were chosen with care" }
+            ]
+          },
+          {
+            "type": "Code",
+            "props": { "language": "text" },
+            "children": "ANNOTATED:\n\n  ENTITIES:\n    - baby       [IMPLICIT: never explicitly mentioned]\n    - shoes      [explicit]\n    - seller     [IMPLICIT: someone placing this ad]\n    - recipient  [IMPLICIT: the expected baby]\n\n  EVENTS:\n    - TRANSFER(?, shoes, seller)   — shoes were acquired\n    - ANTICIPATE(seller, baby)     — someone expected a baby\n    - LOSS(seller, baby)           — the baby never came / died\n    - ¬USE(baby, shoes)            — shoes never reached intended use\n    - TRANSFER(seller, shoes, ?)   — now selling\n\n  STATES:\n    - seller.emotion    = grief       [high confidence]\n    - seller.processing = acceptance  [selling = moving forward]\n    - shoes.condition   = new         [never worn]\n\n  META:\n    - brevity signals emotional weight\n    - specificity (baby shoes) signals care and attachment"
+          },
+          {
+            "type": "Callout",
+            "props": { "type": "warning" },
+            "children": "Six words. Five implicit entities. Five implicit events. Four emotional inferences. Zero of this is findable by keyword search, vector similarity, or any surface-level retrieval method. A search for 'grief', 'child loss', 'death', or 'sadness' will never return this document."
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "Why Current RAG Fails" },
+        "children": [
+          {
+            "type": "p",
+            "children": "Retrieval-Augmented Generation (RAG) is the dominant architecture for grounding LLMs in external knowledge. The pipeline is simple:"
+          },
+          {
+            "type": "ol",
+            "children": [
+              { "type": "li", "children": "Chunk documents into passages" },
+              { "type": "li", "children": "Embed each chunk as a vector" },
+              { "type": "li", "children": "At query time, embed the question" },
+              { "type": "li", "children": "Find the most similar chunks" },
+              { "type": "li", "children": "Feed them to the LLM as context" }
+            ]
+          },
+          {
+            "type": "p",
+            "children": "This works well when the answer is explicitly stated in the text. It fails catastrophically when the answer is implicit."
+          },
+          {
+            "type": "h3",
+            "children": "Three Modes of Failure"
+          },
+          {
+            "type": "h4",
+            "children": "1. Retrieval Miss"
+          },
+          {
+            "type": "p",
+            "children": "The relevant chunk is never retrieved because no surface-level similarity exists between the query and the implicit information."
+          },
+          {
+            "type": "Example",
+            "props": { "title": "Retrieval Miss" },
+            "children": [
+              { "type": "p", "children": "Document: 'For sale: baby shoes, never worn.'" },
+              { "type": "p", "children": "Query: 'Find documents about grief or loss'" },
+              { "type": "p", "children": "Result: ❌ Not retrieved. Cosine similarity between 'grief' and 'baby shoes for sale' is low." }
+            ]
+          },
+          {
+            "type": "h4",
+            "children": "2. Context Insufficient"
+          },
+          {
+            "type": "p",
+            "children": "The chunk IS retrieved (maybe it matched on 'baby'), but the LLM can't infer the implicit meaning from a short chunk alone without the broader context that a human reader brings."
+          },
+          {
+            "type": "h4",
+            "children": "3. Hallucination Under Ambiguity"
+          },
+          {
+            "type": "p",
+            "children": "The LLM is forced to answer from retrieved chunks that don't contain the needed information. It either says 'I don't know' (unhelpful but honest) or hallucinates an answer (dangerous)."
+          },
+          {
+            "type": "Callout",
+            "props": { "type": "info" },
+            "children": "The root cause is the same in all three cases: the information needed to answer the question was never explicitly present in the text. It existed only in the space between the words — in the implications that human readers process automatically."
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "The Solution: Two-Phase Implicit-Explicit Architecture" },
+        "children": [
+          {
+            "type": "p",
+            "children": "The fix is conceptually simple, practically powerful, and — surprisingly — not yet widely implemented:"
+          },
+          {
+            "type": "Callout",
+            "props": { "type": "tip" },
+            "children": "Make the implicit explicit. Do it once, offline, before any queries happen. Then retrieve against the enriched document."
+          },
+          {
+            "type": "h3",
+            "children": "Phase 1: Offline Enrichment"
+          },
+          {
+            "type": "p",
+            "children": "Before any retrieval happens, process each document to annotate ALL implicit information. Think of it as David Foster Wallace-style footnotes for machines — every unstated fact, every implied precondition, every inferred emotional state, made explicit."
+          },
+          {
+            "type": "Code",
+            "props": { "language": "text" },
+            "children": "ORIGINAL:\n  'Marlowe tumbled out of bed'\n\nENRICHED:\n  'Marlowe tumbled out of bed'\n    [PRECONDITION: Marlowe was in bed]\n    [PRECONDITION: Being in bed implies shoes removed]\n    [STATE: Marlowe is now barefoot]\n    [STATE: Marlowe is now standing, near the bed]\n    [STATE: Marlowe was probably sleeping → just woke up]\n    [INFERENCE: Time is likely morning or middle of night]"
+          },
+          {
+            "type": "p",
+            "children": "For the Hemingway example:"
+          },
+          {
+            "type": "Code",
+            "props": { "language": "text" },
+            "children": "ORIGINAL:\n  'For sale: baby shoes, never worn.'\n\nENRICHED:\n  'For sale: baby shoes, never worn.'\n    [ENTITY: A baby was expected but never arrived]\n    [ENTITY: A seller exists — likely a parent or family member]\n    [EVENT: Shoes were purchased in anticipation of birth]\n    [EVENT: The baby was lost — death, stillbirth, or failed pregnancy]\n    [EVENT: The shoes were never used for their intended purpose]\n    [STATE: The seller is experiencing grief]\n    [STATE: The act of selling suggests processing or acceptance]\n    [THEME: Loss, grief, unfulfilled expectation, brevity as pain]\n    [LITERARY: Specificity of 'baby shoes' signals emotional attachment]\n    [LITERARY: Extreme brevity signals inability to elaborate]"
+          },
+          {
+            "type": "p",
+            "children": "Now a search for 'grief', 'child loss', or 'unfulfilled expectation' will find this document. The implicit has been made explicit."
+          },
+          {
+            "type": "h3",
+            "children": "Phase 2: Hierarchical Retrieval"
+          },
+          {
+            "type": "p",
+            "children": "The enriched documents are much larger than the originals — potentially 5-10x. Naive retrieval against the full enriched text would be slow and noisy. Solution: hierarchical summarization."
+          },
+          {
+            "type": "Code",
+            "props": { "language": "text" },
+            "children": "LEVEL 1 (Summary):\n  'Short story about loss — baby expected but never arrived'\n\nLEVEL 2 (Key Facts):\n  'Seller is grieving. Baby shoes purchased in anticipation.\n   Baby was lost. Shoes never used. Now being sold.'\n\nLEVEL 3 (Full Enriched):\n  [Complete annotation with all implicit state,\n   entities, events, emotions, literary analysis]"
+          },
+          {
+            "type": "p",
+            "children": "At query time:"
+          },
+          {
+            "type": "ol",
+            "children": [
+              { "type": "li", "children": "Search Level 1 summaries to find relevant documents (fast, cheap)" },
+              { "type": "li", "children": "For matches, check Level 2 key facts to confirm relevance" },
+              { "type": "li", "children": "Only when needed, pull Level 3 full enrichment into the LLM context" }
+            ]
+          },
+          {
+            "type": "Callout",
+            "props": { "type": "tip" },
+            "children": "This is analogous to how humans read: skim the headline, read the summary, dive into details only when something is relevant. You only pay the cost of the bulky annotations when you NEED that detail."
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "The Annotation Engine: From Manual to Automated" },
+        "children": [
+          {
+            "type": "p",
+            "children": "The obvious question: who writes all these annotations? Doing it manually doesn't scale. But this is where the research gets interesting."
+          },
+          {
+            "type": "h3",
+            "children": "Level 1: LLM-Powered Annotation (Available Now)"
+          },
+          {
+            "type": "p",
+            "children": "Current LLMs can already do a reasonable job of making implicit state explicit. You can prompt them:"
+          },
+          {
+            "type": "Code",
+            "props": { "language": "text" },
+            "children": "PROMPT:\nFor the following text, list ALL implicit information that a human\nreader would infer but that is not explicitly stated. Include:\n- Implied entities (people, objects not directly mentioned)\n- Preconditions (what must have been true before)\n- Postconditions (what is true after)\n- Emotional states\n- World knowledge required for comprehension\n\nTEXT: 'Marlowe tumbled out of bed and stepped on a Lego.'"
+          },
+          {
+            "type": "p",
+            "children": "This works surprisingly well for obvious implications but misses subtle chains and cross-sentence dependencies."
+          },
+          {
+            "type": "h3",
+            "children": "Level 2: Operator-Guided Annotation (Our Contribution)"
+          },
+          {
+            "type": "p",
+            "children": "This is where Schankian operators enter the picture. Instead of asking an LLM to freeform-generate implications, we use operators as a systematic framework:"
+          },
+          {
+            "type": "ol",
+            "children": [
+              { "type": "li", "children": "Parse the text into (agent, action, patient) triples" },
+              { "type": "li", "children": "Map each action to its operator type (MOVE, TRANSFER, HARM, etc.)" },
+              { "type": "li", "children": "Each operator has known preconditions and postconditions" },
+              { "type": "li", "children": "Systematically generate ALL implied state changes" },
+              { "type": "li", "children": "Chain them: postcondition of one becomes precondition of next" }
+            ]
+          },
+          {
+            "type": "Example",
+            "props": { "title": "Operator-Guided Annotation" },
+            "children": [
+              { "type": "p", "children": "Text: 'John gave Mary the book'" },
+              { "type": "p", "children": "Triple: (John, gave, Mary) with instrument=book" },
+              { "type": "p", "children": "Operator: ATRANS (abstract transfer of possession)" },
+              { "type": "p", "children": "Preconditions from ATRANS: John possessed the book. John and Mary are in communication range. John chose to give (volitional)." },
+              { "type": "p", "children": "Postconditions from ATRANS: Mary now possesses the book. John no longer possesses the book. Conservation: total possession unchanged." },
+              { "type": "p", "children": "All of these become annotations. None were in the original text." }
+            ]
+          },
+          {
+            "type": "Callout",
+            "props": { "type": "info" },
+            "children": "The operators make annotation SYSTEMATIC rather than ad-hoc. Instead of hoping the LLM remembers to check footwear status, the MOVE operator's precondition template automatically asks: 'What is the entity's state before moving? What must be true for this movement to occur?'"
+          },
+          {
+            "type": "h3",
+            "children": "Level 3: Learned Implicit State Models (Research Frontier)"
+          },
+          {
+            "type": "p",
+            "children": "The enriched corpus itself becomes training data. Once you have enough examples of explicit↔implicit pairs, you can train a model specifically for implicit state inference — one that doesn't need the operator framework as scaffolding because it's internalized the patterns."
+          },
+          {
+            "type": "p",
+            "children": "This is the virtuous cycle: operators help generate annotations → annotations train better models → better models generate richer annotations."
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "What This Enables" },
+        "children": [
+          {
+            "type": "h3",
+            "children": "Better RAG (The Obvious Win)"
+          },
+          {
+            "type": "p",
+            "children": "Retrieval systems that can answer questions about unstated information. 'Was Marlowe wearing shoes?' becomes answerable because the enriched document explicitly contains '[STATE: Marlowe is barefoot]'."
+          },
+          {
+            "type": "h3",
+            "children": "Narrative Understanding"
+          },
+          {
+            "type": "p",
+            "children": "Track how entities change through a story. Frank before the shooting and Frank after the shooting are different entities in different states. The enriched document makes these state transitions explicit and queryable."
+          },
+          {
+            "type": "h3",
+            "children": "Legal and Medical Document Analysis"
+          },
+          {
+            "type": "p",
+            "children": "These domains are FULL of implicit reasoning. A contract that says 'Party A shall deliver by March 1' implies: Party A currently possesses the deliverable, Party A has the means to deliver, failure to deliver has consequences. Medical notes that say 'Patient discontinued medication' imply: patient was on medication, patient made a decision, there may be withdrawal effects."
+          },
+          {
+            "type": "h3",
+            "children": "Semantic Search That Actually Works"
+          },
+          {
+            "type": "p",
+            "children": "Search by meaning, not by words. Find the Hemingway story when you search for 'grief'. Find the Marlowe passage when you search for 'barefoot'. Find the contract clause when you search for 'delivery risk'."
+          },
+          {
+            "type": "h3",
+            "children": "Training Data for World Models"
+          },
+          {
+            "type": "p",
+            "children": "The annotated corpus captures the world knowledge that humans use to understand language. This is exactly the data needed to train models that understand causality, state changes, and temporal reasoning — the pieces missing from current LLMs."
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "The Deeper Question: Why Now?" },
+        "children": [
+          {
+            "type": "p",
+            "children": "This idea has been technically possible for years. Roger Schank proposed something similar in the 1970s with his Conceptual Dependency theory. So why hasn't it been built?"
+          },
+          {
+            "type": "ol",
+            "children": [
+              { "type": "li", "children": "Schank's operators were hand-coded. We can now learn them from data." },
+              { "type": "li", "children": "The annotation step was manual. LLMs can now do the heavy lifting." },
+              { "type": "li", "children": "Storage was expensive. Now it's essentially free — a 10x expansion of documents is trivial." },
+              { "type": "li", "children": "RAG didn't exist yet. Now there's a concrete, deployed architecture that needs this fix." },
+              { "type": "li", "children": "The pain is real. Every production RAG system struggles with implicit reasoning, and the industry knows it." }
+            ]
+          },
+          {
+            "type": "Callout",
+            "props": { "type": "tip" },
+            "children": "The right idea at the wrong time is just a curiosity. The right idea at the right time is a breakthrough. Schank had the right idea. Now is the right time."
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "Key Takeaways" },
+        "children": [
+          {
+            "type": "ol",
+            "children": [
+              { "type": "li", "children": "Natural language contains far more implicit information than explicit. This isn't an edge case — it's the norm." },
+              { "type": "li", "children": "Current RAG systems fail on implicit reasoning because they retrieve based on surface similarity." },
+              { "type": "li", "children": "The fix is a two-phase architecture: offline enrichment (make implicit explicit) + hierarchical retrieval (navigate efficiently)." },
+              { "type": "li", "children": "Schankian operators provide a systematic framework for generating annotations — not ad-hoc prompting, but structured state-change analysis." },
+              { "type": "li", "children": "The enriched corpus becomes training data for better implicit-state models, creating a virtuous cycle." },
+              { "type": "li", "children": "Applications span RAG, narrative understanding, legal/medical analysis, semantic search, and world model training." }
+            ]
+          },
+          {
+            "type": "Callout",
+            "props": { "type": "info" },
+            "children": "This tutorial is part of a research program on learned Schankian operators. See also: the main paper draft for the full technical context, and the tutorial on mining SAE dictionaries for a complementary approach."
+          }
+        ]
+      }
+    ]
+  }
+}
