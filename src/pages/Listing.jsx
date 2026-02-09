@@ -282,6 +282,18 @@ const tutorials = [
     isApp: true,
   },
   {
+    id: 'hungarian-basics',
+    title: 'Hungarian Language Basics',
+    description: 'An introduction to one of Europe\'s most unique languages — vowel harmony, agglutination, and essential phrases',
+    tags: ['languages', 'Hungarian', 'linguistics'],
+    icon: '🇭🇺',
+    gradient: 'from-red-500 to-green-600',
+    shadowColor: 'shadow-red-500/30',
+    glowColor: 'rgba(239, 68, 68, 0.4)',
+    readTime: '12 min',
+    difficulty: 1,
+  },
+  {
     id: 'peptides',
     title: 'Peptides: Building Blocks of Life',
     description: 'Build peptide chains by linking amino acids together — watch dehydration synthesis and learn protein structure',
