@@ -329,6 +329,18 @@ const tutorials = [
     glowColor: 'rgba(16, 185, 129, 0.4)',
     readTime: '15 min',
     difficulty: 2,
+  },
+  {
+    id: 'how-peptides-can-be-used-in-a-way-that-resembles-p',
+    title: 'Therapeutic Peptides: Nature\'s Precision Medicine',
+    description: 'How peptides function as targeted pharmaceuticals to heal and regulate critical body processes',
+    tags: ['biology', 'biochemistry', 'therapeutics'],
+    icon: '💊',
+    gradient: 'from-violet-500 to-fuchsia-500',
+    shadowColor: 'shadow-violet-500/30',
+    glowColor: 'rgba(139, 92, 246, 0.4)',
+    readTime: '8 min',
+    difficulty: 2,
   }
 ]
 
@@ -493,8 +505,101 @@ const heroStyles = `
   }
 `
 
+// Compact list item for list view
+function TutorialListItem({ tutorial }) {
+  const linkPath = tutorial.isApp ? `/${tutorial.id}` : `/tutorial/${tutorial.id}`
+  
+  return (
+    <Link to={linkPath} className="group block no-underline">
+      <div className="flex items-center gap-4 px-4 py-3 rounded-xl
+        bg-white/90 border border-gray-100
+        hover:bg-indigo-50/50 hover:border-indigo-200
+        hover:shadow-md
+        transition-all duration-200">
+        {/* Icon */}
+        <div
+          className={`w-9 h-9 rounded-lg bg-gradient-to-br ${tutorial.gradient}
+            flex items-center justify-center flex-shrink-0 shadow-sm`}
+        >
+          <span className="text-lg">{tutorial.icon}</span>
+        </div>
+        
+        {/* Title + description */}
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-2">
+            <h3 className="text-sm font-semibold text-gray-900 group-hover:text-indigo-600 transition-colors truncate">
+              {tutorial.title}
+            </h3>
+            <span className="text-xs text-gray-400 flex-shrink-0">{tutorial.readTime}</span>
+            <span className="text-xs text-amber-400 flex-shrink-0">{difficultyStars(tutorial.difficulty)}</span>
+          </div>
+          <p className="text-xs text-gray-500 truncate mt-0.5">{tutorial.description}</p>
+        </div>
+        
+        {/* Tags (only first 2) */}
+        <div className="hidden md:flex gap-1.5 flex-shrink-0">
+          {tutorial.tags.slice(0, 2).map(tag => (
+            <span
+              key={tag}
+              className={`px-2 py-0.5 rounded-full text-[10px] font-semibold border
+                ${tagColors[tag] || 'bg-gray-100 text-gray-600 border-gray-200'}`}
+            >
+              {tag}
+            </span>
+          ))}
+        </div>
+        
+        {/* Arrow */}
+        <svg className="w-4 h-4 text-gray-300 group-hover:text-indigo-400 flex-shrink-0 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+        </svg>
+      </div>
+    </Link>
+  )
+}
+
+// View toggle button
+function ViewToggle({ mode, onChange }) {
+  return (
+    <div className="flex items-center bg-white rounded-lg border border-gray-200 p-0.5 shadow-sm">
+      <button
+        onClick={() => onChange('grid')}
+        className={`p-2 rounded-md transition-all ${
+          mode === 'grid'
+            ? 'bg-indigo-100 text-indigo-600 shadow-sm'
+            : 'text-gray-400 hover:text-gray-600'
+        }`}
+        title="Grid view"
+      >
+        <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 16 16">
+          <rect x="1" y="1" width="6" height="6" rx="1" />
+          <rect x="9" y="1" width="6" height="6" rx="1" />
+          <rect x="1" y="9" width="6" height="6" rx="1" />
+          <rect x="9" y="9" width="6" height="6" rx="1" />
+        </svg>
+      </button>
+      <button
+        onClick={() => onChange('list')}
+        className={`p-2 rounded-md transition-all ${
+          mode === 'list'
+            ? 'bg-indigo-100 text-indigo-600 shadow-sm'
+            : 'text-gray-400 hover:text-gray-600'
+        }`}
+        title="List view"
+      >
+        <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 16 16">
+          <rect x="1" y="1" width="14" height="3" rx="1" />
+          <rect x="1" y="6.5" width="14" height="3" rx="1" />
+          <rect x="1" y="12" width="14" height="3" rx="1" />
+        </svg>
+      </button>
+    </div>
+  )
+}
+
 export default function Listing() {
   const [showCreateModal, setShowCreateModal] = useState(false)
+  const [viewMode, setViewMode] = useState('grid')
   
   return (
     <div className="min-h-screen bg-[#fafafa]">
@@ -580,15 +685,28 @@ export default function Listing() {
       
       {/* Tutorial Grid */}
       <Container size="wide" className="py-12 -mt-12">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {tutorials.map((tutorial, i) => (
-            <TutorialCard 
-              key={tutorial.id} 
-              tutorial={tutorial}
-              featured={i === 0}
-            />
-          ))}
+        {/* View toggle */}
+        <div className="flex justify-end mb-4">
+          <ViewToggle mode={viewMode} onChange={setViewMode} />
         </div>
+        
+        {viewMode === 'grid' ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {tutorials.map((tutorial, i) => (
+              <TutorialCard 
+                key={tutorial.id} 
+                tutorial={tutorial}
+                featured={i === 0}
+              />
+            ))}
+          </div>
+        ) : (
+          <div className="flex flex-col gap-2">
+            {tutorials.map((tutorial) => (
+              <TutorialListItem key={tutorial.id} tutorial={tutorial} />
+            ))}
+          </div>
+        )}
         
         {/* "Continue your journey" section - delighter */}
         <div className="mt-12 bg-gradient-to-r from-violet-50 to-indigo-50 rounded-2xl p-8 border border-violet-100/50 
