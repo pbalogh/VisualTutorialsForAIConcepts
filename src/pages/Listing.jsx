@@ -269,6 +269,18 @@ const tutorials = [
     difficulty: 2,
   },
   {
+    id: 'brainstorm-09-knn-linguistic-anchors',
+    title: 'KNN with Linguistic Anchors',
+    description: 'Semi-supervised operator discovery using Schank\'s primitive actions as anchor points in embedding space',
+    tags: ['schankian', 'semi-supervised', 'KNN'],
+    icon: '⚓',
+    gradient: 'from-amber-500 to-orange-600',
+    shadowColor: 'shadow-amber-500/30',
+    glowColor: 'rgba(245, 158, 11, 0.4)',
+    readTime: '20 min',
+    difficulty: 2,
+  },
+  {
     id: 'thoughtblend',
     title: 'ThoughtBlend',
     description: 'Synthesize perspectives through dialectical color mixing — add sources as color swatches and blend them into structured text or dialogue',

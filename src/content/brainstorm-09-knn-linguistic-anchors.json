@@ -1,0 +1,542 @@
+{
+  "id": "brainstorm-09-knn-linguistic-anchors",
+  "title": "KNN with Linguistic Anchors",
+  "subtitle": "Semi-Supervised Operator Discovery Using Schank's Primitives",
+  "readTime": "20 min",
+  "state": "published",
+  "content": {
+    "type": "Fragment",
+    "children": [
+      {
+        "type": "Callout",
+        "props": { "type": "info" },
+        "children": [
+          {
+            "type": "p",
+            "children": [
+              {
+                "type": "strong",
+                "children": "What if the vocabulary of thought already has an address book?"
+              },
+              " Roger Schank proposed that all human actions reduce to about 11 primitive operations — ATRANS, PTRANS, MTRANS, and so on. This tutorial explores a powerful idea: instead of clustering action embeddings blindly, we can ",
+              {
+                "type": "em",
+                "children": "anchor"
+              },
+              " them to these linguistically-grounded primitives and use KNN-style assignment to discover new operators semi-supervisedly. The result? A system that knows where the known landmarks are, and can still find new territory."
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "1. The Problem: Why Pure Clustering Fails" },
+        "children": [
+          {
+            "type": "p",
+            "children": [
+              "Imagine you're trying to discover the fundamental operations behind all human actions. You have thousands of event descriptions — ",
+              { "type": "em", "children": "\"John gave Mary a book,\"" },
+              " ",
+              { "type": "em", "children": "\"The ball rolled down the hill,\"" },
+              " ",
+              { "type": "em", "children": "\"She remembered her password\"" },
+              " — and you embed them all into a high-dimensional vector space. Now what?"
+            ]
+          },
+          {
+            "type": "p",
+            "children": "The naive approach is unsupervised clustering: run K-means or DBSCAN on the embeddings and hope the clusters correspond to meaningful operator categories. But this approach has serious problems:"
+          },
+          {
+            "type": "ul",
+            "children": [
+              {
+                "type": "li",
+                "children": [
+                  { "type": "strong", "children": "Choosing K is arbitrary." },
+                  " How many clusters should there be? 5? 11? 50? Pure unsupervised methods give you no principled answer."
+                ]
+              },
+              {
+                "type": "li",
+                "children": [
+                  { "type": "strong", "children": "Clusters may not align with semantics." },
+                  " Embedding space geometry doesn't always carve nature at its joints. You might get clusters organized by sentence structure rather than by the underlying action type."
+                ]
+              },
+              {
+                "type": "li",
+                "children": [
+                  { "type": "strong", "children": "No interpretability." },
+                  " Even if you get good clusters, what do they mean? Cluster 7 contains events about possession transfer — but you have to figure that out manually."
+                ]
+              },
+              {
+                "type": "li",
+                "children": [
+                  { "type": "strong", "children": "Sensitive to initialization." },
+                  " Different random seeds give different clusterings. Without ground truth, how do you pick the right one?"
+                ]
+              }
+            ]
+          },
+          {
+            "type": "Example",
+            "props": { "title": "When Clustering Goes Wrong" },
+            "children": [
+              {
+                "type": "p",
+                "children": "Consider these three sentences:"
+              },
+              {
+                "type": "ul",
+                "children": [
+                  { "type": "li", "children": "\"John gave Mary the book\" (possession transfer)" },
+                  { "type": "li", "children": "\"John threw Mary the ball\" (physical force + possession transfer)" },
+                  { "type": "li", "children": "\"John sold Mary the car\" (possession transfer via transaction)" }
+                ]
+              },
+              {
+                "type": "p",
+                "children": [
+                  "A pure embedding-based clusterer might group sentences 2 and 3 together (both involve objects with economic/physical value) rather than 1 and 3 (both are pure possession transfers — ",
+                  { "type": "code", "children": "ATRANS" },
+                  "). The surface features of the embeddings can overpower the deeper semantic structure we actually care about."
+                ]
+              }
+            ]
+          },
+          {
+            "type": "p",
+            "children": [
+              "The core insight is this: ",
+              { "type": "strong", "children": "we're not starting from zero." },
+              " Decades of linguistic research have already identified candidate primitive actions. Why throw that knowledge away?"
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "2. Schank's Primitive Actions" },
+        "children": [
+          {
+            "type": "p",
+            "children": [
+              "In the 1970s, Roger Schank proposed ",
+              { "type": "strong", "children": "Conceptual Dependency Theory" },
+              " — the idea that all human actions, no matter how complex, can be decomposed into a small set of primitive operations. He identified approximately 11 such primitives:"
+            ]
+          },
+          {
+            "type": "DefinitionList",
+            "props": {
+              "items": [
+                { "term": "ATRANS", "definition": "Abstract transfer — change of possession or ownership. \"John gave Mary a book\" → ATRANS of book from John to Mary." },
+                { "term": "PTRANS", "definition": "Physical transfer — movement of an object through space. \"The ball rolled across the field\" → PTRANS of ball." },
+                { "term": "MTRANS", "definition": "Mental transfer — communication of information between minds. \"She told him the news\" → MTRANS of information from her to him." },
+                { "term": "MBUILD", "definition": "Mental construction — creating new thoughts, decisions, or inferences. \"He decided to leave\" → MBUILD of a decision." },
+                { "term": "PROPEL", "definition": "Application of physical force. \"She pushed the door\" → PROPEL applied to door." },
+                { "term": "MOVE", "definition": "Movement of a body part by its owner. \"He raised his hand\" → MOVE of hand." },
+                { "term": "GRASP", "definition": "Grasping or holding an object. \"She picked up the cup\" → GRASP of cup." },
+                { "term": "INGEST", "definition": "Taking something into the body. \"He ate the apple\" → INGEST of apple." },
+                { "term": "EXPEL", "definition": "Expelling something from the body. \"She exhaled deeply\" → EXPEL of air." },
+                { "term": "SPEAK", "definition": "Production of sounds. \"He shouted\" → SPEAK." },
+                { "term": "ATTEND", "definition": "Directing sensory attention. \"She looked at the painting\" → ATTEND (eyes) to painting." }
+              ]
+            }
+          },
+          {
+            "type": "p",
+            "children": [
+              "The beauty of these primitives is that they're not arbitrary categories. Each one captures a ",
+              { "type": "em", "children": "fundamentally different kind of state change" },
+              " in the world: physical location changes (PTRANS), ownership changes (ATRANS), information flow (MTRANS), internal cognition (MBUILD), and so on. They partition the space of actions along meaningful fault lines."
+            ]
+          },
+          {
+            "type": "DeepDive",
+            "props": { "title": "Are these really primitive? What about complex actions like \"negotiating\" or \"cooking\"?" },
+            "children": [
+              {
+                "type": "p",
+                "children": [
+                  "Complex actions decompose into sequences and combinations of primitives. \"Cooking\" involves PTRANS (moving ingredients), PROPEL (stirring, cutting), INGEST (tasting), ATTEND (watching), and MBUILD (deciding it's done). \"Negotiating\" is sequences of MTRANS (sharing positions), MBUILD (evaluating offers), SPEAK (articulating counteroffers), and eventually ATRANS (transferring the agreed-upon thing). The primitives are like atoms — simple individually, but capable of composing into arbitrarily complex molecules."
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "3. Linguistic Anchors in Embedding Space" },
+        "children": [
+          {
+            "type": "p",
+            "children": "Here's where the magic happens. Modern language models embed words and phrases into high-dimensional vector spaces where semantic similarity maps to geometric proximity. When we embed Schank's primitive action names — ATRANS, PTRANS, MTRANS, etc. — they don't land at random positions. They land at positions that reflect their semantic content."
+          },
+          {
+            "type": "Analogy",
+            "children": "Think of embedding space as a vast, dark ocean. Linguistic anchors are like lighthouses placed at strategic positions along the coast. Each lighthouse has a distinct color — ATRANS glows blue, PTRANS green, MTRANS red. A ship (a new event description) entering this ocean doesn't need to wander blindly. It can look for the nearest lighthouse and know roughly what kind of semantic territory it's in. And if a ship finds itself far from ALL lighthouses? It may have discovered a new harbor that needs its own light."
+          },
+          {
+            "type": "p",
+            "children": "This analogy captures the key idea: linguistic terms are not arbitrary labels. They are semantically grounded, which means their embeddings occupy meaningful positions in the space. The word \"ATRANS\" (or its natural language expansion, \"abstract transfer of possession\") will naturally be close to sentences about giving, buying, selling, donating — exactly the cluster we want."
+          },
+          {
+            "type": "DeepDive",
+            "props": { "title": "Why do linguistic labels work as anchors? Isn't this circular?" },
+            "children": [
+              {
+                "type": "p",
+                "children": "It might seem circular: we're using language to anchor positions in a space derived from language. But it's not circular — it's leveraging a deeper structure. Language models learn embeddings from billions of sentences reflecting how humans actually use and relate concepts. When \"ATRANS\" embeds near \"give,\" \"donate,\" \"transfer,\" and \"sell,\" that's because these words genuinely co-occur in similar contexts in human language. The embedding space has already encoded the semantic structure we need. We're not imposing structure — we're tapping into structure that's already there."
+              },
+              {
+                "type": "p",
+                "children": "Put differently: the embedding model has already done unsupervised clustering of the entire training corpus. We're just providing interpretable labels for regions that the model has already implicitly identified."
+              }
+            ]
+          },
+          {
+            "type": "p",
+            "children": "In practice, we embed each primitive as a short phrase rather than just the Schank label:"
+          },
+          {
+            "type": "ul",
+            "children": [
+              { "type": "li", "children": [{ "type": "code", "children": "ATRANS" }, " → \"transfer of possession or ownership\""] },
+              { "type": "li", "children": [{ "type": "code", "children": "PTRANS" }, " → \"physical movement through space\""] },
+              { "type": "li", "children": [{ "type": "code", "children": "MTRANS" }, " → \"transfer of mental information between minds\""] },
+              { "type": "li", "children": [{ "type": "code", "children": "MBUILD" }, " → \"mental construction of new thoughts or decisions\""] },
+              { "type": "li", "children": [{ "type": "code", "children": "PROPEL" }, " → \"application of physical force to an object\""] }
+            ]
+          },
+          {
+            "type": "p",
+            "children": "These richer descriptions give the embedding model more semantic content to work with, producing better-positioned anchors."
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "4. The KNN Assignment Mechanism" },
+        "children": [
+          {
+            "type": "p",
+            "children": [
+              "With anchors placed in embedding space, assignment becomes beautifully simple. For any new event description, we: ",
+              { "type": "strong", "children": "(1)" },
+              " embed it, ",
+              { "type": "strong", "children": "(2)" },
+              " compute its distance to each anchor, and ",
+              { "type": "strong", "children": "(3)" },
+              " assign it to the nearest one. This is essentially K-nearest-neighbors with K=1, where the \"training examples\" are our linguistic anchors."
+            ]
+          },
+          {
+            "type": "p",
+            "children": "But we add a crucial twist: a distance threshold. If a new event is far from ALL anchors — beyond some threshold τ — we don't force-assign it. Instead, we flag it as a potential new primitive. This is where the \"semi-supervised\" part kicks in: the anchors provide supervised structure, but the system can still discover genuinely new categories."
+          },
+          {
+            "type": "InteractiveDemo",
+            "props": {
+              "title": "Try It: Nearest Anchor Assignment",
+              "description": "Imagine a 2D semantic space. Each colored dot is a linguistic anchor (ATRANS=blue, PTRANS=green, MTRANS=red, etc.). New event descriptions (gray dots) get assigned to their nearest anchor. Some gray dots might be far from ALL anchors — those could be NEW primitives!",
+              "height": 300
+            }
+          },
+          {
+            "type": "p",
+            "children": "The distance metric matters. Cosine similarity is the natural choice for embedding spaces, since it measures angular proximity regardless of magnitude. Two sentences about possession transfer will point in similar directions even if one is longer or more emphatic than the other."
+          },
+          {
+            "type": "p",
+            "children": "We can also use a soft assignment variant: instead of hard nearest-neighbor assignment, compute a softmax over negative distances to get a probability distribution over anchors. This lets us say \"this event is 70% ATRANS and 30% MTRANS\" — useful for complex events that genuinely straddle multiple primitives."
+          },
+          {
+            "type": "Example",
+            "props": { "title": "Soft Assignment in Action" },
+            "children": [
+              {
+                "type": "p",
+                "children": [
+                  "Consider: ",
+                  { "type": "em", "children": "\"She emailed him the contract.\"" }
+                ]
+              },
+              {
+                "type": "p",
+                "children": [
+                  "This involves both information transfer (",
+                  { "type": "code", "children": "MTRANS" },
+                  " — sending information) and possession transfer (",
+                  { "type": "code", "children": "ATRANS" },
+                  " — the contract now belongs to the recipient). A soft assignment might yield:"
+                ]
+              },
+              {
+                "type": "ul",
+                "children": [
+                  { "type": "li", "children": "MTRANS: 0.55" },
+                  { "type": "li", "children": "ATRANS: 0.35" },
+                  { "type": "li", "children": "SPEAK: 0.05" },
+                  { "type": "li", "children": "Others: < 0.05 combined" }
+                ]
+              },
+              {
+                "type": "p",
+                "children": "This soft distribution captures the multi-primitive nature of the event far better than a hard assignment to MTRANS alone."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "5. The Semi-Supervised Training Loop" },
+        "children": [
+          {
+            "type": "p",
+            "children": "The full system combines supervised anchoring with unsupervised discovery in an iterative loop. Here's how it works:"
+          },
+          {
+            "type": "Steps",
+            "props": {
+              "steps": [
+                {
+                  "title": "Step 1: Embed the Anchors",
+                  "description": "Use a pre-trained language model to embed each of Schank's 11 primitive descriptions into the vector space. These become fixed reference points — your lighthouses."
+                },
+                {
+                  "title": "Step 2: Embed Event Corpus",
+                  "description": "Embed your entire corpus of event descriptions into the same space. Each event becomes a point floating among the anchors."
+                },
+                {
+                  "title": "Step 3: Nearest-Anchor Assignment",
+                  "description": "For each event, compute cosine similarity to all anchors. Assign it to the nearest anchor IF the similarity exceeds threshold τ. Events below τ go into an 'unassigned' pool."
+                },
+                {
+                  "title": "Step 4: Discover New Primitives",
+                  "description": "Cluster the unassigned events among themselves. Dense sub-clusters far from all existing anchors become candidate new primitives. Generate descriptive labels for them (using the model itself or manual inspection)."
+                },
+                {
+                  "title": "Step 5: Expand and Refine",
+                  "description": "Add new anchors for discovered primitives. Re-run assignment with the expanded anchor set. Repeat until the unassigned pool stabilizes (most events find a home)."
+                },
+                {
+                  "title": "Step 6: Fine-Tune Embeddings (Optional)",
+                  "description": "Use the anchor assignments as soft labels to fine-tune the embedding model via contrastive learning — pulling events closer to their assigned anchor and pushing them away from others. This sharpens the boundaries between primitive regions."
+                }
+              ]
+            }
+          },
+          {
+            "type": "Example",
+            "props": { "title": "A Discovery in Action" },
+            "children": [
+              {
+                "type": "p",
+                "children": "Suppose after Step 3, you find a cluster of unassigned events like:"
+              },
+              {
+                "type": "ul",
+                "children": [
+                  { "type": "li", "children": [{ "type": "em", "children": "\"The ice melted in the sun\"" }] },
+                  { "type": "li", "children": [{ "type": "em", "children": "\"The paint dried overnight\"" }] },
+                  { "type": "li", "children": [{ "type": "em", "children": "\"The bread turned stale\"" }] },
+                  { "type": "li", "children": [{ "type": "em", "children": "\"The metal rusted over years\"" }] }
+                ]
+              },
+              {
+                "type": "p",
+                "children": [
+                  "These don't fit neatly into any of Schank's primitives. They describe ",
+                  { "type": "strong", "children": "autonomous state changes" },
+                  " — transformations that happen without an explicit agent applying force. This might suggest a new primitive we could call ",
+                  { "type": "code", "children": "STRANS" },
+                  " (state transition). The system has discovered something that Schank's original framework missed!"
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "6. Why This Works: Language Carries Structure" },
+        "children": [
+          {
+            "type": "p",
+            "children": "The success of this approach rests on a deep insight: linguistic terms are not arbitrary labels. They carry semantic structure that has been refined over millennia of human communication. When we use \"transfer of possession\" as an anchor, we're leveraging the fact that this phrase has been embedded millions of times in contexts that ARE about possession transfer. The embedding has already \"understood\" the concept."
+          },
+          {
+            "type": "p",
+            "children": "This is what makes linguistic anchors superior to random cluster centroids:"
+          },
+          {
+            "type": "ul",
+            "children": [
+              {
+                "type": "li",
+                "children": [
+                  { "type": "strong", "children": "Interpretable from the start." },
+                  " Each anchor has a human-readable label. No post-hoc interpretation needed."
+                ]
+              },
+              {
+                "type": "li",
+                "children": [
+                  { "type": "strong", "children": "Grounded in distributional semantics." },
+                  " The anchors aren't arbitrary — they sit where the language model's training data says they should, reflecting genuine usage patterns."
+                ]
+              },
+              {
+                "type": "li",
+                "children": [
+                  { "type": "strong", "children": "Stable across runs." },
+                  " Unlike K-means centroids that shift with initialization, linguistic anchors are deterministic. Same phrase → same embedding → same anchor position."
+                ]
+              },
+              {
+                "type": "li",
+                "children": [
+                  { "type": "strong", "children": "Expandable." },
+                  " Discovering a new primitive means finding a new descriptive phrase. The framework naturally accommodates growth."
+                ]
+              }
+            ]
+          },
+          {
+            "type": "DeepDive",
+            "props": { "title": "Is 11 the right number of primitives? Should we expect more or fewer?" },
+            "children": [
+              {
+                "type": "p",
+                "children": "Schank's 11 was always a hypothesis, not a law. The beauty of the KNN-anchor approach is that it lets the data tell you. If 11 anchors leave large populations unassigned, the space is under-partitioned — you need more primitives. If some anchors attract very few events, they may be redundant."
+              },
+              {
+                "type": "p",
+                "children": "Empirically, we might expect the right number to be between 8 and 25. Some of Schank's primitives (like EXPEL) may be too specific, while his framework arguably misses categories like autonomous state change (melting, rusting), creation/destruction, and perhaps emotional state transitions. The semi-supervised approach gracefully handles this: start with 11, let the system discover what's missing, and converge on whatever number the data supports."
+              },
+              {
+                "type": "p",
+                "children": "There's also a granularity question. PTRANS covers everything from \"a ball rolling\" to \"a person walking to Paris.\" Should sub-types (locomotion, projectile motion, flow) get their own anchors? The threshold τ acts as a zoom control: lower τ means coarser categories (fewer primitives), higher τ means finer distinctions (more)."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "7. Key Takeaways" },
+        "children": [
+          {
+            "type": "Callout",
+            "props": { "type": "success" },
+            "children": [
+              {
+                "type": "p",
+                "children": [
+                  { "type": "strong", "children": "The big ideas:" }
+                ]
+              },
+              {
+                "type": "ul",
+                "children": [
+                  {
+                    "type": "li",
+                    "children": [
+                      { "type": "strong", "children": "Don't start from scratch." },
+                      " Schank's primitives give you principled, interpretable anchor points in embedding space."
+                    ]
+                  },
+                  {
+                    "type": "li",
+                    "children": [
+                      { "type": "strong", "children": "Language is already structured." },
+                      " Embedding models capture semantic relationships that align with conceptual categories. Use this."
+                    ]
+                  },
+                  {
+                    "type": "li",
+                    "children": [
+                      { "type": "strong", "children": "KNN + threshold = semi-supervised discovery." },
+                      " Assign what's close to known anchors; flag what's far as potential new primitives."
+                    ]
+                  },
+                  {
+                    "type": "li",
+                    "children": [
+                      { "type": "strong", "children": "Soft assignment captures reality." },
+                      " Real events often involve multiple primitive operations simultaneously."
+                    ]
+                  },
+                  {
+                    "type": "li",
+                    "children": [
+                      { "type": "strong", "children": "The system grows." },
+                      " New primitives can be added as anchors, expanding the framework organically."
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Quiz",
+        "props": {
+          "questions": [
+            {
+              "question": "What is the main advantage of using linguistic anchors over pure unsupervised clustering for operator discovery?",
+              "options": [
+                "Linguistic anchors provide interpretable, semantically grounded reference points that are stable across runs",
+                "Linguistic anchors are computationally cheaper than K-means",
+                "Linguistic anchors don't require an embedding model",
+                "Linguistic anchors always produce exactly 11 clusters"
+              ],
+              "correct": 0,
+              "explanation": "Linguistic anchors leverage the semantic structure already captured by language models. They provide human-interpretable labels, are deterministic (same phrase = same position), and are grounded in genuine distributional semantics — unlike random centroids from K-means."
+            },
+            {
+              "question": "In the semi-supervised approach, what happens when a new event's embedding is far from ALL existing anchors (beyond threshold τ)?",
+              "options": [
+                "It gets assigned to the nearest anchor anyway",
+                "It gets discarded from the dataset",
+                "It goes into an unassigned pool as a candidate for a new primitive",
+                "It gets averaged across all anchors equally"
+              ],
+              "correct": 2,
+              "explanation": "Events beyond the distance threshold τ from all anchors aren't force-assigned or discarded. They go into an unassigned pool. If these unassigned events cluster together, they may represent a new primitive that Schank's original framework didn't include — like autonomous state changes (melting, rusting)."
+            },
+            {
+              "question": "Why is cosine similarity preferred over Euclidean distance for anchor assignment in embedding space?",
+              "options": [
+                "Cosine similarity is faster to compute",
+                "Cosine similarity measures angular proximity, ignoring magnitude — so sentence length doesn't skew the assignment",
+                "Cosine similarity always produces values between 0 and 1",
+                "Euclidean distance doesn't work in high dimensions"
+              ],
+              "correct": 1,
+              "explanation": "In embedding spaces, direction carries semantic meaning while magnitude can vary with sentence length, emphasis, or model quirks. Cosine similarity measures the angle between vectors, making it robust to these magnitude differences. Two sentences about the same concept point in similar directions regardless of length."
+            },
+            {
+              "question": "What does 'soft assignment' mean in the context of KNN anchor assignment?",
+              "options": [
+                "Using a lower distance threshold so more events get assigned",
+                "Assigning events to anchors probabilistically, allowing partial membership in multiple categories",
+                "Only assigning events that the system is confident about",
+                "Using fuzzy string matching instead of embedding distance"
+              ],
+              "correct": 1,
+              "explanation": "Soft assignment uses softmax over negative distances to produce a probability distribution over anchors. So \"She emailed him the contract\" might be 55% MTRANS and 35% ATRANS, capturing the fact that this event genuinely involves both information transfer and possession transfer. This is more faithful to reality than forcing a single hard assignment."
+            }
+          ]
+        }
+      }
+    ]
+  }
+}
