@@ -280,6 +280,19 @@ const tutorials = [
     readTime: '∞',
     difficulty: 2,
     isApp: true,
+  },
+  {
+    id: 'peptides',
+    title: 'Peptides: Building Blocks of Life',
+    description: 'Build peptide chains by linking amino acids together — watch dehydration synthesis and learn protein structure',
+    tags: ['biology', 'biochemistry', 'fundamentals'],
+    icon: '🧬',
+    gradient: 'from-emerald-500 to-cyan-500',
+    shadowColor: 'shadow-emerald-500/30',
+    glowColor: 'rgba(16, 185, 129, 0.4)',
+    readTime: '10 min',
+    difficulty: 1,
+    isApp: true,
   }
 ]
 
@@ -315,6 +328,10 @@ const tagColors = {
   'clustering': 'bg-amber-100 text-amber-700 border-amber-200',
   'visualization': 'bg-pink-100 text-pink-700 border-pink-200',
   'optimization': 'bg-green-100 text-green-700 border-green-200',
+  
+  // Biology
+  'biology': 'bg-emerald-100 text-emerald-700 border-emerald-200',
+  'biochemistry': 'bg-teal-100 text-teal-700 border-teal-200',
   
   // ThoughtBlend tags
   'synthesis': 'bg-teal-100 text-teal-700 border-teal-200',

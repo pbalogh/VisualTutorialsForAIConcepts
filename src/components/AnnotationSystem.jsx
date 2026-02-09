@@ -102,7 +102,7 @@ export const SelectionPopup = ({
   position, 
   onAction, 
   onClose,
-  actions = ['explain', 'branch', 'ask', 'source', 'footnote']
+  actions = ['explain', 'visualize', 'branch', 'ask', 'source', 'footnote']
 }) => {
   const popupRef = useRef(null)
   const inputRef = useRef(null)
@@ -185,10 +185,10 @@ export const SelectionPopup = ({
     visualize: { 
       icon: '📊', 
       label: 'Visualize',
-      restingText: 'text-purple-300/60',
+      restingText: 'text-purple-300/80',
       hoverText: 'group-hover:text-purple-300',
-      hoverBg: 'hover:bg-purple-500/10',
-      disabled: true,
+      hoverBg: 'hover:bg-purple-500/20',
+      disabled: false,
     },
     branch: { 
       icon: '🌿', 

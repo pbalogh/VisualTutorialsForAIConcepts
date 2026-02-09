@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react'
+import React, { useState, useEffect, useRef, useCallback } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import MatrixDiscovery from '../tutorials/MatrixDiscovery.jsx'
 import MatrixFromVectors from '../tutorials/MatrixFromVectors.jsx'
@@ -10,6 +10,8 @@ import SchankianTreeView from '../tutorials/SchankianTreeView.jsx'
 import { Container } from '../components/SharedUI.jsx'
 import { AnnotatableContent } from '../components/AnnotationSystem.jsx'
 import { TutorialEngine } from '../components/TutorialEngine/ElementRenderer.jsx'
+import { useMockVisualize } from '../components/visualizations/templates/useVisualize.js'
+import { VisualizationRenderer } from '../components/visualizations/templates/VisualizationRenderer.jsx'
 
 // Preview Modal Component for Regroup changes
 function RegroupPreviewModal({ preview, onApply, onCancel }) {
@@ -575,10 +577,34 @@ export default function TutorialWrapper({ tutorial: propTutorial }) {
   const TutorialComponent = tutorialComponents[tutorialId]
   const meta = tutorialMeta[tutorialId]
 
+  // Visualization state
+  const [visualizations, setVisualizations] = useState([])
+  const { visualize, isLoading: vizLoading } = useMockVisualize()
+
   const handleAnnotationRequest = async ({ action, selectedText, context, tutorialId, question }) => {
     console.log('📝 Annotation request:', { action, selectedText, context, tutorialId, question })
     
-    // Call the real annotation server
+    // Handle visualize action client-side
+    if (action === 'visualize') {
+      console.log('🎨 Generating visualization for:', selectedText.slice(0, 50))
+      const result = await visualize(selectedText, context)
+      console.log('🎨 Visualization result:', result)
+      if (result) {
+        const vizId = Date.now()
+        console.log('🎨 Adding visualization with id:', vizId)
+        setVisualizations(prev => {
+          console.log('🎨 Previous visualizations:', prev.length)
+          return [...prev, {
+            id: vizId,
+            result,
+            text: selectedText.slice(0, 50) + (selectedText.length > 50 ? '...' : '')
+          }]
+        })
+      }
+      return
+    }
+    
+    // Call the real annotation server for other actions
     try {
       const response = await fetch('http://localhost:5190/annotate', {
         method: 'POST',
@@ -762,6 +788,35 @@ export default function TutorialWrapper({ tutorial: propTutorial }) {
               content={jsonTutorial.content} 
               state={jsonTutorial.state} 
             />
+            
+            {/* Generated Visualizations */}
+            {visualizations.length > 0 && (
+              <div className="mt-8 space-y-4">
+                <div className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
+                  📊 Generated Visualizations
+                </div>
+                {visualizations.map(viz => (
+                  <div key={viz.id} className="relative">
+                    <div className="text-xs text-slate-400 mb-1">
+                      From: "{viz.text}"
+                    </div>
+                    <VisualizationRenderer
+                      result={viz.result}
+                      isLoading={false}
+                      onClose={() => setVisualizations(prev => prev.filter(v => v.id !== viz.id))}
+                    />
+                  </div>
+                ))}
+              </div>
+            )}
+            
+            {/* Visualization loading indicator */}
+            {vizLoading && (
+              <div className="mt-4 flex items-center gap-2 text-slate-500">
+                <div className="animate-spin w-4 h-4 border-2 border-purple-400 border-t-transparent rounded-full" />
+                <span className="text-sm">Generating visualization...</span>
+              </div>
+            )}
           </Container>
         </AnnotatableContent>
         
