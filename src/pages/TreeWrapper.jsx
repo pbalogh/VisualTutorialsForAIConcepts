@@ -374,7 +374,7 @@ export default function TreeWrapper() {
   const [semanticTree, setSemanticTree] = useState(null)
   const [loadingSemanticTree, setLoadingSemanticTree] = useState(true)
   const [useSemanticTree, setUseSemanticTree] = useState(true) // Default to semantic
-  const [expansionMode, setExpansionMode] = useState('faithful') // 'faithful' or 'enriched'
+  const [expansionMode, setExpansionMode] = useState('enriched') // 'faithful' or 'enriched' — default enriched for tutorials; faithful reserved for RAG/source-document scenarios
   
   // Load semantic tree
   useEffect(() => {
