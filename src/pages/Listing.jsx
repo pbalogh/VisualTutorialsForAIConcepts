@@ -305,6 +305,18 @@ const tutorials = [
     readTime: '10 min',
     difficulty: 1,
     isApp: true,
+  },
+  {
+    id: 'peptides-tutorial',
+    title: 'Peptides: The Molecular Alphabet',
+    description: 'Comprehensive guide to amino acids, peptide bonds, and protein structure — from 20 building blocks to 100,000+ proteins',
+    tags: ['biology', 'biochemistry', 'proteins'],
+    icon: '🧬',
+    gradient: 'from-emerald-500 to-cyan-500',
+    shadowColor: 'shadow-emerald-500/30',
+    glowColor: 'rgba(16, 185, 129, 0.4)',
+    readTime: '15 min',
+    difficulty: 2,
   }
 ]
 

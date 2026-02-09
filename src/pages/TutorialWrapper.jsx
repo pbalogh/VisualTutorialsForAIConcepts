@@ -110,7 +110,7 @@ const tutorialComponents = {
 }
 
 // JSON-based tutorials (loaded dynamically)
-const jsonTutorials = ['vector-projection', 'engine-demo', 'matrix-from-vectors-engine', 'matrix-discovery-engine', 'lead-lag-correlation-engine', 'least-squares-engine', 'schankian-paper-draft', 'rotate-paper', 'neural-oscillations', 'group-theory-puzzles', 'hungarian-basics']
+const jsonTutorials = ['vector-projection', 'engine-demo', 'matrix-from-vectors-engine', 'matrix-discovery-engine', 'lead-lag-correlation-engine', 'least-squares-engine', 'schankian-paper-draft', 'rotate-paper', 'neural-oscillations', 'group-theory-puzzles', 'hungarian-basics', 'peptides-tutorial']
 
 const tutorialMeta = {
   'matrix-discovery': {
@@ -277,6 +277,16 @@ const tutorialMeta = {
     readTime: '12 min',
     exercises: 0,
     sections: ['Introduction', 'Vowel Harmony', 'Agglutination', 'Essential Phrases']
+  },
+  'peptides-tutorial': {
+    title: 'Peptides: The Molecular Alphabet',
+    subtitle: 'How 20 amino acids combine to build the proteins that power life',
+    icon: '🧬',
+    gradient: 'from-emerald-500 to-cyan-500',
+    glowColor: 'rgba(16, 185, 129, 0.4)',
+    readTime: '15 min',
+    exercises: 0,
+    sections: ['Amino Acids', 'Amino Acid Structure', 'Peptide Bond Formation', 'Protein Structure Levels', 'Interactive Builder', 'Amazing Facts', 'Key Takeaways']
   }
 }
 
