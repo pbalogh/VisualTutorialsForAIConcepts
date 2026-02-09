@@ -284,22 +284,30 @@ function TreeHeader({ title, subtitle, tutorialId, onVersionRestore, useSemantic
             </button>
           )}
           
-          {/* Expansion mode toggle */}
+          {/* Expansion mode toggle — segmented control */}
           {onToggleExpansionMode && (
-            <button
-              onClick={onToggleExpansionMode}
-              className={`inline-flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium transition-all duration-150 ${
-                expansionMode === 'faithful'
-                  ? 'bg-emerald-600 hover:bg-emerald-700 text-white shadow-lg shadow-emerald-500/25'
-                  : 'bg-amber-600 hover:bg-amber-700 text-white shadow-lg shadow-amber-500/25'
-              }`}
-              title={expansionMode === 'faithful' 
-                ? 'Only explains what the source says' 
-                : 'Can add external knowledge (marked)'}
-            >
-              <span>{expansionMode === 'faithful' ? '📖' : '🌐'}</span>
-              {expansionMode === 'faithful' ? 'Faithful' : 'Enriched'}
-            </button>
+            <div className="inline-flex rounded-lg overflow-hidden shadow-lg" title="Controls how nodes are expanded: Faithful stays close to source material, Enriched adds external knowledge">
+              <button
+                onClick={() => expansionMode !== 'faithful' && onToggleExpansionMode()}
+                className={`inline-flex items-center gap-1.5 px-3.5 py-2 text-sm font-medium transition-all duration-150 ${
+                  expansionMode === 'faithful'
+                    ? 'bg-emerald-600 text-white shadow-inner'
+                    : 'bg-slate-700 text-slate-400 hover:bg-slate-600 hover:text-slate-200'
+                }`}
+              >
+                <span>📖</span> Faithful
+              </button>
+              <button
+                onClick={() => expansionMode !== 'enriched' && onToggleExpansionMode()}
+                className={`inline-flex items-center gap-1.5 px-3.5 py-2 text-sm font-medium transition-all duration-150 ${
+                  expansionMode === 'enriched'
+                    ? 'bg-amber-600 text-white shadow-inner'
+                    : 'bg-slate-700 text-slate-400 hover:bg-slate-600 hover:text-slate-200'
+                }`}
+              >
+                <span>🌐</span> Enriched
+              </button>
+            </div>
           )}
         </div>
       </div>
