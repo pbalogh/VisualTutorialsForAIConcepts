@@ -293,6 +293,18 @@ const tutorials = [
     difficulty: 3,
   },
   {
+    id: 'brainstorm-06-tensor-products-fail',
+    title: 'Tensor Products Fail at Compositionality',
+    description: 'Why operators succeed where vector composition breaks down — bounded vs exponential dimensionality',
+    tags: ['schankian', 'compositionality', 'tensors'],
+    icon: '💥',
+    gradient: 'from-red-500 to-rose-600',
+    shadowColor: 'shadow-red-500/30',
+    glowColor: 'rgba(239, 68, 68, 0.4)',
+    readTime: '20 min',
+    difficulty: 2,
+  },
+  {
     id: 'thoughtblend',
     title: 'ThoughtBlend',
     description: 'Synthesize perspectives through dialectical color mixing — add sources as color swatches and blend them into structured text or dialogue',

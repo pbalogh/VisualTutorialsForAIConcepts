@@ -1,0 +1,361 @@
+{
+  "id": "brainstorm-06-tensor-products-fail",
+  "title": "Tensor Products Fail at Compositionality",
+  "subtitle": "Why Operators Succeed Where Vector Composition Breaks Down",
+  "readTime": "20 min",
+  "state": "published",
+  "content": {
+    "type": "Fragment",
+    "children": [
+      {
+        "type": "Callout",
+        "props": { "type": "warning" },
+        "children": [
+          {
+            "type": "p",
+            "children": "Language is compositional: the meaning of \"big red ball\" comes from its parts. Yet the dominant mathematical tool for combining vectors — the tensor product — suffers from exponential dimensionality explosion. Three words can balloon a 300-dimensional space into 27 million dimensions. This tutorial shows why tensor products break down for real composition, and how Schankian operators solve the problem by keeping everything in bounded entity-space."
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "1. The Compositionality Problem" },
+        "children": [
+          {
+            "type": "p",
+            "children": "The principle of compositionality (Frege's principle) states that the meaning of a complex expression is determined by the meanings of its parts and the rules used to combine them. In NLP, we want vector representations that respect this principle: the vector for \"big red ball\" should be systematically derivable from the vectors for \"big,\" \"red,\" and \"ball.\""
+          },
+          {
+            "type": "p",
+            "children": "Word embeddings like Word2Vec gave us a tantalizing glimpse: king − man + woman ≈ queen. Simple vector arithmetic seemed to capture compositional meaning. But this additive approach has a fatal flaw — it only works for a narrow class of analogical relationships."
+          },
+          {
+            "type": "Example",
+            "props": { "title": "Where Addition Breaks Down" },
+            "children": [
+              {
+                "type": "p",
+                "children": "Consider the phrase \"big red ball.\" If we simply add the vectors: vec(big) + vec(red) + vec(ball) = ??? This gives us a vector in the same 300-dimensional space, but it's lost all structural information. Is it a big thing that is red and ball-shaped? A red thing that is big and ball-shaped? The addition is commutative — it can't distinguish \"dog bites man\" from \"man bites dog.\" Even worse, adding more words pushes the result toward the centroid of common English, washing out the distinctive meaning of each phrase."
+              }
+            ]
+          },
+          {
+            "type": "p",
+            "children": "We need a composition operation that preserves structure, handles variable-length inputs, and keeps representations in a manageable space. Tensor products were the mathematical community's first serious attempt at this."
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "2. Tensor Products — The Mathematical Approach" },
+        "children": [
+          {
+            "type": "p",
+            "children": "The tensor product (also called outer product for vectors) was proposed as a principled way to combine vector representations while preserving the identity of each component. Instead of collapsing vectors together, it creates a new object that encodes every possible interaction between the components."
+          },
+          {
+            "type": "DefinitionList",
+            "props": {
+              "items": [
+                {
+                  "term": "Tensor Product (⊗)",
+                  "definition": "A bilinear operation that combines two vectors into a higher-order object. For vectors u ∈ ℝᵐ and v ∈ ℝⁿ, their tensor product u ⊗ v is an m×n matrix where entry (i,j) = uᵢ · vⱼ."
+                },
+                {
+                  "term": "Outer Product",
+                  "definition": "For two vectors, the tensor product is equivalent to the outer product: a matrix formed by multiplying every element of the first vector with every element of the second. The result lives in ℝᵐˣⁿ."
+                },
+                {
+                  "term": "Dimensionality",
+                  "definition": "The number of independent components needed to specify a mathematical object. A 300-dim vector needs 300 numbers. A tensor product of two 300-dim vectors needs 300 × 300 = 90,000 numbers."
+                }
+              ]
+            }
+          },
+          {
+            "type": "Example",
+            "props": { "title": "The Dimensionality Explosion — Worked Example" },
+            "children": [
+              {
+                "type": "p",
+                "children": "Suppose each word is represented as a vector in ℝ³⁰⁰ (standard for Word2Vec, GloVe, etc.)."
+              },
+              {
+                "type": "p",
+                "children": "• 1 word: \"ball\" → 300 dimensions"
+              },
+              {
+                "type": "p",
+                "children": "• 2 words: \"red ball\" → vec(red) ⊗ vec(ball) = 300 × 300 = 90,000 dimensions"
+              },
+              {
+                "type": "p",
+                "children": "• 3 words: \"big red ball\" → 300 × 300 × 300 = 27,000,000 dimensions"
+              },
+              {
+                "type": "p",
+                "children": "• 4 words: \"shiny big red ball\" → 300⁴ = 8,100,000,000 dimensions (8.1 billion!)"
+              },
+              {
+                "type": "p",
+                "children": "• 5 words: \"bouncing shiny big red ball\" → 300⁵ = 2.43 × 10¹² dimensions (2.43 trillion)"
+              },
+              {
+                "type": "p",
+                "children": "A typical English sentence of 15 words would require 300¹⁵ ≈ 1.4 × 10³⁷ dimensions. That's more than the estimated number of atoms in the observable universe (≈10⁸⁰ — okay, not quite, but you'd need more storage than exists on Earth to represent a single sentence)."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "3. Why Tensors Fail" },
+        "children": [
+          {
+            "type": "p",
+            "children": "The tensor product preserves all pairwise interactions — that's its mathematical beauty and its practical downfall. Here are the four fundamental problems:"
+          },
+          {
+            "type": "p",
+            "children": "Dimensionality Explosion: As we just saw, the representation grows exponentially with the number of components. Each new word multiplies (not adds) the dimensionality. This makes tensor products computationally intractable for real phrases and sentences."
+          },
+          {
+            "type": "p",
+            "children": "Variable-Length Inputs: A 2-word tensor lives in ℝ⁹⁰ᵏ while a 3-word tensor lives in ℝ²⁷ᴹ. These are fundamentally different mathematical spaces. You can't directly compare \"red ball\" with \"big red ball\" because they don't even have the same number of dimensions. Every different-length phrase inhabits a different universe."
+          },
+          {
+            "type": "p",
+            "children": "No Natural Decomposition: Given a tensor product result, recovering the original components (factoring the tensor) is NP-hard in general. You can compose meaning but you can't easily extract or modify it afterward."
+          },
+          {
+            "type": "p",
+            "children": "Sparsity and Waste: Most entries in the tensor product are near-zero noise from multiplying unrelated dimensions. The meaningful signal drowns in a sea of irrelevant cross-terms. You're paying an exponential storage cost for information that is mostly garbage."
+          },
+          {
+            "type": "Analogy",
+            "children": "Tensor products are like trying to describe every possible meal by creating a giant table listing every conceivable combination of ingredients with every other ingredient. Want to describe a salad with 5 ingredients? Your table has rows for every tomato-lettuce-cucumber-olive-feta interaction — most cells are meaninglessly empty. And if someone adds croutons, you need an entirely new, even larger table. Meanwhile, a recipe (an operator) just says: \"Start with lettuce. Add tomatoes. Add cucumber. Dress with olive oil.\" Same salad, finite description, and you can always add another step."
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "4. Operators — Bounded Compositionality" },
+        "children": [
+          {
+            "type": "p",
+            "children": "Schankian operators take a radically different approach. Instead of combining vectors into exponentially larger spaces, operators TRANSFORM entities in place. An entity (like \"ball\") lives in a fixed-dimensional space — say ℝ³⁰⁰ — and every operator maps from that space back to itself."
+          },
+          {
+            "type": "p",
+            "children": "MODIFY(color=red, entity) takes a 300-dimensional entity and returns a 300-dimensional entity. MODIFY(size=big, entity) does the same. Chain as many as you want — the result is always 300 dimensions."
+          },
+          {
+            "type": "p",
+            "children": "This is bounded compositionality: the representation stays in entity-space regardless of how many modifications you apply. One adjective? 300 dims. Five adjectives? Still 300 dims. The composition is sequential application of operators, not exponential expansion of dimensionality."
+          },
+          {
+            "type": "InteractiveDemo",
+            "props": {
+              "title": "Tensor Product vs Operator Composition",
+              "description": "Compare dimensions: select number of modifiers (1-5). Tensor product shows exponential growth while operator composition stays flat. 'big red shiny bouncing rubber ball' — tensor product needs 300^6 dimensions, operators stay at 300.",
+              "height": 300
+            }
+          },
+          {
+            "type": "p",
+            "children": "The key insight is architectural: operators are FUNCTIONS, not DATA STRUCTURES. The tensor product tries to encode all compositional information as a single static object. Operators encode compositional information as a sequence of transformations. This mirrors how language actually works — \"big\" is not a static thing to be multiplied with \"ball\"; it's a MODIFICATION applied to \"ball.\""
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "5. How Operators Compose" },
+        "children": [
+          {
+            "type": "p",
+            "children": "Operators compose through sequential application. Each operator takes an entity, transforms it, and returns the modified entity. The output of one operator becomes the input of the next. This is function composition — the most natural and well-understood form of combination in mathematics."
+          },
+          {
+            "type": "Example",
+            "props": { "title": "Building \"big red ball\" with Operators" },
+            "children": [
+              {
+                "type": "Steps",
+                "props": {
+                  "steps": [
+                    {
+                      "title": "Start with the base entity",
+                      "description": "ball → vec(ball) ∈ ℝ³⁰⁰. This is our starting point: a 300-dimensional vector representing the concept of a ball."
+                    },
+                    {
+                      "title": "Apply the color modifier",
+                      "description": "MODIFY(color=red, ball) → red_ball ∈ ℝ³⁰⁰. The MODIFY operator shifts the entity in semantic space toward 'redness' while preserving its ball-nature. Still 300 dimensions."
+                    },
+                    {
+                      "title": "Apply the size modifier",
+                      "description": "MODIFY(size=big, red_ball) → big_red_ball ∈ ℝ³⁰⁰. Another transformation in-place. The entity now encodes big + red + ball, still in exactly 300 dimensions."
+                    },
+                    {
+                      "title": "Compare with tensor product",
+                      "description": "Tensor product: 300³ = 27,000,000 dimensions. Operator composition: 300 dimensions. Same semantic content, 90,000× less storage. And we can add more modifiers without any dimensional penalty."
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          {
+            "type": "p",
+            "children": "Formally, the composition chain looks like: result = Oₙ(Oₙ₋₁(...O₂(O₁(entity))...)), where each Oᵢ is an operator. The intermediate and final results all live in the same entity-space ℝᵈ."
+          },
+          {
+            "type": "DeepDive",
+            "props": { "title": "Does operator order matter?" },
+            "children": [
+              {
+                "type": "p",
+                "children": "Yes — and this is actually a FEATURE, not a bug. Consider: MODIFY(color=blue, MODIFY(color=red, ball)) vs. MODIFY(color=red, MODIFY(color=blue, ball)). The first gives you a ball that was red, then became blue — a 'formerly red, now blue ball.' The second gives you a ball that was blue, then became red. In language, order often matters: 'the formerly red, now blue ball' is different from 'the formerly blue, now red ball.' Tensor products with their symmetric structure can't naturally capture this ordering without additional machinery."
+              },
+              {
+                "type": "p",
+                "children": "In practice, some operators commute (MODIFY(size=big) and MODIFY(color=red) can often be applied in either order with the same result) while others don't (MODIFY(color=blue) after MODIFY(color=red) overrides the previous color). This mirrors how natural language modification actually works — some adjective orderings are interchangeable, others aren't."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "6. Implications for Architecture" },
+        "children": [
+          {
+            "type": "p",
+            "children": "The operator approach has profound implications for how we build AI systems that process language and meaning:"
+          },
+          {
+            "type": "p",
+            "children": "Fixed-Size Representations: Every entity, no matter how complex its description, lives in ℝᵈ. This means fixed-size neural network layers, predictable memory usage, and constant-time comparison between any two entities."
+          },
+          {
+            "type": "p",
+            "children": "Composability Without Explosion: You can chain arbitrarily many operators. A 50-word description produces the same dimensional output as a 3-word description. This is essential for processing real natural language, where phrase length varies enormously."
+          },
+          {
+            "type": "p",
+            "children": "Operator Libraries: Instead of learning tensor representations for every possible phrase, you learn a finite set of reusable operators (MODIFY, CAUSE, TRANSFER, etc.). These operators generalize to novel combinations — MODIFY(color=purple) works even if you've never seen a purple entity before, because the operator knows how to shift entities along the color axis."
+          },
+          {
+            "type": "p",
+            "children": "Incremental Processing: New information can be incorporated by applying additional operators. You don't need to recompute the entire representation from scratch — just apply the next operator. This enables streaming, real-time language processing."
+          },
+          {
+            "type": "DeepDive",
+            "props": { "title": "Connection to Graph Neural Networks and Message Passing" },
+            "children": [
+              {
+                "type": "p",
+                "children": "The operator composition paradigm has deep connections to Graph Neural Networks (GNNs) and message-passing architectures. In a GNN, each node maintains a fixed-dimensional representation, and 'messages' from neighboring nodes update that representation through learned functions. This is exactly the operator pattern: an entity (node state) is transformed by operators (messages) while staying in the same space."
+              },
+              {
+                "type": "p",
+                "children": "In GNN message passing, node h updates via: h' = UPDATE(h, AGGREGATE({MESSAGE(h, hⱼ) | j ∈ neighbors})). This is a composition of operators on a fixed-dimensional state — bounded compositionality. Each message-passing round applies more 'context operators' without increasing dimensionality. The parallel to Schankian operators is striking: both frameworks achieve compositional reasoning through sequential transformation of bounded representations, rather than expanding into exponentially larger spaces."
+              },
+              {
+                "type": "p",
+                "children": "This isn't coincidence — it reflects a fundamental architectural principle: the most scalable way to build compositional systems is through TRANSFORMATION (operators/functions), not EXPANSION (tensor products/data structures). Transformers themselves embody this principle: attention computes context-dependent modifications of token representations, all within a fixed d_model dimensional space."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "7. Key Takeaways" },
+        "children": [
+          {
+            "type": "Callout",
+            "props": { "type": "info" },
+            "children": [
+              {
+                "type": "p",
+                "children": "1. Compositionality is the central challenge — the meaning of phrases must come from their parts, but how we combine those parts matters enormously."
+              },
+              {
+                "type": "p",
+                "children": "2. Simple vector addition loses structure — it can't distinguish 'dog bites man' from 'man bites dog' and washes out meaning as phrases get longer."
+              },
+              {
+                "type": "p",
+                "children": "3. Tensor products preserve structure but explode — dimensionality grows exponentially (300ⁿ for n words), making them computationally intractable."
+              },
+              {
+                "type": "p",
+                "children": "4. Operators provide BOUNDED compositionality — every transformation keeps the entity in the same ℝᵈ space, regardless of how many operators are applied."
+              },
+              {
+                "type": "p",
+                "children": "5. Operators are functions, not data structures — this mirrors how language actually works (adjectives modify nouns, verbs transform states) and connects to modern architectures like GNNs and Transformers."
+              },
+              {
+                "type": "p",
+                "children": "6. Order can matter and that's a feature — operator non-commutativity naturally captures the sequential, order-dependent nature of real language composition."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Quiz",
+        "props": {
+          "questions": [
+            {
+              "question": "If word vectors are 300-dimensional, what is the dimensionality of the tensor product of 4 words?",
+              "options": [
+                "1,200 (300 × 4)",
+                "8,100,000,000 (300⁴)",
+                "90,000 (300²)",
+                "300 (unchanged)"
+              ],
+              "correct": 1,
+              "explanation": "Tensor products multiply dimensions, not add them. For 4 vectors in ℝ³⁰⁰, the tensor product lives in ℝ^(300⁴) = ℝ^8,100,000,000. This exponential growth is exactly why tensor products fail for compositional semantics."
+            },
+            {
+              "question": "What is the dimensionality of an entity after applying 5 Schankian operators to a 300-dimensional base entity?",
+              "options": [
+                "300⁵ = 2.43 trillion",
+                "1,500 (300 × 5)",
+                "300",
+                "It depends on the operators"
+              ],
+              "correct": 2,
+              "explanation": "This is the core insight of bounded compositionality. Each operator maps ℝ³⁰⁰ → ℝ³⁰⁰, so no matter how many operators you apply, the result is always 300-dimensional. The entity stays in entity-space."
+            },
+            {
+              "question": "Why is MODIFY(color=blue, MODIFY(color=red, ball)) potentially different from MODIFY(color=red, MODIFY(color=blue, ball))?",
+              "options": [
+                "It's not — operators always commute",
+                "Because the second operator can override or interact with the first, making order matter (a 'formerly red, now blue ball' vs 'formerly blue, now red ball')",
+                "Because tensor products are non-commutative",
+                "Because the dimensionality changes with each application"
+              ],
+              "correct": 1,
+              "explanation": "Operator non-commutativity is a feature, not a bug. The later MODIFY can override or interact with the earlier one, naturally capturing how language works. 'The formerly red, now blue ball' has a different meaning than 'the formerly blue, now red ball.' This order-sensitivity is something tensor products can't naturally express."
+            },
+            {
+              "question": "Which modern architecture most closely mirrors the Schankian operator composition pattern?",
+              "options": [
+                "Convolutional Neural Networks (fixed filter sizes)",
+                "Recurrent Neural Networks (sequential hidden states)",
+                "Graph Neural Networks with message passing (bounded node updates from neighbors)",
+                "Autoencoders (compress and decompress)"
+              ],
+              "correct": 2,
+              "explanation": "GNN message passing is structurally identical to operator composition: each node maintains a fixed-dimensional state, and messages from neighbors transform that state through learned functions — bounded compositionality through sequential transformation. Transformers also exhibit this pattern through attention-based modification of fixed-dimensional token representations."
+            }
+          ]
+        }
+      }
+    ]
+  }
+}
