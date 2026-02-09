@@ -3104,12 +3104,45 @@ Return ONLY valid JSON. No markdown, no preamble, no explanation outside the JSO
       // Parse the response
       let tutorialContent
       try {
-        // Try to extract JSON from response
-        const jsonMatch = response.match(/\{[\s\S]*\}/)
-        if (jsonMatch) {
-          tutorialContent = JSON.parse(jsonMatch[0])
-        } else {
-          throw new Error('No JSON object found in response')
+        // Strip markdown code fences if present
+        let cleaned = response.trim()
+        cleaned = cleaned.replace(/^```(?:json)?\s*\n?/i, '').replace(/\n?```\s*$/i, '')
+        
+        // Try direct parse first
+        try {
+          tutorialContent = JSON.parse(cleaned)
+        } catch {
+          // Try to extract outermost JSON object
+          // Find the first { and match to its closing }
+          const startIdx = cleaned.indexOf('{')
+          if (startIdx === -1) throw new Error('No JSON object found in response')
+          
+          let depth = 0
+          let endIdx = -1
+          for (let i = startIdx; i < cleaned.length; i++) {
+            if (cleaned[i] === '{') depth++
+            else if (cleaned[i] === '}') {
+              depth--
+              if (depth === 0) { endIdx = i; break }
+            }
+          }
+          
+          if (endIdx === -1) {
+            // JSON was truncated — try to repair by closing open structures
+            console.warn('⚠️ JSON appears truncated, attempting repair...')
+            let partial = cleaned.slice(startIdx)
+            // Close any open strings
+            const quoteCount = (partial.match(/(?<!\\)"/g) || []).length
+            if (quoteCount % 2 !== 0) partial += '"'
+            // Close open arrays and objects by counting
+            const openBrackets = (partial.match(/\[/g) || []).length - (partial.match(/\]/g) || []).length
+            const openBraces = (partial.match(/\{/g) || []).length - (partial.match(/\}/g) || []).length
+            for (let i = 0; i < openBrackets; i++) partial += ']'
+            for (let i = 0; i < openBraces; i++) partial += '}'
+            tutorialContent = JSON.parse(partial)
+          } else {
+            tutorialContent = JSON.parse(cleaned.slice(startIdx, endIdx + 1))
+          }
         }
       } catch (parseError) {
         console.error('❌ Failed to parse AI response:', parseError.message)

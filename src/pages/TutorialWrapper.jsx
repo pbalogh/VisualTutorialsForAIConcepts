@@ -563,12 +563,19 @@ function TutorialHeader({ meta, tutorialId, onRegroup, regroupStatus, canUndo, o
 export default function TutorialWrapper({ tutorial: propTutorial }) {
   const { tutorialId } = useParams()
   const [jsonTutorial, setJsonTutorial] = useState(propTutorial || null)
-  const [loading, setLoading] = useState(!propTutorial && jsonTutorials.includes(tutorialId))
+  const [loading, setLoading] = useState(!propTutorial)
+  const [jsonLoadFailed, setJsonLoadFailed] = useState(false)
   const [annotations, setAnnotations] = useState([])
   
-  // Load JSON tutorial if needed
+  // Load JSON tutorial — try ANY tutorialId as a JSON file
   useEffect(() => {
-    if (propTutorial || !jsonTutorials.includes(tutorialId)) return
+    if (propTutorial) { setLoading(false); return }
+    
+    // If this is a known legacy component, don't try JSON loading
+    if (tutorialComponents[tutorialId] && !jsonTutorials.includes(tutorialId)) {
+      setLoading(false)
+      return
+    }
     
     const loadTutorial = async () => {
       try {
@@ -585,6 +592,7 @@ export default function TutorialWrapper({ tutorial: propTutorial }) {
         setJsonTutorial(module.default || module)
       } catch (e) {
         console.error('Failed to load tutorial JSON:', e)
+        setJsonLoadFailed(true)
       } finally {
         setLoading(false)
       }
@@ -593,7 +601,7 @@ export default function TutorialWrapper({ tutorial: propTutorial }) {
   }, [tutorialId, propTutorial])
   
   // Determine which mode we're in
-  const isJsonTutorial = jsonTutorials.includes(tutorialId) || propTutorial
+  const isJsonTutorial = jsonTutorial != null || propTutorial
   const TutorialComponent = tutorialComponents[tutorialId]
   const meta = tutorialMeta[tutorialId]
 
@@ -761,7 +769,7 @@ export default function TutorialWrapper({ tutorial: propTutorial }) {
     )
   }
 
-  // Not found
+  // Not found — only if JSON load failed AND no legacy component
   if (!isJsonTutorial && (!TutorialComponent || !meta)) {
     return (
       <div className="min-h-screen bg-[#fafafa]">
