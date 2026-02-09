@@ -1,0 +1,653 @@
+{
+  "id": "brainstorm-23-differentiable-state-machines",
+  "title": "Differentiable State Machines",
+  "subtitle": "Constrained Neural Process Networks for Operator Learning",
+  "readTime": "25 min",
+  "state": "published",
+  "content": {
+    "type": "Fragment",
+    "children": [
+      {
+        "type": "Callout",
+        "props": { "type": "info" },
+        "children": [
+          {
+            "type": "p",
+            "children": [
+              {
+                "type": "strong",
+                "children": "What if neural networks had rules they couldn't break?"
+              },
+              " Standard neural networks are universal function approximators — they can learn ",
+              { "type": "em", "children": "any" },
+              " input-output mapping, including physically impossible ones. A network trained to predict object locations could happily learn that objects teleport, that giving something away means you still have it, or that stirring a mixture un-stirs it. This tutorial explores a radical constraint: modeling operators as ",
+              { "type": "strong", "children": "differentiable state machines" },
+              " where each operation has preconditions that must be satisfied and effects that define legal state transitions. The network can still learn — but only within the bounds of what's logically possible."
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "1. The Problem with Unconstrained Networks" },
+        "children": [
+          {
+            "type": "p",
+            "children": "Neural networks are extraordinarily powerful precisely because they have so few built-in assumptions. Given enough data and capacity, they can approximate any function. But this power is also a weakness: they can learn functions that violate the basic rules of how the world works."
+          },
+          {
+            "type": "p",
+            "children": "Consider a network trained to predict entity states after actions. Without constraints, it might learn patterns like:"
+          },
+          {
+            "type": "ul",
+            "children": [
+              {
+                "type": "li",
+                "children": [
+                  { "type": "strong", "children": "Conservation violations:" },
+                  " After \"John gave Mary the book,\" both John and Mary possess the book."
+                ]
+              },
+              {
+                "type": "li",
+                "children": [
+                  { "type": "strong", "children": "Teleportation:" },
+                  " An object moves from New York to Tokyo without traversing intermediate locations."
+                ]
+              },
+              {
+                "type": "li",
+                "children": [
+                  { "type": "strong", "children": "Impossible preconditions:" },
+                  " \"John picked up the book\" succeeds even though John isn't near the book."
+                ]
+              },
+              {
+                "type": "li",
+                "children": [
+                  { "type": "strong", "children": "Causality reversals:" },
+                  " Effects happen before their causes, or actions undo themselves spontaneously."
+                ]
+              }
+            ]
+          },
+          {
+            "type": "Example",
+            "props": { "title": "The Impossible Transaction" },
+            "children": [
+              {
+                "type": "p",
+                "children": "A language model trained on event sequences might see this pattern frequently:"
+              },
+              {
+                "type": "p",
+                "children": [
+                  { "type": "em", "children": "\"Alice sold her car to Bob. Now Bob drives the car.\"" }
+                ]
+              },
+              {
+                "type": "p",
+                "children": "Without structural constraints, the model might generalize to:"
+              },
+              {
+                "type": "p",
+                "children": [
+                  { "type": "em", "children": "\"Alice sold her car to Bob. Now Alice still drives the car AND Bob drives the car.\"" }
+                ]
+              },
+              {
+                "type": "p",
+                "children": [
+                  "Why? Because in the training data, possession after selling sometimes appears ambiguous (\"Alice let Bob borrow it back\"), and the network has no ",
+                  { "type": "em", "children": "structural commitment" },
+                  " to conservation of ownership. It learns correlations, not constraints."
+                ]
+              }
+            ]
+          },
+          {
+            "type": "p",
+            "children": [
+              "The fundamental issue is that neural networks learn from ",
+              { "type": "em", "children": "statistical patterns" },
+              " rather than ",
+              { "type": "em", "children": "logical rules" },
+              ". They'll exploit any spurious correlation in the training data, even if it violates common-sense physics or logic. We need a way to inject structural constraints while preserving the network's ability to learn from data."
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "2. Classical Planning — STRIPS Operators" },
+        "children": [
+          {
+            "type": "p",
+            "children": [
+              "The AI planning community solved a version of this problem decades ago. ",
+              { "type": "strong", "children": "STRIPS" },
+              " (Stanford Research Institute Problem Solver, 1971) introduced a elegant formalism: every action is an ",
+              { "type": "em", "children": "operator" },
+              " with explicit preconditions and effects."
+            ]
+          },
+          {
+            "type": "DefinitionList",
+            "props": {
+              "items": [
+                {
+                  "term": "Preconditions",
+                  "definition": "A set of facts that MUST be true in the current world state for the operator to be applicable. If preconditions aren't met, the action simply cannot happen."
+                },
+                {
+                  "term": "Add List (Effects+)",
+                  "definition": "Facts that become true after the operator executes. These are added to the world state."
+                },
+                {
+                  "term": "Delete List (Effects−)",
+                  "definition": "Facts that become false after the operator executes. These are removed from the world state."
+                },
+                {
+                  "term": "Closed World Assumption",
+                  "definition": "Any fact not explicitly true is assumed false. This makes reasoning tractable."
+                }
+              ]
+            }
+          },
+          {
+            "type": "Example",
+            "props": { "title": "STRIPS Operator: Pick Up Block" },
+            "children": [
+              {
+                "type": "p",
+                "children": "Here's the classic blocks-world operator for picking up a block:"
+              },
+              {
+                "type": "p",
+                "children": [
+                  { "type": "code", "children": "PICKUP(x)" }
+                ]
+              },
+              {
+                "type": "p",
+                "children": [
+                  { "type": "strong", "children": "Preconditions:" }
+                ]
+              },
+              {
+                "type": "ul",
+                "children": [
+                  { "type": "li", "children": "on-table(x) — the block is on the table" },
+                  { "type": "li", "children": "clear(x) — nothing is on top of the block" },
+                  { "type": "li", "children": "arm-empty — the robot arm isn't holding anything" }
+                ]
+              },
+              {
+                "type": "p",
+                "children": [
+                  { "type": "strong", "children": "Add List:" }
+                ]
+              },
+              {
+                "type": "ul",
+                "children": [
+                  { "type": "li", "children": "holding(x) — the arm is now holding block x" }
+                ]
+              },
+              {
+                "type": "p",
+                "children": [
+                  { "type": "strong", "children": "Delete List:" }
+                ]
+              },
+              {
+                "type": "ul",
+                "children": [
+                  { "type": "li", "children": "on-table(x) — block is no longer on the table" },
+                  { "type": "li", "children": "arm-empty — the arm is no longer empty" }
+                ]
+              },
+              {
+                "type": "p",
+                "children": [
+                  "This structure ",
+                  { "type": "em", "children": "guarantees" },
+                  " physical consistency. You cannot pick up a block that's buried under other blocks. You cannot hold two blocks simultaneously. Every action produces a valid successor state."
+                ]
+              }
+            ]
+          },
+          {
+            "type": "p",
+            "children": "STRIPS operators are elegant but brittle. They require hand-specification of every operator, they operate on discrete symbolic states, and they can't handle uncertainty or learn from data. Our goal: preserve the structural guarantees while making everything differentiable and learnable."
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "3. Making It Differentiable" },
+        "children": [
+          {
+            "type": "p",
+            "children": [
+              "The core challenge is that STRIPS operators are ",
+              { "type": "em", "children": "discrete" },
+              ": preconditions are either satisfied or not, effects are either applied or not. Gradient-based learning requires ",
+              { "type": "em", "children": "continuous" },
+              " operations. How do we bridge this gap?"
+            ]
+          },
+          {
+            "type": "DeepDive",
+            "props": { "title": "Why is discrete → continuous so hard?" },
+            "children": [
+              {
+                "type": "p",
+                "children": [
+                  "Gradients measure how much the output changes when you wiggle the input ",
+                  { "type": "em", "children": "slightly" },
+                  ". But discrete operations have no \"slightly\" — a precondition is either met (1) or not met (0). The gradient is zero almost everywhere (when nothing changes) or undefined at the transition points."
+                ]
+              },
+              {
+                "type": "p",
+                "children": "Imagine trying to optimize a light switch by gradient descent. Whether you push it 1mm or 1cm, the light is still either on or off. The gradient tells you nothing about which direction to push. This is the fundamental barrier to making symbolic AI learnable."
+              }
+            ]
+          },
+          {
+            "type": "p",
+            "children": [
+              { "type": "strong", "children": "The solution: soft relaxations." },
+              " We replace hard discrete operations with smooth continuous approximations that behave like the discrete version at the extremes but allow gradients to flow in between."
+            ]
+          },
+          {
+            "type": "p",
+            "children": [
+              { "type": "strong", "children": "1. Soft Preconditions (Sigmoid Gates)" }
+            ]
+          },
+          {
+            "type": "p",
+            "children": [
+              "Instead of a hard check \"is precondition P satisfied?\", we compute a ",
+              { "type": "em", "children": "satisfaction score" },
+              " between 0 and 1:"
+            ]
+          },
+          {
+            "type": "p",
+            "children": [
+              { "type": "code", "children": "gate = σ(precondition_score) = 1/(1 + e^(-score))" }
+            ]
+          },
+          {
+            "type": "p",
+            "children": "When the precondition is strongly satisfied, gate ≈ 1 and effects apply fully. When violated, gate ≈ 0 and the operator has no effect. In between, we get partial application — which provides gradient signal for learning."
+          },
+          {
+            "type": "p",
+            "children": [
+              { "type": "strong", "children": "2. Continuous State Vectors" }
+            ]
+          },
+          {
+            "type": "p",
+            "children": [
+              "Instead of discrete predicates like ",
+              { "type": "code", "children": "holding(block_A) = true" },
+              ", we represent states as continuous vectors. Each dimension might represent a property (location, possession, temperature) as a real number or probability distribution."
+            ]
+          },
+          {
+            "type": "p",
+            "children": [
+              { "type": "strong", "children": "3. Gumbel-Softmax for Discrete Choices" }
+            ]
+          },
+          {
+            "type": "p",
+            "children": [
+              "When we need to make discrete selections (which operator to apply, which entity to affect), we use the ",
+              { "type": "strong", "children": "Gumbel-Softmax trick" },
+              ": sample from a categorical distribution in a way that allows gradients to flow through the sampling process."
+            ]
+          },
+          {
+            "type": "Analogy",
+            "children": "Think of a sliding dimmer switch versus an on/off switch. The dimmer gives you continuous control between fully off and fully on — you can be at 30% brightness. During training, we use the dimmer. At inference time, we can snap to the nearest on/off position. The dimmer lets gradients flow; the final on/off gives us clean discrete outputs."
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "4. Schankian Operators as Differentiable State Machines" },
+        "children": [
+          {
+            "type": "p",
+            "children": [
+              "Now we can express Schank's primitive operators as differentiable state machines. Each operator has learned precondition checkers and effect applicators, but the ",
+              { "type": "em", "children": "structure" },
+              " — which preconditions gate which effects — is fixed by design."
+            ]
+          },
+          {
+            "type": "DefinitionList",
+            "props": {
+              "items": [
+                {
+                  "term": "ATRANS (Abstract Transfer)",
+                  "definition": "Transfer of possession or ownership. Preconditions: possessor=A has object=X. Effects: possessor becomes B, A no longer has X. Cannot give what you don't have."
+                },
+                {
+                  "term": "PTRANS (Physical Transfer)",
+                  "definition": "Movement through physical space. Preconditions: object at location=L1. Effects: object at location=L2, no longer at L1. Objects can't teleport — they traverse paths."
+                },
+                {
+                  "term": "MTRANS (Mental Transfer)",
+                  "definition": "Transfer of information between minds. Preconditions: agent=A knows fact=F. Effects: agent=B now knows F, A still knows F. Knowledge doesn't deplete when shared."
+                },
+                {
+                  "term": "MBUILD (Mental Build)",
+                  "definition": "Creating new thoughts/decisions. Preconditions: relevant inputs available to thinker. Effects: new mental state exists. You can't decide based on information you don't have."
+                },
+                {
+                  "term": "PROPEL (Apply Force)",
+                  "definition": "Physical force application. Preconditions: agent capable and in contact/range. Effects: object state changes (moves, deforms). Can't push what you can't reach."
+                }
+              ]
+            }
+          },
+          {
+            "type": "p",
+            "children": [
+              { "type": "strong", "children": "Key insight:" },
+              " ATRANS and MTRANS have ",
+              { "type": "em", "children": "different conservation laws" },
+              ". Possession transfers are zero-sum (if I give you my apple, I don't have it anymore). Information transfers are not (if I tell you a secret, we both know it). The operator structure encodes these physical facts."
+            ]
+          },
+          {
+            "type": "InteractiveDemo",
+            "props": {
+              "title": "Try It: Operator Preconditions and Effects",
+              "description": "Select an operator (ATRANS, PTRANS, MTRANS) and see its preconditions and effects. Then try applying it to an entity state — if preconditions aren't met, the operator fails gracefully (soft failure via sigmoid gating).",
+              "height": 350
+            }
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "5. Neural Process Networks — Prior Art" },
+        "children": [
+          {
+            "type": "p",
+            "children": [
+              "We're not starting from scratch. ",
+              { "type": "strong", "children": "Neural Process Networks" },
+              " (Bosselut et al., 2018) demonstrated that neural networks can learn to track entity state changes through procedural text. Their key insight: model procedures as sequences of state-changing operations applied to tracked entities."
+            ]
+          },
+          {
+            "type": "p",
+            "children": "Given a recipe like \"crack the egg into the bowl, then stir the mixture,\" NPN learns to track:"
+          },
+          {
+            "type": "ul",
+            "children": [
+              { "type": "li", "children": "Which entities exist (egg, bowl, mixture)" },
+              { "type": "li", "children": "How their states change at each step" },
+              { "type": "li", "children": "How entities compose (egg + bowl contents → mixture)" }
+            ]
+          },
+          {
+            "type": "Example",
+            "props": { "title": "Entity State Tracking in a Recipe" },
+            "children": [
+              {
+                "type": "Steps",
+                "props": {
+                  "steps": [
+                    {
+                      "title": "Initial State",
+                      "description": "egg: {location: carton, state: whole, composition: shell+white+yolk} | bowl: {location: counter, contains: nothing}"
+                    },
+                    {
+                      "title": "\"Crack the egg into the bowl\"",
+                      "description": "egg-shell: {location: trash, state: broken} | egg-contents: {location: bowl, state: raw} | bowl: {contains: egg-contents}"
+                    },
+                    {
+                      "title": "\"Add flour to the bowl\"",
+                      "description": "flour: {location: bowl, state: dry} | bowl: {contains: [egg-contents, flour]}"
+                    },
+                    {
+                      "title": "\"Stir the mixture\"",
+                      "description": "mixture: {location: bowl, state: combined, composition: [egg-contents, flour]} — entities merge into new entity"
+                    }
+                  ]
+                }
+              },
+              {
+                "type": "p",
+                "children": [
+                  "Notice how the egg ",
+                  { "type": "em", "children": "splits" },
+                  " (shell separates from contents), entities ",
+                  { "type": "em", "children": "merge" },
+                  " (egg + flour → mixture), and properties ",
+                  { "type": "em", "children": "propagate" },
+                  " (mixture inherits 'raw' from egg). NPN learns these patterns from data, but without explicit operator constraints."
+                ]
+              }
+            ]
+          },
+          {
+            "type": "p",
+            "children": [
+              { "type": "strong", "children": "Our extension:" },
+              " NPN tracks states but doesn't constrain transitions. We add the STRIPS-style precondition/effect structure on top. Now the network can't learn that stirring un-stirs (violates irreversibility for mixing), or that cracking an egg into a bowl leaves the bowl empty (violates containment physics)."
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "6. Training the Differentiable State Machine" },
+        "children": [
+          {
+            "type": "p",
+            "children": "How do we train this hybrid system? The loss function combines multiple objectives:"
+          },
+          {
+            "type": "p",
+            "children": [
+              { "type": "strong", "children": "1. State Prediction Loss" },
+              " — Does the predicted next state match the actual next state? This is standard supervised learning on state transitions."
+            ]
+          },
+          {
+            "type": "p",
+            "children": [
+              { "type": "strong", "children": "2. Precondition Satisfaction Loss" },
+              " — When an operator successfully applied in the training data, were its preconditions satisfied? This teaches the network what conditions enable each operator."
+            ]
+          },
+          {
+            "type": "p",
+            "children": [
+              { "type": "strong", "children": "3. Conservation Loss" },
+              " — For operators like ATRANS, does the total \"amount\" of transferred property stay constant? If Alice had 1 apple and gives it to Bob, the total apples should remain 1."
+            ]
+          },
+          {
+            "type": "p",
+            "children": [
+              { "type": "strong", "children": "4. Consistency Loss" },
+              " — Are predicted states internally consistent? An entity can't be in two places at once (unless it's information, which can be copied)."
+            ]
+          },
+          {
+            "type": "DeepDive",
+            "props": { "title": "The Full Loss Function" },
+            "children": [
+              {
+                "type": "p",
+                "children": [
+                  { "type": "code", "children": "L = L_state + λ₁·L_precond + λ₂·L_conserve + λ₃·L_consist" }
+                ]
+              },
+              {
+                "type": "p",
+                "children": [
+                  { "type": "strong", "children": "L_state" },
+                  " = MSE or cross-entropy between predicted and actual next state"
+                ]
+              },
+              {
+                "type": "p",
+                "children": [
+                  { "type": "strong", "children": "L_precond" },
+                  " = -log(gate) when operator should fire, -log(1-gate) when it shouldn't"
+                ]
+              },
+              {
+                "type": "p",
+                "children": [
+                  { "type": "strong", "children": "L_conserve" },
+                  " = |sum_before - sum_after| for conserved quantities"
+                ]
+              },
+              {
+                "type": "p",
+                "children": [
+                  { "type": "strong", "children": "L_consist" },
+                  " = penalty for impossible states (e.g., location probabilities that don't sum to 1)"
+                ]
+              },
+              {
+                "type": "p",
+                "children": "The λ weights control how much we prioritize physical consistency versus fitting the training data. Higher λ values mean stricter constraints but potentially worse fit to noisy real-world data."
+              }
+            ]
+          },
+          {
+            "type": "p",
+            "children": "The beauty of this approach: we get the learning power of neural networks (they figure out the continuous state representations, the soft precondition functions, the effect magnitudes) while maintaining structural guarantees from classical AI planning (operators can only fire when preconditions are met, effects respect conservation laws)."
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "7. Key Takeaways" },
+        "children": [
+          {
+            "type": "Callout",
+            "props": { "type": "success" },
+            "children": [
+              {
+                "type": "p",
+                "children": [
+                  { "type": "strong", "children": "The Big Ideas" }
+                ]
+              },
+              {
+                "type": "ul",
+                "children": [
+                  {
+                    "type": "li",
+                    "children": [
+                      { "type": "strong", "children": "Constrained power:" },
+                      " Unconstrained neural networks can learn impossible functions. Adding STRIPS-style operator structure forces them to respect physical/logical laws."
+                    ]
+                  },
+                  {
+                    "type": "li",
+                    "children": [
+                      { "type": "strong", "children": "Soft is smooth:" },
+                      " Sigmoid gates, continuous states, and Gumbel-softmax let us make discrete planning concepts differentiable and learnable."
+                    ]
+                  },
+                  {
+                    "type": "li",
+                    "children": [
+                      { "type": "strong", "children": "Operators encode physics:" },
+                      " ATRANS has different conservation laws than MTRANS. The operator schema itself captures domain knowledge about how the world works."
+                    ]
+                  },
+                  {
+                    "type": "li",
+                    "children": [
+                      { "type": "strong", "children": "Building on NPN:" },
+                      " Neural Process Networks showed entity tracking is learnable. We add the constraint layer to guarantee valid transitions."
+                    ]
+                  },
+                  {
+                    "type": "li",
+                    "children": [
+                      { "type": "strong", "children": "Hybrid loss:" },
+                      " Training combines state prediction with precondition satisfaction and conservation laws. The network learns within the bounds of what's possible."
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Quiz",
+        "props": {
+          "questions": [
+            {
+              "question": "Why can unconstrained neural networks learn physically impossible transformations?",
+              "options": [
+                "They lack structural commitments and learn purely from statistical correlations",
+                "They have too few parameters to model real physics",
+                "They can only learn linear functions",
+                "They require labeled physics data"
+              ],
+              "correct": 0,
+              "explanation": "Neural networks are universal function approximators that learn from statistical patterns in data. Without explicit structural constraints, they'll learn any correlation — including ones that violate conservation laws or causality."
+            },
+            {
+              "question": "In STRIPS operators, what role do preconditions serve?",
+              "options": [
+                "They define what changes after the action executes",
+                "They specify facts that must be true for the operator to be applicable",
+                "They list side effects of the action",
+                "They determine the probability of success"
+              ],
+              "correct": 1,
+              "explanation": "Preconditions are the 'guard' conditions that must be satisfied before an operator can fire. They ensure actions only happen when the world is in an appropriate state (e.g., you can only pick up a block if your arm is empty and the block is clear)."
+            },
+            {
+              "question": "How do ATRANS and MTRANS differ in their conservation properties?",
+              "options": [
+                "ATRANS is faster than MTRANS",
+                "ATRANS transfers physical objects, MTRANS transfers abstract ideas",
+                "ATRANS is zero-sum (giver loses what receiver gains), MTRANS allows copying (both parties can have the information)",
+                "ATRANS requires physical contact, MTRANS works at any distance"
+              ],
+              "correct": 2,
+              "explanation": "This is a crucial distinction! When you give someone your apple (ATRANS), you don't have it anymore. When you tell someone a secret (MTRANS), you both know it. The operator structure must encode these different conservation laws."
+            },
+            {
+              "question": "Why do we use sigmoid gates instead of hard boolean checks for preconditions?",
+              "options": [
+                "Sigmoid gates are computationally faster",
+                "Hard boolean checks provide no gradient signal for learning",
+                "Sigmoid gates use less memory",
+                "Boolean logic can't represent uncertainty"
+              ],
+              "correct": 1,
+              "explanation": "The gradient of a hard boolean function is zero almost everywhere (the output doesn't change for small input changes) and undefined at transition points. Sigmoid gates provide smooth gradients that allow backpropagation to optimize the precondition-checking networks."
+            }
+          ]
+        }
+      }
+    ]
+  }
+}

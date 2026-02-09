@@ -281,6 +281,18 @@ const tutorials = [
     difficulty: 2,
   },
   {
+    id: 'brainstorm-23-differentiable-state-machines',
+    title: 'Differentiable State Machines',
+    description: 'Constrained neural process networks — STRIPS-style operators made differentiable for learning valid state transitions',
+    tags: ['schankian', 'architecture', 'state-machines'],
+    icon: '⚙️',
+    gradient: 'from-cyan-500 to-blue-600',
+    shadowColor: 'shadow-cyan-500/30',
+    glowColor: 'rgba(6, 182, 212, 0.4)',
+    readTime: '25 min',
+    difficulty: 3,
+  },
+  {
     id: 'thoughtblend',
     title: 'ThoughtBlend',
     description: 'Synthesize perspectives through dialectical color mixing — add sources as color swatches and blend them into structured text or dialogue',
