@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { Container } from '../components/SharedUI.jsx'
 
@@ -600,6 +600,62 @@ function ViewToggle({ mode, onChange }) {
 export default function Listing() {
   const [showCreateModal, setShowCreateModal] = useState(false)
   const [viewMode, setViewMode] = useState('grid')
+  const [allTutorials, setAllTutorials] = useState(tutorials)
+  
+  // Auto-discover JSON tutorials not in the curated list
+  useEffect(() => {
+    const discoverTutorials = async () => {
+      try {
+        // Use Vite's glob import to find all content JSON files
+        const contentModules = import.meta.glob('../content/*.json')
+        const knownIds = new Set(tutorials.map(t => t.id))
+        const discovered = []
+        
+        for (const [path, loader] of Object.entries(contentModules)) {
+          const filename = path.split('/').pop().replace('.json', '')
+          
+          // Skip non-tutorial files
+          if (filename.includes('semantic-tree') || filename.includes('-quiz')) continue
+          
+          // Skip already listed
+          if (knownIds.has(filename)) continue
+          
+          try {
+            const module = await loader()
+            const data = module.default || module
+            
+            // Only include files that look like tutorials (have title + content)
+            if (data.title && data.content) {
+              discovered.push({
+                id: filename,
+                title: data.title,
+                description: data.subtitle || data.description || 'Auto-discovered tutorial',
+                tags: data.tags || ['uncategorized'],
+                icon: '📄',
+                gradient: 'from-gray-500 to-slate-600',
+                shadowColor: 'shadow-gray-500/30',
+                glowColor: 'rgba(107, 114, 128, 0.4)',
+                readTime: data.readTime || '? min',
+                difficulty: data.difficulty || 1,
+                autoDiscovered: true,
+              })
+            }
+          } catch (e) {
+            // Skip files that can't be parsed
+          }
+        }
+        
+        if (discovered.length > 0) {
+          console.log(`Auto-discovered ${discovered.length} unlisted tutorials:`, discovered.map(d => d.id))
+          setAllTutorials([...tutorials, ...discovered])
+        }
+      } catch (e) {
+        console.error('Tutorial discovery failed:', e)
+      }
+    }
+    
+    discoverTutorials()
+  }, [])
   
   return (
     <div className="min-h-screen bg-[#fafafa]">
@@ -654,7 +710,7 @@ export default function Listing() {
           <div className="flex items-center justify-center gap-8 mt-10 text-sm text-indigo-300/60">
             <div className="flex items-center gap-2">
               <span className="text-indigo-400">✦</span>
-              <span>6 tutorials</span>
+              <span>{allTutorials.length} tutorials</span>
             </div>
             <div className="flex items-center gap-2">
               <span className="text-indigo-400">✦</span>
@@ -692,7 +748,7 @@ export default function Listing() {
         
         {viewMode === 'grid' ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {tutorials.map((tutorial, i) => (
+            {allTutorials.map((tutorial, i) => (
               <TutorialCard 
                 key={tutorial.id} 
                 tutorial={tutorial}
@@ -702,7 +758,7 @@ export default function Listing() {
           </div>
         ) : (
           <div className="flex flex-col gap-2">
-            {tutorials.map((tutorial) => (
+            {allTutorials.map((tutorial) => (
               <TutorialListItem key={tutorial.id} tutorial={tutorial} />
             ))}
           </div>
