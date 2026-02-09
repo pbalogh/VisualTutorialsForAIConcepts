@@ -1,0 +1,331 @@
+{
+  "id": "test-tutorial-on-gradient-descent",
+  "title": "Gradient Descent: Your Algorithm's GPS for Finding Solutions",
+  "subtitle": "Master the fundamental optimization algorithm that powers machine learning",
+  "readTime": "8 min",
+  "state": {},
+  "content": {
+    "type": "Fragment",
+    "children": [
+      {
+        "type": "Section",
+        "props": {
+          "title": "Why This Matters"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "Imagine you're blindfolded on a mountain and need to find the lowest point. You can only feel the slope under your feet. How would you get down? You'd naturally step in the steepest downward direction, right? That's exactly what gradient descent does for algorithms."
+          },
+          {
+            "type": "p",
+            "children": "Gradient descent is the GPS of machine learning - it helps algorithms navigate complex problem spaces to find optimal solutions. Whether you're training neural networks, fitting linear regression, or optimizing any function, gradient descent is likely working behind the scenes."
+          },
+          {
+            "type": "Callout",
+            "props": {
+              "type": "info"
+            },
+            "children": "Fun fact: Every time you use Google search, Netflix recommendations, or photo tagging on social media, gradient descent has likely played a role in training those systems!"
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "The Core Concept: Following the Slope"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "At its heart, gradient descent is surprisingly simple. It's an iterative algorithm that finds the minimum of a function by repeatedly moving in the direction of steepest descent."
+          },
+          {
+            "type": "h3",
+            "children": "The Mathematical Intuition"
+          },
+          {
+            "type": "p",
+            "children": "Think of any function as a landscape with hills and valleys. The gradient tells us the direction of steepest ascent at any point. So to go downhill (minimize), we go in the opposite direction of the gradient."
+          },
+          {
+            "type": "DefinitionList",
+            "props": {
+              "items": [
+                {
+                  "term": "Gradient",
+                  "definition": "A vector pointing in the direction of steepest increase of a function"
+                },
+                {
+                  "term": "Learning Rate",
+                  "definition": "How big steps we take in each iteration (like stride length)"
+                },
+                {
+                  "term": "Convergence",
+                  "definition": "When we've found the minimum and stop improving significantly"
+                }
+              ]
+            }
+          },
+          {
+            "type": "Blockquote",
+            "children": "Key insight: We don't need to see the entire landscape - just the local slope where we're standing!"
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "Step-by-Step Algorithm"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "Let's break down gradient descent into its essential steps:"
+          },
+          {
+            "type": "ol",
+            "children": [
+              {
+                "type": "li",
+                "children": "Start with an initial guess for the parameters"
+              },
+              {
+                "type": "li",
+                "children": "Calculate the gradient (slope) at the current position"
+              },
+              {
+                "type": "li",
+                "children": "Move in the opposite direction of the gradient"
+              },
+              {
+                "type": "li",
+                "children": "Repeat until convergence"
+              }
+            ]
+          },
+          {
+            "type": "Example",
+            "props": {
+              "title": "Example: Finding the minimum of f(x) = x²"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "Let's find the minimum of the simple function f(x) = x² using gradient descent:"
+              },
+              {
+                "type": "Code",
+                "props": {
+                  "language": "python"
+                },
+                "children": "# Gradient descent for f(x) = x²\ndef gradient_descent():\n    x = 10  # Starting point\n    learning_rate = 0.1\n    \n    for i in range(50):\n        gradient = 2 * x  # derivative of x²\n        x = x - learning_rate * gradient\n        print(f\"Step {i}: x = {x:.3f}, f(x) = {x**2:.3f}\")\n        \n        if abs(gradient) < 0.001:  # convergence check\n            break\n    \n    return x\n\nresult = gradient_descent()\nprint(f\"Minimum found at x = {result}\")"
+              },
+              {
+                "type": "p",
+                "children": "This converges to x = 0, which is indeed the minimum of x²!"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "Learning Rate: The Goldilocks Problem"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "The learning rate is crucial - it's like choosing your step size when walking down a mountain. Too big and you might overshoot the valley. Too small and you'll take forever to get there."
+          },
+          {
+            "type": "ComparisonTable",
+            "props": {
+              "headers": [
+                "Learning Rate",
+                "Behavior",
+                "Use When"
+              ],
+              "rows": [
+                [
+                  "Too High (>1.0)",
+                  "Overshoots, oscillates, may diverge",
+                  "Never - causes instability"
+                ],
+                [
+                  "Just Right (0.01-0.1)",
+                  "Smooth, steady convergence",
+                  "Most common problems"
+                ],
+                [
+                  "Too Low (<0.001)",
+                  "Very slow progress",
+                  "When precision is critical"
+                ]
+              ]
+            }
+          },
+          {
+            "type": "Callout",
+            "props": {
+              "type": "tip"
+            },
+            "children": "Pro tip: Start with 0.01 or 0.1 and adjust based on your function's behavior. Modern optimizers like Adam often adapt the learning rate automatically!"
+          },
+          {
+            "type": "Example",
+            "props": {
+              "title": "Example: Visualizing Different Learning Rates"
+            },
+            "children": [
+              {
+                "type": "Code",
+                "props": {
+                  "language": "python"
+                },
+                "children": "import matplotlib.pyplot as plt\n\ndef compare_learning_rates():\n    learning_rates = [0.01, 0.1, 0.5]\n    x_start = 5\n    \n    for lr in learning_rates:\n        x_history = []\n        x = x_start\n        \n        for _ in range(20):\n            x_history.append(x)\n            gradient = 2 * x\n            x = x - lr * gradient\n            \n        plt.plot(x_history, label=f'LR = {lr}')\n    \n    plt.legend()\n    plt.title('Gradient Descent with Different Learning Rates')\n    plt.show()"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "Real-World Applications"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "Gradient descent isn't just academic - it's the workhorse behind many technologies you use daily:"
+          },
+          {
+            "type": "ul",
+            "children": [
+              {
+                "type": "li",
+                "children": "Training neural networks for image recognition"
+              },
+              {
+                "type": "li",
+                "children": "Optimizing recommendation algorithms"
+              },
+              {
+                "type": "li",
+                "children": "Fitting machine learning models to data"
+              },
+              {
+                "type": "li",
+                "children": "Minimizing cost functions in logistics"
+              }
+            ]
+          },
+          {
+            "type": "h3",
+            "children": "Linear Regression Example"
+          },
+          {
+            "type": "p",
+            "children": "Here's how gradient descent finds the best line through data points:"
+          },
+          {
+            "type": "Example",
+            "props": {
+              "title": "Example: Training a Simple Linear Regression"
+            },
+            "children": [
+              {
+                "type": "Code",
+                "props": {
+                  "language": "python"
+                },
+                "children": "import numpy as np\n\n# Sample data: house size -> price\nX = np.array([1000, 1200, 1400, 1600, 1800])  # sq ft\ny = np.array([200, 250, 300, 350, 400])       # price ($k)\n\n# Initialize parameters\nw = 0.1  # weight (slope)\nb = 50   # bias (y-intercept)\nlearning_rate = 0.000001\nn_samples = len(X)\n\n# Gradient descent\nfor epoch in range(1000):\n    # Forward pass: predictions\n    y_pred = w * X + b\n    \n    # Calculate cost (mean squared error)\n    cost = np.mean((y_pred - y) ** 2)\n    \n    # Calculate gradients\n    dw = (2/n_samples) * np.sum((y_pred - y) * X)\n    db = (2/n_samples) * np.sum(y_pred - y)\n    \n    # Update parameters\n    w = w - learning_rate * dw\n    b = b - learning_rate * db\n    \n    if epoch % 100 == 0:\n        print(f\"Epoch {epoch}: Cost = {cost:.2f}\")\n\nprint(f\"Final model: price = {w:.3f} * size + {b:.1f}\")"
+              }
+            ]
+          },
+          {
+            "type": "Callout",
+            "props": {
+              "type": "warning"
+            },
+            "children": "Notice the tiny learning rate (0.000001)? This is because our input values (house sizes) are large. Always scale your features or adjust learning rates accordingly!"
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "Key Takeaways and Next Steps"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "Congratulations! You now understand the fundamental algorithm that powers much of modern AI and optimization."
+          },
+          {
+            "type": "h3",
+            "children": "What You've Learned"
+          },
+          {
+            "type": "ul",
+            "children": [
+              {
+                "type": "li",
+                "children": "Gradient descent finds minima by following the steepest descent direction"
+              },
+              {
+                "type": "li",
+                "children": "Learning rate controls the step size and affects convergence"
+              },
+              {
+                "type": "li",
+                "children": "It's widely used in machine learning and optimization"
+              },
+              {
+                "type": "li",
+                "children": "The algorithm is simple but powerful: calculate gradient, step opposite direction, repeat"
+              }
+            ]
+          },
+          {
+            "type": "h3",
+            "children": "Next Steps"
+          },
+          {
+            "type": "ol",
+            "children": [
+              {
+                "type": "li",
+                "children": "Try implementing gradient descent for different functions"
+              },
+              {
+                "type": "li",
+                "children": "Explore variants like Stochastic Gradient Descent (SGD)"
+              },
+              {
+                "type": "li",
+                "children": "Learn about advanced optimizers (Adam, RMSprop)"
+              },
+              {
+                "type": "li",
+                "children": "Apply it to real datasets using libraries like scikit-learn"
+              }
+            ]
+          },
+          {
+            "type": "Blockquote",
+            "children": "Remember: Gradient descent is like learning to ride a bike - simple in concept, but mastery comes through practice and understanding when to apply different techniques!"
+          },
+          {
+            "type": "Callout",
+            "props": {
+              "type": "tip"
+            },
+            "children": "Challenge yourself: Can you modify the linear regression example to work with multiple features (like house size AND number of bedrooms)? That's multi-dimensional gradient descent!"
+          }
+        ]
+      }
+    ]
+  }
+}
