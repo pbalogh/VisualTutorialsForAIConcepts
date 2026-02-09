@@ -305,6 +305,18 @@ const tutorials = [
     difficulty: 2,
   },
   {
+    id: 'brainstorm-11-talmys-force-dynamics',
+    title: 'Talmy\'s Force Dynamics',
+    description: 'Finer-grained causation primitives — how Agonist vs Antagonist patterns map to Schankian operators',
+    tags: ['schankian', 'linguistics', 'causation'],
+    icon: '💪',
+    gradient: 'from-emerald-500 to-teal-600',
+    shadowColor: 'shadow-emerald-500/30',
+    glowColor: 'rgba(16, 185, 129, 0.4)',
+    readTime: '25 min',
+    difficulty: 2,
+  },
+  {
     id: 'thoughtblend',
     title: 'ThoughtBlend',
     description: 'Synthesize perspectives through dialectical color mixing — add sources as color swatches and blend them into structured text or dialogue',
