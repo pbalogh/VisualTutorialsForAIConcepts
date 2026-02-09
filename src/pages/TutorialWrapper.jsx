@@ -110,7 +110,7 @@ const tutorialComponents = {
 }
 
 // JSON-based tutorials (loaded dynamically)
-const jsonTutorials = ['vector-projection', 'engine-demo', 'matrix-from-vectors-engine', 'matrix-discovery-engine', 'lead-lag-correlation-engine', 'least-squares-engine', 'schankian-paper-draft', 'rotate-paper', 'neural-oscillations', 'group-theory-puzzles']
+const jsonTutorials = ['vector-projection', 'engine-demo', 'matrix-from-vectors-engine', 'matrix-discovery-engine', 'lead-lag-correlation-engine', 'least-squares-engine', 'schankian-paper-draft', 'rotate-paper', 'neural-oscillations', 'group-theory-puzzles', 'hungarian-basics']
 
 const tutorialMeta = {
   'matrix-discovery': {
@@ -267,6 +267,16 @@ const tutorialMeta = {
     readTime: '12 min',
     exercises: 3,
     sections: ['The Big Secret', 'Level 1: A Coin', 'Level 2: Triangle Rotation', 'Level 3: Two Coins', 'Group Axioms', 'Multiplication Tables', 'Why This Matters', 'What\'s Next']
+  },
+  'hungarian-basics': {
+    title: 'Hungarian Language Basics',
+    subtitle: 'An introduction to one of Europe\'s most unique languages',
+    icon: '🇭🇺',
+    gradient: 'from-red-500 to-green-600',
+    glowColor: 'rgba(239, 68, 68, 0.4)',
+    readTime: '12 min',
+    exercises: 0,
+    sections: ['Introduction', 'Vowel Harmony', 'Agglutination', 'Essential Phrases']
   }
 }
 
