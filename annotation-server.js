@@ -94,7 +94,7 @@ Write a brief (2-3 sentences) contextual explanation of what "${selectedText}" m
         type: 'Sidebar',
         props: { 
           type: 'note',
-          title: `About "${selectedText.length > 30 ? selectedText.slice(0, 30) + '...' : selectedText}"`
+          title: `About "${selectedText.length > 60 ? selectedText.slice(0, 60) + '...' : selectedText}"`
         },
         children: [
           {
@@ -216,7 +216,7 @@ Do not use markdown. Do not include preamble. Just answer the question directly.
         type: 'Sidebar',
         props: { 
           type: 'note',
-          title: `Q: ${question.length > 40 ? question.slice(0, 40) + '...' : question}`,
+          title: `Q: ${question}`,
           expanded: true  // Start expanded since user just asked
         },
         children: [
@@ -263,7 +263,7 @@ Do not use markdown. Write naturally.`
         type: 'Sidebar',
         props: { 
           type: 'historical',
-          title: `📝 Note: ${question.length > 35 ? question.slice(0, 35) + '...' : question}`
+          title: `📝 Note: ${question.length > 60 ? question.slice(0, 60) + '...' : question}`
         },
         children: [
           {
@@ -343,7 +343,7 @@ Only output the JSON array, nothing else.`
         type: 'Sidebar',
         props: { 
           type: 'tip',
-          title: `📚 Learn More: ${selectedText.length > 30 ? selectedText.slice(0, 30) + '...' : selectedText}`
+          title: `📚 Learn More: ${selectedText.length > 60 ? selectedText.slice(0, 60) + '...' : selectedText}`
         },
         children: [
           {
