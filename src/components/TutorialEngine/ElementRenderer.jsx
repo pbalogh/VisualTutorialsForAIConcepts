@@ -201,8 +201,26 @@ const componentMap = {
         text: 'text-violet-900',
         iconEmoji: '🎯',
       },
+      error: {
+        container: 'bg-gradient-to-br from-red-50 to-red-100/50 border-red-200/50',
+        icon: 'bg-red-500 shadow-red-500/30',
+        text: 'text-red-900',
+        iconEmoji: '🚫',
+      },
+      note: {
+        container: 'bg-gradient-to-br from-slate-50 to-slate-100/50 border-slate-200/50',
+        icon: 'bg-slate-500 shadow-slate-500/30',
+        text: 'text-slate-900',
+        iconEmoji: '📝',
+      },
+      important: {
+        container: 'bg-gradient-to-br from-rose-50 to-rose-100/50 border-rose-200/50',
+        icon: 'bg-rose-500 shadow-rose-500/30',
+        text: 'text-rose-900',
+        iconEmoji: '❗',
+      },
     }
-    const s = styles[type]
+    const s = styles[type] || styles.info
     
     return (
       <div className={`relative my-8 p-5 pt-6 rounded-xl border ${s.container}`}>
