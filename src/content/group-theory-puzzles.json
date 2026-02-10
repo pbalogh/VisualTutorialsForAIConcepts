@@ -2425,28 +2425,362 @@
       {
         "type": "Section",
         "props": {
-          "title": "What's Next?"
+          "title": "Commutators — Measuring Non-Commutativity"
+        },
+        "children": [
+          {
+            "type": "Section",
+            "props": {
+              "title": "What's a Commutator?"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "In abelian groups, the order of operations doesn't matter: ab = ba for all elements. But in non-abelian groups like S₃, some elements refuse to commute. How can we measure exactly how badly two elements fail to commute?"
+              },
+              {
+                "type": "p",
+                "children": "The answer is the commutator. Given two group elements a and b, their commutator is:"
+              },
+              {
+                "type": "Callout",
+                "props": {
+                  "type": "info"
+                },
+                "children": "[a, b] = a⁻¹b⁻¹ab"
+              },
+              {
+                "type": "p",
+                "children": "Think of it this way: if a and b commute (ab = ba), then a⁻¹b⁻¹ab = a⁻¹b⁻¹ba = a⁻¹a = e (the identity). So the commutator equals the identity precisely when the two elements commute. The \"further\" the commutator is from the identity, the more non-commutative the pair is."
+              },
+              {
+                "type": "DefinitionList",
+                "props": {
+                  "definitions": [
+                    {
+                      "term": "Commutator [a, b]",
+                      "definition": "The element a⁻¹b⁻¹ab. Equals the identity e if and only if a and b commute (ab = ba). Measures the 'failure' of commutativity between a and b."
+                    },
+                    {
+                      "term": "Abelian Group",
+                      "definition": "A group where every pair of elements commutes: ab = ba for all a, b. Equivalently, every commutator equals the identity. Named after Niels Henrik Abel."
+                    },
+                    {
+                      "term": "Center Z(G)",
+                      "definition": "The set of all elements that commute with everything in the group: Z(G) = {z ∈ G | zg = gz for all g ∈ G}. An element is in the center if and only if all its commutators are trivial. A group is abelian precisely when Z(G) = G."
+                    }
+                  ]
+                }
+              },
+              {
+                "type": "Callout",
+                "props": {
+                  "type": "warning"
+                },
+                "children": "Convention alert: Some textbooks define the commutator as aba⁻¹b⁻¹ instead of a⁻¹b⁻¹ab. Both conventions capture the same idea — the resulting commutator subgroup is identical either way. We use a⁻¹b⁻¹ab here because it matches what Rubik's cube solvers call a 'commutator.'"
+              }
+            ]
+          },
+          {
+            "type": "Section",
+            "props": {
+              "title": "Computing a Commutator in S₃"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "Let's compute the commutator [(12), (123)] in S₃ step by step. Remember, we apply permutations right to left."
+              },
+              {
+                "type": "Example",
+                "props": {
+                  "title": "Worked Example: [(12), (123)]"
+                },
+                "children": [
+                  {
+                    "type": "p",
+                    "children": "We need to compute a⁻¹b⁻¹ab where a = (12) and b = (123)."
+                  },
+                  {
+                    "type": "p",
+                    "children": "Step 1: Find a⁻¹. Since (12) is a transposition (order 2), its inverse is itself: a⁻¹ = (12)."
+                  },
+                  {
+                    "type": "p",
+                    "children": "Step 2: Find b⁻¹. The inverse of (123) is (132) — the cycle run backward."
+                  },
+                  {
+                    "type": "p",
+                    "children": "Step 3: Compute ab = (12)(123). Apply (123) first, then (12):"
+                  },
+                  {
+                    "type": "ul",
+                    "children": [
+                      { "type": "li", "children": "1 →(123)→ 2 →(12)→ 1, so 1 stays at 1" },
+                      { "type": "li", "children": "2 →(123)→ 3 →(12)→ 3, so 2 maps to 3" },
+                      { "type": "li", "children": "3 →(123)→ 1 →(12)→ 2, so 3 maps to 2" }
+                    ]
+                  },
+                  {
+                    "type": "p",
+                    "children": "So ab = (12)(123) = (23)."
+                  },
+                  {
+                    "type": "p",
+                    "children": "Step 4: Compute a⁻¹b⁻¹ab = (12)(132)(23). Apply right to left:"
+                  },
+                  {
+                    "type": "ul",
+                    "children": [
+                      { "type": "li", "children": "1 →(23)→ 1 →(132)→ 1 →(12)→ 2, so 1 maps to 2" },
+                      { "type": "li", "children": "2 →(23)→ 3 →(132)→ 2 →(12)→ 1, so 2 maps to 1... wait, let's be more careful." }
+                    ]
+                  },
+                  {
+                    "type": "p",
+                    "children": "Actually, let's compose step by step. We already know ab = (23). Now compute a⁻¹b⁻¹ = (12)(132):"
+                  },
+                  {
+                    "type": "ul",
+                    "children": [
+                      { "type": "li", "children": "1 →(132)→ 3 →(12)→ 3" },
+                      { "type": "li", "children": "2 →(132)→ 1 →(12)→ 2" },
+                      { "type": "li", "children": "3 →(132)→ 2 →(12)→ 1" }
+                    ]
+                  },
+                  {
+                    "type": "p",
+                    "children": "So a⁻¹b⁻¹ = (12)(132) = (13)."
+                  },
+                  {
+                    "type": "p",
+                    "children": "Finally: [a, b] = a⁻¹b⁻¹ · ab = (13)(23):"
+                  },
+                  {
+                    "type": "ul",
+                    "children": [
+                      { "type": "li", "children": "1 →(23)→ 1 →(13)→ 3" },
+                      { "type": "li", "children": "2 →(23)→ 3 →(13)→ 1" },
+                      { "type": "li", "children": "3 →(23)→ 2 →(13)→ 2" }
+                    ]
+                  },
+                  {
+                    "type": "Callout",
+                    "props": {
+                      "type": "success"
+                    },
+                    "children": "[(12), (123)] = (132) — a 3-cycle! This is an even permutation (element of A₃). This is no accident, as we'll see next."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "Section",
+            "props": {
+              "title": "The Commutator Subgroup & Abelianization"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "If one commutator measures how badly a single pair fails to commute, what if we collected all commutators and the subgroup they generate? That gives us the commutator subgroup."
+              },
+              {
+                "type": "Callout",
+                "props": {
+                  "type": "info"
+                },
+                "children": "The commutator subgroup [G, G] (also written G') is the subgroup generated by all commutators [a, b] = a⁻¹b⁻¹ab for a, b ∈ G. It is always a normal subgroup of G."
+              },
+              {
+                "type": "p",
+                "children": "The commutator subgroup captures all the non-commutativity of G in one place. When we quotient it out, what remains is perfectly abelian:"
+              },
+              {
+                "type": "Callout",
+                "props": {
+                  "type": "info"
+                },
+                "children": "The quotient G/[G, G] is called the abelianization of G. It is always abelian — it's the 'most abelian' version of G, obtained by forcibly declaring all commutators equal to the identity."
+              },
+              {
+                "type": "DeepDive",
+                "props": {
+                  "title": "S₃ Example: [S₃, S₃] = A₃"
+                },
+                "children": [
+                  {
+                    "type": "p",
+                    "children": "Let's find the commutator subgroup of S₃. We just computed [(12), (123)] = (132). By similar calculations:"
+                  },
+                  {
+                    "type": "ul",
+                    "children": [
+                      { "type": "li", "children": "[(12), (123)] = (132)" },
+                      { "type": "li", "children": "[(13), (123)] = (123)" },
+                      { "type": "li", "children": "[(23), (123)] = (132)" }
+                    ]
+                  },
+                  {
+                    "type": "p",
+                    "children": "Every commutator in S₃ is either the identity or a 3-cycle — that is, an even permutation. The subgroup generated by all these commutators is {e, (123), (132)} = A₃, the alternating group!"
+                  },
+                  {
+                    "type": "p",
+                    "children": "So [S₃, S₃] = A₃. What's the abelianization?"
+                  },
+                  {
+                    "type": "p",
+                    "children": "S₃/A₃ has |S₃|/|A₃| = 6/3 = 2 elements. The only group of order 2 is Z₂. So:"
+                  },
+                  {
+                    "type": "Callout",
+                    "props": {
+                      "type": "success"
+                    },
+                    "children": "S₃/[S₃, S₃] = S₃/A₃ ≅ Z₂. The abelianization of S₃ is just Z₂ — it remembers only the sign (even/odd) of a permutation. All the rich 3-cycle structure is 'quotiented away.'"
+                  },
+                  {
+                    "type": "p",
+                    "children": "This is the deep reason that the sign homomorphism sgn: S₃ → {±1} exists! The commutator subgroup A₃ is exactly the kernel of this map."
+                  }
+                ]
+              },
+              {
+                "type": "Analogy",
+                "props": {
+                  "title": "Abelianization as Lossy Compression"
+                },
+                "children": "Abelianization is like compressing a high-resolution photo into a thumbnail. G/[G,G] keeps the 'abelian shadow' of the group — the broad strokes — but throws away all the fine-grained non-commutative detail. For S₃, the thumbnail just says 'even or odd.' For an abelian group, the compression is lossless: G/[G,G] = G/{e} = G."
+              }
+            ]
+          },
+          {
+            "type": "Section",
+            "props": {
+              "title": "The Rubik's Cube Connection"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "Speedcubers call the move sequence ABA⁻¹B⁻¹ a 'commutator' — and they're using the exact same concept! (Note: cubers use the convention aba⁻¹b⁻¹ rather than a⁻¹b⁻¹ab, but the idea is identical.)"
+              },
+              {
+                "type": "p",
+                "children": "Why are commutators so powerful for solving puzzles? Because they act as 'surgical strikes.' Here's the intuition:"
+              },
+              {
+                "type": "ul",
+                "children": [
+                  { "type": "li", "children": "Move A disturbs some pieces" },
+                  { "type": "li", "children": "Move B disturbs some (overlapping) pieces" },
+                  { "type": "li", "children": "A⁻¹ undoes A's disturbance — except for the pieces B moved out of A's reach" },
+                  { "type": "li", "children": "B⁻¹ undoes B's disturbance — except for the pieces A⁻¹ moved out of B's reach" }
+                ]
+              },
+              {
+                "type": "p",
+                "children": "The net effect: most pieces return home, but a small number — the ones in the 'overlap zone' — get cycled. This is why commutators typically produce 3-cycles: they move exactly 3 pieces while leaving everything else untouched."
+              },
+              {
+                "type": "Analogy",
+                "props": {
+                  "title": "The Surgical Strike"
+                },
+                "children": "Imagine two overlapping spotlights on a stage. Spotlight A illuminates some dancers, spotlight B illuminates others, and a few dancers are lit by both. A commutator ABA⁻¹B⁻¹ is like asking all dancers to do a complex choreography — but at the end, only the dancers in the overlap zone have actually changed positions. Everyone else is back where they started. The smaller the overlap, the more precise the surgery."
+              },
+              {
+                "type": "Callout",
+                "props": {
+                  "type": "info"
+                },
+                "children": "This is why nearly every advanced Rubik's cube method relies on commutators. The famous 'Niklas' algorithm (U L U' L' and its variants) is a commutator that cycles exactly 3 corner pieces. Blindfolded solvers use almost nothing but commutators!"
+              }
+            ]
+          },
+          {
+            "type": "Section",
+            "props": {
+              "title": "Test Your Understanding"
+            },
+            "children": [
+              {
+                "type": "Quiz",
+                "props": {
+                  "questions": [
+                    {
+                      "question": "What does the commutator [a, b] = a⁻¹b⁻¹ab equal when a and b commute?",
+                      "options": [
+                        "a",
+                        "b",
+                        "The identity element e",
+                        "ab"
+                      ],
+                      "answer": 2,
+                      "explanation": "If ab = ba, then a⁻¹b⁻¹ab = a⁻¹b⁻¹ba = a⁻¹(b⁻¹b)a = a⁻¹ea = a⁻¹a = e. The commutator is trivial precisely when the elements commute."
+                    },
+                    {
+                      "question": "What is the commutator subgroup [S₃, S₃]?",
+                      "options": [
+                        "S₃ itself",
+                        "Just the identity {e}",
+                        "A₃ = {e, (123), (132)}",
+                        "The set of all transpositions"
+                      ],
+                      "answer": 2,
+                      "explanation": "Every commutator in S₃ is an even permutation (either the identity or a 3-cycle). The subgroup they generate is A₃ = {e, (123), (132)}, the alternating group of even permutations."
+                    },
+                    {
+                      "question": "Why are commutators useful for solving the Rubik's cube?",
+                      "options": [
+                        "They scramble many pieces at once for faster solving",
+                        "They affect only a small number of pieces while returning most pieces to their original positions",
+                        "They always rotate an entire face by 90°",
+                        "They only work on corner pieces, not edge pieces"
+                      ],
+                      "answer": 1,
+                      "explanation": "Commutators ABA⁻¹B⁻¹ act as 'surgical strikes': A and A⁻¹ mostly cancel, as do B and B⁻¹, but the pieces in the overlap zone get cycled. This lets you move exactly the pieces you want without disturbing the rest of the cube."
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "Congratulations! 🎉"
         },
         "children": [
           {
             "type": "p",
-            "children": "We've barely scratched the surface! Future sections will explore:"
-          },
-          {
-            "type": "ul",
-            "children": [
-              {
-                "type": "li",
-                "children": "Commutators — the secret weapon of speedcubers"
-              }
-            ]
+            "children": "You've completed a grand tour of group theory — from the simplest symmetry of a coin flip (Z₂) all the way to commutators, the precision tools that unlock the deepest puzzles."
           },
           {
             "type": "Callout",
             "props": {
               "type": "success"
             },
-            "children": "You've now met three fundamental groups: Z₂, Z₃, and the Klein Four Group — plus the Dihedral Groups D₃ and D₄, the Symmetric Groups S₃ and S₄, and the Alternating Group A₁₅! From simple coin flips to non-abelian permutations, from the 15 puzzle's parity theorem to the deep impossibility proof that stunped a nation — these examples contain all the core ideas you need to understand much more complex structures. The Rubik's cube group is just a bigger (and triply-parity-constrained) version of the same concepts!"
+            "children": "You've now met cyclic groups (Z₂, Z₃), the Klein Four Group, Dihedral Groups (D₃, D₄), Symmetric Groups (S₃, S₄), the Alternating Group A₁₅, and the commutator subgroup — plus core concepts like homomorphisms, normal subgroups, quotient groups, conjugacy, and abelianization. From simple coin flips to non-abelian permutations, from the 15 puzzle's parity theorem to commutator-based Rubik's cube algorithms — these ideas form the foundation of all abstract algebra."
+          },
+          {
+            "type": "p",
+            "children": "Where could you go from here? The landscape of group theory stretches out in many beautiful directions:"
+          },
+          {
+            "type": "ul",
+            "children": [
+              { "type": "li", "children": "Quotient Groups in depth — we glimpsed S₃/A₃ ≅ Z₂, but quotient groups are a vast and powerful construction" },
+              { "type": "li", "children": "Group Actions — groups 'acting' on sets, which unifies counting (Burnside's lemma), geometry, and physics" },
+              { "type": "li", "children": "Sylow Theorems — the stunning structure theorems that constrain which subgroups a finite group can have" },
+              { "type": "li", "children": "Representation Theory — encoding groups as matrices, connecting algebra to linear algebra and quantum mechanics" }
+            ]
+          },
+          {
+            "type": "p",
+            "children": "Each of these builds directly on the intuitions you've developed here. The groups may get bigger and the theorems deeper, but the core ideas — symmetry, structure, and the interplay between a group and its subgroups — remain the same."
           }
         ]
       }
