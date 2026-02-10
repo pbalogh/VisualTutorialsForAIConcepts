@@ -366,6 +366,18 @@ const tutorials = [
     difficulty: 3,
   },
   {
+    id: 'brainstorm-22-causal-interventions',
+    title: 'Operators as Causal Interventions',
+    description: 'The bridge between Schankian operators and Pearl\'s do-calculus — and how mechanistic interpretability can find operators in neural networks.',
+    tags: ['causality', 'operators', 'interpretability'],
+    icon: '🔬',
+    gradient: 'from-emerald-500 to-teal-600',
+    shadowColor: 'shadow-emerald-500/30',
+    glowColor: 'rgba(16, 185, 129, 0.4)',
+    readTime: '18 min',
+    difficulty: 3,
+  },
+  {
     id: 'thoughtblend',
     title: 'ThoughtBlend',
     description: 'Synthesize perspectives through dialectical color mixing — add sources as color swatches and blend them into structured text or dialogue',

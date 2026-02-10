@@ -1,0 +1,295 @@
+{
+  "id": "brainstorm-22-causal-interventions",
+  "title": "Operators as Causal Interventions",
+  "subtitle": "The bridge between Schankian operators and Pearl's do-calculus — and how mechanistic interpretability can find operators in neural networks",
+  "readTime": "18 min",
+  "state": "brainstorm_22",
+  "content": [
+    {
+      "type": "Fragment",
+      "title": "The Bridge: Two Languages for the Same Thing",
+      "content": [
+        {
+          "type": "Section",
+          "title": "The Parallel Nobody Noticed",
+          "content": "Roger Schank (1970s) built a system of **conceptual primitives** — operators like PTRANS, ATRANS, MTRANS — to decompose any action into its fundamental state changes. Judea Pearl (1990s–2000s) built **do-calculus** to formalize what it means to *intervene* in a causal system.\n\nThese two frameworks were developed decades apart, in different fields, for different purposes. But they describe the **same underlying reality**: how actions change the state of the world.\n\nAn operator **IS** a do-intervention on entity state. Once you see it, you can't unsee it."
+        },
+        {
+          "type": "Analogy",
+          "left": {
+            "title": "Schankian Operators",
+            "items": [
+              "PTRANS — physical transfer of location",
+              "ATRANS — transfer of possession/control",
+              "MTRANS — transfer of information",
+              "PROPEL — application of physical force",
+              "Each operator specifies: WHO acts, WHAT changes, FROM what state, TO what state"
+            ]
+          },
+          "right": {
+            "title": "Pearl's do-Calculus",
+            "items": [
+              "do(X := x) — intervene to set variable X to value x",
+              "do(location := station) — force location change",
+              "do(owner := buyer) — force ownership transfer",
+              "do(knowledge := informed) — force information state",
+              "Each intervention specifies: WHICH variable, WHAT value, OVERRIDING normal causes"
+            ]
+          },
+          "bridgeText": "Both frameworks decompose actions into targeted state changes. The operator tells you WHAT the intervention is. The do-calculus tells you HOW to reason about its effects."
+        },
+        {
+          "type": "Section",
+          "title": "Why This Matters",
+          "content": "If Schankian operators are causal interventions, then:\n\n1. **We can use causal inference tools** to study how language models represent actions\n2. **We can formalize operator composition** using causal graphs\n3. **We can search for operators in neural networks** using mechanistic interpretability techniques designed for causal analysis\n\nThis isn't just a neat analogy — it's a **research program**."
+        }
+      ]
+    },
+    {
+      "type": "Fragment",
+      "title": "do-Calculus Crash Course",
+      "content": [
+        {
+          "type": "Section",
+          "title": "Seeing vs. Doing",
+          "content": "The most important distinction in causal reasoning is between **observing** and **intervening**. They look similar but are fundamentally different.\n\n**P(y | x)** — the probability of Y given that we *observe* X = x\n**P(y | do(x))** — the probability of Y given that we *set* X = x\n\nWhy does this matter? Because correlation ≠ causation, and the do-operator is what makes the difference precise."
+        },
+        {
+          "type": "DefinitionList",
+          "definitions": [
+            {
+              "term": "Intervention — do(X := x)",
+              "definition": "Physically setting a variable to a specific value, severing it from its natural causes. Like a surgeon cutting a wire and applying voltage directly. In Schankian terms: the ACTION that changes the world."
+            },
+            {
+              "term": "Confounding",
+              "definition": "When a hidden common cause makes two things look related when they're not causally connected. Example: ice cream sales and drowning rates both increase in summer. Summer is the confounder."
+            },
+            {
+              "term": "Backdoor Criterion",
+              "definition": "A test for whether you can estimate causal effects from observational data by controlling for the right variables. If you block all 'backdoor paths' (paths through common causes), you can identify the causal effect."
+            },
+            {
+              "term": "Structural Causal Model (SCM)",
+              "definition": "A set of equations that describe how each variable is determined by its causes plus noise. The 'blueprint' of a causal system. Operators can be thought of as the MECHANISMS in an SCM."
+            }
+          ]
+        },
+        {
+          "type": "Example",
+          "title": "\"The cop shot Frank\" — Observing vs. Intervening",
+          "setup": "Consider the sentence: **\"The cop shot Frank.\"**\n\nFrom this, we can observe the outcome: Frank's health state changed. But there are two very different causal questions we could ask.",
+          "steps": [
+            {
+              "label": "Observing",
+              "detail": "**P(Frank_dead | shooting_observed)**\n\nWe see that a shooting happened. What's the probability Frank is dead? This uses our prior knowledge — cops are trained shooters, the sentence implies completion. We'd estimate high probability."
+            },
+            {
+              "label": "Intervening to Prevent",
+              "detail": "**P(Frank_dead | do(no_shooting))**\n\nWhat if we had *intervened* to prevent the shooting? Now we need to think about whether Frank would have died anyway (was he sick? was someone else threatening him?). The do-operator forces us to consider the full causal structure."
+            },
+            {
+              "label": "The Operator View",
+              "detail": "The Schankian decomposition: **PROPEL**(cop, bullet → Frank) followed by state change health(Frank): alive → dead.\n\nThe operator tells us the MECHANISM. The do-calculus tells us what happens when we modify it. Together: **do(PROPEL_removed)** → what's the counterfactual outcome?"
+            }
+          ],
+          "punchline": "The operator IS the intervention. PROPEL(cop, bullet → Frank) = do(bullet_trajectory := toward_Frank). Removing the operator = do(no_shooting). The frameworks are isomorphic at the level of individual actions."
+        },
+        {
+          "type": "Section",
+          "title": "The Key Insight: Operators Name Interventions",
+          "content": "Pearl's do-calculus is general and abstract: do(X := x) can be *any* intervention on *any* variable. But Schank's operators are **specific** — they tell you exactly what KIND of intervention is happening:\n\n- **PTRANS** = do(location := new_location)\n- **ATRANS** = do(possession := new_owner)\n- **MTRANS** = do(knowledge_state := informed)\n- **PROPEL** = do(physical_force := applied)\n- **MBUILD** = do(belief_state := new_belief)\n\nSchankian operators are a **taxonomy of interventions** on entity state. They're what Pearl's framework looks like when you fill in the semantics."
+        }
+      ]
+    },
+    {
+      "type": "Fragment",
+      "title": "Operators as Interventions: The Formal Mapping",
+      "content": [
+        {
+          "type": "Section",
+          "title": "From Operator to SCM",
+          "content": "Let's make the mapping precise. Consider:\n\n**\"John gave Mary the book.\"**\n\nSchankian decomposition: **ATRANS**(John, book, John → Mary)\n- Actor: John\n- Object: book  \n- From: John (possession)\n- To: Mary (possession)\n\nCausal model equivalent:\n```\ndo(possession(book) := Mary)\n```\n\nBut it's richer than that. The full structural equation is:\n```\npossession(book, t+1) := f(ATRANS_event, possession(book, t), willingness(John), ability(Mary))\n```\n\nThe operator specifies the **mechanism** — the function f that transforms the pre-state to the post-state."
+        },
+        {
+          "type": "DeepDive",
+          "title": "Structural Causal Model for PTRANS",
+          "content": "Let's build a full SCM for a PTRANS event: **\"The cop walked from the park to the station.\"**\n\n**Variables:**\n- L(cop, t) — location of cop at time t\n- Intent(cop) — the cop's intention\n- Path(park, station) — existence of a traversable path\n- Energy(cop) — physical ability to move\n\n**Structural Equations:**\n```\nL(cop, t+1) := station   IF   Intent(cop) = go_to_station\n                          AND  Path(park, station) = exists\n                          AND  Energy(cop) > threshold\n                ELSE L(cop, t)\n```\n\n**The PTRANS operator** corresponds to the structural equation for location change. It's the **mechanism** that maps intent + preconditions → new location.\n\n**Intervention:** do(L(cop, t+1) := station) would set the location *regardless* of intent or path — like teleportation. The operator PTRANS, by contrast, specifies the *natural* mechanism. This distinction matters: operators are **mechanisms**, interventions are **overrides**.\n\n**The bridge insight:** When we read \"The cop walked to the station,\" we're not just learning that do(L := station) happened. We're learning that it happened *via PTRANS* — through the walking mechanism. The operator gives us richer causal information than the bare intervention."
+        },
+        {
+          "type": "InteractiveDemo",
+          "title": "Map the Operator to Its Intervention",
+          "prompt": "For each scenario, identify: (1) the Schankian operator, (2) the state variable that changes, (3) the do-intervention equivalent.",
+          "scenarios": [
+            {
+              "input": "\"Sarah texted the address to Mike.\"",
+              "reveal": "**Operator:** MTRANS (mental/information transfer)\n**State variable:** knowledge(Mike, address)\n**Before:** unknown → **After:** known\n**do-intervention:** do(knowledge(Mike, address) := known)\n\nNote: MTRANS captures that the MECHANISM was information transfer. The do-intervention just says the knowledge state changed."
+            },
+            {
+              "input": "\"The wind blew the hat off the table.\"",
+              "reveal": "**Operator:** PTRANS (physical location change), triggered by PROPEL (force application)\n**State variable:** location(hat)\n**Before:** on_table → **After:** off_table (ground)\n**do-intervention:** do(location(hat) := ground)\n\nInteresting: The actor is 'wind' (natural force), not a person. Schank's framework handles non-human actors. The PROPEL → PTRANS chain shows force causing movement."
+            },
+            {
+              "input": "\"The judge sentenced the defendant to 10 years.\"",
+              "reveal": "**Operator:** ATRANS (abstract transfer of... freedom? status?)\n**State variable:** legal_status(defendant)\n**Before:** accused → **After:** convicted_10yr\n**do-intervention:** do(legal_status(defendant) := convicted_10yr)\n\nThis is where operators get interesting. ATRANS captures transfer of CONTROL — the judge transfers the defendant's freedom to the state. It's abstract but structurally identical to transferring a physical object."
+            }
+          ]
+        },
+        {
+          "type": "Section",
+          "title": "Composition: Operator Chains as Causal Graphs",
+          "content": "Real narratives involve **chains** of operators, and these chains form causal graphs.\n\n**\"John stole Mary's wallet, then bought a ticket to Paris.\"**\n\n```\nATRANS(John, wallet, Mary → John)  →  ATRANS(John, money, John → vendor)\n                                          ↓\n                                   ATRANS(vendor, ticket, vendor → John)\n                                          ↓\n                                   PTRANS(John, here → Paris)\n```\n\nThis is a **causal graph**: each operator's output state enables the next operator's preconditions. The money from the stolen wallet enables the purchase. The ticket enables the travel.\n\nIn SCM terms: the structural equation for PTRANS(John, → Paris) includes ticket(John) as a precondition, which depends on the ATRANS chain. **Operators compose because interventions chain through causal graphs.**"
+        }
+      ]
+    },
+    {
+      "type": "Fragment",
+      "title": "The Mechanistic Interpretability Connection",
+      "content": [
+        {
+          "type": "Section",
+          "title": "If Operators Are Interventions, We Can Find Them",
+          "content": "Here's where it gets exciting. Mechanistic interpretability is the study of how neural networks implement algorithms internally. The key tools?\n\n**Causal interventions on activations.**\n\nActivation patching, causal tracing, causal scrubbing — these all work by *intervening* on internal model states and measuring the effect. If Schankian operators are causal interventions on narrative state, then the same tools should help us find where models represent operators.\n\nThe research question becomes: **When a language model processes \"The cop walked to the station,\" is there an internal representation that functions like PTRANS?**"
+        },
+        {
+          "type": "Example",
+          "title": "Activation Patching for Operator Detection",
+          "setup": "Imagine we have two sentences:\n\n**Clean:** \"The cop walked to the station\" (PTRANS)\n**Corrupt:** \"The cop talked to the reporter\" (MTRANS)\n\nBoth have the same surface structure but different operators. Can we find where the model distinguishes them?",
+          "steps": [
+            {
+              "label": "Run Both Forward",
+              "detail": "Process both sentences through the model, saving all intermediate activations (residual stream, attention patterns, MLP outputs) at every layer."
+            },
+            {
+              "label": "Patch Activations",
+              "detail": "Take the clean run. At each layer and position, **replace** the clean activation with the corrupt activation. This is a do-intervention: do(activation_layer_i := corrupt_value)."
+            },
+            {
+              "label": "Measure the Effect",
+              "detail": "After patching, check: does the model still predict location-change-related continuations? Or does it switch to information-transfer predictions? The layer/position where patching causes the biggest shift is where the operator distinction is encoded."
+            },
+            {
+              "label": "Interpret",
+              "detail": "If patching at layer 8, position 3 (the verb 'walked'/'talked') causes the biggest change, that's where the model encodes the PTRANS vs. MTRANS distinction. We've found the **operator representation** using the same causal logic that defines operators."
+            }
+          ],
+          "punchline": "We use causal interventions (activation patching) to find causal interventions (operators) in the model. It's interventions all the way down."
+        },
+        {
+          "type": "DeepDive",
+          "title": "Causal Scrubbing for Operator Features",
+          "content": "**Causal scrubbing** (Anthropic, 2023) is a more rigorous version of activation patching. Instead of patching one activation at a time, it tests whether a proposed computational graph explains the model's behavior.\n\nHere's how we'd use it to find PTRANS:\n\n**Hypothesis:** The model has a subgraph that computes PTRANS — it detects motion verbs, extracts source and destination, and updates an internal location-tracking variable.\n\n**Test:**\n1. Define the hypothesized subgraph (specific attention heads + MLPs)\n2. For inputs where PTRANS applies, check: does this subgraph's output correlate with correct location tracking?\n3. **Scrub** (randomize) everything OUTSIDE the hypothesized subgraph\n4. If the model still tracks locations correctly with only the subgraph intact, we've found the PTRANS circuit\n\n**Connection to SAE features:** Sparse Autoencoders (SAEs) decompose activations into interpretable features. Some features might fire specifically on PTRANS-like events. We'd look for features that:\n- Activate on motion verbs (walked, ran, flew, drove)\n- Are sensitive to source/destination arguments\n- Causally affect location-tracking downstream\n\nThis is exactly the research program that falls out of treating operators as interventions: **use intervention-based tools to find intervention-like representations.**"
+        },
+        {
+          "type": "Analogy",
+          "left": {
+            "title": "Traditional NLP Approach",
+            "items": [
+              "Parse sentence → extract semantic roles",
+              "Label: Agent, Action, Patient, Source, Goal",
+              "Symbolic, rule-based",
+              "Can't handle ambiguity well",
+              "No connection to model internals"
+            ]
+          },
+          "right": {
+            "title": "Operators-as-Interventions Approach",
+            "items": [
+              "Hypothesize operator → search for its circuit",
+              "Find: activation patterns that implement state changes",
+              "Mechanistic, causally grounded",
+              "Handles distributed representations",
+              "Directly reveals model computations"
+            ]
+          },
+          "bridgeText": "The operators-as-interventions framework doesn't just describe what language means — it tells us WHERE and HOW to look for meaning inside neural networks."
+        }
+      ]
+    },
+    {
+      "type": "Fragment",
+      "title": "The Detection-Correction Gap",
+      "content": [
+        {
+          "type": "Section",
+          "title": "CausalT5K: A Puzzle Explained",
+          "content": "Recent work (including the CausalT5K benchmark) found something puzzling: language models can often **detect** that something went wrong in a causal chain, but they struggle to **correct** it.\n\nFor example, given a story where a character falls into a trap:\n- ✅ Models can identify: \"This is a trap situation\" (detection)\n- ❌ Models struggle with: \"How would you rewrite this so the character avoids the trap?\" (correction)\n\nOur operator framework explains exactly why."
+        },
+        {
+          "type": "Example",
+          "title": "Detection vs. Correction in Operator Terms",
+          "setup": "**Story:** \"The spy walked into the warehouse. The door locked behind her. She was trapped.\"\n\nDetection and correction require different operator-level skills.",
+          "steps": [
+            {
+              "label": "Detection = Recognizing the Operator",
+              "detail": "To detect the trap, the model needs to recognize:\n- PTRANS(spy, outside → warehouse) — she moved inside\n- State change: door(warehouse) = locked\n- Consequence: exit_available(spy) = false\n\nThis is **pattern matching** on operator outcomes. The model recognizes the PTRANS + lock pattern as a trap template."
+            },
+            {
+              "label": "Correction = Applying the Inverse Operator",
+              "detail": "To correct (help her escape), the model needs to:\n- Identify the **inverse** of the trapping operators\n- PROPEL(spy, force → door) to break it? MTRANS(spy, knowledge_of_exit) to find another way?\n- Compose a NEW chain of operators that undoes the trapped state\n\nThis requires **generative operator reasoning**, not just recognition."
+            },
+            {
+              "label": "The Gap in Causal Terms",
+              "detail": "**Detection:** P(trapped | observed_events) — conditioning on observations. The model just needs to recognize the pattern.\n\n**Correction:** P(escaped | do(intervention)) — reasoning about interventions. The model needs to GENERATE an effective do-operation.\n\nObserving is easier than intervening. This is literally Pearl's hierarchy: seeing (Level 1) < doing (Level 2) < imagining (Level 3)."
+            }
+          ],
+          "punchline": "The detection-correction gap IS the observation-intervention gap. Models are better at Pearl's Level 1 (seeing) than Level 2 (doing). Our operator framework makes this precise: detecting = recognizing operators, correcting = generating inverse operators."
+        },
+        {
+          "type": "Section",
+          "title": "Pearl's Ladder of Causation Meets Schank",
+          "content": "Pearl's **Ladder of Causation** has three rungs:\n\n**Rung 1 — Association:** \"What do I see?\" → P(y|x)\nOperator equivalent: Recognizing that PTRANS happened from text patterns\n\n**Rung 2 — Intervention:** \"What if I do this?\" → P(y|do(x))\nOperator equivalent: Predicting the outcome of applying an operator\n\n**Rung 3 — Counterfactual:** \"What if I had done differently?\" → P(y_x'|x, y)\nOperator equivalent: Reasoning about what would happen with a DIFFERENT operator\n\nThe detection-correction gap suggests current LLMs live mostly on Rung 1, with some Rung 2 ability, and limited Rung 3. **The operator framework gives us concrete ways to test which rung a model has reached** — by probing for operator recognition, operator application, and operator counterfactuals."
+        },
+        {
+          "type": "DeepDive",
+          "title": "Testing Causal Depth with Operators",
+          "content": "Here's a concrete evaluation protocol using the operator-as-intervention framework:\n\n**Rung 1 Test — Operator Recognition:**\n- Input: \"John walked from the park to the store.\"\n- Question: \"Where is John now?\"\n- Tests: Can the model recognize PTRANS and extract the destination?\n- Most models pass this easily.\n\n**Rung 2 Test — Operator Prediction:**\n- Input: \"John is at the park. He decides to walk to the store.\"\n- Question: \"If the bridge is closed, can John get to the store?\"\n- Tests: Can the model reason about PTRANS preconditions (path must exist)?\n- Models are inconsistent here.\n\n**Rung 3 Test — Operator Counterfactual:**\n- Input: \"John walked from the park to the store. He got mugged.\"\n- Question: \"If John had driven instead of walked, would he have been mugged?\"\n- Tests: Can the model reason about how changing the operator (PTRANS-walk → PTRANS-drive) changes the outcome?\n- Most models struggle significantly.\n\nEach rung requires deeper causal understanding. The operator framework makes the tests concrete and the difficulties precise."
+        }
+      ]
+    },
+    {
+      "type": "Fragment",
+      "title": "Test Your Understanding",
+      "content": [
+        {
+          "type": "Quiz",
+          "questions": [
+            {
+              "question": "What is the key insight of the operators-as-interventions framework?",
+              "options": [
+                "Schankian operators are outdated and should be replaced by do-calculus",
+                "Schankian operators and do-interventions describe the same thing: targeted state changes caused by actions",
+                "Pearl's do-calculus can only be applied to physical events, not abstract ones like ATRANS",
+                "Operators are more powerful than interventions because they include actor information"
+              ],
+              "correctIndex": 1,
+              "explanation": "The core insight is that operators and do-interventions are isomorphic at the level of individual actions. PTRANS = do(location := new_location), ATRANS = do(possession := new_owner), etc. They're two vocabularies for the same phenomenon: how actions change the state of the world."
+            },
+            {
+              "question": "Why can language models detect causal problems more easily than correct them?",
+              "options": [
+                "Detection is a classification task which transformers excel at",
+                "Detection requires recognizing operators (association/Rung 1), while correction requires generating inverse operators (intervention/Rung 2)",
+                "Models have more training data about problems than solutions",
+                "The attention mechanism is better at finding patterns than generating new sequences"
+              ],
+              "correctIndex": 1,
+              "explanation": "In the operator framework, detection maps to Pearl's Rung 1 (association — recognizing the pattern of a trap from observed operators), while correction maps to Rung 2 (intervention — figuring out which operator to apply to change the outcome). The observation-intervention gap is a fundamental asymmetry in causal reasoning."
+            },
+            {
+              "question": "How would you use activation patching to find PTRANS representations in a language model?",
+              "options": [
+                "Train a classifier on the final layer to predict PTRANS vs. non-PTRANS sentences",
+                "Compare activations between PTRANS sentences (walked, ran) and MTRANS sentences (told, texted), patching activations layer by layer to find where the distinction is encoded",
+                "Fine-tune the model on PTRANS examples and measure weight changes",
+                "Use attention visualization to see which words attend to location information"
+              ],
+              "correctIndex": 1,
+              "explanation": "Activation patching is a causal intervention on model internals. By running a PTRANS sentence and an MTRANS sentence, then swapping (patching) activations at each layer/position, we can find exactly where the model distinguishes these two operator types. The position where patching causes the biggest behavioral change is where the operator distinction is encoded."
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
