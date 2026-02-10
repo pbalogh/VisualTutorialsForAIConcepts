@@ -1,7 +1,7 @@
 {
   "id": "schankian-paper-draft",
   "title": "Schankian Operators Paper Draft",
-  "subtitle": "Working draft: Learning Semantic Operators from Event Data — add annotations and questions here",
+  "subtitle": "Working draft: Learning Semantic Operators from Event Data \u2014 add annotations and questions here",
   "readTime": "30 min",
   "state": {},
   "content": {
@@ -12,12 +12,12 @@
         "props": {
           "type": "warning"
         },
-        "children": "⚠️ DRAFT — Not for publication. This is a working document for organizing paper ideas. Use [skip ci] when committing."
+        "children": "\u26a0\ufe0f DRAFT \u2014 Not for publication. This is a working document for organizing paper ideas. Use [skip ci] when committing."
       },
       {
         "type": "Section",
         "props": {
-          "title": "Paper 1: Core Method — Learned Schankian Operators"
+          "title": "Paper 1: Core Method \u2014 Learned Schankian Operators"
         },
         "children": [
           {
@@ -117,7 +117,7 @@
             "props": {
               "type": "info"
             },
-            "children": "Key insight: (agent, operator, patient) ≠ (patient, operator, agent). Non-commutativity is essential."
+            "children": "Key insight: (agent, operator, patient) \u2260 (patient, operator, agent). Non-commutativity is essential."
           },
           {
             "type": "h3",
@@ -147,7 +147,7 @@
               },
               {
                 "type": "li",
-                "children": "Scoring: ||agent ⊙ operator - patient|| (RotatE-style)"
+                "children": "Scoring: ||agent \u2299 operator - patient|| (RotatE-style)"
               },
               {
                 "type": "li",
@@ -158,7 +158,7 @@
           {
             "type": "DeepDive",
             "props": {
-              "title": "❓ Q: Is this absolutely vital? In other words, what would risk breaking if these were *non*-diagonal matrices?",
+              "title": "\u2753 Q: Is this absolutely vital? In other words, what would risk breaking if these were *non*-diagonal matrices?",
               "defaultOpen": true,
               "id": "ann-1770466656403-dzkv7o",
               "sourceId": "source-ann-1770466656403-dzkv7o"
@@ -224,7 +224,7 @@
           },
           {
             "type": "p",
-            "children": "When you multiply a complex number by e^(iθ), you rotate it by angle θ. This is exactly what we want operators to do — rotate entity vectors in semantic space."
+            "children": "When you multiply a complex number by e^(i\u03b8), you rotate it by angle \u03b8. This is exactly what we want operators to do \u2014 rotate entity vectors in semantic space."
           },
           {
             "type": "h3",
@@ -296,12 +296,12 @@
               "rows": [
                 [
                   "HARM",
-                  "Agent +45°, Patient -45°",
+                  "Agent +45\u00b0, Patient -45\u00b0",
                   "Adversarial: agent acts against patient"
                 ],
                 [
                   "TRANSFER",
-                  "Both +30°",
+                  "Both +30\u00b0",
                   "Symmetric: both move together"
                 ],
                 [
@@ -311,12 +311,12 @@
                 ],
                 [
                   "MOVE",
-                  "Agent +60°, Patient -30°",
+                  "Agent +60\u00b0, Patient -30\u00b0",
                   "Agent-dominant action"
                 ],
                 [
                   "RECEIVE",
-                  "Agent -30°, Patient +60°",
+                  "Agent -30\u00b0, Patient +60\u00b0",
                   "Patient-dominant reception"
                 ]
               ]
@@ -335,7 +335,7 @@
             "props": {
               "language": "python"
             },
-            "children": "# For each training triple (agent, operator, patient):\n\n# 1. Score the correct triple (should be LOW = close match)\nscore_positive = ||agent ⊙ operator - patient||\n\n# 2. Create a corrupted triple (swap agent or patient randomly)\nscore_negative = ||wrong_agent ⊙ operator - patient||\n\n# 3. Ranking loss: push positive below negative by margin\nloss = max(0, margin + score_positive - score_negative)\n\n# The model learns to score correct triples LOWER than corrupted ones"
+            "children": "# For each training triple (agent, operator, patient):\n\n# 1. Score the correct triple (should be LOW = close match)\nscore_positive = ||agent \u2299 operator - patient||\n\n# 2. Create a corrupted triple (swap agent or patient randomly)\nscore_negative = ||wrong_agent \u2299 operator - patient||\n\n# 3. Ranking loss: push positive below negative by margin\nloss = max(0, margin + score_positive - score_negative)\n\n# The model learns to score correct triples LOWER than corrupted ones"
           },
           {
             "type": "Callout",
@@ -357,7 +357,7 @@
             "props": {
               "type": "success"
             },
-            "children": "✅ Result: 88.2% average operator recovery. All 5 operators successfully learned from data."
+            "children": "\u2705 Result: 88.2% average operator recovery. All 5 operators successfully learned from data."
           },
           {
             "type": "ComparisonTable",
@@ -405,23 +405,23 @@
             "children": [
               {
                 "type": "li",
-                "children": "✅ Operators CAN be learned from data alone — not hardcoded by humans"
+                "children": "\u2705 Operators CAN be learned from data alone \u2014 not hardcoded by humans"
               },
               {
                 "type": "li",
-                "children": "✅ Non-commutativity emerges naturally — (agent, op, patient) ≠ (patient, op, agent)"
+                "children": "\u2705 Non-commutativity emerges naturally \u2014 (agent, op, patient) \u2260 (patient, op, agent)"
               },
               {
                 "type": "li",
-                "children": "✅ Simple diagonal rotations are sufficient — no need for full matrices"
+                "children": "\u2705 Simple diagonal rotations are sufficient \u2014 no need for full matrices"
               },
               {
                 "type": "li",
-                "children": "✅ Ranking loss works — no reconstruction term needed"
+                "children": "\u2705 Ranking loss works \u2014 no reconstruction term needed"
               },
               {
                 "type": "li",
-                "children": "✅ Architecture is validated — ready for real data"
+                "children": "\u2705 Architecture is validated \u2014 ready for real data"
               }
             ]
           },
@@ -450,7 +450,7 @@
           {
             "type": "DeepDive",
             "props": {
-              "title": "❓ Q: Is our approach sufficiently different from RotatE? Let's list how it is and isn't!",
+              "title": "\u2753 Q: Is our approach sufficiently different from RotatE? Let's list how it is and isn't!",
               "defaultOpen": true,
               "id": "ann-1770466785622-yava8h",
               "sourceId": "source-ann-1770466785622-yava8h"
@@ -524,7 +524,7 @@
         "children": [
           {
             "type": "p",
-            "children": "Application paper: tracking how entities evolve through narratives. Frank-before-shooting ≠ Frank-after-shooting."
+            "children": "Application paper: tracking how entities evolve through narratives. Frank-before-shooting \u2260 Frank-after-shooting."
           },
           {
             "type": "h3",
@@ -532,14 +532,14 @@
           },
           {
             "type": "p",
-            "children": "The 'state' of an entity is not a single vector but a trajectory through vector space — a sequence representing the entity at different points in time. The path taken to get there matters."
+            "children": "The 'state' of an entity is not a single vector but a trajectory through vector space \u2014 a sequence representing the entity at different points in time. The path taken to get there matters."
           },
           {
             "type": "Callout",
             "props": {
               "type": "info"
             },
-            "children": "Insight: State depends on sequence. The implicit actions that preceded a state matter. (Getting out of bed → must have gotten into bed → probably took off shoes)"
+            "children": "Insight: State depends on sequence. The implicit actions that preceded a state matter. (Getting out of bed \u2192 must have gotten into bed \u2192 probably took off shoes)"
           },
           {
             "type": "h3",
@@ -547,7 +547,7 @@
           },
           {
             "type": "p",
-            "children": "Entities can have MULTIPLE markers in semantic space. 'Marlowe was a detective and much bigger than in his youth' puts markers near: detective, big, man. Markers can MOVE — if Marlowe loses 60 pounds, the 'big' marker moves to 'normal-sized'."
+            "children": "Entities can have MULTIPLE markers in semantic space. 'Marlowe was a detective and much bigger than in his youth' puts markers near: detective, big, man. Markers can MOVE \u2014 if Marlowe loses 60 pounds, the 'big' marker moves to 'normal-sized'."
           },
           {
             "type": "h3",
@@ -569,13 +569,13 @@
               },
               {
                 "type": "p",
-                "children": "Implicit: Getting into bed → removal of shoes. Getting out of bed → still shoeless. Stepping on Legos → pain. All inferred, not stated."
+                "children": "Implicit: Getting into bed \u2192 removal of shoes. Getting out of bed \u2192 still shoeless. Stepping on Legos \u2192 pain. All inferred, not stated."
               }
             ]
           },
           {
             "type": "h3",
-            "children": "2.4 ⭐ The Big Idea: Implicit-Explicit Document Enrichment"
+            "children": "2.4 \u2b50 The Big Idea: Implicit-Explicit Document Enrichment"
           },
           {
             "type": "Callout",
@@ -612,7 +612,7 @@
               },
               {
                 "type": "p",
-                "children": "Human answer: 'No — he got out of bed, so he was barefoot. That's why stepping on the Lego hurt.'"
+                "children": "Human answer: 'No \u2014 he got out of bed, so he was barefoot. That's why stepping on the Lego hurt.'"
               }
             ]
           },
@@ -651,7 +651,7 @@
                   },
                   {
                     "type": "li",
-                    "children": "Someone is now selling them — processing grief, needing money, moving on"
+                    "children": "Someone is now selling them \u2014 processing grief, needing money, moving on"
                   },
                   {
                     "type": "li",
@@ -666,7 +666,7 @@
             "props": {
               "language": "text"
             },
-            "children": "Original: 'For sale: baby shoes, never worn.'\n\nAnnotated:\n  ENTITIES:\n    - baby [IMPLICIT: never explicitly mentioned]\n    - shoes [explicit]\n    - seller [IMPLICIT: someone placing this ad]\n    - intended_recipient [IMPLICIT: the expected baby]\n\n  EVENTS:\n    - TRANSFER(?, shoes, seller) — shoes were acquired\n    - ANTICIPATE(seller, baby) — someone expected a baby\n    - LOSS(seller, baby) — the baby never came/died\n    - ¬PTRANS(baby, shoes) — shoes never reached intended use\n    - TRANSFER(seller, shoes, ?) — now selling\n\n  STATES:\n    - seller.emotion = grief [high confidence]\n    - seller.processing = acceptance [selling = moving forward]\n    - shoes.condition = new [never worn]\n\n  META:\n    - brevity → too painful to elaborate\n    - specificity (baby shoes, not 'items') → visceral"
+            "children": "Original: 'For sale: baby shoes, never worn.'\n\nAnnotated:\n  ENTITIES:\n    - baby [IMPLICIT: never explicitly mentioned]\n    - shoes [explicit]\n    - seller [IMPLICIT: someone placing this ad]\n    - intended_recipient [IMPLICIT: the expected baby]\n\n  EVENTS:\n    - TRANSFER(?, shoes, seller) \u2014 shoes were acquired\n    - ANTICIPATE(seller, baby) \u2014 someone expected a baby\n    - LOSS(seller, baby) \u2014 the baby never came/died\n    - \u00acPTRANS(baby, shoes) \u2014 shoes never reached intended use\n    - TRANSFER(seller, shoes, ?) \u2014 now selling\n\n  STATES:\n    - seller.emotion = grief [high confidence]\n    - seller.processing = acceptance [selling = moving forward]\n    - shoes.condition = new [never worn]\n\n  META:\n    - brevity \u2192 too painful to elaborate\n    - specificity (baby shoes, not 'items') \u2192 visceral"
           },
           {
             "type": "Callout",
@@ -688,7 +688,7 @@
             "props": {
               "language": "text"
             },
-            "children": "Original: 'Marlowe tumbled out of bed'\n\nAnnotated: 'Marlowe tumbled out of bed'\n  [IMPLICIT: To get out of bed, must have been in bed]\n  [IMPLICIT: Being in bed implies removal of shoes]\n  [IMPLICIT: Getting out of bed → still shoeless]\n  [IMPLICIT: Marlowe is now standing, barefoot, near the bed]"
+            "children": "Original: 'Marlowe tumbled out of bed'\n\nAnnotated: 'Marlowe tumbled out of bed'\n  [IMPLICIT: To get out of bed, must have been in bed]\n  [IMPLICIT: Being in bed implies removal of shoes]\n  [IMPLICIT: Getting out of bed \u2192 still shoeless]\n  [IMPLICIT: Marlowe is now standing, barefoot, near the bed]"
           },
           {
             "type": "p",
@@ -716,7 +716,7 @@
             "props": {
               "type": "tip"
             },
-            "children": "The hierarchy lets you: query summary first → decide if relevant → drill down to detail. You only pay the cost of reading the bulky annotated version when you NEED that detail."
+            "children": "The hierarchy lets you: query summary first \u2192 decide if relevant \u2192 drill down to detail. You only pay the cost of reading the bulky annotated version when you NEED that detail."
           },
           {
             "type": "h4",
@@ -789,7 +789,7 @@
             "props": {
               "type": "tip"
             },
-            "children": "🌟 NEW SECTION — This may be a major standalone contribution. Combines symbolic structure (tree) with geometric learning (embeddings)."
+            "children": "\ud83c\udf1f NEW SECTION \u2014 This may be a major standalone contribution. Combines symbolic structure (tree) with geometric learning (embeddings)."
           },
           {
             "type": "h3",
@@ -797,7 +797,7 @@
           },
           {
             "type": "p",
-            "children": "Operators aren't flat — they're hierarchical. Abstract operators (TRANSFER) branch into specific ones (PHYSICAL_TRANSFER, INFORMATION_TRANSFER). We build a tree where each node is BOTH a symbolic label AND a region in embedding space."
+            "children": "Operators aren't flat \u2014 they're hierarchical. Abstract operators (TRANSFER) branch into specific ones (PHYSICAL_TRANSFER, INFORMATION_TRANSFER). We build a tree where each node is BOTH a symbolic label AND a region in embedding space."
           },
           {
             "type": "h3",
@@ -808,7 +808,7 @@
             "props": {
               "language": "text"
             },
-            "children": "OPERATOR TREE\n├── TRANSFER (abstract region)\n│   ├── PHYSICAL_TRANSFER\n│   │   ├── \"gave him the book\" [emb: [0.2, 0.8, ...]]\n│   │   └── \"handed her the keys\" [emb: [0.3, 0.7, ...]]\n│   └── INFORMATION_TRANSFER  \n│       ├── \"told him the news\" [emb: [0.5, 0.4, ...]]\n│       └── \"shot him a glance\" [emb: [0.6, 0.3, ...]]  ← same verb!\n├── HARM (abstract region)\n│   ├── \"shot him dead\" [emb: [0.9, 0.1, ...]]\n│   └── \"killed the engine\" [emb: [0.85, 0.15, ...]]"
+            "children": "OPERATOR TREE\n\u251c\u2500\u2500 TRANSFER (abstract region)\n\u2502   \u251c\u2500\u2500 PHYSICAL_TRANSFER\n\u2502   \u2502   \u251c\u2500\u2500 \"gave him the book\" [emb: [0.2, 0.8, ...]]\n\u2502   \u2502   \u2514\u2500\u2500 \"handed her the keys\" [emb: [0.3, 0.7, ...]]\n\u2502   \u2514\u2500\u2500 INFORMATION_TRANSFER  \n\u2502       \u251c\u2500\u2500 \"told him the news\" [emb: [0.5, 0.4, ...]]\n\u2502       \u2514\u2500\u2500 \"shot him a glance\" [emb: [0.6, 0.3, ...]]  \u2190 same verb!\n\u251c\u2500\u2500 HARM (abstract region)\n\u2502   \u251c\u2500\u2500 \"shot him dead\" [emb: [0.9, 0.1, ...]]\n\u2502   \u2514\u2500\u2500 \"killed the engine\" [emb: [0.85, 0.15, ...]]"
           },
           {
             "type": "Callout",
@@ -835,7 +835,7 @@
                 },
                 {
                   "term": "Embedding centroid",
-                  "definition": "Mean of all exemplar embeddings — defines the 'center' of this operator's region"
+                  "definition": "Mean of all exemplar embeddings \u2014 defines the 'center' of this operator's region"
                 },
                 {
                   "term": "Boundary/radius",
@@ -881,11 +881,11 @@
               },
               {
                 "type": "li",
-                "children": "If close enough → add as exemplar to that node"
+                "children": "If close enough \u2192 add as exemplar to that node"
               },
               {
                 "type": "li",
-                "children": "If not close → create new child node (subdivision)"
+                "children": "If not close \u2192 create new child node (subdivision)"
               },
               {
                 "type": "li",
@@ -918,7 +918,7 @@
               },
               {
                 "type": "li",
-                "children": "Inherit operator properties from path: TRANSFER → INFO_TRANSFER"
+                "children": "Inherit operator properties from path: TRANSFER \u2192 INFO_TRANSFER"
               }
             ]
           },
@@ -948,7 +948,7 @@
                 ],
                 [
                   "B: Projected",
-                  "BERT → operator space projection",
+                  "BERT \u2192 operator space projection",
                   "Consistent, learnable",
                   "Requires training the projection"
                 ],
@@ -966,7 +966,7 @@
             "props": {
               "type": "tip"
             },
-            "children": "Recommendation: Use B + C combined. Train a projection from BERT space → operator space. Each tree node stores the centroid of projected exemplars. New phrases get projected and compared to centroids."
+            "children": "Recommendation: Use B + C combined. Train a projection from BERT space \u2192 operator space. Each tree node stores the centroid of projected exemplars. New phrases get projected and compared to centroids."
           },
           {
             "type": "h3",
@@ -1014,7 +1014,7 @@
               },
               {
                 "type": "li",
-                "children": "Hyperbolic embeddings: Hierarchies as geometry (Poincaré embeddings)"
+                "children": "Hyperbolic embeddings: Hierarchies as geometry (Poincar\u00e9 embeddings)"
               },
               {
                 "type": "li",
@@ -1043,7 +1043,7 @@
           },
           {
             "type": "p",
-            "children": "A Schankian primitive neuron + two entity neurons tells us the operator is relevant. But it doesn't tell us SEQUENCE — critical for non-commutative operators. Time has one arrow, but multiple entities = multiple arrows (a 'fusillade')."
+            "children": "A Schankian primitive neuron + two entity neurons tells us the operator is relevant. But it doesn't tell us SEQUENCE \u2014 critical for non-commutative operators. Time has one arrow, but multiple entities = multiple arrows (a 'fusillade')."
           },
           {
             "type": "h3",
@@ -1114,7 +1114,7 @@
             "props": {
               "type": "tip"
             },
-            "children": "🎯 'Entities, Operators, Anaphora, and Arrows: Oh My'"
+            "children": "\ud83c\udfaf 'Entities, Operators, Anaphora, and Arrows: Oh My'"
           },
           {
             "type": "h3",
@@ -1125,7 +1125,7 @@
             "children": [
               {
                 "type": "li",
-                "children": "Empirical → Theoretical: Let data discover primitives, then analyze"
+                "children": "Empirical \u2192 Theoretical: Let data discover primitives, then analyze"
               },
               {
                 "type": "li",
@@ -1158,7 +1158,7 @@
             "children": [
               {
                 "type": "li",
-                "children": "TransE: h + r ≈ t (additive, symmetric)"
+                "children": "TransE: h + r \u2248 t (additive, symmetric)"
               },
               {
                 "type": "li",
@@ -1170,7 +1170,7 @@
               },
               {
                 "type": "li",
-                "children": "RotatE: rotation in complex space ← OUR APPROACH"
+                "children": "RotatE: rotation in complex space \u2190 OUR APPROACH"
               }
             ]
           },
@@ -1279,22 +1279,22 @@
             "children": [
               {
                 "type": "li",
-                "children": "✅ Phase 1: Synthetic operator learning (88.2% recovery)"
+                "children": "\u2705 Phase 1: Synthetic operator learning (88.2% recovery)"
               },
               {
                 "type": "li",
-                "children": "✅ schankian_learner_v1.py — working implementation"
+                "children": "\u2705 schankian_learner_v1.py \u2014 working implementation"
               },
               {
                 "type": "li",
-                "children": "✅ Paper organization (IDEAS_INVENTORY.md, PAPER_ORGANIZATION.md)"
+                "children": "\u2705 Paper organization (IDEAS_INVENTORY.md, PAPER_ORGANIZATION.md)"
               }
             ]
           },
           {
             "type": "DeepDive",
             "props": {
-              "title": "❓ Q: Do we have synthetic data for this?? If so, a tiny sample here would be good, and then the name of the file(s)",
+              "title": "\u2753 Q: Do we have synthetic data for this?? If so, a tiny sample here would be good, and then the name of the file(s)",
               "defaultOpen": true,
               "id": "ann-1770413627802-7qe3f4",
               "sourceId": "source-ann-1770413627802-7qe3f4"
@@ -1318,7 +1318,7 @@
               },
               {
                 "type": "p",
-                "children": "A typical synthetic training example might look like: \"John pushed the door. The door opened.\" → Target operators: [CAUSATION: push→open, PHYSICAL_CONTACT: John→door]. The synthetic dataset would contain thousands of such simple, clear-cut scenarios where the correct operator applications are unambiguous."
+                "children": "A typical synthetic training example might look like: \"John pushed the door. The door opened.\" \u2192 Target operators: [CAUSATION: push\u2192open, PHYSICAL_CONTACT: John\u2192door]. The synthetic dataset would contain thousands of such simple, clear-cut scenarios where the correct operator applications are unambiguous."
               },
               {
                 "type": "p",
@@ -1355,7 +1355,7 @@
                 "children": [
                   {
                     "type": "strong",
-                    "children": "📝 Your note: "
+                    "children": "\ud83d\udcdd Your note: "
                   },
                   "This is just a start, of course! During our process, we would *annotate* this text to contain phrases like \"(before a door is pushed open, it is shut)\" and \"(after a door is opened, it is open)\" so that we make *explicit* the entities and their before-and-after states. Without this, we can't deduce the matrix that transformed the entity-in-its-before-state to entity-in-its-after-state"
                 ]
@@ -1399,7 +1399,7 @@
                 "children": [
                   {
                     "type": "strong",
-                    "children": "📝 Your note: "
+                    "children": "\ud83d\udcdd Your note: "
                   },
                   "The synthetic data in this example is fine; this just underscores the importance of how our process needs to *take* data *just* like this and run an annotation step first *before* performing other tasks"
                 ]
@@ -1434,15 +1434,15 @@
             "children": [
               {
                 "type": "li",
-                "children": "🔲 Phase 2: Multi-hop composition (can we chain operators?)"
+                "children": "\ud83d\udd32 Phase 2: Multi-hop composition (can we chain operators?)"
               },
               {
                 "type": "li",
-                "children": "🔲 Phase 3: Real SVO data (extract from corpus, train)"
+                "children": "\ud83d\udd32 Phase 3: Real SVO data (extract from corpus, train)"
               },
               {
                 "type": "li",
-                "children": "🔲 Phase 4: Cluster analysis (do learned ops match Schankian categories?)"
+                "children": "\ud83d\udd32 Phase 4: Cluster analysis (do learned ops match Schankian categories?)"
               }
             ]
           }
@@ -1519,7 +1519,7 @@
       {
         "type": "Section",
         "props": {
-          "title": "📚 Reading List"
+          "title": "\ud83d\udcda Reading List"
         },
         "children": [
           {
@@ -1527,7 +1527,7 @@
             "props": {
               "type": "info"
             },
-            "children": "Key papers to read and cite. Mark with ✅ when read, add notes on relevance."
+            "children": "Key papers to read and cite. Mark with \u2705 when read, add notes on relevance."
           },
           {
             "type": "h3",
@@ -1538,19 +1538,19 @@
             "children": [
               {
                 "type": "li",
-                "children": "🔲 RotatE (Sun et al., ICLR 2019) — YOUR DIRECT INSPIRATION. Relations as rotations in complex space. arxiv.org/abs/1902.10197"
+                "children": "\ud83d\udd32 RotatE (Sun et al., ICLR 2019) \u2014 YOUR DIRECT INSPIRATION. Relations as rotations in complex space. arxiv.org/abs/1902.10197"
               },
               {
                 "type": "li",
-                "children": "🔲 TransE (Bordes et al., NeurIPS 2013) — The original KG embedding. h + r ≈ t. Foundational but can't handle asymmetry."
+                "children": "\ud83d\udd32 TransE (Bordes et al., NeurIPS 2013) \u2014 The original KG embedding. h + r \u2248 t. Foundational but can't handle asymmetry."
               },
               {
                 "type": "li",
-                "children": "🔲 ComplEx (Trouillon et al., ICML 2016) — Complex embeddings for asymmetric relations. arxiv.org/abs/1606.06357"
+                "children": "\ud83d\udd32 ComplEx (Trouillon et al., ICML 2016) \u2014 Complex embeddings for asymmetric relations. arxiv.org/abs/1606.06357"
               },
               {
                 "type": "li",
-                "children": "🔲 KG Embedding Survey (Wang et al., IEEE TKDE 2017) — 'Knowledge Graph Embedding: A Survey of Approaches and Applications'"
+                "children": "\ud83d\udd32 KG Embedding Survey (Wang et al., IEEE TKDE 2017) \u2014 'Knowledge Graph Embedding: A Survey of Approaches and Applications'"
               }
             ]
           },
@@ -1563,11 +1563,11 @@
             "children": [
               {
                 "type": "li",
-                "children": "🔲 Schank (1972) — THE ORIGINAL. 'Conceptual Dependency: A Theory of Natural Language Understanding'"
+                "children": "\ud83d\udd32 Schank (1972) \u2014 THE ORIGINAL. 'Conceptual Dependency: A Theory of Natural Language Understanding'"
               },
               {
                 "type": "li",
-                "children": "🔲 Schank & Abelson (1977) — Book: 'Scripts, Plans, Goals and Understanding'. Introduces scripts for event understanding."
+                "children": "\ud83d\udd32 Schank & Abelson (1977) \u2014 Book: 'Scripts, Plans, Goals and Understanding'. Introduces scripts for event understanding."
               }
             ]
           },
@@ -1580,11 +1580,11 @@
             "children": [
               {
                 "type": "li",
-                "children": "🔲 ProPara (Dalvi et al., NAACL 2018) — KEY BENCHMARK. 'Tracking State Changes in Procedural Text'. arxiv.org/abs/1805.06975"
+                "children": "\ud83d\udd32 ProPara (Dalvi et al., NAACL 2018) \u2014 KEY BENCHMARK. 'Tracking State Changes in Procedural Text'. arxiv.org/abs/1805.06975"
               },
               {
                 "type": "li",
-                "children": "🔲 OpenPI (Tandon et al., EMNLP 2020) — 'A Dataset for Tracking Entities in Open Domain Procedural Text'"
+                "children": "\ud83d\udd32 OpenPI (Tandon et al., EMNLP 2020) \u2014 'A Dataset for Tracking Entities in Open Domain Procedural Text'"
               }
             ]
           },
@@ -1597,15 +1597,15 @@
             "children": [
               {
                 "type": "li",
-                "children": "🔲 Narrative Event Evolutionary Graph (Li et al., EMNLP 2018) — Graph-based event representation. arxiv.org/abs/1805.05081"
+                "children": "\ud83d\udd32 Narrative Event Evolutionary Graph (Li et al., EMNLP 2018) \u2014 Graph-based event representation. arxiv.org/abs/1805.05081"
               },
               {
                 "type": "li",
-                "children": "🔲 Statistical Script Learning with RNNs (Pichotta & Mooney) — Uses LSTMs for script learning, 'Narrative Cloze' evaluation"
+                "children": "\ud83d\udd32 Statistical Script Learning with RNNs (Pichotta & Mooney) \u2014 Uses LSTMs for script learning, 'Narrative Cloze' evaluation"
               },
               {
                 "type": "li",
-                "children": "🔲 VerbNet + Generative Lexicon (Frontiers in AI, 2022) — Hand-crafted subevent semantics. What you're trying to LEARN."
+                "children": "\ud83d\udd32 VerbNet + Generative Lexicon (Frontiers in AI, 2022) \u2014 Hand-crafted subevent semantics. What you're trying to LEARN."
               }
             ]
           },
@@ -1615,15 +1615,15 @@
           },
           {
             "type": "p",
-            "children": "For Paper 1 (Core Method): RotatE → TransE → ComplEx → Schank 1972 → KG Survey"
+            "children": "For Paper 1 (Core Method): RotatE \u2192 TransE \u2192 ComplEx \u2192 Schank 1972 \u2192 KG Survey"
           },
           {
             "type": "p",
-            "children": "For Paper 2 (Entity State): ProPara → OpenPI → VerbNet paper"
+            "children": "For Paper 2 (Entity State): ProPara \u2192 OpenPI \u2192 VerbNet paper"
           },
           {
             "type": "p",
-            "children": "For Paper 3 (Temporal): Narrative Event Graph → Script learning papers"
+            "children": "For Paper 3 (Temporal): Narrative Event Graph \u2192 Script learning papers"
           }
         ]
       },
@@ -1633,7 +1633,7 @@
           {
             "type": "DeepDive",
             "props": {
-              "title": "❓ Q: Why are we using 64 if RotatE used 1000? Are we short-changing ourselves? This would be a good place for a deep dive, with links and maybe even visualizations",
+              "title": "\u2753 Q: Why are we using 64 if RotatE used 1000? Are we short-changing ourselves? This would be a good place for a deep dive, with links and maybe even visualizations",
               "defaultOpen": true,
               "id": "ann-1770461260315-r9cwtc",
               "sourceId": "source-ann-1770461260315-r9cwtc"
@@ -1764,7 +1764,7 @@
       {
         "type": "Section",
         "props": {
-          "title": "🧠 Brainstorming"
+          "title": "\ud83e\udde0 Brainstorming"
         },
         "children": [
           {
@@ -1780,7 +1780,7 @@
           },
           {
             "type": "p",
-            "children": "🔮 Status: speculative | Date: 2026-02-07"
+            "children": "\ud83d\udd2e Status: speculative | Date: 2026-02-07"
           },
           {
             "type": "p",
@@ -1792,7 +1792,7 @@
           },
           {
             "type": "p",
-            "children": "🧭 Status: worth exploring | Date: 2026-02-07"
+            "children": "\ud83e\udded Status: worth exploring | Date: 2026-02-07"
           },
           {
             "type": "p",
@@ -1804,7 +1804,7 @@
           },
           {
             "type": "p",
-            "children": "🔭 Status: future direction | Date: 2026-02-07"
+            "children": "\ud83d\udd2d Status: future direction | Date: 2026-02-07"
           },
           {
             "type": "p",
@@ -1816,7 +1816,7 @@
           },
           {
             "type": "p",
-            "children": "📋 Status: action item | Date: 2026-02-07"
+            "children": "\ud83d\udccb Status: action item | Date: 2026-02-07"
           },
           {
             "type": "p",
@@ -1824,15 +1824,15 @@
           },
           {
             "type": "h3",
-            "children": "Entry 5: Prototypes vs. Definitions — Good Enough Centers"
+            "children": "Entry 5: Prototypes vs. Definitions \u2014 Good Enough Centers"
           },
           {
             "type": "p",
-            "children": "⭐ Status: promising | Date: 2026-02-07"
+            "children": "\u2b50 Status: promising | Date: 2026-02-07"
           },
           {
             "type": "p",
-            "children": "Schankian primitives may work like Rosch's prototypes — ATRANS as a prototype in action-space, with 'giving', 'selling', 'stealing' at varying distances. Recent arXiv paper shows LLMs can extract conceptual spaces via prototype embeddings."
+            "children": "Schankian primitives may work like Rosch's prototypes \u2014 ATRANS as a prototype in action-space, with 'giving', 'selling', 'stealing' at varying distances. Recent arXiv paper shows LLMs can extract conceptual spaces via prototype embeddings."
           },
           {
             "type": "p",
@@ -1840,15 +1840,15 @@
           },
           {
             "type": "h3",
-            "children": "Entry 6: Tensor Products Fail at Compositionality — Operators Don't"
+            "children": "Entry 6: Tensor Products Fail at Compositionality \u2014 Operators Don't"
           },
           {
             "type": "p",
-            "children": "❗ Status: important | Date: 2026-02-07"
+            "children": "\u2757 Status: important | Date: 2026-02-07"
           },
           {
             "type": "p",
-            "children": "Tensor products violate variable-value independence (fuzzy cactus vs fuzzy penguin problem). Our operators are transformations, not bindings — they preserve compositional structure naturally. Key theoretical advantage."
+            "children": "Tensor products violate variable-value independence (fuzzy cactus vs fuzzy penguin problem). Our operators are transformations, not bindings \u2014 they preserve compositional structure naturally. Key theoretical advantage."
           },
           {
             "type": "p",
@@ -1860,11 +1860,11 @@
           },
           {
             "type": "p",
-            "children": "🎯 Status: exciting | Date: 2026-02-07"
+            "children": "\ud83c\udfaf Status: exciting | Date: 2026-02-07"
           },
           {
             "type": "p",
-            "children": "Gentner's Structure-Mapping Theory: analogy works by aligning relational structure. Our operators ARE that structure. HARM(predator, prey) ≈ HARM(attacker, victim) — same operator enables analogical transfer across domains."
+            "children": "Gentner's Structure-Mapping Theory: analogy works by aligning relational structure. Our operators ARE that structure. HARM(predator, prey) \u2248 HARM(attacker, victim) \u2014 same operator enables analogical transfer across domains."
           },
           {
             "type": "p",
@@ -1872,11 +1872,11 @@
           },
           {
             "type": "h3",
-            "children": "Entry 8: Dowty's Event Decomposition — Linguistic Validation"
+            "children": "Entry 8: Dowty's Event Decomposition \u2014 Linguistic Validation"
           },
           {
             "type": "p",
-            "children": "📚 Status: essential citation | Date: 2026-02-07"
+            "children": "\ud83d\udcda Status: essential citation | Date: 2026-02-07"
           },
           {
             "type": "p",
@@ -1888,11 +1888,11 @@
           },
           {
             "type": "h3",
-            "children": "Entry 9: KNN with Linguistic Anchors — Semi-Supervised Learning"
+            "children": "Entry 9: KNN with Linguistic Anchors \u2014 Semi-Supervised Learning"
           },
           {
             "type": "p",
-            "children": "🔥 Status: high priority | Date: 2026-02-07"
+            "children": "\ud83d\udd25 Status: high priority | Date: 2026-02-07"
           },
           {
             "type": "p",
@@ -1900,23 +1900,23 @@
           },
           {
             "type": "h3",
-            "children": "Entry 10: Hierarchical Operator Trees — Symbolic + Geometric"
+            "children": "Entry 10: Hierarchical Operator Trees \u2014 Symbolic + Geometric"
           },
           {
             "type": "p",
-            "children": "📐 Status: major section | Date: 2026-02-07"
+            "children": "\ud83d\udcd0 Status: major section | Date: 2026-02-07"
           },
           {
             "type": "p",
-            "children": "Tree where each node is BOTH symbolic label AND embedding region. Abstract operators at top, specific below. Handles polysemy: 'shot him a glance' vs 'shot him dead' → different operators via embedding similarity. PROMOTED TO PAPER 2c."
+            "children": "Tree where each node is BOTH symbolic label AND embedding region. Abstract operators at top, specific below. Handles polysemy: 'shot him a glance' vs 'shot him dead' \u2192 different operators via embedding similarity. PROMOTED TO PAPER 2c."
           },
           {
             "type": "h3",
-            "children": "Entry 11: Talmy's Force Dynamics — Finer Causation Primitives"
+            "children": "Entry 11: Talmy's Force Dynamics \u2014 Finer Causation Primitives"
           },
           {
             "type": "p",
-            "children": "❗ Status: important | Date: 2026-02-07"
+            "children": "\u2757 Status: important | Date: 2026-02-07"
           },
           {
             "type": "p",
@@ -1928,11 +1928,11 @@
           },
           {
             "type": "h3",
-            "children": "Entry 12: Disentangled Operator Dimensions — Independent Semantic Axes"
+            "children": "Entry 12: Disentangled Operator Dimensions \u2014 Independent Semantic Axes"
           },
           {
             "type": "p",
-            "children": "🏗️ Status: architectural | Date: 2026-02-07"
+            "children": "\ud83c\udfd7\ufe0f Status: architectural | Date: 2026-02-07"
           },
           {
             "type": "p",
@@ -1944,15 +1944,15 @@
           },
           {
             "type": "h3",
-            "children": "Entry 13: Grounded Operators — Simulation Semantics"
+            "children": "Entry 13: Grounded Operators \u2014 Simulation Semantics"
           },
           {
             "type": "p",
-            "children": "🧠 Status: theoretical | Date: 2026-02-07"
+            "children": "\ud83e\udde0 Status: theoretical | Date: 2026-02-07"
           },
           {
             "type": "p",
-            "children": "Barsalou's grounded cognition: meaning IS simulation. Operators might encode sensorimotor simulation patterns. HARM = simulating harmful effect. Explains biological plausibility — operators compress what brains actually do."
+            "children": "Barsalou's grounded cognition: meaning IS simulation. Operators might encode sensorimotor simulation patterns. HARM = simulating harmful effect. Explains biological plausibility \u2014 operators compress what brains actually do."
           },
           {
             "type": "p",
@@ -1960,15 +1960,15 @@
           },
           {
             "type": "h3",
-            "children": "Entry 14: Script Event Prediction — Evaluation Path"
+            "children": "Entry 14: Script Event Prediction \u2014 Evaluation Path"
           },
           {
             "type": "p",
-            "children": "📊 Status: evaluation | Date: 2026-02-07"
+            "children": "\ud83d\udcca Status: evaluation | Date: 2026-02-07"
           },
           {
             "type": "p",
-            "children": "Modern 'Narrative Cloze' task is Schank's scripts + neural nets. Scripts = paths through operator space. Restaurant script = ENTER→SIT→ORDER→EAT→PAY. Each arrow is an operator. Use script prediction benchmarks to evaluate!"
+            "children": "Modern 'Narrative Cloze' task is Schank's scripts + neural nets. Scripts = paths through operator space. Restaurant script = ENTER\u2192SIT\u2192ORDER\u2192EAT\u2192PAY. Each arrow is an operator. Use script prediction benchmarks to evaluate!"
           },
           {
             "type": "p",
@@ -1980,7 +1980,7 @@
           },
           {
             "type": "p",
-            "children": "💎 Status: critical resource | Date: 2026-02-07"
+            "children": "\ud83d\udc8e Status: critical resource | Date: 2026-02-07"
           },
           {
             "type": "p",
@@ -1992,11 +1992,11 @@
           },
           {
             "type": "h3",
-            "children": "Entry 16: Compositional Generalization — The Primitive Test"
+            "children": "Entry 16: Compositional Generalization \u2014 The Primitive Test"
           },
           {
             "type": "p",
-            "children": "🧪 Status: critical evaluation | Date: 2026-02-07"
+            "children": "\ud83e\uddea Status: critical evaluation | Date: 2026-02-07"
           },
           {
             "type": "p",
@@ -2008,11 +2008,11 @@
           },
           {
             "type": "h3",
-            "children": "Entry 17: Contrastive Operator Learning — Hard Negatives"
+            "children": "Entry 17: Contrastive Operator Learning \u2014 Hard Negatives"
           },
           {
             "type": "p",
-            "children": "🎓 Status: training strategy | Date: 2026-02-07"
+            "children": "\ud83c\udf93 Status: training strategy | Date: 2026-02-07"
           },
           {
             "type": "p",
@@ -2024,11 +2024,11 @@
           },
           {
             "type": "h3",
-            "children": "Entry 18: Vendler Classes — Operators Have Aspectual Types"
+            "children": "Entry 18: Vendler Classes \u2014 Operators Have Aspectual Types"
           },
           {
             "type": "p",
-            "children": "🗣️ Status: linguistic | Date: 2026-02-07"
+            "children": "\ud83d\udde3\ufe0f Status: linguistic | Date: 2026-02-07"
           },
           {
             "type": "p",
@@ -2040,11 +2040,11 @@
           },
           {
             "type": "h3",
-            "children": "Entry 19: Curriculum Learning — Simple to Complex Operators"
+            "children": "Entry 19: Curriculum Learning \u2014 Simple to Complex Operators"
           },
           {
             "type": "p",
-            "children": "🎓 Status: training strategy | Date: 2026-02-07"
+            "children": "\ud83c\udf93 Status: training strategy | Date: 2026-02-07"
           },
           {
             "type": "p",
@@ -2056,15 +2056,15 @@
           },
           {
             "type": "h3",
-            "children": "Entry 20: Multimodal Grounding — Video as Training Signal"
+            "children": "Entry 20: Multimodal Grounding \u2014 Video as Training Signal"
           },
           {
             "type": "p",
-            "children": "🔭 Status: future direction | Date: 2026-02-07"
+            "children": "\ud83d\udd2d Status: future direction | Date: 2026-02-07"
           },
           {
             "type": "p",
-            "children": "Ground operators in VIDEO, not just text. VLMs fail at verbs (noun-biased). Therbligs = industrial motion primitives (18 types) ≈ physical Schankian primitives. Video disambiguates ('shot' clearly shows HARM vs INFO_TRANSFER)."
+            "children": "Ground operators in VIDEO, not just text. VLMs fail at verbs (noun-biased). Therbligs = industrial motion primitives (18 types) \u2248 physical Schankian primitives. Video disambiguates ('shot' clearly shows HARM vs INFO_TRANSFER)."
           },
           {
             "type": "p",
@@ -2072,15 +2072,15 @@
           },
           {
             "type": "h3",
-            "children": "Entry 21: Probing Classifiers — What Do Operators Encode?"
+            "children": "Entry 21: Probing Classifiers \u2014 What Do Operators Encode?"
           },
           {
             "type": "p",
-            "children": "📊 Status: evaluation | Date: 2026-02-07"
+            "children": "\ud83d\udcca Status: evaluation | Date: 2026-02-07"
           },
           {
             "type": "p",
-            "children": "Train linear classifiers on operator embeddings to predict linguistic properties (Vendler class, polarity, force dynamics). If probe succeeds → property IS encoded. BERTology technique for interpretability and validation."
+            "children": "Train linear classifiers on operator embeddings to predict linguistic properties (Vendler class, polarity, force dynamics). If probe succeeds \u2192 property IS encoded. BERTology technique for interpretability and validation."
           },
           {
             "type": "p",
@@ -2088,11 +2088,11 @@
           },
           {
             "type": "h3",
-            "children": "Entry 22: Operators as Causal Interventions — Mech Interp Bridge"
+            "children": "Entry 22: Operators as Causal Interventions \u2014 Mech Interp Bridge"
           },
           {
             "type": "p",
-            "children": "⚡ Status: high potential | Date: 2026-02-08"
+            "children": "\u26a1 Status: high potential | Date: 2026-02-08"
           },
           {
             "type": "p",
@@ -2104,15 +2104,15 @@
           },
           {
             "type": "h3",
-            "children": "Entry 23: Differentiable State Machines — Constrained Neural Process Networks"
+            "children": "Entry 23: Differentiable State Machines \u2014 Constrained Neural Process Networks"
           },
           {
             "type": "p",
-            "children": "🛠️ Status: high priority implementation | Date: 2026-02-08"
+            "children": "\ud83d\udee0\ufe0f Status: high priority implementation | Date: 2026-02-08"
           },
           {
             "type": "p",
-            "children": "Neural Process Networks model actions as state transformers but learn separate transforms per verb. Constrain them to K primitive operators + composition. 'Chop onion' → SEPARATE ∘ CONTACT. Enables generalization, interpretability, transfer. Concrete architecture for Paper 1."
+            "children": "Neural Process Networks model actions as state transformers but learn separate transforms per verb. Constrain them to K primitive operators + composition. 'Chop onion' \u2192 SEPARATE \u2218 CONTACT. Enables generalization, interpretability, transfer. Concrete architecture for Paper 1."
           },
           {
             "type": "p",
@@ -2124,7 +2124,7 @@
           },
           {
             "type": "p",
-            "children": "🔄 Status: major reframing | Date: 2026-02-08"
+            "children": "\ud83d\udd04 Status: major reframing | Date: 2026-02-08"
           },
           {
             "type": "p",
@@ -2140,7 +2140,7 @@
           },
           {
             "type": "p",
-            "children": "⚡ Status: high potential shortcut | Date: 2026-02-08"
+            "children": "\u26a1 Status: high potential shortcut | Date: 2026-02-08"
           },
           {
             "type": "p",
@@ -2152,11 +2152,11 @@
           },
           {
             "type": "h3",
-            "children": "Entry 26: Operators Complete What SRL Starts — Roles to State Changes"
+            "children": "Entry 26: Operators Complete What SRL Starts \u2014 Roles to State Changes"
           },
           {
             "type": "p",
-            "children": "📐 Status: positioning angle | Date: 2026-02-08"
+            "children": "\ud83d\udcd0 Status: positioning angle | Date: 2026-02-08"
           },
           {
             "type": "p",
@@ -2172,11 +2172,11 @@
           },
           {
             "type": "p",
-            "children": "🧠 Status: theoretical framework | Date: 2026-02-08"
+            "children": "\ud83e\udde0 Status: theoretical framework | Date: 2026-02-08"
           },
           {
             "type": "p",
-            "children": "Motor control uses forward models (predict effects) + inverse models (infer actions). Language comprehension may work same way. Operators ARE semantic forward models! Train both directions: forward (state+op→new_state) and inverse (states→op). ENACT benchmark tests exactly this."
+            "children": "Motor control uses forward models (predict effects) + inverse models (infer actions). Language comprehension may work same way. Operators ARE semantic forward models! Train both directions: forward (state+op\u2192new_state) and inverse (states\u2192op). ENACT benchmark tests exactly this."
           },
           {
             "type": "p",
@@ -2184,11 +2184,11 @@
           },
           {
             "type": "h3",
-            "children": "Entry 28: Operators as Differentiable STRIPS — Neuro-Symbolic Bridge"
+            "children": "Entry 28: Operators as Differentiable STRIPS \u2014 Neuro-Symbolic Bridge"
           },
           {
             "type": "p",
-            "children": "🔗 Status: neuro symbolic | Date: 2026-02-08"
+            "children": "\ud83d\udd17 Status: neuro symbolic | Date: 2026-02-08"
           },
           {
             "type": "p",
@@ -2200,15 +2200,15 @@
           },
           {
             "type": "h3",
-            "children": "Entry 29: Operators as Entity Affordances — Gibson Meets Schank"
+            "children": "Entry 29: Operators as Entity Affordances \u2014 Gibson Meets Schank"
           },
           {
             "type": "p",
-            "children": "🧠 Status: theoretical framework | Date: 2026-02-08"
+            "children": "\ud83e\udde0 Status: theoretical framework | Date: 2026-02-08"
           },
           {
             "type": "p",
-            "children": "Gibson's affordances describe what actions environments offer agents. Operators = semantic affordances of entities — what state transformations they support. Knife affords cutting = PROPEL+MOVE applicable. Connects to robotics affordance learning, grounds operators in perception-action theory."
+            "children": "Gibson's affordances describe what actions environments offer agents. Operators = semantic affordances of entities \u2014 what state transformations they support. Knife affords cutting = PROPEL+MOVE applicable. Connects to robotics affordance learning, grounds operators in perception-action theory."
           },
           {
             "type": "p",
@@ -2216,15 +2216,15 @@
           },
           {
             "type": "h3",
-            "children": "Entry 30: Operators as Aspectual Decomposition — Vendler Classes in Embedding Space"
+            "children": "Entry 30: Operators as Aspectual Decomposition \u2014 Vendler Classes in Embedding Space"
           },
           {
             "type": "p",
-            "children": "🗣️ Status: linguistic theory | Date: 2026-02-08"
+            "children": "\ud83d\udde3\ufe0f Status: linguistic theory | Date: 2026-02-08"
           },
           {
             "type": "p",
-            "children": "Vendler's verb classes (states/activities/accomplishments/achievements) map to operator geometries. States=identity, activities=continuous rotation, accomplishments=bounded transforms, achievements=discrete jumps. VerbNet's subevent structure already predicts entity changes — we learn this geometrically."
+            "children": "Vendler's verb classes (states/activities/accomplishments/achievements) map to operator geometries. States=identity, activities=continuous rotation, accomplishments=bounded transforms, achievements=discrete jumps. VerbNet's subevent structure already predicts entity changes \u2014 we learn this geometrically."
           },
           {
             "type": "p",
@@ -2232,15 +2232,15 @@
           },
           {
             "type": "h3",
-            "children": "Entry 31: Semantic Conservation Laws — Noether's Theorem for Language"
+            "children": "Entry 31: Semantic Conservation Laws \u2014 Noether's Theorem for Language"
           },
           {
             "type": "p",
-            "children": "⚛️ Status: theoretical physics | Date: 2026-02-08"
+            "children": "\u269b\ufe0f Status: theoretical physics | Date: 2026-02-08"
           },
           {
             "type": "p",
-            "children": "Noether: symmetries → conservation laws. Operators may have conserved semantic quantities (causal responsibility, possession, information). Talmy's force dynamics already formalizes force conservation in semantics. ATRANS conserves total possession (zero-sum). Conservation violations signal incomplete descriptions."
+            "children": "Noether: symmetries \u2192 conservation laws. Operators may have conserved semantic quantities (causal responsibility, possession, information). Talmy's force dynamics already formalizes force conservation in semantics. ATRANS conserves total possession (zero-sum). Conservation violations signal incomplete descriptions."
           },
           {
             "type": "p",
@@ -2248,15 +2248,15 @@
           },
           {
             "type": "h3",
-            "children": "Entry 32: Operators as Semantic IR — The LLVM of Language Understanding"
+            "children": "Entry 32: Operators as Semantic IR \u2014 The LLVM of Language Understanding"
           },
           {
             "type": "p",
-            "children": "🏗️ Status: architecture | Date: 2026-02-08"
+            "children": "\ud83c\udfd7\ufe0f Status: architecture | Date: 2026-02-08"
           },
           {
             "type": "p",
-            "children": "LLVM IR bridges high-level code to machine code. Operators = semantic IR bridging surface language to world state changes. Language-independent, optimizable, multiple backends. AMR captures static structure but not dynamics — operators add state change semantics. GraphQ IR (EMNLP 2022) as direct precedent."
+            "children": "LLVM IR bridges high-level code to machine code. Operators = semantic IR bridging surface language to world state changes. Language-independent, optimizable, multiple backends. AMR captures static structure but not dynamics \u2014 operators add state change semantics. GraphQ IR (EMNLP 2022) as direct precedent."
           },
           {
             "type": "p",
@@ -2264,11 +2264,11 @@
           },
           {
             "type": "h3",
-            "children": "Entry 33: Operators as Semantic Enzymes — The Biochemistry of Meaning"
+            "children": "Entry 33: Operators as Semantic Enzymes \u2014 The Biochemistry of Meaning"
           },
           {
             "type": "p",
-            "children": "🧬 Status: biochemistry analogy | Date: 2026-02-08"
+            "children": "\ud83e\uddec Status: biochemistry analogy | Date: 2026-02-08"
           },
           {
             "type": "p",
@@ -2280,15 +2280,15 @@
           },
           {
             "type": "h3",
-            "children": "Entry 34: Operators as Semantic Intervals — The Music Theory of Meaning"
+            "children": "Entry 34: Operators as Semantic Intervals \u2014 The Music Theory of Meaning"
           },
           {
             "type": "p",
-            "children": "🎵 Status: music theory analogy | Date: 2026-02-08"
+            "children": "\ud83c\udfb5 Status: music theory analogy | Date: 2026-02-08"
           },
           {
             "type": "p",
-            "children": "Musical intervals (perfect fifth) are transposition-invariant — same relationship in any key. Operators = semantic intervals, invariant transformations across entities. Word2vec's king-man+woman=queen IS operator application! Melodies = interval sequences, event narratives = operator sequences."
+            "children": "Musical intervals (perfect fifth) are transposition-invariant \u2014 same relationship in any key. Operators = semantic intervals, invariant transformations across entities. Word2vec's king-man+woman=queen IS operator application! Melodies = interval sequences, event narratives = operator sequences."
           },
           {
             "type": "p",
@@ -2296,15 +2296,15 @@
           },
           {
             "type": "h3",
-            "children": "Entry 35: Near-Miss Contrastive Learning — Isolating Operators via Failure"
+            "children": "Entry 35: Near-Miss Contrastive Learning \u2014 Isolating Operators via Failure"
           },
           {
             "type": "p",
-            "children": "🎓 Status: training strategy | Date: 2026-02-09"
+            "children": "\ud83c\udf93 Status: training strategy | Date: 2026-02-09"
           },
           {
             "type": "p",
-            "children": "Use near-miss scenarios ('reached for cup' vs 'grabbed cup') to isolate operators. The difference between success and failure reveals the critical causal transformation. Winston's 1970 concept learning + modern ILP contrastive explanations. Natural curriculum: obvious pairs → subtle near-misses. Connects to Vendler aspectual distinctions (accomplished vs attempted)."
+            "children": "Use near-miss scenarios ('reached for cup' vs 'grabbed cup') to isolate operators. The difference between success and failure reveals the critical causal transformation. Winston's 1970 concept learning + modern ILP contrastive explanations. Natural curriculum: obvious pairs \u2192 subtle near-misses. Connects to Vendler aspectual distinctions (accomplished vs attempted)."
           },
           {
             "type": "p",
@@ -2312,15 +2312,15 @@
           },
           {
             "type": "h3",
-            "children": "Entry 36: Eigenoperators and Semantic Attractors — Fixed Points of Transformation"
+            "children": "Entry 36: Eigenoperators and Semantic Attractors \u2014 Fixed Points of Transformation"
           },
           {
             "type": "p",
-            "children": "🧠 Status: theoretical framework | Date: 2026-02-09"
+            "children": "\ud83e\udde0 Status: theoretical framework | Date: 2026-02-09"
           },
           {
             "type": "p",
-            "children": "Operators as 'attractor inducers' — repeated application converges to stable states. Teaching→learned, harming→destroyed. Connects to Hopfield networks (memory as attractor recall), explains telicity (accomplishments converge, activities don't). Semantic Attractors paper (Aug 2025) argues understanding = convergence to fixed points in meaning space."
+            "children": "Operators as 'attractor inducers' \u2014 repeated application converges to stable states. Teaching\u2192learned, harming\u2192destroyed. Connects to Hopfield networks (memory as attractor recall), explains telicity (accomplishments converge, activities don't). Semantic Attractors paper (Aug 2025) argues understanding = convergence to fixed points in meaning space."
           },
           {
             "type": "p",
@@ -2328,15 +2328,15 @@
           },
           {
             "type": "h3",
-            "children": "Entry 37: Lie Algebra Structure — Commutators Capture Order Effects"
+            "children": "Entry 37: Lie Algebra Structure \u2014 Commutators Capture Order Effects"
           },
           {
             "type": "p",
-            "children": "📐 Status: mathematical framework | Date: 2026-02-09"
+            "children": "\ud83d\udcd0 Status: mathematical framework | Date: 2026-02-09"
           },
           {
             "type": "p",
-            "children": "Operators as Lie algebra elements where commutator [HARM, HEAL] captures non-commutativity of actions. 'Harm then heal' ≠ 'heal then harm' — the difference IS a semantic primitive. Lie Group KG Embeddings provide continuous transforms, composition, inverses. Commutators are emergent interaction operators."
+            "children": "Operators as Lie algebra elements where commutator [HARM, HEAL] captures non-commutativity of actions. 'Harm then heal' \u2260 'heal then harm' \u2014 the difference IS a semantic primitive. Lie Group KG Embeddings provide continuous transforms, composition, inverses. Commutators are emergent interaction operators."
           },
           {
             "type": "p",
@@ -2344,11 +2344,11 @@
           },
           {
             "type": "h3",
-            "children": "Entry 38: Category Theory Semantics — Operators as Morphisms"
+            "children": "Entry 38: Category Theory Semantics \u2014 Operators as Morphisms"
           },
           {
             "type": "p",
-            "children": "📐 Status: mathematical framework | Date: 2026-02-09"
+            "children": "\ud83d\udcd0 Status: mathematical framework | Date: 2026-02-09"
           },
           {
             "type": "p",
@@ -2360,15 +2360,15 @@
           },
           {
             "type": "h3",
-            "children": "Entry 39: Information Bottleneck as Operator Discovery — Compression Reveals Primitives"
+            "children": "Entry 39: Information Bottleneck as Operator Discovery \u2014 Compression Reveals Primitives"
           },
           {
             "type": "p",
-            "children": "📐 Status: training architecture | Date: 2026-02-09"
+            "children": "\ud83d\udcd0 Status: training architecture | Date: 2026-02-09"
           },
           {
             "type": "p",
-            "children": "Compress event descriptions through information bottleneck — surviving signal IS the primitive operator. \"Assassin shot president with rifle from balcony\" → bottleneck → PROPEL(bullet, president). Causal Information Bottleneck (CIB, 2025) ensures causal compression. β parameter controls abstraction level. No supervision needed — bottleneck discovers primitives."
+            "children": "Compress event descriptions through information bottleneck \u2014 surviving signal IS the primitive operator. \"Assassin shot president with rifle from balcony\" \u2192 bottleneck \u2192 PROPEL(bullet, president). Causal Information Bottleneck (CIB, 2025) ensures causal compression. \u03b2 parameter controls abstraction level. No supervision needed \u2014 bottleneck discovers primitives."
           },
           {
             "type": "p",
@@ -2376,15 +2376,15 @@
           },
           {
             "type": "h3",
-            "children": "Entry 40: Operator Type Signatures — Selectional Restrictions as Learned Constraints"
+            "children": "Entry 40: Operator Type Signatures \u2014 Selectional Restrictions as Learned Constraints"
           },
           {
             "type": "p",
-            "children": "📐 Status: architecture | Date: 2026-02-09"
+            "children": "\ud83d\udcd0 Status: architecture | Date: 2026-02-09"
           },
           {
             "type": "p",
-            "children": "Operators have type signatures like functions: ATRANS: (Agent, Object, Source→Dest) → Δpossession. Linguistics calls these \"selectional restrictions.\" Type inference from data discovers which operators exist. Levin verb classes = empirical type-signature clusters. Type mismatches predict metaphor."
+            "children": "Operators have type signatures like functions: ATRANS: (Agent, Object, Source\u2192Dest) \u2192 \u0394possession. Linguistics calls these \"selectional restrictions.\" Type inference from data discovers which operators exist. Levin verb classes = empirical type-signature clusters. Type mismatches predict metaphor."
           },
           {
             "type": "p",
@@ -2392,15 +2392,15 @@
           },
           {
             "type": "h3",
-            "children": "Entry 41: Operators as Attention Motifs — Extracting Primitives from Transformer Circuits"
+            "children": "Entry 41: Operators as Attention Motifs \u2014 Extracting Primitives from Transformer Circuits"
           },
           {
             "type": "p",
-            "children": "📐 Status: mechanistic interpretability | Date: 2026-02-09"
+            "children": "\ud83d\udcd0 Status: mechanistic interpretability | Date: 2026-02-09"
           },
           {
             "type": "p",
-            "children": "Operators leave signatures in attention patterns. \"John kicked the ball\" → specific heads light up between kicked↔ball↔across encoding PROPEL. Cluster attention topologies to discover operators. Anthropic’s circuit tracing + attention specialization + BERT dependency heads already show structure. Operators may already exist in transformers."
+            "children": "Operators leave signatures in attention patterns. \"John kicked the ball\" \u2192 specific heads light up between kicked\u2194ball\u2194across encoding PROPEL. Cluster attention topologies to discover operators. Anthropic\u2019s circuit tracing + attention specialization + BERT dependency heads already show structure. Operators may already exist in transformers."
           },
           {
             "type": "p",
@@ -2408,15 +2408,15 @@
           },
           {
             "type": "h3",
-            "children": "Entry 42: Operator Duals — Learning from Both Sides of Every Event"
+            "children": "Entry 42: Operator Duals \u2014 Learning from Both Sides of Every Event"
           },
           {
             "type": "p",
-            "children": "📐 Status: training strategy | Date: 2026-02-09"
+            "children": "\ud83d\udcd0 Status: training strategy | Date: 2026-02-09"
           },
           {
             "type": "p",
-            "children": "Every GIVE has a RECEIVE, every TEACH has a LEARN. Training on (operator, dual) pairs doubles data efficiency. Category theory’s opposite category formalizes this — reversing morphisms. KG inverse relation methods (InversEF) validate the approach. Operator-dual consistency is a powerful regularization signal."
+            "children": "Every GIVE has a RECEIVE, every TEACH has a LEARN. Training on (operator, dual) pairs doubles data efficiency. Category theory\u2019s opposite category formalizes this \u2014 reversing morphisms. KG inverse relation methods (InversEF) validate the approach. Operator-dual consistency is a powerful regularization signal."
           },
           {
             "type": "p",
@@ -2424,11 +2424,11 @@
           },
           {
             "type": "h3",
-            "children": "Entry 43: Operator Temporal Profiles — ADSR Envelopes for Event Semantics"
+            "children": "Entry 43: Operator Temporal Profiles \u2014 ADSR Envelopes for Event Semantics"
           },
           {
             "type": "p",
-            "children": "📐 Status: architecture | Date: 2026-02-09"
+            "children": "\ud83d\udcd0 Status: architecture | Date: 2026-02-09"
           },
           {
             "type": "p",
@@ -2440,15 +2440,15 @@
           },
           {
             "type": "h3",
-            "children": "Entry 44: The Periodic Table of Operators — Predicting Missing Primitives"
+            "children": "Entry 44: The Periodic Table of Operators \u2014 Predicting Missing Primitives"
           },
           {
             "type": "p",
-            "children": "📐 Status: theoretical framework | Date: 2026-02-09"
+            "children": "\ud83d\udcd0 Status: theoretical framework | Date: 2026-02-09"
           },
           {
             "type": "p",
-            "children": "Operators organized by domain (physical/mental/social/emotional) × transformation type (transfer/creation/destruction/modification/perception). Gaps predict missing primitives — like Mendeleev predicting gallium. Validated by Wierzbicka’s 64 NSM semantic primes and PNAS cross-linguistic universals."
+            "children": "Operators organized by domain (physical/mental/social/emotional) \u00d7 transformation type (transfer/creation/destruction/modification/perception). Gaps predict missing primitives \u2014 like Mendeleev predicting gallium. Validated by Wierzbicka\u2019s 64 NSM semantic primes and PNAS cross-linguistic universals."
           },
           {
             "type": "p",
@@ -2456,15 +2456,15 @@
           },
           {
             "type": "h3",
-            "children": "Entry 45: MDL Operator Discovery — Compression as the Test of Primitivity"
+            "children": "Entry 45: MDL Operator Discovery \u2014 Compression as the Test of Primitivity"
           },
           {
             "type": "p",
-            "children": "📐 Status: training strategy | Date: 2026-02-09"
+            "children": "\ud83d\udcd0 Status: training strategy | Date: 2026-02-09"
           },
           {
             "type": "p",
-            "children": "Use Minimum Description Length to find the operator set that most compresses event descriptions. Too few operators → long descriptions. Too many → redundant model. MDL sweet spot = true primitive set. True primitives are incompressible (low Kolmogorov complexity). Grammar induction via MDL provides methodology."
+            "children": "Use Minimum Description Length to find the operator set that most compresses event descriptions. Too few operators \u2192 long descriptions. Too many \u2192 redundant model. MDL sweet spot = true primitive set. True primitives are incompressible (low Kolmogorov complexity). Grammar induction via MDL provides methodology."
           },
           {
             "type": "p",
@@ -2472,15 +2472,15 @@
           },
           {
             "type": "h3",
-            "children": "Entry 46: Persistent Homology of Operator Spaces — Topological Signatures of Semantic Primitivity"
+            "children": "Entry 46: Persistent Homology of Operator Spaces \u2014 Topological Signatures of Semantic Primitivity"
           },
           {
             "type": "p",
-            "children": "🔬 Status: geometric framework | Date: 2026-02-10"
+            "children": "\ud83d\udd2c Status: geometric framework | Date: 2026-02-10"
           },
           {
             "type": "p",
-            "children": "Apply persistent homology (TDA) to learned operator embedding spaces. If operators are true primitives, their point cloud should have distinctive, stable topological features — persistent connected components, holes, and voids visible in persistence barcodes. This gives a coordinate-free test of operator structure, invariant to rotation, scaling, and embedding dimension. True primitives should have simpler barcodes than composed operators."
+            "children": "Apply persistent homology (TDA) to learned operator embedding spaces. If operators are true primitives, their point cloud should have distinctive, stable topological features \u2014 persistent connected components, holes, and voids visible in persistence barcodes. This gives a coordinate-free test of operator structure, invariant to rotation, scaling, and embedding dimension. True primitives should have simpler barcodes than composed operators."
           },
           {
             "type": "p",
@@ -2492,19 +2492,19 @@
           },
           {
             "type": "h3",
-            "children": "Entry 47: Semantic Renormalization Group — Operators as Fixed Points of Meaning Coarse-Graining"
+            "children": "Entry 47: Semantic Renormalization Group \u2014 Operators as Fixed Points of Meaning Coarse-Graining"
           },
           {
             "type": "p",
-            "children": "🔬 Status: theoretical_physics_framework | Date: 2026-02-10"
+            "children": "\ud83d\udd2c Status: theoretical_physics_framework | Date: 2026-02-10"
           },
           {
             "type": "p",
-            "children": "Schankian primitives are RG fixed points of a semantic coarse-graining process — progressively integrating out surface details (manner, instrument, location) until only the scale-invariant semantic transformation remains. \"The chef rapidly chopped the organic parsley\" → coarse-grain → SEPARATE(chef, parsley). Different microscopic event descriptions flow to the same fixed-point operator, just as different physical systems share universality classes in statistical physics. This explains WHY primitives are universal: they are attractors of meaning compression, not arbitrary conventions."
+            "children": "Schankian primitives are RG fixed points of a semantic coarse-graining process \u2014 progressively integrating out surface details (manner, instrument, location) until only the scale-invariant semantic transformation remains. \"The chef rapidly chopped the organic parsley\" \u2192 coarse-grain \u2192 SEPARATE(chef, parsley). Different microscopic event descriptions flow to the same fixed-point operator, just as different physical systems share universality classes in statistical physics. This explains WHY primitives are universal: they are attractors of meaning compression, not arbitrary conventions."
           },
           {
             "type": "p",
-            "children": "RG flow as operator discovery: encode events at maximum detail, apply progressive coarse-graining (masking context or decreasing information bottleneck β), and identify features that persist across scales — these ARE the primitives. Features that vanish are irrelevant modifiers. Universality classes of verbs (\"cut/chop/slice/dice\" → SEPARATE, \"give/sell/lend/donate\" → ATRANS) are testable predictions. Scaling laws near \"semantic critical points\" give quantitative predictions. Marsili et al. (2024) show neural representations converge to a unique RG fixed point as data broadens; Latorre et al. (2023) prove MERGE = information coarse-graining. Connects to Entry 39 (info bottleneck = coarse-graining) and Entry 45 (MDL sweet spot ≈ RG fixed point)."
+            "children": "RG flow as operator discovery: encode events at maximum detail, apply progressive coarse-graining (masking context or decreasing information bottleneck \u03b2), and identify features that persist across scales \u2014 these ARE the primitives. Features that vanish are irrelevant modifiers. Universality classes of verbs (\"cut/chop/slice/dice\" \u2192 SEPARATE, \"give/sell/lend/donate\" \u2192 ATRANS) are testable predictions. Scaling laws near \"semantic critical points\" give quantitative predictions. Marsili et al. (2024) show neural representations converge to a unique RG fixed point as data broadens; Latorre et al. (2023) prove MERGE = information coarse-graining. Connects to Entry 39 (info bottleneck = coarse-graining) and Entry 45 (MDL sweet spot \u2248 RG fixed point)."
           },
           {
             "type": "p",
@@ -2512,19 +2512,19 @@
           },
           {
             "type": "h3",
-            "children": "Entry 49: Galois Connections & Abstract Interpretation — Operators as Sound Semantic Abstractions"
+            "children": "Entry 49: Galois Connections & Abstract Interpretation \u2014 Operators as Sound Semantic Abstractions"
           },
           {
             "type": "p",
-            "children": "🔬 Status: theoretical_framework | Date: 2026-02-10"
+            "children": "\ud83d\udd2c Status: theoretical_framework | Date: 2026-02-10"
           },
           {
             "type": "p",
-            "children": "Schankian operators are abstract transformers in Cousot's abstract interpretation framework, connected to concrete event descriptions via Galois connections (abstraction/concretization adjoint pairs). The concrete domain is the lattice of event descriptions ordered by specificity; the abstract domain is the operator lattice ordered by generality. α maps 'The chef rapidly chopped the organic parsley' to SEPARATE(chef, parsley). γ maps SEPARATE(agent, patient) back to all possible concrete events realizing it. The Galois connection guarantees soundness — operator-based inferences never produce false conclusions about state changes."
+            "children": "Schankian operators are abstract transformers in Cousot's abstract interpretation framework, connected to concrete event descriptions via Galois connections (abstraction/concretization adjoint pairs). The concrete domain is the lattice of event descriptions ordered by specificity; the abstract domain is the operator lattice ordered by generality. \u03b1 maps 'The chef rapidly chopped the organic parsley' to SEPARATE(chef, parsley). \u03b3 maps SEPARATE(agent, patient) back to all possible concrete events realizing it. The Galois connection guarantees soundness \u2014 operator-based inferences never produce false conclusions about state changes."
           },
           {
             "type": "p",
-            "children": "The best abstract transformer formula (α ∘ f_concrete ∘ γ) provides a principled training objective for learning operators. Formal Concept Analysis derives the operator hierarchy automatically from verb-feature data via its own Galois connection — the resulting concept lattice IS the operator hierarchy. Neural abstract interpretation (ICLR 2025) trains neural operators that are both learned and provably sound, bridging the neural-symbolic divide with differentiable Galois connections."
+            "children": "The best abstract transformer formula (\u03b1 \u2218 f_concrete \u2218 \u03b3) provides a principled training objective for learning operators. Formal Concept Analysis derives the operator hierarchy automatically from verb-feature data via its own Galois connection \u2014 the resulting concept lattice IS the operator hierarchy. Neural abstract interpretation (ICLR 2025) trains neural operators that are both learned and provably sound, bridging the neural-symbolic divide with differentiable Galois connections."
           },
           {
             "type": "p",
@@ -2532,19 +2532,19 @@
           },
           {
             "type": "h3",
-            "children": "Entry 50: Epistemic State Operators — Modeling Belief, Doubt, and Wise Refusal"
+            "children": "Entry 50: Epistemic State Operators \u2014 Modeling Belief, Doubt, and Wise Refusal"
           },
           {
             "type": "p",
-            "children": "🎯 Status: high_priority | Date: 2026-02-12"
+            "children": "\ud83c\udfaf Status: high_priority | Date: 2026-02-12"
           },
           {
             "type": "p",
-            "children": "CausalT5K's Wise Refusal protocol (identify flaw → state what's missing → decline to endorse) is a three-step operator chain on epistemic states. Hintikka's epistemic modal logic formalizes K_a φ (knowledge) and B_a φ (belief) with KD45 axioms. Dynamic Epistemic Logic (Baltag-Moss-Solecki) extends this with update operators that transform belief states. Our operators could model these as learned geometric transformations: OBSERVE rotates toward certainty, DOUBT projects onto uncertainty subspace, REFUSE maps to calibrated 'I don't know'. The Detection-Correction Gap (77-91% detect, ~50% correct) is exactly the failure to chain DETECT → CORRECT as operators."
+            "children": "CausalT5K's Wise Refusal protocol (identify flaw \u2192 state what's missing \u2192 decline to endorse) is a three-step operator chain on epistemic states. Hintikka's epistemic modal logic formalizes K_a \u03c6 (knowledge) and B_a \u03c6 (belief) with KD45 axioms. Dynamic Epistemic Logic (Baltag-Moss-Solecki) extends this with update operators that transform belief states. Our operators could model these as learned geometric transformations: OBSERVE rotates toward certainty, DOUBT projects onto uncertainty subspace, REFUSE maps to calibrated 'I don't know'. The Detection-Correction Gap (77-91% detect, ~50% correct) is exactly the failure to chain DETECT \u2192 CORRECT as operators."
           },
           {
             "type": "p",
-            "children": "Dempster-Shafer belief functions as operator outputs would give calibrated uncertainty — models that know what they don't know. This introduces a new operator class (epistemic) alongside entity-transformation operators, with non-commutativity: observe-then-doubt ≠ doubt-then-observe."
+            "children": "Dempster-Shafer belief functions as operator outputs would give calibrated uncertainty \u2014 models that know what they don't know. This introduces a new operator class (epistemic) alongside entity-transformation operators, with non-commutativity: observe-then-doubt \u2260 doubt-then-observe."
           },
           {
             "type": "p",
@@ -2552,19 +2552,19 @@
           },
           {
             "type": "h3",
-            "children": "Entry 51: Adversarial Pressure as Operator Perturbation — Sycophancy Through a Geometric Lens"
+            "children": "Entry 51: Adversarial Pressure as Operator Perturbation \u2014 Sycophancy Through a Geometric Lens"
           },
           {
             "type": "p",
-            "children": "✨ Status: exciting | Date: 2026-02-12"
+            "children": "\u2728 Status: exciting | Date: 2026-02-12"
           },
           {
             "type": "p",
-            "children": "CausalT5K shows Claude Sonnet 4.5 drops from 96.7% → 27.3% accuracy under social pressure (75% Bad Flip Rate). Geometrically, sycophancy is a perturbation operator rotating outputs toward user preference. If operators form a Lie group G with Lie algebra 𝔤, social pressure P ∈ 𝔤 generates perturbed operators R_t = exp(tP)·R. The Four-Quadrant landscape (Discerning/Cautious/Volatile/Sycophantic) maps to Lie algebra regions by ‖dR/dt‖ — Discerning models have small perturbation responses, Sycophantic models have large ones."
+            "children": "CausalT5K shows Claude Sonnet 4.5 drops from 96.7% \u2192 27.3% accuracy under social pressure (75% Bad Flip Rate). Geometrically, sycophancy is a perturbation operator rotating outputs toward user preference. If operators form a Lie group G with Lie algebra \ud835\udd24, social pressure P \u2208 \ud835\udd24 generates perturbed operators R_t = exp(tP)\u00b7R. The Four-Quadrant landscape (Discerning/Cautious/Volatile/Sycophantic) maps to Lie algebra regions by \u2016dR/dt\u2016 \u2014 Discerning models have small perturbation responses, Sycophantic models have large ones."
           },
           {
             "type": "p",
-            "children": "Judge-dependent quadrant migration means P is relational — the same model can be Discerning with one judge, Sycophantic with another. Decision boundary curvature predicts sycophancy resistance. Lie-group-equivariant operator modules would be architecturally immune to social pressure perturbations — not just trained against them."
+            "children": "Judge-dependent quadrant migration means P is relational \u2014 the same model can be Discerning with one judge, Sycophantic with another. Decision boundary curvature predicts sycophancy resistance. Lie-group-equivariant operator modules would be architecturally immune to social pressure perturbations \u2014 not just trained against them."
           },
           {
             "type": "p",
@@ -2572,47 +2572,67 @@
           },
           {
             "type": "h3",
-            "children": "Entry 52: Pearl's Ladder as an Operator Hierarchy — Rung Collapse as Type Error"
+            "children": "Entry 52: Pearl's Ladder as an Operator Hierarchy \u2014 Rung Collapse as Type Error"
           },
           {
             "type": "p",
-            "children": "⚠️ Status: important | Date: 2026-02-12"
+            "children": "\u26a0\ufe0f Status: important | Date: 2026-02-12"
           },
           {
             "type": "p",
-            "children": "Pearl's three rungs formalized as three operator classes: L1 (associational — conditioning on correlations), L2 (interventional — do-calculus graph surgery), L3 (counterfactual — abduction-action-prediction with fixed exogenous variables). Rung Collapse is literally a type error: substituting an L1 operator where L2/L3 is required. The Causal Hierarchy Theorem (Bareinboim et al. 2022) proves strict separation — you cannot compute interventional quantities from observational data alone."
+            "children": "Pearl's three rungs formalized as three operator classes: L1 (associational \u2014 conditioning on correlations), L2 (interventional \u2014 do-calculus graph surgery), L3 (counterfactual \u2014 abduction-action-prediction with fixed exogenous variables). Rung Collapse is literally a type error: substituting an L1 operator where L2/L3 is required. The Causal Hierarchy Theorem (Bareinboim et al. 2022) proves strict separation \u2014 you cannot compute interventional quantities from observational data alone."
           },
           {
             "type": "p",
-            "children": "Operator algebras A₁ ⊊ A₂ ⊊ A₃ strictly nested. Category-theoretically, the inter-rung mappings are NOT functors (information-destroying), explaining why collapse fails. Mahadevan's Universal Causality frames causal inference as lifting problems. A type system on operators could detect Rung Collapse at compile time — before the inference even runs."
+            "children": "Operator algebras A\u2081 \u228a A\u2082 \u228a A\u2083 strictly nested. Category-theoretically, the inter-rung mappings are NOT functors (information-destroying), explaining why collapse fails. Mahadevan's Universal Causality frames causal inference as lifting problems. A type system on operators could detect Rung Collapse at compile time \u2014 before the inference even runs."
           },
           {
             "type": "p",
             "children": "Links: https://causalai.net/r60.pdf | https://arxiv.org/abs/2212.08981 | https://www.researchgate.net/publication/235216656 | https://arxiv.org/abs/2601.08258"
+          },
+          {
+            "type": "h3",
+            "children": "Entry 53: Sheaf Neural Networks \u2014 Local-to-Global Consistency"
+          },
+          {
+            "type": "p",
+            "children": "\u26a0\ufe0f Status: worth_exploring | Date: 2026-02-10"
+          },
+          {
+            "type": "p",
+            "children": "Sheaf theory provides local-to-global consistency guarantees for compositional semantics. Sheaf Neural Networks learn restriction maps between adjacent nodes; the sheaf Laplacian enforces consistency. Operators ARE restriction maps relating pre/post states. Sheaf diffusion propagates information while respecting operator constraints."
+          },
+          {
+            "type": "p",
+            "children": "Polynomial filters (Chebyshev recurrences) enable multi-step operator composition without sequential application. Sheaf cohomology detects impossible event sequences \u2014 when H\u00b9(F)\u22600, no consistent trajectory exists. Deep mathematical foundations (functors, universal constructions) with scalable computational machinery (Hansen & Ghrist 2020, Bodnar et al. 2022)."
+          },
+          {
+            "type": "p",
+            "children": "Links: https://arxiv.org/abs/2012.06333 | https://arxiv.org/abs/2202.04579 | https://arxiv.org/abs/2502.15476"
           }
         ]
       },
       {
         "type": "Section",
         "props": {
-          "title": "Entry 48: Operadic Composition — Wiring Diagrams for Multi-Arity Operator Assembly"
+          "title": "Entry 48: Operadic Composition \u2014 Wiring Diagrams for Multi-Arity Operator Assembly"
         },
         "children": [
           {
             "type": "h3",
-            "children": "Entry 48: Operadic Composition — Wiring Diagrams for Multi-Arity Operator Assembly"
+            "children": "Entry 48: Operadic Composition \u2014 Wiring Diagrams for Multi-Arity Operator Assembly"
           },
           {
             "type": "p",
-            "children": "🔬 Status: mathematical_framework | Date: 2026-02-10"
+            "children": "\ud83d\udd2c Status: mathematical_framework | Date: 2026-02-10"
           },
           {
             "type": "p",
-            "children": "Entry 38 introduced category theory for operators (morphisms, DisCoCat), but standard categories compose linearly — one output to one input. Real event semantics needs multi-arity: ATRANS takes agent, object, source, AND destination. Operads are the algebraic structure designed precisely for multi-input operations that compose via explicit wiring diagrams specifying which ports connect to which. Each Schankian operator becomes a box with typed input/output ports (agent, patient, instrument, source, destination, result-state). A narrative sentence is a wiring diagram connecting entity-ports to operator-ports. Multi-event narratives are composite wiring diagrams where output-state ports of earlier operators feed precondition-input ports of later ones."
+            "children": "Entry 38 introduced category theory for operators (morphisms, DisCoCat), but standard categories compose linearly \u2014 one output to one input. Real event semantics needs multi-arity: ATRANS takes agent, object, source, AND destination. Operads are the algebraic structure designed precisely for multi-input operations that compose via explicit wiring diagrams specifying which ports connect to which. Each Schankian operator becomes a box with typed input/output ports (agent, patient, instrument, source, destination, result-state). A narrative sentence is a wiring diagram connecting entity-ports to operator-ports. Multi-event narratives are composite wiring diagrams where output-state ports of earlier operators feed precondition-input ports of later ones."
           },
           {
             "type": "p",
-            "children": "Operads handle what categories cannot: fan-out ('The bomb exploded' feeds HARM(bystanders) + DESTROY(building) + ALERT(authorities) simultaneously) and fan-in (multiple evidence sub-events converge into one CONCLUDE operator). Temporal wiring diagrams (Rupel & Spivak) add discrete time steps, formalizing parallel/sequential/nested temporal scopes in narratives. The Coherence Theorem (Chang, 2025) guarantees that syntactically equivalent wirings produce semantically identical results — any two decompositions of a complex event into the same wiring diagram MUST yield the same semantic output. Reyes-Moctezuma et al. (2025) apply operads to composing brain circuits ('Compositional Neuroscience'), with W-algebras preserving input-output behavior — exactly the bridge from wiring syntax to semantic state transformations. Natural architecture: operators as typed-port neural modules composed by a learned wiring predictor."
+            "children": "Operads handle what categories cannot: fan-out ('The bomb exploded' feeds HARM(bystanders) + DESTROY(building) + ALERT(authorities) simultaneously) and fan-in (multiple evidence sub-events converge into one CONCLUDE operator). Temporal wiring diagrams (Rupel & Spivak) add discrete time steps, formalizing parallel/sequential/nested temporal scopes in narratives. The Coherence Theorem (Chang, 2025) guarantees that syntactically equivalent wirings produce semantically identical results \u2014 any two decompositions of a complex event into the same wiring diagram MUST yield the same semantic output. Reyes-Moctezuma et al. (2025) apply operads to composing brain circuits ('Compositional Neuroscience'), with W-algebras preserving input-output behavior \u2014 exactly the bridge from wiring syntax to semantic state transformations. Natural architecture: operators as typed-port neural modules composed by a learned wiring predictor."
           },
           {
             "type": "p",
