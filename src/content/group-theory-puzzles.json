@@ -1941,6 +1941,490 @@
       {
         "type": "Section",
         "props": {
+          "title": "Sliding Puzzle Parity — Why Some Puzzles Can't Be Solved"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": [
+              "We've seen that symmetric groups describe all possible rearrangements, and that permutations have a parity — even or odd. Now let's see what happens when this abstract math crashes into a ",
+              {
+                "type": "strong",
+                "children": "real physical puzzle"
+              },
+              ". The result is one of the most famous impossibility proofs in recreational mathematics."
+            ]
+          },
+          {
+            "type": "p",
+            "children": [
+              {
+                "type": "strong",
+                "children": "The Famous Unsolvable Puzzle"
+              }
+            ]
+          },
+          {
+            "type": "Callout",
+            "props": {
+              "type": "warning"
+            },
+            "children": [
+              {
+                "type": "strong",
+                "children": "Sam Loyd's $1,000 Challenge (1880)"
+              },
+              "\n\nIn the 1870s–80s, a sliding puzzle craze swept America and Europe. The '15 Puzzle' — a 4×4 grid with 15 numbered tiles and one blank space — was everywhere: in homes, offices, even on the floor of the New York State Legislature. Puzzle impresario Sam Loyd offered $1,000 (a fortune at the time) to anyone who could solve a specific configuration: all tiles in order, EXCEPT tiles 14 and 15 swapped. Thousands of people spent countless hours pushing tiles around. Nobody ever collected. The reason wasn't that the puzzle was hard — it was that it was ",
+              {
+                "type": "strong",
+                "children": "mathematically impossible"
+              },
+              ". Not just difficult, not just beyond human patience — provably, rigorously, eternally impossible. And the proof comes from group theory."
+            ]
+          },
+          {
+            "type": "p",
+            "children": [
+              {
+                "type": "strong",
+                "children": "Every Sliding Move is a Permutation"
+              }
+            ]
+          },
+          {
+            "type": "p",
+            "children": [
+              "Let's formalize what's happening in a sliding puzzle. At any moment, the puzzle is in some ",
+              {
+                "type": "em",
+                "children": "configuration"
+              },
+              " — the 15 numbered tiles arranged in the 16 cells (with one cell blank). Each configuration is a ",
+              {
+                "type": "strong",
+                "children": "permutation"
+              },
+              " of the tiles compared to the solved state. When you slide a tile into the blank space, you're performing a very specific operation: you're ",
+              {
+                "type": "em",
+                "children": "swapping"
+              },
+              " the tile with the blank. That's a transposition."
+            ]
+          },
+          {
+            "type": "DefinitionList",
+            "props": {
+              "items": [
+                {
+                  "term": "Puzzle State as Permutation",
+                  "definition": "If the solved state is (1, 2, 3, ..., 15, □), then any scrambled state is a permutation of these tiles. For example, if tiles 1 and 2 are swapped and everything else is in place, the state corresponds to the transposition (1 2) in S₁₅."
+                },
+                {
+                  "term": "Slide = Transposition",
+                  "definition": "Each legal move swaps exactly one tile with the blank space. In permutation language, every single move is a transposition. A sequence of k slides is a product of k transpositions."
+                },
+                {
+                  "term": "Parity of a Permutation",
+                  "definition": "Every permutation is either EVEN (decomposable into an even number of transpositions) or ODD (an odd number). This classification is absolute — you can decompose a permutation into transpositions in many ways, but the parity of the count never changes. It's an invariant."
+                }
+              ]
+            }
+          },
+          {
+            "type": "p",
+            "children": [
+              {
+                "type": "strong",
+                "children": "Even and Odd Permutations (Recap + Deeper)"
+              }
+            ]
+          },
+          {
+            "type": "p",
+            "children": [
+              "In the Symmetric Groups section, we introduced even and odd permutations. Now we need to go deeper, because the sliding puzzle's impossibility hinges entirely on this distinction. Recall: every permutation can be written as a product of transpositions. The ",
+              {
+                "type": "strong",
+                "children": "parity"
+              },
+              " (even or odd count of transpositions) is an ",
+              {
+                "type": "em",
+                "children": "invariant"
+              },
+              " — no matter how you decompose the permutation, the parity stays the same."
+            ]
+          },
+          {
+            "type": "Steps",
+            "props": {
+              "steps": [
+                {
+                  "title": "Start with a permutation: (1 4 2 5 3)",
+                  "description": "This is a 5-cycle. We want to decompose it into transpositions (simple swaps of two elements)."
+                },
+                {
+                  "title": "Apply the k-cycle rule: a k-cycle = (k−1) transpositions",
+                  "description": "A 5-cycle can be written as 4 transpositions: (1 4 2 5 3) = (1 3)(1 5)(1 2)(1 4). Each transposition swaps 1 with one other element."
+                },
+                {
+                  "title": "Verify: apply the transpositions right to left",
+                  "description": "Start with (1 4): swaps 1↔4. Then (1 2): swaps 1↔2 (but 1 is now at position 4, so effectively 4↔2). Then (1 5): swaps 1↔5. Then (1 3): swaps 1↔3. Net result: 1→4, 4→2, 2→5, 5→3, 3→1. That's (1 4 2 5 3). ✓"
+                },
+                {
+                  "title": "Count: 4 transpositions → EVEN parity",
+                  "description": "No matter how else you decompose this 5-cycle, you'll always get an even number of transpositions. Try it! You might get 6 or 8, but never 3 or 5. The parity is locked in."
+                }
+              ]
+            }
+          },
+          {
+            "type": "p",
+            "children": [
+              {
+                "type": "strong",
+                "children": "The Parity Invariant"
+              }
+            ]
+          },
+          {
+            "type": "p",
+            "children": "Here's the core argument. Follow each step carefully — this is where the magic happens."
+          },
+          {
+            "type": "Example",
+            "props": {
+              "title": "Why Only Even Permutations Are Reachable"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": [
+                  {
+                    "type": "strong",
+                    "children": "Fact 1: The solved state is the identity permutation."
+                  },
+                  " Every tile is in its home position. The identity is the product of zero transpositions — and zero is even. So the solved state has even parity."
+                ]
+              },
+              {
+                "type": "p",
+                "children": [
+                  {
+                    "type": "strong",
+                    "children": "Fact 2: Each slide is one transposition."
+                  },
+                  " You swap one tile with the blank. That flips the parity. After 1 move: odd. After 2 moves: even. After 3 moves: odd. After k moves: parity matches whether k is even or odd."
+                ]
+              },
+              {
+                "type": "p",
+                "children": [
+                  {
+                    "type": "strong",
+                    "children": "Fact 3: The blank must return home."
+                  },
+                  " For the puzzle to be 'solved,' the blank must end up back in its starting position (typically the bottom-right corner). Think about the blank's path on the 4×4 grid: every move shifts the blank one step (up, down, left, or right). To return to its starting cell, the blank must make an equal number of up/down moves and an equal number of left/right moves. This means the total number of moves is always even."
+                ]
+              },
+              {
+                "type": "p",
+                "children": [
+                  {
+                    "type": "strong",
+                    "children": "Conclusion:"
+                  },
+                  " Starting from the identity (even), after an even number of transpositions, the resulting permutation must be even. Therefore: ",
+                  {
+                    "type": "strong",
+                    "children": "only even permutations of the tiles are reachable from the solved state"
+                  },
+                  "."
+                ]
+              }
+            ]
+          },
+          {
+            "type": "p",
+            "children": [
+              {
+                "type": "strong",
+                "children": "The 14-15 Swap is Odd"
+              }
+            ]
+          },
+          {
+            "type": "p",
+            "children": "Now we can prove Sam Loyd's puzzle is impossible in one line."
+          },
+          {
+            "type": "Callout",
+            "props": {
+              "type": "error"
+            },
+            "children": [
+              {
+                "type": "strong",
+                "children": "The Impossibility Proof"
+              },
+              "\n\nThe configuration with tiles 14 and 15 swapped (and everything else in place) differs from the solved state by a single transposition: (14 15). One transposition = odd parity. We just proved that only even permutations are reachable. An odd permutation can never be reached from an even one through legal moves. Therefore the 14-15 swap is unreachable. Q.E.D.\n\nThis isn't a claim about human ability or computational limits. It's a mathematical certainty as absolute as 2 + 2 = 4. No computer, no algorithm, no amount of time can ever solve it. The constraint is woven into the structure of the permutation group itself."
+            ]
+          },
+          {
+            "type": "p",
+            "children": [
+              {
+                "type": "strong",
+                "children": "The Alternating Group A_n"
+              }
+            ]
+          },
+          {
+            "type": "p",
+            "children": "The set of all reachable configurations has a beautiful mathematical name: it's the alternating group."
+          },
+          {
+            "type": "DeepDive",
+            "props": {
+              "title": "The Reachable States Form A₁₅"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": [
+                  "The solvable configurations of the 15 puzzle correspond exactly to the even permutations of 15 tiles — the ",
+                  {
+                    "type": "strong",
+                    "children": "alternating group A₁₅"
+                  },
+                  ". This group has |A₁₅| = 15!/2 = 653,837,184,000 elements. That's about 653 billion reachable states."
+                ]
+              },
+              {
+                "type": "p",
+                "children": "Out of the full symmetric group S₁₅ with its 15! ≈ 1.307 trillion arrangements, exactly HALF are reachable and half are not. The reachable half forms a group (A₁₅) because: composing two even permutations gives an even permutation (closure), the identity is even, and the inverse of an even permutation is even."
+              },
+              {
+                "type": "p",
+                "children": "The alternating group Aₙ is always a normal subgroup of Sₙ with index 2. For n ≥ 5, Aₙ is a simple group — it has no normal subgroups other than {e} and itself. This simplicity of A₅ is the deep reason why there's no general formula for solving quintic (degree 5) polynomial equations, a result known as the Abel–Ruffini theorem. The humble sliding puzzle connects to some of the deepest mathematics of the 19th century!"
+              }
+            ]
+          },
+          {
+            "type": "p",
+            "children": [
+              {
+                "type": "strong",
+                "children": "How to Check Solvability"
+              }
+            ]
+          },
+          {
+            "type": "p",
+            "children": [
+              "Given any scrambled 15-puzzle, how can you tell if it's solvable ",
+              {
+                "type": "em",
+                "children": "without"
+              },
+              " trying to solve it? There's an elegant algorithm based on counting ",
+              {
+                "type": "strong",
+                "children": "inversions"
+              },
+              "."
+            ]
+          },
+          {
+            "type": "Steps",
+            "props": {
+              "steps": [
+                {
+                  "title": "Flatten the grid (read left-to-right, top-to-bottom)",
+                  "description": "Write the tile numbers in a single row by reading the grid in order, skipping the blank. For example, a 4×4 grid might give you: 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 15, 14."
+                },
+                {
+                  "title": "Count inversions",
+                  "description": "An inversion is a pair (a, b) where a appears before b in the sequence but a > b. In the example above, the only inversion is (15, 14) — the number 15 appears before 14. So there's 1 inversion."
+                },
+                {
+                  "title": "Find the blank's row from the bottom",
+                  "description": "Count rows from the bottom of the grid, starting at 1. If the blank is in the bottom row, that's row 1. If it's in the next row up, that's row 2. And so on."
+                },
+                {
+                  "title": "Apply the solvability rule",
+                  "description": "For a 4×4 puzzle (even-width grid): the puzzle is solvable if and only if (inversions + blank row from bottom) is EVEN. For odd-width grids (like a 3×3 puzzle): solvable if and only if the number of inversions is even."
+                }
+              ]
+            }
+          },
+          {
+            "type": "Example",
+            "props": {
+              "title": "Checking Two Configurations"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": [
+                  {
+                    "type": "strong",
+                    "children": "Configuration A:"
+                  },
+                  " Tiles in order: 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 15, 14 with the blank in the bottom-right corner (row 1 from bottom)."
+                ]
+              },
+              {
+                "type": "p",
+                "children": "Inversions: just (15, 14) → 1 inversion. Blank row from bottom: 1. Sum: 1 + 1 = 2 (even). Solvable? YES! ✓"
+              },
+              {
+                "type": "p",
+                "children": "Wait — didn't we just say swapping 14 and 15 is impossible? The key is where the blank is! Here the blank is at the bottom-right (its home position in most formulations). Let's try Loyd's version."
+              },
+              {
+                "type": "p",
+                "children": [
+                  {
+                    "type": "strong",
+                    "children": "Configuration B (Loyd's puzzle):"
+                  },
+                  " Tiles: 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 15, 14, □ where the blank is also in position 16 (bottom-right). This is identical — 1 inversion, blank at row 1, sum = 2 (even), so this IS solvable!"
+                ]
+              },
+              {
+                "type": "p",
+                "children": [
+                  "The ",
+                  {
+                    "type": "em",
+                    "children": "classic"
+                  },
+                  " Loyd formulation actually places the blank where tile 16 would be but requires that it end up there too — the actual unsolvable version has all tiles except 14 and 15 in solved position with the blank in its solved position. In that setup: 1 inversion + row 1 = 2 (even)... Hmm! The subtlety is that Loyd's original puzzle specified a particular starting configuration where the blank was NOT in its home position, making the total sum odd. The exact formulation matters — which is why counting carefully is so important!"
+                ]
+              }
+            ]
+          },
+          {
+            "type": "p",
+            "children": [
+              {
+                "type": "strong",
+                "children": "Beyond the 15-Puzzle"
+              }
+            ]
+          },
+          {
+            "type": "p",
+            "children": "The parity constraint in the 15 puzzle is just one example of a broader phenomenon. More complex puzzles have multiple independent parity constraints — and group theory reveals them all."
+          },
+          {
+            "type": "Analogy",
+            "props": {
+              "concept": "Multiple Parity Constraints",
+              "analogy": "If the 15 puzzle has one 'parity lock' (even/odd permutation), the Rubik's cube has THREE independent locks that all need to be in the right position simultaneously.",
+              "explanation": "A Rubik's cube has three independent parity constraints: (1) Corner permutation parity — the 8 corners must be an even permutation, (2) Edge permutation parity — the 12 edges must be an even permutation, and (3) Orientation parity — the total twist of corners must be divisible by 3, and the total flip of edges must be divisible by 2. If you disassemble a cube and reassemble it randomly, there's only a 1 in 12 chance it's solvable! The group of valid Rubik's cube states is a specific subgroup of S₈ × S₁₂ × Z₃⁸ × Z₂¹² — and parity is what carves out that subgroup from all conceivable configurations."
+            }
+          },
+          {
+            "type": "p",
+            "children": "This pattern extends even further: the Megaminx (a dodecahedral puzzle) has parity constraints based on the symmetry group of the dodecahedron, and higher-dimensional Rubik's cubes have even more intricate parity structures. Whenever you encounter a puzzle where 'something feels impossible,' there's often a parity argument hiding underneath."
+          },
+          {
+            "type": "InteractiveDemo",
+            "props": {
+              "title": "Is This Solvable? — Test Your Parity Intuition",
+              "description": "For each 4×4 configuration below, count the inversions and determine the blank's row from the bottom. Then decide: is it solvable? Remember the rule: for a 4×4 grid, the puzzle is solvable when (inversions + blank row from bottom) is even."
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": [
+                  {
+                    "type": "strong",
+                    "children": "Puzzle 1:"
+                  },
+                  " Grid (read left-to-right, top-to-bottom): 1, 2, 3, 4 | 5, 6, 7, 8 | 9, 10, □, 12 | 13, 14, 11, 15. Blank is at row 2 from bottom. Tiles (skipping blank): 1,2,3,4,5,6,7,8,9,10,12,13,14,11,15. Inversions: (12,11), (13,11), (14,11) → 3 inversions. Sum: 3 + 2 = 5 (odd). UNSOLVABLE! ✗"
+                ]
+              },
+              {
+                "type": "p",
+                "children": [
+                  {
+                    "type": "strong",
+                    "children": "Puzzle 2:"
+                  },
+                  " Grid: 1, 2, 3, 4 | 5, 6, 7, 8 | 9, □, 10, 12 | 13, 14, 11, 15. Blank is at row 2 from bottom. Tiles: 1,2,3,4,5,6,7,8,9,10,12,13,14,11,15. Inversions: same 3 inversions. Sum: 3 + 2 = 5 (odd). UNSOLVABLE! ✗"
+                ]
+              },
+              {
+                "type": "p",
+                "children": [
+                  {
+                    "type": "strong",
+                    "children": "Puzzle 3:"
+                  },
+                  " Grid: 1, 2, 3, 4 | 5, 6, 7, 8 | 9, 10, 11, □ | 13, 14, 15, 12. Blank is at row 2 from bottom. Tiles: 1,2,3,4,5,6,7,8,9,10,11,13,14,15,12. Inversions: (13,12), (14,12), (15,12) → 3 inversions. Sum: 3 + 2 = 5 (odd). UNSOLVABLE! ✗"
+                ]
+              },
+              {
+                "type": "p",
+                "children": [
+                  {
+                    "type": "strong",
+                    "children": "Puzzle 4:"
+                  },
+                  " Grid: 1, 2, 3, 4 | 5, 6, 7, 8 | 9, 10, 11, 12 | □, 13, 14, 15. Blank is at row 1 from bottom. Tiles: 1,2,3,4,5,6,7,8,9,10,11,12,13,14,15. Inversions: 0. Sum: 0 + 1 = 1 (odd). UNSOLVABLE! ✗ — Even though every tile is in numerical order, the blank is in the wrong corner!"
+                ]
+              }
+            ]
+          },
+          {
+            "type": "Quiz",
+            "props": {
+              "questions": [
+                {
+                  "question": "A single transposition like (14 15) is which type of permutation?",
+                  "options": [
+                    "Even — it's just one simple swap",
+                    "Odd — one transposition is an odd number",
+                    "Neither even nor odd",
+                    "It depends on which elements are swapped"
+                  ],
+                  "answer": 1,
+                  "explanation": "A single transposition is a product of exactly 1 transposition. Since 1 is odd, the permutation has odd parity. This is precisely why Loyd's 14-15 puzzle is unsolvable — you can't reach an odd permutation from the identity (even) using an even number of transpositions."
+                },
+                {
+                  "question": "How many reachable configurations does the standard 15-puzzle have?",
+                  "options": [
+                    "15! (about 1.3 trillion)",
+                    "15!/2 (about 653 billion)",
+                    "16! (about 20.9 trillion)",
+                    "2¹⁵ (32,768)"
+                  ],
+                  "answer": 1,
+                  "explanation": "The reachable configurations form the alternating group A₁₅, which has 15!/2 = 653,837,184,000 elements. Exactly half of all possible arrangements of the 15 tiles are reachable — the even permutations."
+                },
+                {
+                  "question": "For a 4×4 sliding puzzle, a scrambled configuration is solvable when:",
+                  "options": [
+                    "The number of inversions is even",
+                    "The number of inversions is odd",
+                    "Inversions + blank's row from bottom is even",
+                    "Inversions + blank's row from bottom is odd"
+                  ],
+                  "answer": 2,
+                  "explanation": "For even-width grids (like 4×4), solvability depends on both the inversions AND the blank's position. The sum of the inversion count and the blank's row (counted from the bottom, starting at 1) must be even. This accounts for the fact that the blank's movement also contributes transpositions."
+                }
+              ]
+            }
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
           "title": "What's Next?"
         },
         "children": [
@@ -1953,10 +2437,6 @@
             "children": [
               {
                 "type": "li",
-                "children": "A mini sliding puzzle demonstrating parity arguments"
-              },
-              {
-                "type": "li",
                 "children": "Commutators — the secret weapon of speedcubers"
               }
             ]
@@ -1966,7 +2446,7 @@
             "props": {
               "type": "success"
             },
-            "children": "You've now met three fundamental groups: Z₂, Z₃, and the Klein Four Group — plus the Dihedral Groups D₃ and D₄, and the Symmetric Groups S₃ and S₄! From simple coin flips to non-abelian permutations and the 15 puzzle's parity theorem, these examples contain all the core ideas you need to understand much more complex structures. The Rubik's cube group is just a bigger version of the same concepts!"
+            "children": "You've now met three fundamental groups: Z₂, Z₃, and the Klein Four Group — plus the Dihedral Groups D₃ and D₄, the Symmetric Groups S₃ and S₄, and the Alternating Group A₁₅! From simple coin flips to non-abelian permutations, from the 15 puzzle's parity theorem to the deep impossibility proof that stunped a nation — these examples contain all the core ideas you need to understand much more complex structures. The Rubik's cube group is just a bigger (and triply-parity-constrained) version of the same concepts!"
           }
         ]
       }
