@@ -724,6 +724,532 @@
       {
         "type": "Section",
         "props": {
+          "title": "Symmetric Groups — All Possible Rearrangements"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": [
+              "We've seen rotations and reflections. Now let's meet the ",
+              {
+                "type": "strong",
+                "children": "ultimate shuffling group"
+              },
+              " — the group of ",
+              {
+                "type": "em",
+                "children": "all possible rearrangements"
+              },
+              " of a set of objects. If dihedral groups are about the symmetries you can see in a shape, symmetric groups are about every conceivable way to scramble a collection of things."
+            ]
+          },
+          {
+            "type": "DefinitionList",
+            "props": {
+              "items": [
+                {
+                  "term": "Permutation",
+                  "definition": "A rearrangement of objects. Given a set {1, 2, 3}, one permutation sends 1→2, 2→3, 3→1 (a rotation). Another sends 1→1, 2→3, 3→2 (a swap of the last two). Every permutation is a bijection — each object goes to exactly one new position, and every position gets filled."
+                },
+                {
+                  "term": "Symmetric Group (Sₙ)",
+                  "definition": "The group of ALL permutations of n objects. Sₙ contains every possible rearrangement, making it the largest permutation group on n elements. The group operation is composition: do one rearrangement, then another."
+                },
+                {
+                  "term": "Order of Sₙ",
+                  "definition": "|Sₙ| = n! (n factorial). For S₃ that's 3! = 6. For S₄ it's 4! = 24. The factorial counts every possible ordering: the first object can go to n places, the second to n−1, the third to n−2, and so on."
+                }
+              ]
+            }
+          },
+          {
+            "type": "Callout",
+            "props": {
+              "type": "info"
+            },
+            "children": "Think of it this way: if you have 3 books on a shelf, S₃ describes every possible way to rearrange them. With 4 books, S₄ covers all 24 arrangements. With a deck of 52 cards, S₅₂ has 52! ≈ 8 × 10⁶⁷ elements — more than the number of atoms in the observable universe!"
+          },
+          {
+            "type": "p",
+            "children": [
+              {
+                "type": "strong",
+                "children": "S₃ — Rearranging Three Objects"
+              }
+            ]
+          },
+          {
+            "type": "p",
+            "children": "Let's list every possible rearrangement of {1, 2, 3}. There are exactly 3! = 6 of them:"
+          },
+          {
+            "type": "ComparisonTable",
+            "props": {
+              "headers": ["Permutation", "Cycle Notation", "What It Does", "Type"],
+              "rows": [
+                ["e (identity)", "( )", "1→1, 2→2, 3→3 — nothing moves", "Identity"],
+                ["swap 1↔2", "(1 2)", "1→2, 2→1, 3→3 — swap first two", "Transposition"],
+                ["swap 1↔3", "(1 3)", "1→3, 2→2, 3→1 — swap first and last", "Transposition"],
+                ["swap 2↔3", "(2 3)", "1→1, 2→3, 3→2 — swap last two", "Transposition"],
+                ["rotate forward", "(1 2 3)", "1→2, 2→3, 3→1 — cycle all three forward", "3-cycle"],
+                ["rotate backward", "(1 3 2)", "1→3, 3→2, 2→1 — cycle all three backward", "3-cycle"]
+              ]
+            }
+          },
+          {
+            "type": "p",
+            "children": "That's it — 6 elements, no more. Any rearrangement of three objects is one of these six."
+          },
+          {
+            "type": "p",
+            "children": [
+              {
+                "type": "strong",
+                "children": "S₃ = D₃! The Big Reveal"
+              }
+            ]
+          },
+          {
+            "type": "p",
+            "children": [
+              "Look at the table above and compare it to our dihedral group D₃. The 3 rotations of the triangle (identity, rotate 120°, rotate 240°) correspond to the identity and two 3-cycles. The 3 reflections correspond to the 3 transpositions. ",
+              {
+                "type": "strong",
+                "children": "S₃ and D₃ are the exact same group!"
+              }
+            ]
+          },
+          {
+            "type": "DeepDive",
+            "props": {
+              "title": "Why is S₃ = D₃, and why is this case special?"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "A triangle has 3 vertices. Every symmetry of the triangle (rotation or reflection) shuffles those 3 vertices — so every element of D₃ is a permutation of 3 objects, meaning D₃ sits inside S₃. But D₃ has 2×3 = 6 elements and S₃ has 3! = 6 elements. Since D₃ is a subgroup of S₃ with the same number of elements, they must be the same group!"
+              },
+              {
+                "type": "p",
+                "children": "For n ≥ 4, this breaks down. D₄ has 2×4 = 8 elements, but S₄ has 4! = 24 elements. The symmetries of a square are only a fraction of all possible rearrangements of 4 objects. A square's symmetry must preserve adjacency (vertex 1 must stay next to vertex 2), but a general permutation can send any vertex anywhere."
+              },
+              {
+                "type": "p",
+                "children": "The equation 2n = n! has only one solution for n ≥ 3: when n = 3 (since 2×3 = 6 = 3!). For n = 4, 2×4 = 8 but 4! = 24. For n = 5, 2×5 = 10 but 5! = 120. The gap grows rapidly — Dₙ becomes a tiny fraction of Sₙ. So S₃ ≅ D₃ is a beautiful coincidence that never repeats!"
+              }
+            ]
+          },
+          {
+            "type": "p",
+            "children": [
+              {
+                "type": "strong",
+                "children": "Cycle Notation — The Language of Permutations"
+              }
+            ]
+          },
+          {
+            "type": "p",
+            "children": "Cycle notation is the compact, elegant way to write permutations. Instead of listing where every element goes, you trace the cycles — the loops that elements travel in."
+          },
+          {
+            "type": "Example",
+            "props": {
+              "title": "Reading Cycle Notation"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": [
+                  {
+                    "type": "strong",
+                    "children": "(1 2 3)"
+                  },
+                  " means: 1 goes to 2, 2 goes to 3, 3 goes back to 1. It's a cycle! Follow the chain: 1→2→3→(back to 1)."
+                ]
+              },
+              {
+                "type": "p",
+                "children": [
+                  {
+                    "type": "strong",
+                    "children": "(1 2)"
+                  },
+                  " means: 1 and 2 swap. That's it — 3 stays put (we don't write elements that don't move)."
+                ]
+              },
+              {
+                "type": "p",
+                "children": [
+                  {
+                    "type": "strong",
+                    "children": "(1 2)(3 4)"
+                  },
+                  " means: swap 1↔2 AND simultaneously swap 3↔4. Two independent cycles happening at once."
+                ]
+              },
+              {
+                "type": "p",
+                "children": [
+                  {
+                    "type": "strong",
+                    "children": "( )"
+                  },
+                  " or ",
+                  {
+                    "type": "strong",
+                    "children": "e"
+                  },
+                  " means: nothing moves. The identity permutation."
+                ]
+              }
+            ]
+          },
+          {
+            "type": "Steps",
+            "props": {
+              "steps": [
+                {
+                  "title": "Step 1: Pick any element that moves",
+                  "description": "Start with 1. Where does 1 go? Say the permutation sends 1→3."
+                },
+                {
+                  "title": "Step 2: Follow the chain",
+                  "description": "Now where does 3 go? Say 3→2. And where does 2 go? Say 2→1. We're back to where we started!"
+                },
+                {
+                  "title": "Step 3: Write the cycle",
+                  "description": "The chain 1→3→2→1 becomes the cycle (1 3 2). Read it left to right: 1 goes to 3, 3 goes to 2, 2 goes back to 1."
+                },
+                {
+                  "title": "Step 4: Repeat for remaining elements",
+                  "description": "If any elements weren't in this cycle, start a new cycle with one of them. Keep going until all moving elements are accounted for. Elements that don't move (fixed points) are left out."
+                }
+              ]
+            }
+          },
+          {
+            "type": "p",
+            "children": [
+              {
+                "type": "strong",
+                "children": "Composing Permutations — Multiplication in Cycle Notation"
+              }
+            ]
+          },
+          {
+            "type": "p",
+            "children": [
+              "To compose (multiply) two permutations, apply them one after the other and see where each element ends up. ",
+              {
+                "type": "strong",
+                "children": "Warning: order matters!"
+              },
+              " Sₙ is non-abelian for n ≥ 3."
+            ]
+          },
+          {
+            "type": "Example",
+            "props": {
+              "title": "Computing (1 2 3) ∘ (1 2) step by step"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "We apply (1 2) first, then (1 2 3). (Convention: rightmost acts first.)"
+              },
+              {
+                "type": "p",
+                "children": [
+                  {
+                    "type": "strong",
+                    "children": "Where does 1 go?"
+                  },
+                  " First (1 2) sends 1→2. Then (1 2 3) sends 2→3. So 1→3."
+                ]
+              },
+              {
+                "type": "p",
+                "children": [
+                  {
+                    "type": "strong",
+                    "children": "Where does 2 go?"
+                  },
+                  " First (1 2) sends 2→1. Then (1 2 3) sends 1→2. So 2→2 (fixed!)."
+                ]
+              },
+              {
+                "type": "p",
+                "children": [
+                  {
+                    "type": "strong",
+                    "children": "Where does 3 go?"
+                  },
+                  " First (1 2) fixes 3→3. Then (1 2 3) sends 3→1. So 3→1."
+                ]
+              },
+              {
+                "type": "p",
+                "children": [
+                  "Result: 1→3, 2→2, 3→1. That's the transposition ",
+                  {
+                    "type": "strong",
+                    "children": "(1 3)"
+                  },
+                  ". So (1 2 3) ∘ (1 2) = (1 3)."
+                ]
+              }
+            ]
+          },
+          {
+            "type": "Example",
+            "props": {
+              "title": "Now try (1 2) ∘ (1 2 3) — is it the same?"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "This time (1 2 3) acts first, then (1 2)."
+              },
+              {
+                "type": "p",
+                "children": [
+                  {
+                    "type": "strong",
+                    "children": "Where does 1 go?"
+                  },
+                  " First (1 2 3) sends 1→2. Then (1 2) sends 2→1. So 1→1 (fixed!)."
+                ]
+              },
+              {
+                "type": "p",
+                "children": [
+                  {
+                    "type": "strong",
+                    "children": "Where does 2 go?"
+                  },
+                  " First (1 2 3) sends 2→3. Then (1 2) fixes 3→3. So 2→3."
+                ]
+              },
+              {
+                "type": "p",
+                "children": [
+                  {
+                    "type": "strong",
+                    "children": "Where does 3 go?"
+                  },
+                  " First (1 2 3) sends 3→1. Then (1 2) sends 1→2. So 3→2."
+                ]
+              },
+              {
+                "type": "p",
+                "children": [
+                  "Result: 1→1, 2→3, 3→2. That's ",
+                  {
+                    "type": "strong",
+                    "children": "(2 3)"
+                  },
+                  ". So (1 2) ∘ (1 2 3) = (2 3)."
+                ]
+              }
+            ]
+          },
+          {
+            "type": "Callout",
+            "props": {
+              "type": "warning"
+            },
+            "children": [
+              "(1 2 3) ∘ (1 2) = (1 3) but (1 2) ∘ (1 2 3) = (2 3). ",
+              {
+                "type": "strong",
+                "children": "They're different!"
+              },
+              " This proves S₃ is non-abelian. In fact, S₃ is the smallest non-abelian group — every group with fewer than 6 elements is abelian."
+            ]
+          },
+          {
+            "type": "p",
+            "children": [
+              {
+                "type": "strong",
+                "children": "S₄ — The 15 Puzzle Connection"
+              }
+            ]
+          },
+          {
+            "type": "p",
+            "children": [
+              "S₄ has 4! = 24 elements — every possible rearrangement of 4 objects. This is where symmetric groups start connecting to real puzzles. ",
+              {
+                "type": "strong",
+                "children": "The sliding 15 puzzle is secretly governed by permutation group theory!"
+              },
+              " Whether a scrambled configuration is solvable depends entirely on whether the permutation is even or odd."
+            ]
+          },
+          {
+            "type": "Analogy",
+            "props": {
+              "concept": "S₄ and Card Shuffling",
+              "analogy": "Imagine you have 4 cards face-down and you want to rearrange them. Every possible shuffle — every way to pick them up and put them back — is an element of S₄. That's 24 different shuffles. Some are simple (swap two cards), some are complex (cycle all four). But here's the key: some shuffles are 'even' (can be broken into an even number of swaps) and some are 'odd'. This even/odd distinction is what makes certain sliding puzzle states impossible to reach!",
+              "explanation": "Just like you can't un-shuffle cards with an odd number of swaps if you started with an even number (the parity is conserved), the 15 puzzle preserves parity with each tile slide. This is why Sam Loyd's famous puzzle was unsolvable."
+            }
+          },
+          {
+            "type": "p",
+            "children": [
+              {
+                "type": "strong",
+                "children": "Even and Odd Permutations"
+              }
+            ]
+          },
+          {
+            "type": "p",
+            "children": "Every permutation can be written as a product of transpositions (simple swaps of two elements). The number of transpositions needed might vary, but the parity — whether that number is even or odd — is always the same for a given permutation."
+          },
+          {
+            "type": "DefinitionList",
+            "props": {
+              "items": [
+                {
+                  "term": "Transposition",
+                  "definition": "A permutation that swaps exactly two elements and leaves everything else fixed. In cycle notation: (a b). Every transposition is its own inverse — do it twice and you're back to the start."
+                },
+                {
+                  "term": "Even Permutation",
+                  "definition": "A permutation that can be written as a product of an EVEN number of transpositions. The identity is even (zero transpositions — and zero is even!). The 3-cycle (1 2 3) is even: it equals (1 3)(1 2), a product of 2 transpositions."
+                },
+                {
+                  "term": "Odd Permutation",
+                  "definition": "A permutation that requires an ODD number of transpositions. Every single transposition like (1 2) is odd. The 4-cycle (1 2 3 4) is also odd: it equals (1 4)(1 3)(1 2), a product of 3 transpositions."
+                },
+                {
+                  "term": "Alternating Group (Aₙ)",
+                  "definition": "The subgroup of Sₙ consisting of all even permutations. It has exactly n!/2 elements — exactly half of Sₙ. A₃ has 3 elements: {e, (1 2 3), (1 3 2)}. A₄ has 12 elements."
+                }
+              ]
+            }
+          },
+          {
+            "type": "Example",
+            "props": {
+              "title": "Decomposing Permutations into Transpositions"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": [
+                  {
+                    "type": "strong",
+                    "children": "3-cycles are even:"
+                  },
+                  " (1 2 3) = (1 3)(1 2). Check: apply (1 2) first: 1→2, 2→1, 3→3. Then (1 3): 2→2, 1→3, 3→1. Net result: 1→2, 2→3, 3→1. That's (1 2 3). ✓ Two transpositions = even."
+                ]
+              },
+              {
+                "type": "p",
+                "children": [
+                  {
+                    "type": "strong",
+                    "children": "4-cycles are odd:"
+                  },
+                  " (1 2 3 4) = (1 4)(1 3)(1 2). Three transpositions = odd."
+                ]
+              },
+              {
+                "type": "p",
+                "children": [
+                  {
+                    "type": "strong",
+                    "children": "General rule:"
+                  },
+                  " A k-cycle can be written as (k−1) transpositions. So odd-length cycles (including the identity, a 1-cycle with 0 transpositions) are even permutations, and even-length cycles are odd permutations. Yes, it's backwards — blame the math!"
+                ]
+              }
+            ]
+          },
+          {
+            "type": "p",
+            "children": [
+              {
+                "type": "strong",
+                "children": "The 15 Puzzle Parity Theorem"
+              }
+            ]
+          },
+          {
+            "type": "p",
+            "children": "Now for the payoff — the theorem that stumped a nation."
+          },
+          {
+            "type": "Callout",
+            "props": {
+              "type": "warning"
+            },
+            "children": [
+              {
+                "type": "strong",
+                "children": "The 14-15 Puzzle: A $1,000 Unsolvable Challenge"
+              },
+              "\n\nIn 1878, puzzle maker Sam Loyd offered $1,000 to anyone who could solve his '14-15 puzzle' — a standard 15 puzzle but with tiles 14 and 15 swapped. Thousands tried. Nobody collected. The reason? Swapping just two tiles creates an ODD permutation, and the sliding moves can only produce EVEN permutations. It's mathematically impossible — not just hard, but provably impossible!"
+            ]
+          },
+          {
+            "type": "p",
+            "children": "Here's why: every legal move in the 15 puzzle (sliding a tile into the blank space) corresponds to a transposition — you're swapping the tile with the blank. A sequence of moves is a product of transpositions. Starting from the solved state, after an even number of moves you have an even permutation; after an odd number of moves, an odd permutation."
+          },
+          {
+            "type": "p",
+            "children": "But there's a subtlety: the blank space must return to its original position for the puzzle to be 'solved.' Moving the blank around a loop and back takes an even number of moves (the blank must travel out and return). So the tile permutation must be even. Swapping only tiles 14 and 15 is a single transposition — an odd permutation — so it can never be reached from the solved state!"
+          },
+          {
+            "type": "DeepDive",
+            "props": {
+              "title": "Parity and the Alternating Group"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "The solvable configurations of the 15 puzzle form exactly the alternating group A₁₅ — the group of all even permutations of 15 tiles. That's 15!/2 = 653,837,184,000 reachable states out of 15! = 1,307,674,368,000 total arrangements. Exactly half of all configurations are reachable. The other half (the odd permutations) are forever out of reach."
+              },
+              {
+                "type": "p",
+                "children": "This is a stunning example of group theory's power: without checking every single state (over a trillion of them!), we can prove that exactly half are impossible. The proof takes a few lines of algebra, not a trillion-step computer search."
+              }
+            ]
+          },
+          {
+            "type": "Quiz",
+            "props": {
+              "questions": [
+                {
+                  "question": "How many elements does S₄ have?",
+                  "options": ["4", "8", "16", "24"],
+                  "answer": 3,
+                  "explanation": "|S₄| = 4! = 4 × 3 × 2 × 1 = 24. The symmetric group Sₙ always has n! elements — one for each possible rearrangement of n objects."
+                },
+                {
+                  "question": "What is (1 2 3) ∘ (1 2) in S₃?",
+                  "options": ["(1 3)", "(2 3)", "(1 2 3)", "(1 3 2)"],
+                  "answer": 0,
+                  "explanation": "Apply (1 2) first: 1→2, 2→1, 3→3. Then apply (1 2 3): 2→3, 1→2, 3→1. Net: 1→3, 2→2, 3→1 = (1 3). We worked this out step by step earlier!"
+                },
+                {
+                  "question": "Is the permutation (1 2 3 4) even or odd?",
+                  "options": ["Even — it's a single cycle", "Odd — a 4-cycle decomposes into 3 transpositions", "Neither — parity only applies to transpositions", "Even — 4 is an even number"],
+                  "answer": 1,
+                  "explanation": "A k-cycle requires (k−1) transpositions. A 4-cycle needs 3 transpositions: (1 2 3 4) = (1 4)(1 3)(1 2). Since 3 is odd, this is an odd permutation. Remember: odd-length cycles are even, even-length cycles are odd!"
+                }
+              ]
+            }
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
           "title": "What's Next?"
         },
         "children": [
@@ -734,10 +1260,6 @@
           {
             "type": "ul",
             "children": [
-              {
-                "type": "li",
-                "children": "The Symmetric Groups (all permutations) — S₃, S₄, ..."
-              },
               {
                 "type": "li",
                 "children": "Subgroups and Cosets — finding structure within structure"
@@ -757,7 +1279,7 @@
             "props": {
               "type": "success"
             },
-            "children": "You've now met three fundamental groups: Z₂, Z₃, and the Klein Four Group — plus the Dihedral Groups D₃ and D₄! From simple coin flips to non-abelian symmetries, these examples contain all the core ideas you need to understand much more complex structures. The Rubik's cube group is just a bigger (and non-abelian!) version of the same concepts!"
+            "children": "You've now met three fundamental groups: Z₂, Z₃, and the Klein Four Group — plus the Dihedral Groups D₃ and D₄, and the Symmetric Groups S₃ and S₄! From simple coin flips to non-abelian permutations and the 15 puzzle's parity theorem, these examples contain all the core ideas you need to understand much more complex structures. The Rubik's cube group is just a bigger version of the same concepts!"
           }
         ]
       }
