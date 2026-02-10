@@ -1,0 +1,645 @@
+{
+  "id": "brainstorm-15-atomic-relations",
+  "title": "ATOMIC Relations = Operator Decomposition",
+  "subtitle": "How ATOMIC's commonsense relations map to Schankian operator dimensions",
+  "difficulty": 3,
+  "readTime": "20 min",
+  "tags": ["schankian", "ATOMIC", "commonsense", "knowledge-graphs"],
+  "state": "published",
+  "content": {
+    "type": "Fragment",
+    "children": [
+      {
+        "type": "Callout",
+        "props": { "type": "info" },
+        "children": [
+          {
+            "type": "p",
+            "children": [
+              {
+                "type": "strong",
+                "children": "What if commonsense reasoning had a periodic table?"
+              },
+              " ATOMIC is a massive knowledge graph of 880,000 if-then tuples that decompose everyday events into 9 distinct dimensions: why someone does something, what they need, how they feel, what happens next. This tutorial shows how these 9 ATOMIC relations map directly onto the dimensions of Schankian operators — giving us both a theoretical framework and 880K training examples."
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "1. What is ATOMIC?" },
+        "children": [
+          {
+            "type": "p",
+            "children": [
+              "ATOMIC (An Atlas of Machine Commonsense) is a knowledge graph created by researchers at the Allen Institute for AI in 2019. Unlike knowledge graphs that store facts about entities (\"Paris is the capital of France\"), ATOMIC stores ",
+              { "type": "strong", "children": "inferential knowledge" },
+              " about everyday events and mental states."
+            ]
+          },
+          {
+            "type": "p",
+            "children": "Given an event like \"PersonX gives PersonY a gift\", ATOMIC tells you nine different things you can infer:"
+          },
+          {
+            "type": "DefinitionList",
+            "props": {
+              "items": [
+                {
+                  "term": "xIntent",
+                  "definition": "Why did the agent (PersonX) do this? e.g., \"to show appreciation\", \"to make PersonY happy\""
+                },
+                {
+                  "term": "xNeed",
+                  "definition": "What did the agent need to do before this? e.g., \"to buy the gift\", \"to wrap it\""
+                },
+                {
+                  "term": "xAttr",
+                  "definition": "How would the agent be described? e.g., \"generous\", \"thoughtful\""
+                },
+                {
+                  "term": "xEffect",
+                  "definition": "What happens to the agent as a result? e.g., \"feels good about themselves\", \"spends money\""
+                },
+                {
+                  "term": "xWant",
+                  "definition": "What will the agent want to do next? e.g., \"to see PersonY's reaction\", \"to give more gifts\""
+                },
+                {
+                  "term": "xReact",
+                  "definition": "How does the agent feel? e.g., \"happy\", \"satisfied\", \"generous\""
+                },
+                {
+                  "term": "oEffect",
+                  "definition": "What happens to others (PersonY) as a result? e.g., \"receives a gift\", \"feels surprised\""
+                },
+                {
+                  "term": "oWant",
+                  "definition": "What will others want to do next? e.g., \"to thank PersonX\", \"to reciprocate\""
+                },
+                {
+                  "term": "oReact",
+                  "definition": "How do others feel? e.g., \"grateful\", \"happy\", \"touched\""
+                }
+              ]
+            }
+          },
+          {
+            "type": "Callout",
+            "props": { "type": "key-insight" },
+            "children": "Notice the pattern: relations starting with 'x' are about the agent (PersonX), relations starting with 'o' are about others (PersonY, PersonZ, etc.). This agent/other split is fundamental."
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "2. The Agent/Other Split" },
+        "children": [
+          {
+            "type": "p",
+            "children": "ATOMIC's most powerful design choice is separating the perspectives of the agent performing an action from the perspectives of those affected by it. This isn't just organizational convenience — it reflects a deep truth about how actions work."
+          },
+          {
+            "type": "Analogy",
+            "props": {
+              "concept": "The Agent/Other Split",
+              "analogy": "Watching a play from different seats",
+              "explanation": "Imagine a scene where Romeo gives Juliet a rose. From Romeo's seat (x-relations), you see: his intention (to express love), his preparation (finding the rose), his feelings (nervous hope). From Juliet's seat (o-relations), you see: receiving something unexpected, feeling touched, wanting to respond. Same event, completely different experiential data. ATOMIC captures both views."
+            }
+          },
+          {
+            "type": "InteractiveDemo",
+            "props": {
+              "title": "Trace Through: 'PersonX fires PersonY'",
+              "description": "Walk through how each ATOMIC relation captures a different facet of this emotionally complex event."
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "Consider the event: \"PersonX fires PersonY from their job\""
+              },
+              {
+                "type": "p",
+                "children": [
+                  { "type": "strong", "children": "Agent perspective (X = the manager):" }
+                ]
+              },
+              {
+                "type": "ul",
+                "children": [
+                  { "type": "li", "children": "xIntent: \"to improve team performance\", \"because PersonY wasn't meeting expectations\"" },
+                  { "type": "li", "children": "xNeed: \"to document performance issues\", \"to consult HR\", \"to prepare the conversation\"" },
+                  { "type": "li", "children": "xAttr: \"authoritative\", \"difficult\", \"responsible\"" },
+                  { "type": "li", "children": "xEffect: \"has one less employee\", \"must redistribute work\"" },
+                  { "type": "li", "children": "xWant: \"to hire a replacement\", \"to move forward\"" },
+                  { "type": "li", "children": "xReact: \"relieved\", \"uncomfortable\", \"determined\"" }
+                ]
+              },
+              {
+                "type": "p",
+                "children": [
+                  { "type": "strong", "children": "Other perspective (Y = the employee):" }
+                ]
+              },
+              {
+                "type": "ul",
+                "children": [
+                  { "type": "li", "children": "oEffect: \"loses their income\", \"must find new work\", \"updates their resume\"" },
+                  { "type": "li", "children": "oWant: \"to find a new job\", \"to understand what went wrong\"" },
+                  { "type": "li", "children": "oReact: \"shocked\", \"upset\", \"anxious\", \"angry\"" }
+                ]
+              },
+              {
+                "type": "Callout",
+                "props": { "type": "insight" },
+                "children": "Notice how radically different the two perspectives are. The same event creates almost opposite emotional experiences. This is exactly what operators need to model!"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "3. ATOMIC Relations as Operator Dimensions" },
+        "children": [
+          {
+            "type": "p",
+            "children": [
+              "Here's the key insight that connects ATOMIC to Schankian operators: ",
+              { "type": "strong", "children": "each ATOMIC relation captures a different dimension of what an operator does." }
+            ]
+          },
+          {
+            "type": "p",
+            "children": "When Schank defined ATRANS (transfer of possession), he wasn't just saying \"something moves from A to B.\" Implicit in ATRANS is a whole constellation of inferential knowledge:"
+          },
+          {
+            "type": "Example",
+            "props": { "title": "ATRANS Decomposed Through ATOMIC" },
+            "children": [
+              {
+                "type": "p",
+                "children": [
+                  "Consider: ",
+                  { "type": "em", "children": "\"John gives Mary the book\"" },
+                  " — an ATRANS operation."
+                ]
+              },
+              {
+                "type": "p",
+                "children": [
+                  { "type": "strong", "children": "ATOMIC decomposition:" }
+                ]
+              },
+              {
+                "type": "ul",
+                "children": [
+                  { "type": "li", "children": [
+                    { "type": "strong", "children": "xIntent:" },
+                    " John wanted Mary to have it, wanted to be generous, owed her something"
+                  ]},
+                  { "type": "li", "children": [
+                    { "type": "strong", "children": "xNeed:" },
+                    " John needed to possess the book first, needed to be near Mary"
+                  ]},
+                  { "type": "li", "children": [
+                    { "type": "strong", "children": "xEffect:" },
+                    " John no longer has the book (possession decreases)"
+                  ]},
+                  { "type": "li", "children": [
+                    { "type": "strong", "children": "xReact:" },
+                    " John feels generous, satisfied, lighter"
+                  ]},
+                  { "type": "li", "children": [
+                    { "type": "strong", "children": "oEffect:" },
+                    " Mary now has the book (possession increases)"
+                  ]},
+                  { "type": "li", "children": [
+                    { "type": "strong", "children": "oReact:" },
+                    " Mary feels grateful, surprised, pleased"
+                  ]}
+                ]
+              },
+              {
+                "type": "p",
+                "children": "Now compare to PTRANS (physical transfer): \"John throws the ball to Mary\""
+              },
+              {
+                "type": "ul",
+                "children": [
+                  { "type": "li", "children": [
+                    { "type": "strong", "children": "xIntent:" },
+                    " John wanted to play, wanted Mary to catch it"
+                  ]},
+                  { "type": "li", "children": [
+                    { "type": "strong", "children": "xEffect:" },
+                    " John no longer holds the ball, used physical energy"
+                  ]},
+                  { "type": "li", "children": [
+                    { "type": "strong", "children": "xReact:" },
+                    " John feels playful, anticipatory"
+                  ]},
+                  { "type": "li", "children": [
+                    { "type": "strong", "children": "oEffect:" },
+                    " Mary catches (or misses) the ball"
+                  ]},
+                  { "type": "li", "children": [
+                    { "type": "strong", "children": "oReact:" },
+                    " Mary feels engaged, ready, possibly startled"
+                  ]}
+                ]
+              },
+              {
+                "type": "Callout",
+                "props": { "type": "key-insight" },
+                "children": "ATRANS and PTRANS have similar structure (something goes from X to Y) but completely different ATOMIC profiles. The 'what' is similar but the 'why', 'how it feels', and 'what happens next' are different. ATOMIC relations capture these differences!"
+              }
+            ]
+          },
+          {
+            "type": "p",
+            "children": "This suggests a powerful hypothesis: Schankian operators can be defined as regions in a 9-dimensional ATOMIC space. Each operator has a characteristic signature across all 9 relations."
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "4. From Relations to Operators" },
+        "children": [
+          {
+            "type": "p",
+            "children": "If ATOMIC relations decompose operators, can we reverse the process? Given the 880,000 ATOMIC tuples, can we discover operators by clustering events that share similar ATOMIC profiles?"
+          },
+          {
+            "type": "DeepDive",
+            "props": { "title": "Methodology: Operator Discovery from ATOMIC Profiles" },
+            "children": [
+              {
+                "type": "p",
+                "children": [
+                  { "type": "strong", "children": "Step 1: Build ATOMIC Vectors" }
+                ]
+              },
+              {
+                "type": "p",
+                "children": "For each event in ATOMIC, create a vector by embedding all its relation values. If \"PersonX gives PersonY a gift\" has 5 xIntent values, 3 xNeed values, etc., embed each and aggregate (mean pool or attention-weight) per relation."
+              },
+              {
+                "type": "p",
+                "children": [
+                  { "type": "strong", "children": "Step 2: Define Operator Similarity" }
+                ]
+              },
+              {
+                "type": "p",
+                "children": "Two events belong to the same operator if they're similar across ALL 9 dimensions. This is stronger than just being similar in embedding space — they need parallel inferential structure."
+              },
+              {
+                "type": "p",
+                "children": [
+                  { "type": "strong", "children": "Step 3: Cluster and Label" }
+                ]
+              },
+              {
+                "type": "p",
+                "children": "Run clustering (hierarchical or spectral) on the 9D ATOMIC profiles. Examine cluster centroids. Do Schankian operators emerge?"
+              },
+              {
+                "type": "p",
+                "children": [
+                  { "type": "strong", "children": "Hypothesis:" },
+                  " Events clustered by ATOMIC profile should correspond more cleanly to Schankian operators than events clustered by surface embedding alone, because ATOMIC captures the deep inferential structure that defines operators."
+                ]
+              }
+            ]
+          },
+          {
+            "type": "p",
+            "children": "This approach turns the problem around: instead of defining operators first and then finding examples, we let the data tell us what the natural operator boundaries are — but guided by the structured lens of ATOMIC relations rather than unstructured embeddings."
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "5. 880K Training Tuples" },
+        "children": [
+          {
+            "type": "p",
+            "children": "ATOMIC isn't just a theoretical framework — it's a massive training dataset. The original ATOMIC (2019) contains 877,108 inferential tuples across 24,313 event phrases."
+          },
+          {
+            "type": "Callout",
+            "props": { "type": "info" },
+            "children": "That's roughly 36 tuples per event on average — multiple values for each of the 9 relations, capturing the diversity of possible inferences."
+          },
+          {
+            "type": "p",
+            "children": "The data format is straightforward:"
+          },
+          {
+            "type": "CodeBlock",
+            "props": {
+              "language": "json",
+              "title": "ATOMIC Data Format"
+            },
+            "children": "{\n  \"event\": \"PersonX gives PersonY a gift\",\n  \"xIntent\": [\"to show appreciation\", \"to celebrate\", \"to make PersonY happy\"],\n  \"xNeed\": [\"to buy the gift\", \"to wrap it\", \"to find PersonY\"],\n  \"xAttr\": [\"generous\", \"thoughtful\", \"kind\"],\n  \"xEffect\": [\"feels good\", \"spends money\"],\n  \"xWant\": [\"to see PersonY's reaction\"],\n  \"xReact\": [\"happy\", \"excited\", \"nervous\"],\n  \"oEffect\": [\"receives a gift\", \"is surprised\"],\n  \"oWant\": [\"to thank PersonX\", \"to open it\"],\n  \"oReact\": [\"grateful\", \"happy\", \"touched\"]\n}"
+          },
+          {
+            "type": "p",
+            "children": [
+              { "type": "strong", "children": "Training applications:" }
+            ]
+          },
+          {
+            "type": "ul",
+            "children": [
+              {
+                "type": "li",
+                "children": [
+                  { "type": "strong", "children": "Supervised operator classification:" },
+                  " If you have labeled operator examples, ATOMIC tuples for those events become rich training features."
+                ]
+              },
+              {
+                "type": "li",
+                "children": [
+                  { "type": "strong", "children": "Contrastive learning:" },
+                  " Train embeddings where events with similar ATOMIC profiles are pulled together."
+                ]
+              },
+              {
+                "type": "li",
+                "children": [
+                  { "type": "strong", "children": "Multi-task prediction:" },
+                  " Jointly predict operator and ATOMIC relations — the tasks should reinforce each other."
+                ]
+              },
+              {
+                "type": "li",
+                "children": [
+                  { "type": "strong", "children": "Data augmentation:" },
+                  " Generate synthetic training examples by sampling from ATOMIC distributions for each operator."
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "6. Disentangled Operator Space" },
+        "children": [
+          {
+            "type": "p",
+            "children": "Perhaps the most exciting application: using ATOMIC dimensions to create a disentangled operator embedding space."
+          },
+          {
+            "type": "Analogy",
+            "props": {
+              "concept": "Disentangled Operator Space",
+              "analogy": "A color space like HSL",
+              "explanation": "In HSL color space, hue, saturation, and lightness are independent axes. You can change saturation without affecting hue. Similarly, in disentangled operator space, each ATOMIC relation is an axis. Two operators might be identical on xIntent but different on oReact — they'd be close on the intent axis but far on the reaction axis. This lets you ask: 'Find me an operator like ATRANS but where the recipient feels different.'"
+            }
+          },
+          {
+            "type": "p",
+            "children": [
+              { "type": "strong", "children": "Why disentanglement matters:" }
+            ]
+          },
+          {
+            "type": "ul",
+            "children": [
+              {
+                "type": "li",
+                "children": [
+                  { "type": "strong", "children": "Interpretability:" },
+                  " You can explain operator differences in human terms: \"ATRANS differs from PTRANS mainly in xAttr (generosity vs playfulness) and oReact (gratitude vs engagement).\""
+                ]
+              },
+              {
+                "type": "li",
+                "children": [
+                  { "type": "strong", "children": "Controlled generation:" },
+                  " Need an event where the agent feels good but the recipient feels bad? Query for high xReact, low oReact."
+                ]
+              },
+              {
+                "type": "li",
+                "children": [
+                  { "type": "strong", "children": "Transfer reasoning:" },
+                  " If two operators share xNeed profiles, they might have shared precondition structures even if their effects differ."
+                ]
+              },
+              {
+                "type": "li",
+                "children": [
+                  { "type": "strong", "children": "Debugging:" },
+                  " When an operator prediction is wrong, you can see which dimension caused the error."
+                ]
+              }
+            ]
+          },
+          {
+            "type": "Callout",
+            "props": { "type": "key-insight" },
+            "children": "Disentanglement trades raw prediction accuracy for structured understanding. You might get slightly worse operator classification, but you gain the ability to reason about WHY events belong to operators."
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "7. ATOMIC2020 and Beyond" },
+        "children": [
+          {
+            "type": "p",
+            "children": "In 2020, the Allen Institute released ATOMIC2020 — a significantly expanded version that addresses limitations of the original."
+          },
+          {
+            "type": "DeepDive",
+            "props": { "title": "What's New in ATOMIC2020" },
+            "children": [
+              {
+                "type": "p",
+                "children": [
+                  { "type": "strong", "children": "Scale:" },
+                  " 1.33 million tuples (vs 877K) across 23 relation types (vs 9)."
+                ]
+              },
+              {
+                "type": "p",
+                "children": [
+                  { "type": "strong", "children": "Three knowledge types:" }
+                ]
+              },
+              {
+                "type": "ul",
+                "children": [
+                  {
+                    "type": "li",
+                    "children": [
+                      { "type": "strong", "children": "Social commonsense:" },
+                      " The original 9 relations about mental states and social interactions."
+                    ]
+                  },
+                  {
+                    "type": "li",
+                    "children": [
+                      { "type": "strong", "children": "Physical commonsense:" },
+                      " Object properties, physical effects (ObjectUse, AtLocation, MadeUpOf, etc.)"
+                    ]
+                  },
+                  {
+                    "type": "li",
+                    "children": [
+                      { "type": "strong", "children": "Event commonsense:" },
+                      " Temporal and causal relations (isAfter, isBefore, Causes, etc.)"
+                    ]
+                  }
+                ]
+              },
+              {
+                "type": "p",
+                "children": [
+                  { "type": "strong", "children": "Why this matters for operators:" }
+                ]
+              },
+              {
+                "type": "p",
+                "children": "The physical relations let us ground operators in physical reality. PTRANS now has AtLocation and ObjectUse annotations. The event relations let us model operator sequences — what typically happens before and after each operator type."
+              },
+              {
+                "type": "p",
+                "children": [
+                  { "type": "strong", "children": "COMET models:" },
+                  " Alongside ATOMIC2020, the team released COMET (COMmonsense Transformers) — GPT-2 models fine-tuned to generate ATOMIC tuples for novel events. This means you can get ATOMIC decompositions for any event, not just the 24K in the original dataset."
+                ]
+              }
+            ]
+          },
+          {
+            "type": "Callout",
+            "props": { "type": "info" },
+            "children": [
+              "Paper links: ",
+              { "type": "em", "children": "ATOMIC: An Atlas of Machine Commonsense" },
+              " (AAAI 2019) — arxiv.org/abs/1811.00146 | ",
+              { "type": "em", "children": "COMET-ATOMIC 2020" },
+              " (AAAI 2021) — arxiv.org/abs/2010.05953"
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "8. Test Your Understanding" },
+        "children": [
+          {
+            "type": "Quiz",
+            "props": {
+              "question": "What is the key difference between 'x' relations (xIntent, xEffect) and 'o' relations (oEffect, oReact) in ATOMIC?",
+              "options": [
+                "x-relations are about the agent performing the action, o-relations are about others affected by it",
+                "x-relations are explicit, o-relations are implicit",
+                "x-relations describe actions, o-relations describe states",
+                "x-relations are before the event, o-relations are after"
+              ],
+              "correct": 0,
+              "explanation": "The x/o split is about perspective: PersonX is the agent doing the action, PersonY/Z (others) are those affected. The same event creates different experiences for the doer vs the recipient."
+            }
+          },
+          {
+            "type": "Quiz",
+            "props": {
+              "question": "Why might clustering events by their ATOMIC profiles reveal operators better than clustering by embeddings alone?",
+              "options": [
+                "ATOMIC profiles are smaller and faster to compute",
+                "ATOMIC profiles capture inferential structure (why, preconditions, effects) that defines operators",
+                "ATOMIC was trained on operator labels",
+                "Embedding spaces are always random"
+              ],
+              "correct": 1,
+              "explanation": "Operators aren't just about surface similarity — they're defined by what you can infer from them. ATOMIC explicitly captures this inferential structure across 9 dimensions, while raw embeddings mix everything together."
+            }
+          },
+          {
+            "type": "Quiz",
+            "props": {
+              "question": "In a 'disentangled operator space' based on ATOMIC dimensions, how would ATRANS (gift-giving) and PTRANS (ball-throwing) compare?",
+              "options": [
+                "They would be identical since both involve transfer",
+                "They would be completely different on all dimensions",
+                "They might be similar on structural dimensions (xNeed) but different on emotional dimensions (xAttr, oReact)",
+                "They cannot be compared because they are different operators"
+              ],
+              "correct": 2,
+              "explanation": "Both involve transfer, so preconditions might be similar (need to possess the object first). But the attributions (generous vs playful) and reactions (gratitude vs excitement) differ. Disentanglement lets us see both the similarities and differences."
+            }
+          },
+          {
+            "type": "Quiz",
+            "props": {
+              "question": "What new capabilities did ATOMIC2020 add compared to the original ATOMIC?",
+              "options": [
+                "Just more tuples of the same type",
+                "Physical and event commonsense relations in addition to social commonsense",
+                "Real-time inference capabilities",
+                "Multi-language support"
+              ],
+              "correct": 1,
+              "explanation": "ATOMIC2020 expanded from 9 social/mental relations to 23 relations covering three types: social commonsense (the original), physical commonsense (ObjectUse, AtLocation), and event commonsense (isBefore, Causes). This grounds operators in physical and temporal reality."
+            }
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "9. Summary & Next Steps" },
+        "children": [
+          {
+            "type": "p",
+            "children": "ATOMIC provides exactly what Schankian operator theory needs: a structured decomposition of what makes actions meaningful. Its 9 relations (expanded to 23 in ATOMIC2020) capture the dimensions along which operators differ — intentions, preconditions, effects, and emotional impacts for both agents and others."
+          },
+          {
+            "type": "Callout",
+            "props": { "type": "key-insight" },
+            "children": [
+              { "type": "strong", "children": "The core insight:" },
+              " Operators aren't atomic primitives — they're multi-dimensional structures. ATOMIC gives us the dimensions, and 880K+ training examples to learn them."
+            ]
+          },
+          {
+            "type": "p",
+            "children": [
+              { "type": "strong", "children": "Key resources:" }
+            ]
+          },
+          {
+            "type": "ul",
+            "children": [
+              { "type": "li", "children": "ATOMIC paper: arxiv.org/abs/1811.00146" },
+              { "type": "li", "children": "ATOMIC2020/COMET paper: arxiv.org/abs/2010.05953" },
+              { "type": "li", "children": "Dataset: allenai.org/data/atomic-2020" },
+              { "type": "li", "children": "COMET models: available on HuggingFace" }
+            ]
+          },
+          {
+            "type": "p",
+            "children": [
+              { "type": "strong", "children": "Next steps in the Schankian operator project:" }
+            ]
+          },
+          {
+            "type": "ul",
+            "children": [
+              { "type": "li", "children": "Use COMET to generate ATOMIC profiles for verb clusters" },
+              { "type": "li", "children": "Test whether ATOMIC-profile clustering recovers Schankian primitives" },
+              { "type": "li", "children": "Build disentangled operator embeddings with ATOMIC dimensions as axes" },
+              { "type": "li", "children": "Train multi-task models that predict both operators and ATOMIC relations" }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}

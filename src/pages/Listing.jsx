@@ -329,6 +329,18 @@ const tutorials = [
     difficulty: 2,
   },
   {
+    id: 'brainstorm-15-atomic-relations',
+    title: 'ATOMIC Relations = Operator Decomposition',
+    description: 'How ATOMIC\'s 9 commonsense relations decompose what Schankian operators encode — 880K training tuples as operator dimensions',
+    tags: ['schankian', 'ATOMIC', 'commonsense', 'knowledge-graphs'],
+    icon: '⚛️',
+    gradient: 'from-emerald-500 to-teal-600',
+    shadowColor: 'shadow-emerald-500/30',
+    glowColor: 'rgba(16, 185, 129, 0.4)',
+    readTime: '20 min',
+    difficulty: 3,
+  },
+  {
     id: 'thoughtblend',
     title: 'ThoughtBlend',
     description: 'Synthesize perspectives through dialectical color mixing — add sources as color swatches and blend them into structured text or dialogue',
@@ -445,6 +457,9 @@ const tagColors = {
   'math': 'bg-violet-100 text-violet-700 border-violet-200',
   'category-theory': 'bg-purple-100 text-purple-700 border-purple-200',
   'schankian': 'bg-amber-100 text-amber-700 border-amber-200',
+  'ATOMIC': 'bg-emerald-100 text-emerald-700 border-emerald-200',
+  'commonsense': 'bg-teal-100 text-teal-700 border-teal-200',
+  'knowledge-graphs': 'bg-cyan-100 text-cyan-700 border-cyan-200',
   'analogy': 'bg-indigo-100 text-indigo-700 border-indigo-200',
   'cognition': 'bg-purple-100 text-purple-700 border-purple-200',
   
