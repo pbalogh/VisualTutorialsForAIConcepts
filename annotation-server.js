@@ -2562,12 +2562,12 @@ CONTEXT (from the source):
 ${parentNode.sourceText || parentNode.summary}
 
 ${isQuestion 
-  ? 'Answer the question. You may add general knowledge beyond the source to help understanding, but prioritize what the source says.'
-  : `Explain what "${selectedText}" means. You may add general knowledge beyond the source to help understanding, but prioritize what the source says.`}
+  ? 'Answer the question thoroughly using your full knowledge. The source context above gives you the topic area, but you should draw on general knowledge to give a COMPLETE, HELPFUL answer. Do NOT say "the source doesn\'t mention this" — instead, answer the question directly using what you know.'
+  : `Explain what "${selectedText}" means thoroughly. Use the source context for topic grounding, but draw on your full knowledge to give a complete explanation.`}
 
 Return a JSON object with:
 - "title": ${isQuestion ? 'A clear title summarizing the Q&A' : 'A clear title for this explanation'}
-- "summary": 2-4 sentence educational ${isQuestion ? 'answer' : 'explanation'}
+- "summary": 2-4 sentence educational ${isQuestion ? 'answer' : 'explanation'} that DIRECTLY ${isQuestion ? 'answers the question' : 'explains the concept'}
 - "isExternal": true if you added information beyond what the source says
 - "needsMoreDetail": true if this ${isQuestion ? 'answer' : 'concept'} could be further broken down
 

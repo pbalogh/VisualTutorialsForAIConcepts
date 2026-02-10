@@ -359,20 +359,18 @@ If you cannot find source text to support a sub-concept, do NOT include it.
 
 Return ONLY valid JSON array.`
 
-  const enrichedPrompt = `You are helping learners understand a concept by adding helpful context.
+  const enrichedPrompt = `You are helping learners deeply understand a concept using your full knowledge.
 
 CONCEPT: ${node.title}
 SUMMARY: ${node.summary}
 ${hasSourceText ? `\nSOURCE TEXT:\n${sourceContent.slice(0, 3000)}` : ''}
 PARENT CONTEXT: ${parentContext || 'Top-level concept'}
 
-You may add external knowledge to help explain this concept, but clearly distinguish:
-- What the source text says
-- What you're adding from general knowledge
+Break this concept into its most important sub-topics. Use the source text as a starting point, but ALSO add important related concepts from your general knowledge that would help a learner. Do NOT limit yourself to what the source says — your job is to teach this concept thoroughly.
 
 Return a JSON array of sub-concepts, each with:
 - "title": Clear title (3-8 words)
-- "summary": 2-4 sentence teaching explanation
+- "summary": 2-4 sentence teaching explanation that DIRECTLY explains the concept
 - "sourceQuote": Verbatim quote from source if applicable, or "" if adding external knowledge
 - "isExternal": true if this adds knowledge beyond what the source says
 - "isAtomic": true ONLY for single scientific terms
