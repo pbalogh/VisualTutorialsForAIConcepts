@@ -2735,6 +2735,71 @@ Return ONLY valid JSON.`
     }
   }
   
+  // ==================== DELETE NODES ====================
+  if (url.pathname === '/delete-nodes' && req.method === 'POST') {
+    try {
+      const body = await parseBody(req)
+      const { tutorialId, nodeIds } = body
+      
+      if (!tutorialId || !nodeIds || !Array.isArray(nodeIds) || nodeIds.length === 0) {
+        return sendJson(res, 400, { error: 'tutorialId and nodeIds[] required' })
+      }
+      
+      console.log('\n🗑️ Delete Nodes Request:')
+      console.log(`  Tutorial: ${tutorialId}`)
+      console.log(`  Nodes to delete: ${nodeIds.join(', ')}`)
+      
+      // Load the semantic tree cache
+      const cachePath = path.join(CONTENT_DIR, `${tutorialId}-semantic-tree.json`)
+      let cached
+      try {
+        cached = JSON.parse(await fs.readFile(cachePath, 'utf-8'))
+      } catch (e) {
+        return sendJson(res, 404, { error: `No cached tree found for ${tutorialId}` })
+      }
+      
+      // Recursively remove nodes by ID
+      let deletedCount = 0
+      function removeNodes(node) {
+        if (!node || !node.children) return node
+        const before = node.children.length
+        node.children = node.children.filter(child => {
+          if (nodeIds.includes(child.id)) {
+            deletedCount++
+            return false
+          }
+          return true
+        })
+        // Recurse into remaining children
+        node.children.forEach(child => removeNodes(child))
+        return node
+      }
+      
+      // Check if trying to delete the root
+      if (nodeIds.includes(cached.tree?.id)) {
+        return sendJson(res, 400, { error: 'Cannot delete root node' })
+      }
+      
+      removeNodes(cached.tree)
+      
+      if (deletedCount === 0) {
+        return sendJson(res, 404, { error: 'None of the specified node IDs were found' })
+      }
+      
+      // Save updated tree
+      cached.lastModified = new Date().toISOString()
+      await fs.writeFile(cachePath, JSON.stringify(cached, null, 2))
+      
+      console.log(`  ✅ Deleted ${deletedCount} node(s), saved to ${cachePath}`)
+      
+      return sendJson(res, 200, { deleted: deletedCount, nodeIds })
+      
+    } catch (error) {
+      console.error('❌ Delete nodes error:', error)
+      return sendJson(res, 500, { error: error.message })
+    }
+  }
+  
   // ==================== COMPUTE EMBEDDINGS ====================
   if (url.pathname === '/compute-embeddings' && req.method === 'POST') {
     try {
