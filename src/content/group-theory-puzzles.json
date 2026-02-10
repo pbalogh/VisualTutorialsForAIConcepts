@@ -1250,6 +1250,462 @@
       {
         "type": "Section",
         "props": {
+          "title": "Subgroups and Cosets — Groups Within Groups"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": [
+              "We've seen groups like D₃ and S₃ with all their elements and operations. But here's a powerful idea: ",
+              {
+                "type": "strong",
+                "children": "sometimes a subset of a group is itself a group"
+              },
+              ". These 'groups within groups' are called subgroups, and they're the key to understanding the internal structure of any group."
+            ]
+          },
+          {
+            "type": "p",
+            "children": "Think of it this way: if you have a toolkit with 20 tools, you might notice that a specific set of 5 tools is self-contained — you can do a complete category of jobs using just those 5, never needing the others. That's what a subgroup is: a self-contained subset."
+          },
+          {
+            "type": "p",
+            "children": [
+              {
+                "type": "strong",
+                "children": "What is a Subgroup?"
+              }
+            ]
+          },
+          {
+            "type": "p",
+            "children": "A subgroup H of a group G is a subset that satisfies three conditions: it contains the identity element, it's closed under the group operation (combining any two elements of H gives another element of H), and every element in H has its inverse also in H. In short: a subgroup is a subset that is itself a group under the same operation."
+          },
+          {
+            "type": "DefinitionList",
+            "props": {
+              "items": [
+                {
+                  "term": "Subgroup",
+                  "definition": "A subset H ⊆ G that is itself a group under the same operation as G. Must contain the identity, be closed under the operation, and contain inverses. Written H ≤ G."
+                },
+                {
+                  "term": "Proper Subgroup",
+                  "definition": "A subgroup that is NOT the entire group. Written H < G. These are the interesting ones — they reveal internal structure."
+                },
+                {
+                  "term": "Trivial Subgroup",
+                  "definition": "The subgroup containing only the identity element: {e}. Every group has it. It's technically a subgroup, but not a very exciting one."
+                }
+              ]
+            }
+          },
+          {
+            "type": "p",
+            "children": [
+              {
+                "type": "strong",
+                "children": "Finding Subgroups of D₃"
+              }
+            ]
+          },
+          {
+            "type": "p",
+            "children": "Let's find ALL subgroups of our friend D₃ (the symmetries of a triangle, which is also S₃). Remember, D₃ has 6 elements: the identity e, two rotations r₁ (120°) and r₂ (240°), and three reflections s₁, s₂, s₃."
+          },
+          {
+            "type": "Steps",
+            "props": {
+              "items": [
+                {
+                  "title": "The Trivial Subgroup: {e}",
+                  "description": "Just the identity by itself. It trivially satisfies all three conditions. Order 1."
+                },
+                {
+                  "title": "The Rotation Subgroup: {e, r₁, r₂}",
+                  "description": "The three rotations form a group! The identity is there, combining any two rotations gives a rotation (r₁ ∘ r₁ = r₂, r₁ ∘ r₂ = e, etc.), and each rotation has an inverse that's also a rotation (r₁⁻¹ = r₂). This is isomorphic to Z₃."
+                },
+                {
+                  "title": "Three Reflection Subgroups: {e, s₁}, {e, s₂}, {e, s₃}",
+                  "description": "Each reflection paired with the identity forms a subgroup. Why? Each reflection is its own inverse (reflect twice = do nothing), so closure and inverses are automatic. Each is isomorphic to Z₂."
+                },
+                {
+                  "title": "The Whole Group: D₃ itself",
+                  "description": "Every group is a subgroup of itself (though not a proper subgroup). Order 6."
+                }
+              ]
+            }
+          },
+          {
+            "type": "p",
+            "children": "That's it — 6 subgroups total. But why only these? Why can't we have, say, a subgroup of order 4 or 5? The answer is one of the most beautiful theorems in group theory."
+          },
+          {
+            "type": "ComparisonTable",
+            "props": {
+              "headers": ["Subgroup", "Elements", "Order", "Isomorphic To"],
+              "rows": [
+                ["Trivial", "{e}", "1", "—"],
+                ["Reflection 1", "{e, s₁}", "2", "Z₂"],
+                ["Reflection 2", "{e, s₂}", "2", "Z₂"],
+                ["Reflection 3", "{e, s₃}", "2", "Z₂"],
+                ["Rotations", "{e, r₁, r₂}", "3", "Z₃"],
+                ["Whole group", "D₃", "6", "D₃ ≅ S₃"]
+              ]
+            }
+          },
+          {
+            "type": "p",
+            "children": [
+              {
+                "type": "strong",
+                "children": "Lagrange's Theorem — The Great Restrictor"
+              }
+            ]
+          },
+          {
+            "type": "p",
+            "children": "Notice the orders of our subgroups: 1, 2, 2, 2, 3, 6. Every single one divides 6 (the order of D₃). Coincidence? Absolutely not."
+          },
+          {
+            "type": "Callout",
+            "props": {
+              "type": "warning"
+            },
+            "children": "Lagrange's Theorem: If H is a subgroup of G, then |H| divides |G|. That's it. That's the theorem. And it's one of the most powerful results in all of group theory. It instantly tells you which subgroup sizes are even POSSIBLE, without having to search for them."
+          },
+          {
+            "type": "p",
+            "children": "For D₃ (order 6): the divisors of 6 are 1, 2, 3, and 6. So subgroups can ONLY have order 1, 2, 3, or 6. A subgroup of order 4 or 5? Impossible. Don't even bother looking."
+          },
+          {
+            "type": "Example",
+            "props": {
+              "title": "Lagrange's Theorem in Action"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": [
+                  {
+                    "type": "strong",
+                    "children": "For S₄ (order 24):"
+                  },
+                  " Divisors of 24 are 1, 2, 3, 4, 6, 8, 12, 24. So subgroups can only have these orders. You'll never find a subgroup of order 5, 7, 9, 10, 11, etc."
+                ]
+              },
+              {
+                "type": "p",
+                "children": [
+                  {
+                    "type": "strong",
+                    "children": "For Z₇ (order 7, prime!):"
+                  },
+                  " Divisors of 7 are just 1 and 7. So the ONLY subgroups are the trivial subgroup and the whole group. Groups of prime order have no proper, non-trivial subgroups at all!"
+                ]
+              },
+              {
+                "type": "p",
+                "children": [
+                  {
+                    "type": "strong",
+                    "children": "Important caveat:"
+                  },
+                  " Lagrange's theorem says subgroup orders must divide |G|, but not every divisor necessarily corresponds to a subgroup. For example, A₄ (order 12) has no subgroup of order 6, even though 6 divides 12."
+                ]
+              }
+            ]
+          },
+          {
+            "type": "p",
+            "children": [
+              {
+                "type": "strong",
+                "children": "Cosets — Partitioning the Group"
+              }
+            ]
+          },
+          {
+            "type": "p",
+            "children": "Lagrange's theorem seems almost magical — how can such a simple statement be true? The proof comes from a beautiful idea called cosets. And cosets aren't just a proof technique; they're a fundamental concept that reveals deep structure."
+          },
+          {
+            "type": "p",
+            "children": "Given a subgroup H of G and any element g in G, the left coset gH is the set you get by multiplying g with every element of H: gH = {gh : h ∈ H}."
+          },
+          {
+            "type": "Example",
+            "props": {
+              "title": "Cosets of the Rotation Subgroup in D₃"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "Let H = {e, r₁, r₂} (the rotation subgroup of D₃). Let's compute all the left cosets:"
+              },
+              {
+                "type": "p",
+                "children": [
+                  {
+                    "type": "strong",
+                    "children": "eH = {e·e, e·r₁, e·r₂} = {e, r₁, r₂}"
+                  },
+                  " — that's just H itself."
+                ]
+              },
+              {
+                "type": "p",
+                "children": [
+                  {
+                    "type": "strong",
+                    "children": "r₁H = {r₁·e, r₁·r₁, r₁·r₂} = {r₁, r₂, e}"
+                  },
+                  " — same set as eH! (Just written in different order.)"
+                ]
+              },
+              {
+                "type": "p",
+                "children": [
+                  {
+                    "type": "strong",
+                    "children": "s₁H = {s₁·e, s₁·r₁, s₁·r₂} = {s₁, s₂, s₃}"
+                  },
+                  " — a completely new coset! It's all the reflections."
+                ]
+              },
+              {
+                "type": "p",
+                "children": [
+                  {
+                    "type": "strong",
+                    "children": "s₂H = {s₂·e, s₂·r₁, s₂·r₂} = {s₂, s₃, s₁}"
+                  },
+                  " — same set as s₁H."
+                ]
+              },
+              {
+                "type": "p",
+                "children": "So there are exactly TWO distinct cosets: {e, r₁, r₂} (the rotations) and {s₁, s₂, s₃} (the reflections). The cosets partition D₃ into two equal halves!"
+              }
+            ]
+          },
+          {
+            "type": "p",
+            "children": "This is why Lagrange's theorem works: the cosets of H always partition G into chunks of equal size |H|. Since the chunks are all the same size and they cover all of G, the number of chunks times |H| must equal |G|. Therefore |H| divides |G|. Beautiful!"
+          },
+          {
+            "type": "p",
+            "children": [
+              {
+                "type": "strong",
+                "children": "Why Cosets Matter for Puzzles"
+              }
+            ]
+          },
+          {
+            "type": "p",
+            "children": "Cosets aren't just an abstract curiosity — they're a powerful tool for decomposing complex puzzles into manageable layers."
+          },
+          {
+            "type": "p",
+            "children": "The key insight: two elements in the same coset are 'equivalent modulo the subgroup.' If your subgroup H represents rotations, then two puzzle states in the same coset differ only by a rotation. They look 'the same' if you ignore rotational differences."
+          },
+          {
+            "type": "Analogy",
+            "props": {
+              "concept": "Cosets",
+              "analogy": "Floors in a building",
+              "explanation": "Think of a group as a building, with each coset being a floor. Within a single floor, you can walk between any two rooms using the subgroup operations (like walking along a hallway). But to get from one floor to another, you need a fundamentally different kind of move — you need an element outside the subgroup (like taking the elevator). In D₃, the 'rotation floor' contains {e, r₁, r₂} and you move between them with rotations. The 'reflection floor' contains {s₁, s₂, s₃}. To get from any rotation to any reflection, you need to apply a reflection — the elevator between floors."
+            }
+          },
+          {
+            "type": "p",
+            "children": "This is exactly how experts solve the Rubik's cube! They decompose the cube group into coset layers: first get the cross right (ignoring everything else), then solve the corners (modulo some subgroup), then the final permutation. Each step works within or between cosets of carefully chosen subgroups."
+          },
+          {
+            "type": "p",
+            "children": [
+              {
+                "type": "strong",
+                "children": "Normal Subgroups — When Left Equals Right"
+              }
+            ]
+          },
+          {
+            "type": "p",
+            "children": "We computed LEFT cosets gH above. But you can also form RIGHT cosets Hg = {hg : h ∈ H}. In general, left and right cosets can be different! But when they're the same for every element g — that is, when gH = Hg for all g in G — we call the subgroup normal."
+          },
+          {
+            "type": "DefinitionList",
+            "props": {
+              "items": [
+                {
+                  "term": "Normal Subgroup",
+                  "definition": "A subgroup N ≤ G where gN = Ng for every g ∈ G. Written N ⊴ G. The left cosets and right cosets are identical."
+                },
+                {
+                  "term": "Quotient Group",
+                  "definition": "When N is normal in G, the set of cosets G/N forms a group itself! The operation is (gN)(hN) = (gh)N. This only works when N is normal — it's what makes normal subgroups so special."
+                }
+              ]
+            }
+          },
+          {
+            "type": "Example",
+            "props": {
+              "title": "Normal vs. Not Normal in D₃"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": [
+                  {
+                    "type": "strong",
+                    "children": "The rotation subgroup {e, r₁, r₂} IS normal."
+                  },
+                  " We already found that the left cosets are {e, r₁, r₂} and {s₁, s₂, s₃}. Let's check a right coset: Hs₁ = {e·s₁, r₁·s₁, r₂·s₁} = {s₁, s₃, s₂} = {s₁, s₂, s₃}. Same set! You can verify this holds for every element: left cosets equal right cosets. ✓"
+                ]
+              },
+              {
+                "type": "p",
+                "children": [
+                  {
+                    "type": "strong",
+                    "children": "The reflection subgroup {e, s₁} is NOT normal."
+                  },
+                  " Left coset r₁{e, s₁} = {r₁, r₁s₁} = {r₁, s₃}. Right coset {e, s₁}r₁ = {r₁, s₁r₁} = {r₁, s₂}. These are different! The subgroup {e, s₁} is not normal in D₃. ✗"
+                ]
+              }
+            ]
+          },
+          {
+            "type": "DeepDive",
+            "props": {
+              "title": "Why Normal Subgroups and Quotient Groups Matter"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "Normal subgroups let you 'collapse' a group into a simpler one. The quotient group G/N treats each coset as a single element, effectively zooming out and ignoring the internal structure of each coset."
+              },
+              {
+                "type": "p",
+                "children": "For D₃/{e, r₁, r₂}, the quotient group has just two elements: the 'rotation coset' and the 'reflection coset.' This quotient group is isomorphic to Z₂ — and it captures the essential question: 'is this symmetry orientation-preserving or orientation-reversing?' All the detailed rotational information is collapsed away."
+              },
+              {
+                "type": "p",
+                "children": "This is immensely powerful for puzzles. You can analyze a complex group by studying its normal subgroups and quotient groups separately. It's the group theory version of 'divide and conquer.' The Jordan-Hölder theorem says every finite group can be broken down into 'simple groups' (groups with no normal subgroups) in essentially one way — like prime factorization for groups!"
+              }
+            ]
+          },
+          {
+            "type": "p",
+            "children": [
+              {
+                "type": "strong",
+                "children": "The Index"
+              }
+            ]
+          },
+          {
+            "type": "p",
+            "children": "The number of distinct cosets of H in G is called the index, written [G:H]. Since cosets partition G into equal-sized chunks: [G:H] = |G|/|H|."
+          },
+          {
+            "type": "Example",
+            "props": {
+              "title": "Computing the Index"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "For the rotation subgroup {e, r₁, r₂} in D₃: [D₃ : {e, r₁, r₂}] = 6/3 = 2. There are exactly 2 cosets."
+              },
+              {
+                "type": "p",
+                "children": "For a reflection subgroup {e, s₁} in D₃: [D₃ : {e, s₁}] = 6/2 = 3. There are exactly 3 cosets."
+              },
+              {
+                "type": "p",
+                "children": [
+                  {
+                    "type": "strong",
+                    "children": "Key fact:"
+                  },
+                  " A subgroup of index 2 is ALWAYS normal! Why? There are only two cosets: H itself and 'everything else.' The left coset gH (for g ∉ H) must be 'everything else,' and so must the right coset Hg. So gH = Hg automatically. This is why the rotation subgroup of D₃ is normal — it has index 2."
+                ]
+              }
+            ]
+          },
+          {
+            "type": "InteractiveDemo",
+            "props": {
+              "title": "Find the Subgroups!",
+              "description": "Test your understanding: given a group, can you identify which subsets are valid subgroups? Remember the three conditions: contains the identity, closed under the operation, and contains all inverses. Use Lagrange's theorem to narrow down what orders are possible!"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": [
+                  {
+                    "type": "strong",
+                    "children": "Challenge 1:"
+                  },
+                  " The group Z₆ = {0, 1, 2, 3, 4, 5} under addition mod 6. Which of these subsets are subgroups? (a) {0, 3} (b) {0, 2, 4} (c) {0, 1, 2} (d) {0, 1, 3}"
+                ]
+              },
+              {
+                "type": "p",
+                "children": [
+                  {
+                    "type": "strong",
+                    "children": "Answers:"
+                  },
+                  " (a) YES — {0, 3} is closed (3+3=6≡0), has identity (0), has inverses (3 is its own inverse). Order 2 divides 6. ✓ (b) YES — {0, 2, 4} is closed (2+2=4, 2+4=0, 4+4=2), has identity, has inverses (2⁻¹=4, 4⁻¹=2). Order 3 divides 6. ✓ (c) NO — 1+2=3, which isn't in {0, 1, 2}. Not closed! (d) NO — 1+1=2, which isn't in {0, 1, 3}. Not closed! Also, order 3... wait, 3 DOES divide 6. So Lagrange doesn't rule it out, but the closure check does."
+                ]
+              },
+              {
+                "type": "p",
+                "children": [
+                  {
+                    "type": "strong",
+                    "children": "Challenge 2:"
+                  },
+                  " Can Z₅ = {0, 1, 2, 3, 4} (order 5) have any proper non-trivial subgroups? Think about Lagrange's theorem: 5 is prime! Its only divisors are 1 and 5. So the only subgroups are {0} and Z₅ itself. Groups of prime order are 'atoms' — they can't be broken down further."
+                ]
+              }
+            ]
+          },
+          {
+            "type": "Quiz",
+            "props": {
+              "questions": [
+                {
+                  "question": "A group G has order 12. Which of the following CANNOT be the order of a subgroup of G?",
+                  "options": ["2", "3", "5", "6"],
+                  "answer": 2,
+                  "explanation": "By Lagrange's theorem, the order of any subgroup must divide the order of the group. The divisors of 12 are 1, 2, 3, 4, 6, and 12. Since 5 does not divide 12, no subgroup of order 5 can exist."
+                },
+                {
+                  "question": "In D₃, the left cosets of {e, r₁, r₂} are {e, r₁, r₂} and {s₁, s₂, s₃}. What is the index [D₃ : {e, r₁, r₂}]?",
+                  "options": ["1", "2", "3", "6"],
+                  "answer": 1,
+                  "explanation": "The index is the number of distinct cosets. There are exactly 2 cosets: the rotations and the reflections. Equivalently, [D₃ : {e, r₁, r₂}] = |D₃|/|{e, r₁, r₂}| = 6/3 = 2."
+                },
+                {
+                  "question": "Which subgroup of D₃ is normal?",
+                  "options": ["{e, s₁}", "{e, s₂}", "{e, r₁, r₂}", "All of the above"],
+                  "answer": 2,
+                  "explanation": "The rotation subgroup {e, r₁, r₂} is normal because its left and right cosets are equal: it has index 2, and any subgroup of index 2 is automatically normal. The reflection subgroups {e, s₁}, {e, s₂}, {e, s₃} are NOT normal — their left and right cosets differ."
+                }
+              ]
+            }
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
           "title": "What's Next?"
         },
         "children": [
@@ -1260,10 +1716,6 @@
           {
             "type": "ul",
             "children": [
-              {
-                "type": "li",
-                "children": "Subgroups and Cosets — finding structure within structure"
-              },
               {
                 "type": "li",
                 "children": "A mini sliding puzzle demonstrating parity arguments"

@@ -448,26 +448,143 @@ function InfoPanel({ node, graphData, onClose }) {
   )
 }
 
-// ─── Legend ──────────────────────────────────────────────────────────────────
+// ─── Legend (Interactive Category Filter) ────────────────────────────────────
 
-function Legend() {
+function Legend({ activeCategories, onToggleCategory }) {
   return (
     <div className="absolute bottom-4 left-4 bg-slate-800/90 backdrop-blur-sm border border-slate-600 rounded-xl p-4 z-10">
-      <h4 className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Categories</h4>
+      <h4 className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">
+        Categories <span className="text-slate-500 normal-case font-normal">(click to filter)</span>
+      </h4>
       <div className="grid grid-cols-2 gap-x-4 gap-y-1">
-        {Object.entries(CATEGORY_COLORS).map(([cat, color]) => (
-          <div key={cat} className="flex items-center gap-2">
-            <div className="w-3 h-3 rounded-full" style={{ backgroundColor: color }} />
-            <span className="text-xs text-slate-300 capitalize">{cat}</span>
-          </div>
-        ))}
+        {Object.entries(CATEGORY_COLORS).map(([cat, color]) => {
+          const isActive = activeCategories.size === 0 || activeCategories.has(cat)
+          return (
+            <button
+              key={cat}
+              onClick={() => onToggleCategory(cat)}
+              className={`flex items-center gap-2 px-1.5 py-0.5 rounded transition-all text-left ${
+                isActive ? 'opacity-100' : 'opacity-30'
+              } hover:opacity-100`}
+            >
+              <div
+                className="w-3 h-3 rounded-full flex-shrink-0 transition-transform"
+                style={{
+                  backgroundColor: color,
+                  transform: isActive ? 'scale(1)' : 'scale(0.7)',
+                  boxShadow: isActive ? `0 0 8px ${color}60` : 'none',
+                }}
+              />
+              <span className="text-xs text-slate-300 capitalize">{cat}</span>
+            </button>
+          )
+        })}
       </div>
+      {activeCategories.size > 0 && (
+        <button
+          onClick={() => onToggleCategory(null)}
+          className="mt-2 pt-2 border-t border-slate-600 text-xs text-indigo-400 hover:text-indigo-300 transition-colors w-full text-left"
+        >
+          ✕ Clear filters
+        </button>
+      )}
       <div className="mt-2 pt-2 border-t border-slate-600">
         <div className="flex items-center gap-2">
           <div className="w-3 h-3 rounded-full bg-slate-500" />
           <span className="text-xs text-slate-300">Tutorial</span>
         </div>
       </div>
+    </div>
+  )
+}
+
+// ─── Suggested Concepts Panel ───────────────────────────────────────────────
+
+const SUGGESTED_CONCEPTS = [
+  { id: 'future-of-ai', label: 'Future of AI', keywords: ['future', 'AGI', 'artificial general', 'scaling', 'emergent', 'next generation', 'frontier'], category: 'applied', description: 'Where is AI heading? Scaling laws, emergent capabilities, AGI timelines' },
+  { id: 'ontology', label: 'Ontology', keywords: ['ontology', 'ontological', 'being', 'existence', 'entity type', 'taxonomy', 'classification', 'is-a'], category: 'theory', description: 'The study of what exists — entity types, taxonomies, being' },
+  { id: 'consciousness', label: 'Consciousness & Qualia', keywords: ['consciousness', 'qualia', 'subjective experience', 'sentience', 'phenomenal', 'awareness'], category: 'science', description: 'Hard problem of consciousness, qualia, and machine sentience' },
+  { id: 'emergence', label: 'Emergence & Complexity', keywords: ['emergence', 'emergent', 'complex system', 'self-organization', 'phase transition', 'critical'], category: 'theory', description: 'How simple rules create complex behavior — from neurons to societies' },
+  { id: 'game-theory', label: 'Game Theory & Strategy', keywords: ['game theory', 'nash equilibrium', 'strategy', 'payoff', 'zero-sum', 'cooperation', 'prisoner'], category: 'math', description: 'Strategic interaction, equilibria, cooperation vs competition' },
+  { id: 'philosophy-of-language', label: 'Philosophy of Language', keywords: ['philosophy of language', 'reference', 'meaning', 'truth condition', 'speech act', 'pragmatic', 'wittgenstein', 'denotation'], category: 'theory', description: 'What do words really mean? Reference, truth, speech acts' },
+  { id: 'evolutionary-dynamics', label: 'Evolutionary Dynamics', keywords: ['evolution', 'evolutionary', 'fitness', 'selection', 'mutation', 'adaptation', 'genetic', 'darwinian'], category: 'science', description: 'Natural selection, fitness landscapes, evolutionary algorithms' },
+  { id: 'quantum-computing', label: 'Quantum Computing', keywords: ['quantum', 'qubit', 'superposition', 'entanglement', 'quantum gate', 'quantum circuit', 'decoherence'], category: 'math', description: 'Qubits, superposition, entanglement, quantum algorithms' },
+  { id: 'network-science', label: 'Network Science', keywords: ['network', 'graph theory', 'small world', 'scale-free', 'centrality', 'community detection', 'degree distribution'], category: 'math', description: 'Small worlds, scale-free networks, community structure' },
+  { id: 'phenomenology', label: 'Phenomenology', keywords: ['phenomenology', 'husserl', 'heidegger', 'intentionality', 'lifeworld', 'embodied', 'dasein'], category: 'theory', description: 'First-person experience, intentionality, embodied cognition' },
+  { id: 'economics-of-ai', label: 'Economics of AI', keywords: ['economics', 'labor market', 'automation', 'productivity', 'market', 'cost', 'revenue', 'business model', 'monetize'], category: 'applied', description: 'Automation economics, AI business models, labor displacement' },
+  { id: 'ethics-alignment', label: 'AI Ethics & Alignment', keywords: ['ethics', 'alignment', 'safety', 'bias', 'fairness', 'value alignment', 'RLHF', 'reward hacking'], category: 'applied', description: 'Value alignment, safety, fairness, RLHF, reward hacking' },
+  { id: 'compression', label: 'Compression as Intelligence', keywords: ['compression', 'Kolmogorov', 'Solomonoff', 'minimum description', 'Occam', 'simplicity', 'lossless', 'lossy'], category: 'theory', description: 'Intelligence as compression — Kolmogorov, MDL, Occam\'s razor' },
+  { id: 'music-math', label: 'Music & Mathematics', keywords: ['music', 'harmony', 'frequency', 'interval', 'chord', 'rhythm', 'fourier', 'overtone', 'scale'], category: 'math', description: 'Fourier transforms of sound, harmonic series, musical structure' },
+  { id: 'language-universals', label: 'Linguistic Universals', keywords: ['universal grammar', 'typology', 'linguistic universal', 'cross-linguistic', 'Greenberg', 'language family', 'syntax universal'], category: 'language', description: 'What all languages share — Greenberg universals, typology' },
+  { id: 'embodied-cognition', label: 'Embodied Cognition', keywords: ['embodied', 'grounded cognition', 'sensorimotor', 'body', 'situated', 'enactive', 'affordance'], category: 'science', description: 'Thinking through the body — sensorimotor grounding, enactivism' },
+]
+
+function SuggestedConceptsPanel({ activeSuggestions, onToggleSuggestion, isOpen, onToggleOpen }) {
+  if (!isOpen) {
+    return (
+      <button
+        onClick={onToggleOpen}
+        className="absolute top-4 right-4 bg-slate-800/90 backdrop-blur-sm border border-slate-600 rounded-xl px-4 py-3 z-10 hover:border-indigo-500/50 transition-colors"
+      >
+        <span className="text-sm text-indigo-400">💡 Explore More Concepts</span>
+      </button>
+    )
+  }
+
+  return (
+    <div className="absolute top-4 right-4 w-80 max-h-[70vh] bg-slate-800/95 backdrop-blur-sm border border-slate-600 rounded-xl shadow-2xl z-10 flex flex-col">
+      <div className="flex items-center justify-between p-4 border-b border-slate-600">
+        <h4 className="text-sm font-semibold text-indigo-400">
+          💡 Explore More Concepts
+        </h4>
+        <button
+          onClick={onToggleOpen}
+          className="text-slate-400 hover:text-white transition-colors text-sm"
+        >✕</button>
+      </div>
+      <p className="px-4 pt-2 text-xs text-slate-400">
+        Click to add concepts to the graph. These scan your existing tutorials for hidden connections.
+      </p>
+      <div className="overflow-y-auto p-4 space-y-2 flex-1">
+        {SUGGESTED_CONCEPTS.map(concept => {
+          const isActive = activeSuggestions.has(concept.id)
+          return (
+            <button
+              key={concept.id}
+              onClick={() => onToggleSuggestion(concept)}
+              className={`w-full text-left p-3 rounded-lg border transition-all ${
+                isActive
+                  ? 'border-indigo-500/50 bg-indigo-500/10'
+                  : 'border-slate-600/50 bg-slate-700/30 hover:border-slate-500/50 hover:bg-slate-700/50'
+              }`}
+            >
+              <div className="flex items-center justify-between">
+                <span className={`text-sm font-medium ${isActive ? 'text-indigo-300' : 'text-slate-200'}`}>
+                  {concept.label}
+                </span>
+                <span
+                  className="text-[10px] px-1.5 py-0.5 rounded-full capitalize"
+                  style={{
+                    backgroundColor: (CATEGORY_COLORS[concept.category] || '#94a3b8') + '20',
+                    color: CATEGORY_COLORS[concept.category] || '#94a3b8',
+                  }}
+                >
+                  {concept.category}
+                </span>
+              </div>
+              <p className="text-xs text-slate-400 mt-1">{concept.description}</p>
+              {isActive && (
+                <span className="text-xs text-indigo-400 mt-1 inline-block">✓ Active — click to remove</span>
+              )}
+            </button>
+          )
+        })}
+      </div>
+      {activeSuggestions.size > 0 && (
+        <div className="p-3 border-t border-slate-600">
+          <span className="text-xs text-slate-400">{activeSuggestions.size} concept{activeSuggestions.size > 1 ? 's' : ''} added — hit Refresh to re-scan</span>
+        </div>
+      )}
     </div>
   )
 }
@@ -504,6 +621,10 @@ export default function ImplicationsGraph() {
   const [loading, setLoading] = useState(true)
   const [selectedNode, setSelectedNode] = useState(null)
   const [dimensions, setDimensions] = useState({ width: 1200, height: 700 })
+  const [activeCategories, setActiveCategories] = useState(new Set())
+  const [activeSuggestions, setActiveSuggestions] = useState(new Set())
+  const [suggestedConceptsMap, setSuggestedConceptsMap] = useState(new Map())
+  const [showSuggestions, setShowSuggestions] = useState(false)
   const containerRef = useRef(null)
 
   // Resize handler
@@ -526,6 +647,14 @@ export default function ImplicationsGraph() {
     setLoading(true)
     setSelectedNode(null)
 
+    // Merge base concepts with active suggestions
+    const allConcepts = [...CONCEPT_DICTIONARY]
+    for (const [id, concept] of suggestedConceptsMap) {
+      if (activeSuggestions.has(id)) {
+        allConcepts.push(concept)
+      }
+    }
+
     const tutorialConcepts = [] // { tutorialId, title, icon, concepts: [{conceptId, score}] }
 
     for (const tut of TUTORIAL_FILES) {
@@ -533,7 +662,7 @@ export default function ImplicationsGraph() {
       if (!content) continue
       const text = extractTextFromJson(content)
       const title = content.title || tut.id
-      const matched = matchConcepts(text, CONCEPT_DICTIONARY)
+      const matched = matchConcepts(text, allConcepts)
       if (matched.length > 0) {
         tutorialConcepts.push({
           tutorialId: tut.id,
@@ -555,10 +684,12 @@ export default function ImplicationsGraph() {
       }
     }
 
-    // Add concept nodes (only if referenced by 2+ tutorials)
-    for (const concept of CONCEPT_DICTIONARY) {
+    // Add concept nodes (only if referenced by 1+ tutorials for suggested, 2+ for base)
+    for (const concept of allConcepts) {
       const count = conceptCounts[concept.id] || 0
-      if (count >= 2) {
+      const isSuggested = activeSuggestions.has(concept.id)
+      const minCount = isSuggested ? 1 : 2
+      if (count >= minCount) {
         nodes.push({
           id: `concept:${concept.id}`,
           type: 'concept',
@@ -567,6 +698,7 @@ export default function ImplicationsGraph() {
           color: CATEGORY_COLORS[concept.category] || '#94a3b8',
           radius: 20 + count * 6,
           count,
+          isSuggested,
         })
       }
     }
@@ -596,11 +728,73 @@ export default function ImplicationsGraph() {
 
     setGraphData({ nodes, links })
     setLoading(false)
-  }, [])
+  }, [activeSuggestions, suggestedConceptsMap])
 
   useEffect(() => {
     buildGraph()
   }, [buildGraph])
+
+  // Category filter toggle
+  const handleToggleCategory = useCallback((cat) => {
+    if (cat === null) {
+      setActiveCategories(new Set())
+      return
+    }
+    setActiveCategories(prev => {
+      const next = new Set(prev)
+      if (next.has(cat)) next.delete(cat)
+      else next.add(cat)
+      return next
+    })
+  }, [])
+
+  // Suggested concept toggle
+  const handleToggleSuggestion = useCallback((concept) => {
+    setActiveSuggestions(prev => {
+      const next = new Set(prev)
+      if (next.has(concept.id)) {
+        next.delete(concept.id)
+      } else {
+        next.add(concept.id)
+      }
+      return next
+    })
+    setSuggestedConceptsMap(prev => {
+      const next = new Map(prev)
+      next.set(concept.id, concept)
+      return next
+    })
+  }, [])
+
+  // Filter graph data based on active categories
+  const filteredGraphData = React.useMemo(() => {
+    if (!graphData || activeCategories.size === 0) return graphData
+
+    const visibleConceptIds = new Set(
+      graphData.nodes
+        .filter(n => n.type === 'concept' && activeCategories.has(n.category))
+        .map(n => n.id)
+    )
+
+    // Include tutorials connected to visible concepts
+    const visibleTutorialIds = new Set()
+    graphData.links.forEach(l => {
+      const sourceId = typeof l.source === 'object' ? l.source.id : l.source
+      const targetId = typeof l.target === 'object' ? l.target.id : l.target
+      if (visibleConceptIds.has(targetId)) visibleTutorialIds.add(sourceId)
+      if (visibleConceptIds.has(sourceId)) visibleTutorialIds.add(targetId)
+    })
+
+    const allVisibleIds = new Set([...visibleConceptIds, ...visibleTutorialIds])
+    const filteredNodes = graphData.nodes.filter(n => allVisibleIds.has(n.id))
+    const filteredLinks = graphData.links.filter(l => {
+      const sourceId = typeof l.source === 'object' ? l.source.id : l.source
+      const targetId = typeof l.target === 'object' ? l.target.id : l.target
+      return allVisibleIds.has(sourceId) && allVisibleIds.has(targetId)
+    })
+
+    return { nodes: filteredNodes, links: filteredLinks }
+  }, [graphData, activeCategories])
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-900 to-slate-950 text-white">
@@ -648,30 +842,45 @@ export default function ImplicationsGraph() {
           </div>
         )}
 
-        {graphData && (
+        {filteredGraphData && (
           <ForceGraph
-            data={graphData}
+            data={filteredGraphData}
             width={dimensions.width}
             height={dimensions.height}
             onNodeClick={setSelectedNode}
           />
         )}
 
-        <Legend />
-
-        <InfoPanel
-          node={selectedNode}
-          graphData={graphData || { nodes: [], links: [] }}
-          onClose={() => setSelectedNode(null)}
+        <Legend
+          activeCategories={activeCategories}
+          onToggleCategory={handleToggleCategory}
         />
 
+        {selectedNode ? (
+          <InfoPanel
+            node={selectedNode}
+            graphData={filteredGraphData || { nodes: [], links: [] }}
+            onClose={() => setSelectedNode(null)}
+          />
+        ) : (
+          <SuggestedConceptsPanel
+            activeSuggestions={activeSuggestions}
+            onToggleSuggestion={handleToggleSuggestion}
+            isOpen={showSuggestions}
+            onToggleOpen={() => setShowSuggestions(prev => !prev)}
+          />
+        )}
+
         {/* Stats */}
-        {graphData && !loading && (
+        {filteredGraphData && !loading && (
           <div className="absolute top-4 left-4 bg-slate-800/90 backdrop-blur-sm border border-slate-600 rounded-xl px-4 py-3 z-10">
             <div className="text-xs text-slate-400 space-y-1">
-              <div><span className="text-white font-medium">{graphData.nodes.filter(n => n.type === 'concept').length}</span> concepts</div>
-              <div><span className="text-white font-medium">{graphData.nodes.filter(n => n.type === 'tutorial').length}</span> tutorials</div>
-              <div><span className="text-white font-medium">{graphData.links.length}</span> connections</div>
+              <div><span className="text-white font-medium">{filteredGraphData.nodes.filter(n => n.type === 'concept').length}</span> concepts{activeCategories.size > 0 ? ' (filtered)' : ''}</div>
+              <div><span className="text-white font-medium">{filteredGraphData.nodes.filter(n => n.type === 'tutorial').length}</span> tutorials</div>
+              <div><span className="text-white font-medium">{filteredGraphData.links.length}</span> connections</div>
+              {activeSuggestions.size > 0 && (
+                <div><span className="text-indigo-400 font-medium">+{activeSuggestions.size}</span> suggested</div>
+              )}
             </div>
           </div>
         )}
