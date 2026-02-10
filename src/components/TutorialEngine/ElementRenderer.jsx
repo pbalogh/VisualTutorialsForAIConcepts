@@ -10,6 +10,7 @@ import {
 } from './TutorialStateContext'
 import { Annotation, FootnoteAnnotation, AnnotatableContent } from '../AnnotationSystem'
 import Sidebar from '../Sidebar'
+import D3Canvas from '../visualizations/D3Canvas'
 
 // Visualization components
 import { VectorProjectionViz } from '../visualizations/VectorProjectionViz'
@@ -221,6 +222,13 @@ const componentMap = {
     <Sidebar type={type} title={title} defaultExpanded={expanded}>
       {children}
     </Sidebar>
+  ),
+
+  // Generic 2D visualization canvas (spec-driven via D3)
+  D3Canvas: ({ spec }) => (
+    <div className="my-4">
+      <D3Canvas spec={spec} />
+    </div>
   ),
   
   // Premium code block with language label and copy button

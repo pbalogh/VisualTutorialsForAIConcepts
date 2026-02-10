@@ -188,40 +188,71 @@ Return ONLY a valid JSON array. No markdown, no preamble, just the JSON array.`
       }
     }
     
-    // Visualize: Generate a visual/diagrammatic explanation
+    // Visualize: Generate a D3Canvas spec for inline diagram
     if (action === 'visualize') {
       const prompt = `The user is reading this passage:
 "${context}"
 
-They selected the phrase: "${selectedText}" and want to VISUALIZE it.
+They selected: "${selectedText}" and want to VISUALIZE it as a 2D diagram.
 
-Create a vivid, visual explanation that helps them SEE this concept. Use:
-1. A clear visual metaphor or diagram description (ASCII art if helpful)
-2. Step-by-step visual walkthrough
-3. Concrete spatial/geometric intuition
-4. Color/shape associations where relevant
+Generate a D3Canvas spec (JSON) that illustrates this concept. The spec has:
+- width, height (numbers, typically 500x350)
+- background (color string)
+- title (string, shown at top)
+- caption (string, shown below)
+- grid (optional): { show: true, step: 50 } for coordinate grid
+- origin (optional): { x: 250, y: 175 } for centering
+- elements: array of shapes:
+  - { type: "circle", cx, cy, r, fill, label, labelColor, stroke, strokeWidth }
+  - { type: "rect", x, y, width, height, fill, label, rx (corner radius) }
+  - { type: "ellipse", cx, cy, rx, ry, fill, label }
+  - { type: "arrow", from: [x,y], to: [x,y], color, label, curved: bool, curvature: 0.3, strokeWidth, dashed }
+  - { type: "line", from: [x,y], to: [x,y], color, strokeWidth, dashed }
+  - { type: "text", x, y, text, fill, fontSize, fontWeight, anchor, italic }
+  - { type: "arc", cx, cy, r, startAngle, endAngle (degrees), color, label }
+  - { type: "polygon", points: [[x,y],...], fill, label }
+  - { type: "path", d: "SVG path string", stroke, fill }
+  - { type: "group", children: [...elements], transform: "translate(x,y)" }
 
-Think of this as explaining to someone who learns best by SEEING, not reading. Paint a picture with words. Be creative and vivid.
+Colors: use hex like #6366f1 (indigo), #ef4444 (red), #22c55e (green), #3b82f6 (blue), #f59e0b (amber), #ec4899 (pink), #14b8a6 (teal).
 
-Do not use markdown. Do not include preamble. Just provide the visual explanation.`
+Create a clear, educational diagram. Use arrows for relationships/flow, circles for concepts/nodes, rects for containers/states, text for labels. Think like a whiteboard sketch.
 
-      console.log(`🎨 Calling AI to visualize: "${selectedText.slice(0, 50)}"`)
-      const visualization = await callAI(systemPrompt, prompt)
+Return ONLY valid JSON (no markdown, no backticks, no explanation). The JSON must be a single object with the spec.`
+
+      console.log(`🎨 Calling AI to generate D3Canvas spec for: "${selectedText.slice(0, 50)}"`)
+      const rawSpec = await callAI(systemPrompt, prompt)
       
-      const paragraphs = visualization.trim().split('\n\n').filter(p => p.trim())
+      let spec
+      try {
+        let cleaned = rawSpec.trim()
+        if (cleaned.startsWith('```')) cleaned = cleaned.replace(/^```(?:json)?\n?/, '').replace(/\n?```$/, '')
+        spec = JSON.parse(cleaned)
+      } catch (e) {
+        console.error('Failed to parse D3Canvas spec, falling back to text:', e.message)
+        // Fallback: use the raw text as a description
+        const paragraphs = rawSpec.trim().split('\n\n').filter(p => p.trim())
+        return {
+          type: 'Sidebar',
+          props: { type: 'note', title: `🎨 Visualize: "${selectedText.length > 50 ? selectedText.slice(0, 50) + '...' : selectedText}"`, expanded: true },
+          children: paragraphs.map(p => ({ type: 'p', children: p.trim() }))
+        }
+      }
       
+      // Return a D3Canvas element
       return {
         type: 'Sidebar',
         props: { 
           type: 'note',
-          title: `🎨 Visualize: "${selectedText.length > 50 ? selectedText.slice(0, 50) + '...' : selectedText}"`,
+          title: `🎨 ${spec.title || selectedText.slice(0, 50)}`,
           expanded: true
         },
         children: [
-          ...paragraphs.map(p => ({
-            type: 'p',
-            children: p.trim()
-          })),
+          {
+            type: 'D3Canvas',
+            props: { spec }
+          },
+          ...(spec.caption ? [{ type: 'p', props: { className: 'text-xs text-gray-500 mt-1 italic' }, children: spec.caption }] : []),
           {
             type: 'p',
             props: { className: 'text-xs text-gray-400 mt-2' },
