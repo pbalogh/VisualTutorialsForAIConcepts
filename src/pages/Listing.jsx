@@ -305,6 +305,18 @@ const tutorials = [
     difficulty: 2,
   },
   {
+    id: 'brainstorm-07-structure-mapping',
+    title: 'Operators as Structure-Mapping Engines',
+    description: 'How Schankian primitives enable analogical reasoning — from Gentner\'s theory to computational analogy',
+    tags: ['schankian', 'analogy', 'cognition'],
+    icon: '🔗',
+    gradient: 'from-indigo-500 to-blue-600',
+    shadowColor: 'shadow-indigo-500/30',
+    glowColor: 'rgba(99, 102, 241, 0.4)',
+    readTime: '20 min',
+    difficulty: 2,
+  },
+  {
     id: 'brainstorm-11-talmys-force-dynamics',
     title: 'Talmy\'s Force Dynamics',
     description: 'Finer-grained causation primitives — how Agonist vs Antagonist patterns map to Schankian operators',
@@ -433,6 +445,8 @@ const tagColors = {
   'math': 'bg-violet-100 text-violet-700 border-violet-200',
   'category-theory': 'bg-purple-100 text-purple-700 border-purple-200',
   'schankian': 'bg-amber-100 text-amber-700 border-amber-200',
+  'analogy': 'bg-indigo-100 text-indigo-700 border-indigo-200',
+  'cognition': 'bg-purple-100 text-purple-700 border-purple-200',
   
   // ThoughtBlend tags
   'synthesis': 'bg-teal-100 text-teal-700 border-teal-200',
