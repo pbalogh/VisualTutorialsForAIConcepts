@@ -1,0 +1,633 @@
+{
+  "id": "category-theory",
+  "title": "Category Theory",
+  "subtitle": "The Mathematics of Composition — From Abstract Algebra to Semantic Operators",
+  "readTime": "35 min",
+  "state": "published",
+  "content": {
+    "type": "Fragment",
+    "children": [
+      {
+        "type": "Callout",
+        "props": { "type": "info" },
+        "children": [
+          {
+            "type": "p",
+            "children": "Category theory is the mathematics of structure-preserving connections. It's the language mathematicians use to talk about ALL of mathematics — and it turns out to be the perfect language for understanding how meaning composes. Instead of asking 'what IS this thing?' we ask 'how does this thing RELATE to other things?' This shift in perspective unlocks profound insights."
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "1. What IS a Category?" },
+        "children": [
+          {
+            "type": "p",
+            "children": "A category is deceptively simple: it's just a collection of objects and arrows (morphisms) between them. But here's the key insight — we don't care what the objects ARE internally. We only care about how they relate to each other through morphisms."
+          },
+          {
+            "type": "DefinitionList",
+            "props": {
+              "items": [
+                {
+                  "term": "Object",
+                  "definition": "A 'thing' in the category. Could be a set, a group, a type, or even a proposition. We treat it as an opaque point — its internal structure doesn't matter."
+                },
+                {
+                  "term": "Morphism (Arrow)",
+                  "definition": "A structure-preserving map from one object to another. Written f: A → B. Think of it as a 'way to get from A to B' that respects the relevant structure."
+                },
+                {
+                  "term": "Composition",
+                  "definition": "If you have f: A → B and g: B → C, you can compose them to get g∘f: A → C. This must be associative: (h∘g)∘f = h∘(g∘f)."
+                },
+                {
+                  "term": "Identity",
+                  "definition": "Every object A has an identity morphism id_A: A → A that does nothing. For any f: A → B, we have f∘id_A = f and id_B∘f = f."
+                }
+              ]
+            }
+          },
+          {
+            "type": "Analogy",
+            "children": "A category is like an airport network — cities are objects, flights are morphisms. You don't care what a city IS (its population, culture, weather). You only care how you can GET THERE from other cities. Composition is taking connecting flights. The identity is a 'stay where you are' non-flight."
+          },
+          {
+            "type": "DeepDive",
+            "props": { "title": "Why focus on relationships instead of objects?" },
+            "children": [
+              {
+                "type": "p",
+                "children": "This is the profound philosophical shift that makes category theory so powerful. In traditional mathematics, we often define things by their internal structure — a group has elements and an operation, a set has members, etc. But category theory says: an object is completely characterized by its relationships to ALL other objects."
+              },
+              {
+                "type": "p",
+                "children": "This is called the 'Yoneda perspective' and it has a precise formulation (the Yoneda Lemma). The practical benefit: you can prove things about objects just by studying morphisms. No need to 'look inside' — the external relationships tell you everything."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "2. Your First Categories" },
+        "children": [
+          {
+            "type": "p",
+            "children": "Let's see some concrete categories that mathematicians and programmers work with every day:"
+          },
+          {
+            "type": "DefinitionList",
+            "props": {
+              "items": [
+                {
+                  "term": "Set",
+                  "definition": "Objects are sets, morphisms are functions between sets. The most fundamental category — it's where most of math 'lives'."
+                },
+                {
+                  "term": "Grp",
+                  "definition": "Objects are groups, morphisms are group homomorphisms (functions that preserve the group operation). Not every function between groups is a morphism — only structure-preserving ones!"
+                },
+                {
+                  "term": "Vect",
+                  "definition": "Objects are vector spaces (over a fixed field), morphisms are linear maps. Linear algebra is really the study of this category."
+                },
+                {
+                  "term": "Hask",
+                  "definition": "Objects are types (Int, String, [a], etc.), morphisms are functions between types. Functional programmers live here!"
+                }
+              ]
+            }
+          },
+          {
+            "type": "Example",
+            "props": { "title": "A Tiny Category with 3 Objects" },
+            "children": [
+              {
+                "type": "p",
+                "children": "Let's build a category with objects A, B, C and two non-identity morphisms f: A → B and g: B → C."
+              },
+              {
+                "type": "p",
+                "children": "The morphisms are: id_A, id_B, id_C (identities, required), f: A → B, g: B → C, and g∘f: A → C (composition, required by closure). That's 6 morphisms total."
+              },
+              {
+                "type": "p",
+                "children": "Notice: there's no morphism from C back to A or B. This category has a 'direction' — you can only go A → B → C, not backwards."
+              }
+            ]
+          },
+          {
+            "type": "InteractiveDemo",
+            "props": {
+              "title": "Build a Category",
+              "description": "A mini category with 3 objects (A, B, C) and morphisms f: A→B, g: B→C. Composition gives g∘f: A→C. Plus identity arrows id_A, id_B, id_C. That's 6 morphisms total! The key rule: composition is associative and identities behave as expected.",
+              "height": 300
+            }
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "3. Functors — Structure-Preserving Maps" },
+        "children": [
+          {
+            "type": "p",
+            "children": "If categories are 'worlds', functors are 'translation dictionaries' between worlds. A functor F: C → D maps objects to objects and morphisms to morphisms, while preserving all the structure."
+          },
+          {
+            "type": "p",
+            "children": "The key requirement: F(g∘f) = F(g)∘F(f). If you translate a composed path, you get the same result as composing the translated pieces. Functors also preserve identities: F(id_A) = id_{F(A)}."
+          },
+          {
+            "type": "Analogy",
+            "children": "If categories are worlds, functors are translation dictionaries that preserve the grammar. You can translate sentences word by word, and the grammar of the translation matches the grammar of the original. Subject-verb-object in English becomes subject-verb-object in the translation."
+          },
+          {
+            "type": "Example",
+            "props": { "title": "The Forgetful Functor U: Grp → Set" },
+            "children": [
+              {
+                "type": "p",
+                "children": "Consider the functor U from groups to sets that 'forgets' the group structure. For a group G with elements {e, a, b, ab} and operation ·, U(G) is just the set {e, a, b, ab} — same elements, but we forget how to multiply them."
+              },
+              {
+                "type": "p",
+                "children": "For a homomorphism φ: G → H, U(φ) is just φ viewed as a plain function. This is 'forgetful' because we're losing information (the group structure), but crucially, composition is preserved."
+              }
+            ]
+          },
+          {
+            "type": "DeepDive",
+            "props": { "title": "Covariant vs Contravariant Functors" },
+            "children": [
+              {
+                "type": "p",
+                "children": "A covariant functor preserves the direction of arrows: if f: A → B, then F(f): F(A) → F(B). This is the 'normal' case we've discussed."
+              },
+              {
+                "type": "p",
+                "children": "A contravariant functor REVERSES arrows: if f: A → B, then F(f): F(B) → F(A). This happens when you're mapping 'backwards' — for example, the dual space functor in linear algebra, or the contravariant Hom functor."
+              },
+              {
+                "type": "p",
+                "children": "In programming terms: covariant = things that 'produce' values (like List<T>), contravariant = things that 'consume' values (like Predicate<T> or function arguments)."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "4. Natural Transformations — Maps Between Functors" },
+        "children": [
+          {
+            "type": "p",
+            "children": "A natural transformation is a way to transform one functor into another while respecting the structure of the categories involved. If F and G are both functors from C to D, a natural transformation α: F ⇒ G gives you a morphism α_A: F(A) → G(A) for every object A in C."
+          },
+          {
+            "type": "p",
+            "children": "The key constraint (naturality): for any morphism f: A → B in C, the following square commutes:"
+          },
+          {
+            "type": "Example",
+            "props": { "title": "The Naturality Square" },
+            "children": [
+              {
+                "type": "p",
+                "children": "F(A) --α_A--> G(A)"
+              },
+              {
+                "type": "p",
+                "children": "  |              |"
+              },
+              {
+                "type": "p",
+                "children": "F(f)|              |G(f)"
+              },
+              {
+                "type": "p",
+                "children": "  v              v"
+              },
+              {
+                "type": "p",
+                "children": "F(B) --α_B--> G(B)"
+              },
+              {
+                "type": "p",
+                "children": "Going right-then-down equals going down-then-right: G(f) ∘ α_A = α_B ∘ F(f)"
+              }
+            ]
+          },
+          {
+            "type": "DeepDive",
+            "props": { "title": "Why is this 'the right notion' of morphism between functors?" },
+            "children": [
+              {
+                "type": "p",
+                "children": "The naturality condition ensures that the transformation is 'uniform' — it doesn't depend on arbitrary choices. Whatever path you take through the diagram, you get the same answer."
+              },
+              {
+                "type": "p",
+                "children": "In programming, natural transformations are polymorphic functions. The type signature [A] → Maybe A (safeHead) is natural because it works the same way for any type A. The naturality square says: you can either transform the list first then apply safeHead, or apply safeHead first then transform — same result."
+              },
+              {
+                "type": "p",
+                "children": "This is why category theorists say: 'A natural transformation is a map between functors that doesn't cheat by looking at the specific objects.'"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "5. Commutative Diagrams — When Paths Agree" },
+        "children": [
+          {
+            "type": "p",
+            "children": "A commutative diagram is a picture where objects are nodes and morphisms are arrows, and whenever there are two paths from A to B, they give the same composed morphism. This is THE key concept in category theory."
+          },
+          {
+            "type": "Analogy",
+            "children": "Like driving directions — if the highway route and the scenic route both get you to the same destination, the diagram commutes. The path you choose doesn't affect where you end up."
+          },
+          {
+            "type": "Example",
+            "props": { "title": "Triangle and Square Diagrams" },
+            "children": [
+              {
+                "type": "p",
+                "children": "Triangle: A --f--> B, A --h--> C, B --g--> C. Commutes if g∘f = h (going A→B→C equals going A→C directly)."
+              },
+              {
+                "type": "p",
+                "children": "Square: A --f--> B, A --h--> C, B --k--> D, C --g--> D. Commutes if k∘f = g∘h (top-right equals left-bottom)."
+              },
+              {
+                "type": "p",
+                "children": "Every categorical definition and theorem can be expressed as 'this diagram commutes'. It's a visual language for mathematical structure."
+              }
+            ]
+          },
+          {
+            "type": "DeepDive",
+            "props": { "title": "Why diagrams instead of equations?" },
+            "children": [
+              {
+                "type": "p",
+                "children": "Equations like 'g∘f = h' are fine for simple cases, but complex relationships involve many morphisms. Diagrams make these relationships visible and intuitive. You can literally SEE the structure."
+              },
+              {
+                "type": "p",
+                "children": "Diagrams also scale: a complex theorem might involve a diagram with 20 objects and 40 morphisms. The commutative diagram displays all the necessary relationships at once, making it easier to verify correctness."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "6. Products and Coproducts" },
+        "children": [
+          {
+            "type": "p",
+            "children": "Products and coproducts are 'universal constructions' — they're defined not by what they ARE but by a universal property involving morphisms. This is category theory's signature move."
+          },
+          {
+            "type": "DefinitionList",
+            "props": {
+              "items": [
+                {
+                  "term": "Product (A × B)",
+                  "definition": "The 'AND' of two objects. Comes with projections π₁: A×B → A and π₂: A×B → B. Universal property: for any object X with morphisms f: X → A and g: X → B, there's a UNIQUE morphism ⟨f,g⟩: X → A×B making everything commute."
+                },
+                {
+                  "term": "Coproduct (A + B)",
+                  "definition": "The 'OR' of two objects. Comes with injections i₁: A → A+B and i₂: B → A+B. Universal property: for any object X with morphisms f: A → X and g: B → X, there's a UNIQUE morphism [f,g]: A+B → X making everything commute."
+                }
+              ]
+            }
+          },
+          {
+            "type": "Example",
+            "props": { "title": "Products and Coproducts in Set and Programming" },
+            "children": [
+              {
+                "type": "p",
+                "children": "In Set: Product A × B is the cartesian product (pairs). Coproduct A + B is the disjoint union (tagged union)."
+              },
+              {
+                "type": "p",
+                "children": "In programming: Product is a tuple/struct (String, Int). Coproduct is a sum type/variant: Either<String, Int> or Result<T, E>."
+              },
+              {
+                "type": "p",
+                "children": "Product = 'I have BOTH A and B'. Coproduct = 'I have EITHER A or B (but I know which)'."
+              }
+            ]
+          },
+          {
+            "type": "DeepDive",
+            "props": { "title": "What makes universal properties so powerful?" },
+            "children": [
+              {
+                "type": "p",
+                "children": "Universal properties define things up to unique isomorphism. If two objects both satisfy the universal property of 'product of A and B', they're essentially the same — there's a unique isomorphism between them."
+              },
+              {
+                "type": "p",
+                "children": "This means you can work with products abstractly without knowing their internal representation. In Set, A × B is pairs. In a programming language, it might be a struct. In a proof system, it might be a conjunction. But they all satisfy the same universal property, so the same theorems apply!"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Callout",
+        "props": { "type": "info" },
+        "children": [
+          {
+            "type": "p",
+            "children": "Part 2: Connecting to Schankian Operators — Now we'll see how these abstract concepts illuminate the structure of meaning and narrative."
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "7. The Category of Entity States" },
+        "children": [
+          {
+            "type": "p",
+            "children": "Here's the key insight: Schankian semantic operators form a category! Objects are entity states (like 'John has book' or 'Mary knows fact'), and morphisms are the operators that transform one state into another."
+          },
+          {
+            "type": "DefinitionList",
+            "props": {
+              "items": [
+                {
+                  "term": "Objects = Entity States",
+                  "definition": "Snapshots of the world: who has what, who knows what, where things are located. Example: (John, HAS, book), (Mary, KNOWS, recipe)."
+                },
+                {
+                  "term": "Morphisms = Operators",
+                  "definition": "ATRANS (transfer possession), MTRANS (transfer information), PTRANS (physical movement), MBUILD (create mental structure), etc."
+                },
+                {
+                  "term": "Composition = Event Sequences",
+                  "definition": "If ATRANS: (John has book) → (Mary has book) and MTRANS: (Mary has book) → (Mary knows content), then their composition is the narrative 'John gave Mary the book and she read it'."
+                }
+              ]
+            }
+          },
+          {
+            "type": "Example",
+            "props": { "title": "The Mapping Table" },
+            "children": [
+              {
+                "type": "p",
+                "children": "Category Theory → Schankian Operators:"
+              },
+              {
+                "type": "ul",
+                "children": [
+                  { "type": "li", "children": "Object → Entity state" },
+                  { "type": "li", "children": "Morphism → Operator" },
+                  { "type": "li", "children": "Composition → Event sequence" },
+                  { "type": "li", "children": "Functor → Grammar→Semantics map" },
+                  { "type": "li", "children": "Commutative diagram → Coherent narrative" }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "InteractiveDemo",
+            "props": {
+              "title": "Operators as Morphisms",
+              "description": "Entity states as objects, operators as arrows. 'John has book' --ATRANS(give)--> 'Mary has book' --MTRANS(read)--> 'Mary knows content'. The diagram shows how operator composition creates narrative chains.",
+              "height": 300
+            }
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "8. Narrative Coherence = Diagram Commutativity" },
+        "children": [
+          {
+            "type": "p",
+            "children": "Here's the profound connection: a coherent narrative is one where the diagram of events commutes. If two different sequences of events lead to the same final state, the story is consistent."
+          },
+          {
+            "type": "Example",
+            "props": { "title": "Two Paths to Knowledge" },
+            "children": [
+              {
+                "type": "p",
+                "children": "Consider two ways Mary might learn the content of a book:"
+              },
+              {
+                "type": "p",
+                "children": "Path 1: John gives Mary the book (ATRANS), Mary reads it (MTRANS) → Mary knows content"
+              },
+              {
+                "type": "p",
+                "children": "Path 2: John tells Mary the content directly (MTRANS) → Mary knows content"
+              },
+              {
+                "type": "p",
+                "children": "If both paths lead to the SAME knowledge state (Mary knowing the same content), the diagram commutes! The narrative is coherent — we can say 'Mary learned the content' without specifying HOW."
+              }
+            ]
+          },
+          {
+            "type": "DeepDive",
+            "props": { "title": "What do non-commuting diagrams mean?" },
+            "children": [
+              {
+                "type": "p",
+                "children": "Non-commutativity means inconsistency — the story has a plot hole. If Path 1 leads to 'Mary knows version A' but Path 2 leads to 'Mary knows version B', something is wrong."
+              },
+              {
+                "type": "p",
+                "children": "In narrative understanding, checking diagram commutativity is checking for coherence. A well-constructed story should commute: all paths to the same endpoint agree on what state the world is in."
+              },
+              {
+                "type": "p",
+                "children": "This gives us a mathematical criterion for narrative consistency: compute all paths, check if they compose to the same morphism. Plot holes are non-commuting squares!"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "9. Functors as Perspective Shifts" },
+        "children": [
+          {
+            "type": "p",
+            "children": "The DisCoCat framework (Categorical Compositional Distributional Semantics) uses functors to map from syntax to semantics. There's a category of grammatical structures and a category of meanings, and a functor translates between them."
+          },
+          {
+            "type": "p",
+            "children": "Grammar category: Objects are grammatical types (noun, verb, sentence), morphisms are grammatical reductions. Meaning category: Objects are vector spaces, morphisms are linear maps. The functor F preserves composition: the meaning of 'John runs' is computed by composing the meanings of 'John' and 'runs' according to the grammatical structure."
+          },
+          {
+            "type": "Example",
+            "props": { "title": "DisCoPy in Practice" },
+            "children": [
+              {
+                "type": "p",
+                "children": "The DisCoPy library (discopy.org) implements categorical NLP in Python. You define:"
+              },
+              {
+                "type": "ul",
+                "children": [
+                  { "type": "li", "children": "Word types as objects (n for noun, s for sentence, n.r⊗s⊗n.l for transitive verb)" },
+                  { "type": "li", "children": "Words as morphisms (boxes with input/output types)" },
+                  { "type": "li", "children": "Sentence meaning as diagram composition" }
+                ]
+              },
+              {
+                "type": "p",
+                "children": "The functor to vector spaces gives each diagram a concrete meaning as a tensor contraction. Grammar becomes linear algebra!"
+              }
+            ]
+          },
+          {
+            "type": "DeepDive",
+            "props": { "title": "The Quantum NLP Connection" },
+            "children": [
+              {
+                "type": "p",
+                "children": "Here's something remarkable: the same categorical structures that describe quantum mechanics also describe language. Both use monoidal categories with duals (compact closed categories)."
+              },
+              {
+                "type": "p",
+                "children": "This isn't just a coincidence — it reflects deep structural similarities. Entanglement in quantum states is like the binding between subject and object in a sentence. The mathematical framework is identical."
+              },
+              {
+                "type": "p",
+                "children": "This led to 'Quantum NLP' — running language models on quantum computers using the same diagrammatic calculus. The ZX-calculus for quantum circuits and the pregroup grammars for language are both instances of string diagrams in monoidal categories."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "10. Key Takeaways" },
+        "children": [
+          {
+            "type": "Callout",
+            "props": { "type": "success" },
+            "children": [
+              {
+                "type": "p",
+                "children": "What we've learned:"
+              },
+              {
+                "type": "ul",
+                "children": [
+                  { "type": "li", "children": "Categories capture structure through objects and morphisms — focus on relationships, not internal details" },
+                  { "type": "li", "children": "Functors are structure-preserving translations between categories" },
+                  { "type": "li", "children": "Natural transformations are uniform ways to convert between functors" },
+                  { "type": "li", "children": "Commutative diagrams express that different paths yield the same result" },
+                  { "type": "li", "children": "Schankian operators form a category where objects are entity states and morphisms are transformations" },
+                  { "type": "li", "children": "Narrative coherence IS diagram commutativity — plot holes are non-commuting squares" },
+                  { "type": "li", "children": "Functors from syntax to semantics give us compositional meaning" }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "p",
+            "children": "Category theory isn't just abstract nonsense — it's a precise language for talking about composition, transformation, and coherence. The same patterns that describe groups, vector spaces, and types also describe how meaning flows through language and narrative."
+          }
+        ]
+      },
+      {
+        "type": "Quiz",
+        "props": {
+          "questions": [
+            {
+              "question": "What are the two main components of a category?",
+              "options": [
+                "Objects and morphisms (arrows)",
+                "Sets and functions",
+                "Types and values",
+                "Nodes and edges"
+              ],
+              "correct": 0,
+              "explanation": "A category consists of objects (abstract 'things') and morphisms (arrows between objects). While graphs have nodes and edges, categories add composition and identity requirements."
+            },
+            {
+              "question": "What must a functor preserve?",
+              "options": [
+                "Only object names",
+                "Composition and identities",
+                "The number of morphisms",
+                "Internal object structure"
+              ],
+              "correct": 1,
+              "explanation": "A functor F must satisfy F(g∘f) = F(g)∘F(f) (preserves composition) and F(id_A) = id_{F(A)} (preserves identities). This is what makes it 'structure-preserving'."
+            },
+            {
+              "question": "What does it mean when a diagram 'commutes'?",
+              "options": [
+                "The arrows go in both directions",
+                "All paths between the same endpoints give the same composed morphism",
+                "The diagram has no cycles",
+                "Every object is connected"
+              ],
+              "correct": 1,
+              "explanation": "A commutative diagram means any two paths from object A to object B, when composed, give the same morphism. It's like saying 'it doesn't matter which route you take'."
+            },
+            {
+              "question": "In the Schankian operator category, what are the objects?",
+              "options": [
+                "Operators like ATRANS and MTRANS",
+                "Entity states like 'John has book'",
+                "Grammatical types like noun and verb",
+                "Vector spaces"
+              ],
+              "correct": 1,
+              "explanation": "Objects are entity states (snapshots of the world). Operators like ATRANS and MTRANS are the morphisms that transform one state into another."
+            },
+            {
+              "question": "What does narrative coherence correspond to in category theory?",
+              "options": [
+                "Having many functors",
+                "Diagram commutativity",
+                "Object isomorphism",
+                "Natural transformation existence"
+              ],
+              "correct": 1,
+              "explanation": "A coherent narrative means different event sequences leading to the same outcome are consistent — exactly what diagram commutativity captures. Plot holes are non-commuting diagrams!"
+            },
+            {
+              "question": "What is the relationship between DisCoCat and quantum NLP?",
+              "options": [
+                "They're unrelated fields",
+                "Both use the same categorical structures (compact closed categories)",
+                "Quantum NLP replaced DisCoCat",
+                "DisCoCat only works on classical computers"
+              ],
+              "correct": 1,
+              "explanation": "Both language semantics (DisCoCat) and quantum mechanics use compact closed monoidal categories. The same diagrammatic calculus describes entanglement and grammatical binding!"
+            }
+          ]
+        }
+      },
+      {
+        "type": "Callout",
+        "props": { "type": "warning" },
+        "children": [
+          {
+            "type": "p",
+            "children": "Future expansions planned: Adjunctions (the 'conceptual inverse'), Monads (sequencing computations), Yoneda Lemma (objects are determined by their morphisms), Limits and Colimits (universal constructions generalized), Enriched Categories (morphisms with extra structure), and Topos Theory (categories as generalized spaces)."
+          }
+        ]
+      }
+    ]
+  }
+}

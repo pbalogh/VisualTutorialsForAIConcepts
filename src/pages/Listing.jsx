@@ -377,6 +377,18 @@ const tutorials = [
     glowColor: 'rgba(139, 92, 246, 0.4)',
     readTime: '8 min',
     difficulty: 2,
+  },
+  {
+    id: 'category-theory',
+    title: 'Category Theory',
+    description: 'The mathematics of composition — from objects and morphisms to semantic operators and narrative coherence',
+    tags: ['math', 'category-theory', 'schankian'],
+    icon: '🔀',
+    gradient: 'from-violet-500 to-purple-600',
+    shadowColor: 'shadow-violet-500/30',
+    glowColor: 'rgba(139, 92, 246, 0.4)',
+    readTime: '35 min',
+    difficulty: 3,
   }
 ]
 
@@ -416,6 +428,11 @@ const tagColors = {
   // Biology
   'biology': 'bg-emerald-100 text-emerald-700 border-emerald-200',
   'biochemistry': 'bg-teal-100 text-teal-700 border-teal-200',
+  
+  // Math / Category Theory
+  'math': 'bg-violet-100 text-violet-700 border-violet-200',
+  'category-theory': 'bg-purple-100 text-purple-700 border-purple-200',
+  'schankian': 'bg-amber-100 text-amber-700 border-amber-200',
   
   // ThoughtBlend tags
   'synthesis': 'bg-teal-100 text-teal-700 border-teal-200',
