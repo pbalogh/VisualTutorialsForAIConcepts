@@ -534,7 +534,8 @@
                   { "type": "li", "children": "Commutative diagrams express that different paths yield the same result" },
                   { "type": "li", "children": "Schankian operators form a category where objects are entity states and morphisms are transformations" },
                   { "type": "li", "children": "Narrative coherence IS diagram commutativity — plot holes are non-commuting squares" },
-                  { "type": "li", "children": "Functors from syntax to semantics give us compositional meaning" }
+                  { "type": "li", "children": "Functors from syntax to semantics give us compositional meaning" },
+                  { "type": "li", "children": "Adjunctions capture 'approximate inverses' — pairs of functors that are the best approximation to being inverse (like free/forgetful, curry/uncurry, parsing/generation)" }
                 ]
               }
             ]
@@ -542,6 +543,169 @@
           {
             "type": "p",
             "children": "Category theory isn't just abstract nonsense — it's a precise language for talking about composition, transformation, and coherence. The same patterns that describe groups, vector spaces, and types also describe how meaning flows through language and narrative."
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "11. Adjunctions — The Heart of Category Theory" },
+        "children": [
+          {
+            "type": "p",
+            "children": "If categories are the foundation and functors are the bridges, then adjunctions are the beating heart of category theory. Saunders Mac Lane, one of the founders of the field, wrote: 'Adjoint functors arise everywhere.' They capture the idea of two functors that are 'approximately inverse' to each other — not true inverses, but the best possible approximation."
+          },
+          {
+            "type": "p",
+            "children": "Formally, an adjunction is a pair of functors F: C → D and G: D → C together with a natural bijection:"
+          },
+          {
+            "type": "p",
+            "children": "Hom_D(F(X), Y) ≅ Hom_C(X, G(Y))"
+          },
+          {
+            "type": "p",
+            "children": "This says: a morphism from F(X) to Y in category D corresponds naturally to a morphism from X to G(Y) in category C. We write F ⊣ G and say 'F is left adjoint to G' (or equivalently, 'G is right adjoint to F')."
+          },
+          {
+            "type": "DefinitionList",
+            "props": {
+              "items": [
+                {
+                  "term": "Left Adjoint (F)",
+                  "definition": "The 'free' or 'constructive' functor. It builds structure freely — the cheapest, most economical way to move from C into D. Written on the left in F ⊣ G."
+                },
+                {
+                  "term": "Right Adjoint (G)",
+                  "definition": "The 'forgetful' or 'underlying' functor. It strips away structure, revealing what's underneath. Written on the right in F ⊣ G."
+                },
+                {
+                  "term": "Unit (η)",
+                  "definition": "A natural transformation η: Id_C ⇒ G∘F. For each object X in C, η_X: X → G(F(X)) is the 'insertion' — it shows how X embeds into the round-trip G(F(X)). Going C → D → C doesn't get you back exactly, but η measures the difference."
+                },
+                {
+                  "term": "Counit (ε)",
+                  "definition": "A natural transformation ε: F∘G ⇒ Id_D. For each object Y in D, ε_Y: F(G(Y)) → Y is the 'evaluation' — it collapses the round-trip F(G(Y)) back to Y. Going D → C → D lands you close to where you started."
+                },
+                {
+                  "term": "Free Functor",
+                  "definition": "A left adjoint that builds algebraic structure 'for free' — with no relations beyond what's required. Example: the free group functor takes a set and generates the group with those generators and NO extra relations."
+                },
+                {
+                  "term": "Forgetful Functor",
+                  "definition": "A right adjoint that 'forgets' structure, viewing a structured object as a simpler one. Example: viewing a group as just its underlying set of elements, forgetting the multiplication."
+                }
+              ]
+            }
+          },
+          {
+            "type": "Example",
+            "props": { "title": "The Free/Forgetful Adjunction: Set ⇄ Grp" },
+            "children": [
+              {
+                "type": "p",
+                "children": "The most illuminating example of an adjunction is the free/forgetful pair between sets and groups:"
+              },
+              {
+                "type": "Steps",
+                "props": {
+                  "steps": [
+                    "Start with a set S = {a, b} — just two bare elements, no structure.",
+                    "Apply the free functor F: Set → Grp to get F(S) = the free group on {a, b}. This group contains all words like a, b, ab, ba, a⁻¹, aba⁻¹b, ... with NO relations except the group axioms.",
+                    "The free group F(S) is the 'cheapest' group containing S — it adds exactly the structure needed to be a group, nothing more.",
+                    "Apply the forgetful functor G: Grp → Set to any group H to get G(H) = the underlying set of elements of H (forgetting the multiplication).",
+                    "The adjunction F ⊣ G says: a group homomorphism F(S) → H corresponds exactly to a function S → G(H). To define a group homomorphism out of a free group, you just need to say where the generators go!",
+                    "The unit η_S: S → G(F(S)) sends each element of S to itself viewed as a generator in the free group — the 'insertion of generators'.",
+                    "The counit ε_H: F(G(H)) → H takes the free group on the elements of H and collapses it using H's actual multiplication — 'evaluate the formal expressions'."
+                  ]
+                }
+              }
+            ]
+          },
+          {
+            "type": "Analogy",
+            "children": "An adjunction is like translation between languages. Going English → French → English doesn't give you back the exact original sentence, but it's the closest approximation. The 'free' direction (English → French) adds whatever structure the target language needs. The 'forgetful' direction (French → English) strips away the French-specific structure. The unit measures 'what was lost in translation' on the round trip."
+          },
+          {
+            "type": "DeepDive",
+            "props": { "title": "Unit and Counit: The Heart of the Heart" },
+            "children": [
+              {
+                "type": "p",
+                "children": "The unit η and counit ε are actually equivalent to the entire adjunction — you can reconstruct the natural bijection Hom(F(X), Y) ≅ Hom(X, G(Y)) from η and ε alone. They satisfy two 'triangle identities' (also called zig-zag identities):"
+              },
+              {
+                "type": "p",
+                "children": "ε_{F(X)} ∘ F(η_X) = id_{F(X)} — going F(X) → F(G(F(X))) → F(X) is the identity."
+              },
+              {
+                "type": "p",
+                "children": "G(ε_Y) ∘ η_{G(Y)} = id_{G(Y)} — going G(Y) → G(F(G(Y))) → G(Y) is the identity."
+              },
+              {
+                "type": "p",
+                "children": "These say: even though the round trip G∘F doesn't equal the identity, and F∘G doesn't equal the identity, the unit and counit 'cancel each other out' in a precise sense. The two round trips compose to identities when you zig-zag correctly."
+              },
+              {
+                "type": "p",
+                "children": "This is why adjunctions are 'approximate inverses' — not exact, but optimally close. The unit and counit measure exactly how far from being true inverses F and G are."
+              }
+            ]
+          },
+          {
+            "type": "p",
+            "children": "Programming connection: In Haskell, the curry/uncurry pair forms an adjunction. The functor (– × A) is left adjoint to (A → –). This is exactly what currying captures: a function from pairs (X × A) → Y corresponds to a function X → (A → Y). The concept of free monads in functional programming is literally the free functor from category theory — it builds a monad structure 'for free' from a functor, adding just enough structure with no extra equations."
+          },
+          {
+            "type": "p",
+            "children": "Schankian connection: Consider parsing (syntax → semantics) and generation (semantics → syntax). These could form an adjunction! Parsing is the left adjoint — it's the 'cheapest' way to extract meaning from syntax. Generation is the right adjoint — it adds syntactic structure to meaning. The unit measures what meaning is preserved when you generate from a parse (not everything — pragmatics, emphasis, word choice may be lost). The counit measures what syntactic structure is recovered when you parse generated text. The round-trip parse(generate(meaning)) ≈ meaning, but not exactly — just like adjunctions predict."
+          },
+          {
+            "type": "InteractiveDemo",
+            "props": {
+              "title": "Adjunctions: Approximate Inverses",
+              "description": "Two functors F: C→D (free, going right) and G: D→C (forgetful, going left). The round trip G∘F doesn't equal Id_C, but the unit η: Id_C ⇒ G∘F measures the gap. Similarly F∘G doesn't equal Id_D, but the counit ε: F∘G ⇒ Id_D measures that gap. Together, the zig-zag identities ensure these 'errors' cancel: ε_F ∘ F(η) = id and G(ε) ∘ η_G = id. The natural bijection Hom_D(F(X), Y) ≅ Hom_C(X, G(Y)) means: maps out of the free construction correspond to maps into the underlying structure.",
+              "height": 350
+            }
+          },
+          {
+            "type": "Quiz",
+            "props": {
+              "questions": [
+                {
+                  "question": "In the adjunction F ⊣ G, what does the natural bijection Hom(F(X), Y) ≅ Hom(X, G(Y)) mean intuitively?",
+                  "options": [
+                    "F and G are inverse functors",
+                    "A morphism out of the free construction F(X) corresponds to a morphism into the underlying structure G(Y)",
+                    "F and G always produce isomorphic objects",
+                    "There are the same number of objects in C and D"
+                  ],
+                  "correct": 1,
+                  "explanation": "The adjunction bijection says that giving a (structure-preserving) map out of F(X) is the same as giving a (plain) map into G(Y). To define a group homomorphism from a free group, you just say where the generators go — that's this bijection in action."
+                },
+                {
+                  "question": "In the Free ⊣ Forgetful adjunction between Set and Grp, what does the unit η_S: S → G(F(S)) do?",
+                  "options": [
+                    "It forgets the group structure of S",
+                    "It sends each element of S to its inverse in the free group",
+                    "It inserts each element of S as a generator in the free group (viewed as a set)",
+                    "It collapses the free group to a single element"
+                  ],
+                  "correct": 2,
+                  "explanation": "The unit η_S embeds the set S into the underlying set of the free group F(S) — each element becomes a generator. This is the 'insertion of generators' map."
+                },
+                {
+                  "question": "Why is parsing described as 'left adjoint' to generation in the Schankian connection?",
+                  "options": [
+                    "Because parsing is faster than generation",
+                    "Because parsing is the 'cheapest' way to get meaning from syntax, just as left adjoints are the free/economical direction",
+                    "Because parsing always comes before generation",
+                    "Because parsing uses left-to-right processing"
+                  ],
+                  "correct": 1,
+                  "explanation": "Left adjoints are the 'free' or 'economical' construction — they build structure with minimal cost. Parsing extracts meaning from syntax in the most economical way, making it the left adjoint to generation (which adds syntactic structure to meaning)."
+                }
+              ]
+            }
           }
         ]
       },
@@ -624,7 +788,7 @@
         "children": [
           {
             "type": "p",
-            "children": "Future expansions planned: Adjunctions (the 'conceptual inverse'), Monads (sequencing computations), Yoneda Lemma (objects are determined by their morphisms), Limits and Colimits (universal constructions generalized), Enriched Categories (morphisms with extra structure), and Topos Theory (categories as generalized spaces)."
+            "children": "Future expansions planned: Monads (sequencing computations), Yoneda Lemma (objects are determined by their morphisms), Limits and Colimits (universal constructions generalized), Enriched Categories (morphisms with extra structure), and Topos Theory (categories as generalized spaces)."
           }
         ]
       }
