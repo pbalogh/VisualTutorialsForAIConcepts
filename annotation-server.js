@@ -188,6 +188,49 @@ Return ONLY a valid JSON array. No markdown, no preamble, just the JSON array.`
       }
     }
     
+    // Visualize: Generate a visual/diagrammatic explanation
+    if (action === 'visualize') {
+      const prompt = `The user is reading this passage:
+"${context}"
+
+They selected the phrase: "${selectedText}" and want to VISUALIZE it.
+
+Create a vivid, visual explanation that helps them SEE this concept. Use:
+1. A clear visual metaphor or diagram description (ASCII art if helpful)
+2. Step-by-step visual walkthrough
+3. Concrete spatial/geometric intuition
+4. Color/shape associations where relevant
+
+Think of this as explaining to someone who learns best by SEEING, not reading. Paint a picture with words. Be creative and vivid.
+
+Do not use markdown. Do not include preamble. Just provide the visual explanation.`
+
+      console.log(`🎨 Calling AI to visualize: "${selectedText.slice(0, 50)}"`)
+      const visualization = await callAI(systemPrompt, prompt)
+      
+      const paragraphs = visualization.trim().split('\n\n').filter(p => p.trim())
+      
+      return {
+        type: 'Sidebar',
+        props: { 
+          type: 'note',
+          title: `🎨 Visualize: "${selectedText.length > 50 ? selectedText.slice(0, 50) + '...' : selectedText}"`,
+          expanded: true
+        },
+        children: [
+          ...paragraphs.map(p => ({
+            type: 'p',
+            children: p.trim()
+          })),
+          {
+            type: 'p',
+            props: { className: 'text-xs text-gray-400 mt-2' },
+            children: `Visualized ${timestamp}`
+          }
+        ]
+      }
+    }
+    
     // Ask: User provides a custom question about the selected text
     if (action === 'ask' && question) {
       const prompt = `The user is reading this passage:

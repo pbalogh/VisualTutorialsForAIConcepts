@@ -612,27 +612,7 @@ export default function TutorialWrapper({ tutorial: propTutorial }) {
   const handleAnnotationRequest = async ({ action, selectedText, context, tutorialId, question }) => {
     console.log('📝 Annotation request:', { action, selectedText, context, tutorialId, question })
     
-    // Handle visualize action client-side
-    if (action === 'visualize') {
-      console.log('🎨 Generating visualization for:', selectedText.slice(0, 50))
-      const result = await visualize(selectedText, context)
-      console.log('🎨 Visualization result:', result)
-      if (result) {
-        const vizId = Date.now()
-        console.log('🎨 Adding visualization with id:', vizId)
-        setVisualizations(prev => {
-          console.log('🎨 Previous visualizations:', prev.length)
-          return [...prev, {
-            id: vizId,
-            result,
-            text: selectedText.slice(0, 50) + (selectedText.length > 50 ? '...' : '')
-          }]
-        })
-      }
-      return
-    }
-    
-    // Call the real annotation server for other actions
+    // Call the annotation server for all actions
     try {
       const response = await fetch('http://localhost:5190/annotate', {
         method: 'POST',
