@@ -341,6 +341,18 @@ const tutorials = [
     difficulty: 3,
   },
   {
+    id: 'brainstorm-16-compositional-generalization',
+    title: 'Compositional Generalization — The Primitive Test',
+    description: 'Can neural networks compose like humans? SCAN benchmarks, meta-learning, and Schankian operators',
+    tags: ['schankian', 'compositionality', 'generalization', 'benchmarks'],
+    icon: '🧩',
+    gradient: 'from-violet-500 to-indigo-600',
+    shadowColor: 'shadow-violet-500/30',
+    glowColor: 'rgba(139, 92, 246, 0.4)',
+    readTime: '22 min',
+    difficulty: 3,
+  },
+  {
     id: 'thoughtblend',
     title: 'ThoughtBlend',
     description: 'Synthesize perspectives through dialectical color mixing — add sources as color swatches and blend them into structured text or dialogue',

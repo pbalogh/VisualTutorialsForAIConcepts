@@ -1,0 +1,282 @@
+{
+  "id": "brainstorm-16-compositional-generalization",
+  "title": "Compositional Generalization — The Primitive Test",
+  "subtitle": "Can learned operators compose? The ultimate test for true semantic primitives",
+  "difficulty": 3,
+  "readTime": "22 min",
+  "tags": ["schankian", "compositionality", "generalization", "benchmarks"],
+  "state": "published",
+  "content": {
+    "type": "Fragment",
+    "children": [
+      {
+        "type": "Section",
+        "props": { "title": "The Compositionality Challenge" },
+        "children": [
+          {
+            "type": "p",
+            "content": "Human language is infinite from finite parts. We hear 'the cat sat on the mat' and effortlessly understand 'the dog danced on the roof' — even if we've never encountered that exact sentence. This ability to **recombine known primitives into novel combinations** is called compositional generalization, and it's the single hardest test for any system claiming to understand meaning."
+          },
+          {
+            "type": "p",
+            "content": "Neural networks struggle here in a fundamental way. They learn statistical patterns over training distributions, but when asked to combine familiar pieces in unfamiliar arrangements, they often fail catastrophically. A model that perfectly translates 'walk twice' and knows what 'jump' means may completely fail on 'jump twice' — not because the task is hard, but because it never memorized that specific combination."
+          },
+          {
+            "type": "DefinitionList",
+            "props": {
+              "definitions": [
+                {
+                  "term": "Compositionality",
+                  "definition": "The meaning of a complex expression is determined by the meanings of its parts and the rules used to combine them. 'Red ball' = RED(BALL), regardless of whether you've seen that exact phrase before."
+                },
+                {
+                  "term": "Systematic Generalization",
+                  "definition": "The ability to produce novel outputs by systematically recombining known components. If you know 'jump' and 'twice', you should handle 'jump twice' without specific training."
+                },
+                {
+                  "term": "Distribution Shift",
+                  "definition": "When test data contains combinations absent from training data. Standard neural nets assume train and test are drawn from the same distribution — compositional splits deliberately violate this."
+                },
+                {
+                  "term": "Productivity",
+                  "definition": "The capacity to understand or produce an unbounded number of novel expressions from a finite vocabulary. Human language is productive; most neural models are not."
+                }
+              ]
+            }
+          },
+          {
+            "type": "Callout",
+            "props": {
+              "type": "warning",
+              "title": "The Core Problem",
+              "content": "If a system truly learns primitives, it should compose them freely. If it only memorizes combinations, it hasn't learned the primitives at all — it's learned a lookup table masquerading as understanding."
+            }
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "The SCAN Benchmark" },
+        "children": [
+          {
+            "type": "p",
+            "content": "In 2018, Brenden Lake and Marco Baroni introduced **SCAN** (Simplified Commands for Auditory Navigation) — a deceptively simple benchmark that exposed a fundamental weakness in sequence-to-sequence models. The task: translate natural language commands into action sequences."
+          },
+          {
+            "type": "Example",
+            "props": {
+              "title": "SCAN Command → Action Mappings",
+              "input": "Command: 'walk'  →  Action: WALK\nCommand: 'jump'  →  Action: JUMP\nCommand: 'walk twice'  →  Action: WALK WALK\nCommand: 'jump opposite left'  →  Action: TURN_LEFT TURN_LEFT JUMP\nCommand: 'walk after jump twice'  →  Action: JUMP JUMP WALK\nCommand: 'jump around right'  →  Action: TURN_RIGHT JUMP TURN_RIGHT JUMP TURN_RIGHT JUMP TURN_RIGHT JUMP",
+              "output": "The grammar is tiny (14 commands, 8 modifiers). Any human grasps the full system from ~10 examples. But neural nets trained on thousands of examples fail on held-out combinations."
+            }
+          },
+          {
+            "type": "p",
+            "content": "The genius of SCAN lies in its **compositional splits** — ways of dividing train and test data that specifically test whether a model has learned composable primitives or just memorized input-output pairs."
+          },
+          {
+            "type": "Callout",
+            "props": {
+              "type": "info",
+              "title": "The Famous 'Jump' Split",
+              "content": "Training set: All commands EXCEPT those containing 'jump' in complex contexts. The model sees 'jump' only as an isolated command (jump → JUMP). Test set: All complex commands with 'jump' — 'jump twice', 'jump around left', 'jump opposite right and walk'. Result: Standard seq2seq achieves ~1% accuracy. The model learned 'jump' as a lookup, not as a primitive that composes with 'twice', 'around', 'opposite', etc."
+            }
+          },
+          {
+            "type": "p",
+            "content": "The jump split reveals the gap between **knowing a word** and **knowing a primitive**. Humans who learn 'jump' in isolation instantly generalize to 'jump twice' or 'jump around left'. Standard neural networks, despite processing 'jump' correctly in isolation, cannot extend it to novel syntactic contexts. This is the compositionality gap."
+          },
+          {
+            "type": "Analogy",
+            "props": {
+              "source": "Imagine learning that a LEGO brick snaps into a base plate. A compositional learner knows it also snaps into any other LEGO brick — the 'snap' interface is general. A memorizing learner only knows about the base plate and stares blankly at a new brick.",
+              "target": "Neural networks that memorize 'jump → JUMP' are like the second learner. They know jump-on-its-own but not jump-as-composable-unit."
+            }
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "Meta-Learning for Compositionality" },
+        "children": [
+          {
+            "type": "p",
+            "content": "In October 2023, Brenden Lake and Marco Baroni published a landmark paper in **Nature**: 'Human-like systematic generalization through a meta-learning neural network.' Their system, **MLC (Meta-Learning for Compositionality)**, finally achieved human-level compositional generalization — by changing *how* the model learns, not just *what* it learns."
+          },
+          {
+            "type": "DeepDive",
+            "props": {
+              "title": "How MLC Works",
+              "content": "MLC doesn't train on a single fixed dataset. Instead, it trains on an **endless stream of compositional tasks** — thousands of tiny invented languages, each with its own vocabulary and composition rules.\n\n**Phase 1: Episode Construction**\nGenerate a mini-language with random primitives (e.g., 'dax' → RED RED, 'lug' → BLUE) and random composition rules (e.g., 'X fep' → repeat X twice). Create a support set of example input-output pairs and a query.\n\n**Phase 2: In-Context Learning**\nThe model receives the support set as context and must predict the query output. It's literally learning a new language on the fly from examples.\n\n**Phase 3: Meta-Optimization**\nThe model's weights are updated not to memorize any one language, but to get better at **inferring composition rules from examples**. After thousands of episodes, it develops a general-purpose compositional induction engine.\n\n**The Key Insight:** By training across many compositional systems, MLC learns that primitives compose — as a structural prior, not a memorized fact. When given SCAN's jump split, it infers that 'jump' should compose the same way as other actions, achieving near-perfect accuracy."
+            }
+          },
+          {
+            "type": "p",
+            "content": "Lake and Baroni compared MLC directly against human participants on novel composition tasks. Both humans and MLC showed the same systematic patterns of generalization — and the same occasional errors. GPT-4, by contrast, showed different error patterns and lower compositional consistency."
+          },
+          {
+            "type": "Callout",
+            "props": {
+              "type": "success",
+              "title": "MLC vs. Humans vs. LLMs",
+              "content": "On the hardest compositional splits, MLC matched human-level performance (~80% on tasks where humans scored ~83%). Standard seq2seq scored ~1-2%. GPT-4, despite its scale, showed less systematic patterns — it sometimes got the right answer, but for the wrong (non-compositional) reasons."
+            }
+          },
+          {
+            "type": "Analogy",
+            "props": {
+              "source": "A child who has learned multiple languages develops an instinct for how languages work — when they encounter a new word, they automatically slot it into grammatical patterns. They don't memorize 'this word goes with that word'; they infer the rules.",
+              "target": "MLC develops the same meta-skill across artificial languages. It doesn't memorize compositions; it infers composition rules from context, making it robust to novel primitives and combinations."
+            }
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "Connection to Schankian Operators" },
+        "children": [
+          {
+            "type": "p",
+            "content": "Schank's Conceptual Dependency theory proposed that all human thought reduces to ~11 primitive operators: ATRANS (transfer of possession), PTRANS (physical transfer), MBUILD (mental construction), etc. The central claim is that these operators are truly **primitive** — they combine freely with any arguments to produce meaning."
+          },
+          {
+            "type": "p",
+            "content": "This is exactly the compositionality claim. If ATRANS is a genuine primitive, then ATRANS(book, Mary, John) should work as naturally as ATRANS(kingdom, emperor, rebel). The entity arguments are arbitrary; the operator's semantics are fixed. A system that only handles ATRANS for 'commonly transferred objects' hasn't learned the operator — it's memorized a pattern."
+          },
+          {
+            "type": "Callout",
+            "props": {
+              "type": "important",
+              "title": "The Schankian Compositionality Test",
+              "content": "For each primitive operator, hold out a class of arguments during training:\n\n• Train ATRANS with concrete objects → Test with abstract concepts (ATRANS(idea, teacher, student))\n• Train PTRANS with humans → Test with unusual agents (PTRANS(glacier, valley_A, valley_B))\n• Train MBUILD with common beliefs → Test with bizarre constructions (MBUILD(agent, 'the moon is edible'))\n\nIf the system handles these novel combinations, the operators are genuine primitives. If not, they're just labels on memorized patterns."
+            }
+          },
+          {
+            "type": "p",
+            "content": "The SCAN benchmark and its successors are, in essence, testing exactly what Schank claimed: that meaning decomposes into operators that compose with arbitrary arguments. The 'jump' split is a miniature version of asking whether PTRANS generalizes to a novel entity. MLC's success suggests that the right learning procedure can indeed acquire such primitives — but only through meta-learning across many compositional systems, not through memorization of any single system."
+          },
+          {
+            "type": "Example",
+            "props": {
+              "title": "Operator Compositional Splits",
+              "input": "Train: ATRANS(book, A→B), ATRANS(car, C→D), PTRANS(dog, park→home), INGEST(food, mouth)\nTest: ATRANS(sovereignty, rebels→government), PTRANS(idea, mind_A→mind_B*)\n\n*Wait — is transferring 'idea' a PTRANS or ATRANS? This ambiguity is itself a compositionality test.",
+              "output": "A truly compositional system handles novel arguments naturally. The operator defines the structure; the arguments fill the slots. Ambiguous cases (is it physical transfer or abstract transfer?) reveal where even human compositionality has edges."
+            }
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "Beyond SCAN" },
+        "children": [
+          {
+            "type": "p",
+            "content": "SCAN demonstrated the problem, but it's deliberately simple — a toy grammar with a small vocabulary. Researchers have since developed more challenging and realistic benchmarks that test compositional generalization in richer settings."
+          },
+          {
+            "type": "ComparisonTable",
+            "props": {
+              "title": "Compositional Generalization Benchmarks",
+              "headers": ["Benchmark", "Domain", "Key Innovation", "Hardest Split", "Best Non-LLM Score"],
+              "rows": [
+                ["SCAN (2018)", "Command → Action", "Exposed compositionality gap in seq2seq", "Add-jump: hold out 'jump' in compositions", "~1% (std seq2seq) → 99% (MLC)"],
+                ["COGS (2020)", "English → Logical Form", "Tests structural generalization with real English syntax", "Novel PP recursion depth, agent→patient role swap", "~35% (Transformer) → 81% (structured models)"],
+                ["gSCAN (2020)", "Grounded navigation", "Adds visual grounding — agent must navigate a grid world", "Novel color-shape combos, new target referents", "~20-50% depending on split"],
+                ["ReaSCAN (2021)", "Grounded + reasoning", "Requires compositional reasoning over spatial relations", "Novel relation compositions (e.g., 'big red circle inside blue square')", "~25-40% (various architectures)"],
+                ["COGS-vf (2022)", "Verb-focused COGS", "Isolates verb argument structure generalization", "Novel verb frames with familiar arguments", "~40% (Transformer baselines)"]
+              ]
+            }
+          },
+          {
+            "type": "p",
+            "content": "The trend is clear: as benchmarks get more realistic, the compositionality gap widens. SCAN's toy grammar allowed some architectural tricks (equivariant models, data augmentation) to achieve high accuracy. But COGS with real English syntax, and gSCAN/ReaSCAN with grounded perception, remain genuinely hard."
+          },
+          {
+            "type": "Callout",
+            "props": {
+              "type": "info",
+              "title": "Where LLMs Stand",
+              "content": "Large language models (GPT-4, Claude, etc.) perform better than small seq2seq models on these benchmarks — but not because they've solved compositionality. Their massive training data likely contains many of the 'novel' combinations. The real test is whether they generalize compositionally to truly novel primitives, which MLC-style evaluations suggest they still don't do as systematically as humans."
+            }
+          },
+          {
+            "type": "Steps",
+            "props": {
+              "title": "The Benchmark Evolution",
+              "steps": [
+                {
+                  "label": "SCAN (2018)",
+                  "description": "Expose the problem: seq2seq can't compose known primitives in novel ways"
+                },
+                {
+                  "label": "COGS (2020)",
+                  "description": "Scale up: test with real English syntax and logical form semantics"
+                },
+                {
+                  "label": "gSCAN / ReaSCAN (2020-21)",
+                  "description": "Ground it: add visual perception and spatial reasoning to the compositional challenge"
+                },
+                {
+                  "label": "MLC (2023)",
+                  "description": "Solve it (partially): meta-learning achieves human-like compositionality on targeted benchmarks"
+                },
+                {
+                  "label": "Open Problem",
+                  "description": "Scale MLC-style approaches to real-world language, vision, and reasoning simultaneously"
+                }
+              ]
+            }
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "Quiz: Test Your Understanding" },
+        "children": [
+          {
+            "type": "Quiz",
+            "props": {
+              "question": "In SCAN's 'add-jump' split, the model sees 'jump → JUMP' during training. Why does it fail on 'jump twice' at test time?",
+              "options": [
+                "The model doesn't know what 'twice' means",
+                "The model learned 'jump' as a memorized mapping, not a composable primitive",
+                "'Jump twice' requires a different neural architecture",
+                "The training set is too small"
+              ],
+              "correctIndex": 1,
+              "explanation": "The model knows both 'jump' (in isolation) and 'twice' (with other verbs like 'walk twice'). The failure is specifically that it can't combine a known verb with a known modifier in a new pairing — it memorized 'jump → JUMP' as a fixed mapping rather than learning 'jump' as a primitive that slots into the same compositional patterns as 'walk'."
+            }
+          },
+          {
+            "type": "Quiz",
+            "props": {
+              "question": "What makes MLC (Meta-Learning for Compositionality) different from standard training?",
+              "options": [
+                "It uses a much larger model with more parameters",
+                "It trains on many invented compositional languages, learning to infer composition rules from examples",
+                "It uses reinforcement learning instead of supervised learning",
+                "It pre-trains on all possible SCAN combinations"
+              ],
+              "correctIndex": 1,
+              "explanation": "MLC's key innovation is meta-learning across thousands of generated mini-languages. Each episode presents a new compositional system, and the model must infer the rules from a few examples. This builds a general-purpose composition-inference ability rather than memorizing any single system's patterns."
+            }
+          },
+          {
+            "type": "Quiz",
+            "props": {
+              "question": "How does compositional generalization relate to Schank's primitive operators?",
+              "options": [
+                "They are unrelated — Schank's work predates neural networks",
+                "Schank's operators must combine with arbitrary arguments; compositional benchmarks test exactly this kind of free recombination",
+                "Schank's operators are compositional only within fixed scripts",
+                "Compositional generalization disproves Schank's theory"
+              ],
+              "correctIndex": 1,
+              "explanation": "Schank's core claim is that operators like ATRANS, PTRANS, and MBUILD are true primitives that work with any arguments. This is precisely the compositionality hypothesis: if ATRANS is real, then ATRANS(anything, anyone, anyone) should work. SCAN-style benchmarks test the same principle — can a learned primitive ('jump', or by analogy ATRANS) compose freely with novel arguments and modifiers?"
+            }
+          }
+        ]
+      }
+    ]
+  }
+}
