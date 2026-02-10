@@ -124,6 +124,19 @@ function CreateTutorialModal({ isOpen, onClose }) {
 
 const tutorials = [
   {
+    id: 'research-blog',
+    title: 'Research Radar — Daily ArXiv Insights',
+    description: 'Daily scan of cs.AI papers with connections to our Schankian operators research. Updated automatically.',
+    tags: ['research', 'papers', 'daily'],
+    icon: '📡',
+    gradient: 'from-cyan-500 to-blue-600',
+    shadowColor: 'shadow-cyan-500/30',
+    glowColor: 'rgba(6, 182, 212, 0.4)',
+    readTime: 'Updated daily',
+    difficulty: 2,
+    featured: true,
+  },
+  {
     id: 'group-theory-puzzles',
     title: 'Group Theory for Puzzle Solving',
     description: 'Discover how abstract symmetry helps crack puzzles — from coin flips to Rubik\'s cubes, with interactive Cayley diagrams',
