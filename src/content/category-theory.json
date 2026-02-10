@@ -710,6 +710,170 @@
         ]
       },
       {
+        "type": "Section",
+        "props": { "title": "12. Monads — Sequencing Computation Categorically" },
+        "children": [
+          {
+            "type": "p",
+            "children": "You've probably heard that monads are 'burritos' or 'boxes' or some other tortured metaphor. Let's start with the real intuition and build up to the formal definition. A monad captures the idea of wrapping values in a context — and providing a principled way to sequence operations within that context."
+          },
+          {
+            "type": "p",
+            "children": "Think of it this way: sometimes the output of a computation isn't just a plain value. It's a value wrapped in some extra information — maybe it might fail (Maybe), maybe there are multiple results (List), maybe it has side effects (IO). A monad gives you a uniform way to chain these wrapped computations together."
+          },
+          {
+            "type": "p",
+            "children": "Formally, a monad is an endofunctor T: C → C equipped with two natural transformations: the unit η: Id → T (which wraps a plain value into the context) and the multiplication μ: T² → T (which flattens a doubly-wrapped value into a singly-wrapped one). These must satisfy the associativity law μ ∘ Tμ = μ ∘ μT and the unit laws μ ∘ Tη = μ ∘ ηT = id."
+          },
+          {
+            "type": "DefinitionList",
+            "props": {
+              "items": [
+                {
+                  "term": "Monad",
+                  "definition": "An endofunctor T: C → C with unit (η) and multiplication (μ) satisfying associativity and unit laws. It captures 'computation with context' — values wrapped in a structured layer."
+                },
+                {
+                  "term": "Endofunctor",
+                  "definition": "A functor from a category to itself, T: C → C. It maps objects and morphisms within the same category. Every monad is built on an endofunctor."
+                },
+                {
+                  "term": "Unit (η / return)",
+                  "definition": "Natural transformation η: Id → T. Takes a plain value and wraps it in the monadic context. In Haskell: return :: a → T a. In Maybe: return x = Just x."
+                },
+                {
+                  "term": "Multiplication (μ / join)",
+                  "definition": "Natural transformation μ: T² → T. Flattens a doubly-wrapped value. In Haskell: join :: T(T a) → T a. In Maybe: join (Just (Just x)) = Just x, join (Just Nothing) = Nothing."
+                },
+                {
+                  "term": "Bind (>>=)",
+                  "definition": "The 'sequencing' operation: (>>=) :: T a → (a → T b) → T b. Derived from μ and T: x >>= f = join (fmap f x). This is how you chain monadic computations — feed the result of one into the next."
+                },
+                {
+                  "term": "Kleisli Category",
+                  "definition": "Given a monad T on C, the Kleisli category C_T has the same objects as C but morphisms A → B are morphisms A → T(B) in C. Composition uses bind. This is the category of 'effectful functions'."
+                }
+              ]
+            }
+          },
+          {
+            "type": "Analogy",
+            "children": "A monad is like a production line — raw materials (values) go in, get wrapped in packaging (the functor T), and the key operation (join/μ) is 'unboxing a box inside a box' — flattening nested packaging into single packaging. If you put a packaged item into another package (T(T(x))), join unwraps one layer to give you a single package (T(x)). The unit (return/η) is the packaging station — it takes a raw item and wraps it. Bind (>>=) is the full assembly step: take a packaged item, unwrap it, process it, and re-package the result."
+          },
+          {
+            "type": "p",
+            "children": "The Haskell bridge: Programmers know monads from Maybe (might fail), List (multiple results), and IO (side effects). In each case, return wraps a value: return 5 = Just 5, return 5 = [5], return 5 = IO(5). And join flattens: join (Just (Just 5)) = Just 5, join [[1,2],[3]] = [1,2,3]. Bind (>>=) chains computations: lookup key map >>= parseValue >>= validate — each step might fail, and the monad handles the plumbing."
+          },
+          {
+            "type": "Example",
+            "props": { "title": "The Maybe Monad Step by Step" },
+            "children": [
+              {
+                "type": "p",
+                "children": "Let's trace through the Maybe monad — the simplest monad that captures 'computation that might fail'."
+              },
+              {
+                "type": "Steps",
+                "props": {
+                  "steps": [
+                    "The endofunctor T = Maybe maps a type A to Maybe A = {Just a | a ∈ A} ∪ {Nothing}. It wraps values in a 'might fail' context.",
+                    "Unit (return): η(x) = Just x. Wrapping a plain value — 'this computation succeeded with value x'.",
+                    "fmap: fmap f (Just x) = Just (f x), fmap f Nothing = Nothing. Apply a function inside the context — but if we've already failed, propagate the failure.",
+                    "Now chain two fallible lookups: lookup 'name' dict >>= lookup 'first'. The first lookup returns Maybe String; the second takes a String and returns Maybe String.",
+                    "If lookup 'name' returns Nothing, bind short-circuits — result is Nothing. No need to try the second lookup.",
+                    "If lookup 'name' returns Just 'John Smith', bind unwraps it and feeds 'John Smith' to the next function.",
+                    "Multiplication (join): join (Just (Just x)) = Just x, join (Just Nothing) = Nothing, join Nothing = Nothing. Flattening nested Maybe — if either layer failed, the result is failure.",
+                    "The monad laws guarantee: chaining three lookups works the same regardless of how you group them. (f >>= g) >>= h = f >>= (λx → g x >>= h). Associativity!"
+                  ]
+                }
+              }
+            ]
+          },
+          {
+            "type": "p",
+            "children": "From Adjunctions to Monads — the categorical origin story: Every adjunction gives rise to a monad! If F ⊣ G (F is left adjoint to G), then T = G∘F is automatically a monad. The unit η comes directly from the adjunction's unit η: Id → G∘F. The multiplication μ comes from applying the counit in the middle: μ = G∘ε∘F, where ε is the adjunction's counit. The zig-zag identities of the adjunction guarantee the monad laws."
+          },
+          {
+            "type": "p",
+            "children": "This is where monads COME FROM categorically. Every monad arises from an adjunction (in fact, from two canonical ones — the Kleisli adjunction and the Eilenberg-Moore adjunction). So when you see a monad 'in the wild' (Maybe, List, IO, State), there's always a hidden adjunction lurking beneath."
+          },
+          {
+            "type": "InteractiveDemo",
+            "props": {
+              "title": "Monads: Values in Context",
+              "description": "A monad wraps values in a context and provides operations to work within that context. Unit (η/return) wraps a plain value: x ↦ T(x). Fmap applies a function inside the wrapper: f inside T. Join (μ) flattens nested contexts: T(T(x)) ↦ T(x). Bind (>>=) chains operations: unwrap, compute, re-wrap. Example with Maybe: Just 5 >>= (λx → if x > 3 then Just (x*2) else Nothing) = Just 10. The monad laws ensure associativity of chaining and that return is a neutral element.",
+              "height": 350
+            }
+          },
+          {
+            "type": "p",
+            "children": "Schankian connection: Operator application could be monadic! When you apply an operator like ATRANS, the result isn't just a new state — it's a state wrapped in context (what changed, what preconditions were needed, what side effects occurred). Sequencing operators is monadic bind: the output context of one operation feeds into the next. The Kleisli category of this 'state-change monad' is precisely the category of operator chains — morphisms are sequences of operators, and composition handles the context threading automatically."
+          },
+          {
+            "type": "DeepDive",
+            "props": { "title": "Why Are the Monad Laws Important?" },
+            "children": [
+              {
+                "type": "p",
+                "children": "The monad laws aren't arbitrary bureaucracy — they guarantee that your computations compose sensibly. The associativity law μ ∘ Tμ = μ ∘ μT (equivalently: (f >>= g) >>= h = f >>= (λx → g x >>= h)) means that chaining operations is well-defined regardless of how you group them."
+              },
+              {
+                "type": "p",
+                "children": "Without associativity, the order in which you flatten nested contexts would matter, leading to different results for the same logical sequence of operations. Imagine if (lookup A >>= processB) >>= validateC gave a different answer than lookup A >>= (λx → processB x >>= validateC) — your programs would be unpredictable!"
+              },
+              {
+                "type": "p",
+                "children": "The unit laws (μ ∘ Tη = μ ∘ ηT = id, equivalently: return x >>= f = f x and m >>= return = m) say that wrapping a value and immediately unwrapping it does nothing. Together, these laws make the Kleisli category a genuine category — composition is associative and has identities."
+              },
+              {
+                "type": "p",
+                "children": "For Schankian operators: associativity means operator chaining is well-defined regardless of grouping. Whether you conceptualize a narrative as '(John gives book to Mary, then Mary reads it) then Mary tells Bob' or 'John gives book to Mary, then (Mary reads it then tells Bob)', the final state is the same. The monad laws ARE narrative coherence at the operator level."
+              }
+            ]
+          },
+          {
+            "type": "Quiz",
+            "props": {
+              "questions": [
+                {
+                  "question": "What does the multiplication μ (join) of a monad do?",
+                  "options": [
+                    "Wraps a value in a monadic context",
+                    "Flattens a doubly-wrapped value T(T(x)) into a singly-wrapped T(x)",
+                    "Removes the monadic context entirely to get a plain value",
+                    "Combines two different monads into one"
+                  ],
+                  "correct": 1,
+                  "explanation": "The multiplication μ: T² → T flattens nested contexts. In Maybe: join (Just (Just 5)) = Just 5. In List: join [[1,2],[3,4]] = [1,2,3,4]. It's 'unboxing a box inside a box'."
+                },
+                {
+                  "question": "How does every adjunction F ⊣ G give rise to a monad?",
+                  "options": [
+                    "The monad is F∘G with unit from ε and multiplication from η",
+                    "The monad is G∘F with unit from η and multiplication from G∘ε∘F",
+                    "The monad is F with unit from G and multiplication from the identity",
+                    "Adjunctions and monads are unrelated concepts"
+                  ],
+                  "correct": 1,
+                  "explanation": "Given F ⊣ G, the endofunctor T = G∘F is a monad. The unit η: Id → G∘F comes from the adjunction's unit, and μ = G∘ε∘F uses the counit ε in the middle. The zig-zag identities ensure the monad laws hold."
+                },
+                {
+                  "question": "Why is the associativity law important for monadic operator chaining?",
+                  "options": [
+                    "It makes operators commutative — order doesn't matter",
+                    "It ensures chaining is well-defined regardless of how operations are grouped",
+                    "It guarantees every operator has an inverse",
+                    "It means all operators produce the same output"
+                  ],
+                  "correct": 1,
+                  "explanation": "Associativity means (f >>= g) >>= h = f >>= (λx → g x >>= h). Grouping doesn't change the result. For narratives: whether you group events as '(A then B) then C' or 'A then (B then C)', the final state is the same."
+                }
+              ]
+            }
+          }
+        ]
+      },
+      {
         "type": "Quiz",
         "props": {
           "questions": [
@@ -788,7 +952,7 @@
         "children": [
           {
             "type": "p",
-            "children": "Future expansions planned: Monads (sequencing computations), Yoneda Lemma (objects are determined by their morphisms), Limits and Colimits (universal constructions generalized), Enriched Categories (morphisms with extra structure), and Topos Theory (categories as generalized spaces)."
+            "children": "Future expansions planned: Yoneda Lemma (objects are determined by their morphisms), Limits and Colimits (universal constructions generalized), Enriched Categories (morphisms with extra structure), and Topos Theory (categories as generalized spaces)."
           }
         ]
       }
