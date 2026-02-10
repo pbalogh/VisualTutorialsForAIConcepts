@@ -5,6 +5,7 @@ import TutorialWrapper from './pages/TutorialWrapper.jsx'
 import TreeWrapper from './pages/TreeWrapper.jsx'
 import QuizWrapper from './pages/QuizWrapper.jsx'
 import GoogleDriveDemo from './pages/GoogleDriveDemo.jsx'
+import ImplicationsGraph from './pages/ImplicationsGraph.jsx'
 import ThoughtBlend from './tutorials/ThoughtBlend/index.jsx'
 import Peptides from './tutorials/Peptides.jsx'
 import PasswordGate from './components/PasswordGate.jsx'
@@ -25,6 +26,7 @@ function App() {
           <Route path="/tree/:tutorialId" element={<TreeWrapper />} />
           <Route path="/quiz/:tutorialId" element={<QuizWrapper />} />
           <Route path="/drive-demo" element={<GoogleDriveDemo />} />
+          <Route path="/implications" element={<ImplicationsGraph />} />
           <Route path="/thoughtblend" element={<ThoughtBlend />} />
           <Route path="/peptides" element={<Peptides />} />
         </Routes>

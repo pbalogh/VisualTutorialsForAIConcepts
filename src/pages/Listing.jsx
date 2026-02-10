@@ -804,17 +804,29 @@ export default function Listing() {
             </div>
           </div>
           
-          {/* Create tutorial button */}
-          <button
-            onClick={() => setShowCreateModal(true)}
-            className="mt-8 px-6 py-3 bg-gradient-to-r from-indigo-500 to-purple-600 text-white font-medium rounded-xl
-              hover:from-indigo-600 hover:to-purple-700 hover:scale-105
-              transition-all duration-200 shadow-lg shadow-indigo-500/30
-              flex items-center gap-2 mx-auto"
-          >
-            <span>✨</span>
-            Create tutorial about...
-          </button>
+          {/* Action buttons */}
+          <div className="flex items-center justify-center gap-4 mt-8">
+            <button
+              onClick={() => setShowCreateModal(true)}
+              className="px-6 py-3 bg-gradient-to-r from-indigo-500 to-purple-600 text-white font-medium rounded-xl
+                hover:from-indigo-600 hover:to-purple-700 hover:scale-105
+                transition-all duration-200 shadow-lg shadow-indigo-500/30
+                flex items-center gap-2"
+            >
+              <span>✨</span>
+              Create tutorial about...
+            </button>
+            <Link
+              to="/implications"
+              className="px-6 py-3 bg-gradient-to-r from-emerald-500/20 to-teal-500/20 text-emerald-300 font-medium rounded-xl
+                border border-emerald-500/30 hover:border-emerald-400/50 hover:scale-105
+                transition-all duration-200
+                flex items-center gap-2"
+            >
+              <span>🌐</span>
+              Implications Cloud
+            </Link>
+          </div>
         </div>
         
         {/* Bottom fade */}
