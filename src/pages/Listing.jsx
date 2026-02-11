@@ -319,6 +319,18 @@ const tutorials = [
     difficulty: 3,
   },
   {
+    id: 'brainstorm-50-epistemic-operators',
+    title: 'Epistemic State Operators',
+    description: 'Modeling belief, doubt, and wise refusal as geometric transformations — extending operators from entity states to knowledge states',
+    tags: ['schankian', 'epistemics', 'belief', 'DEL'],
+    icon: '🧠',
+    gradient: 'from-violet-500 to-purple-600',
+    shadowColor: 'shadow-violet-500/30',
+    glowColor: 'rgba(139, 92, 246, 0.4)',
+    readTime: '20 min',
+    difficulty: 3,
+  },
+  {
     id: 'brainstorm-06-tensor-products-fail',
     title: 'Tensor Products Fail at Compositionality',
     description: 'Why operators succeed where vector composition breaks down — bounded vs exponential dimensionality',

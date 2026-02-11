@@ -1,0 +1,379 @@
+{
+  "id": "brainstorm-50-epistemic-operators",
+  "title": "Epistemic State Operators",
+  "subtitle": "Modeling belief, doubt, and wise refusal as geometric transformations — extending the operator framework from entity states to knowledge states",
+  "readTime": "20 min",
+  "state": "brainstorm_50",
+  "content": [
+    {
+      "type": "Fragment",
+      "title": "Beyond Entity States: The Epistemic Dimension",
+      "content": [
+        {
+          "type": "Section",
+          "title": "The Missing Operator Class",
+          "content": "Schank's original primitives (PTRANS, ATRANS, MTRANS, etc.) transform **entity states** — location, possession, physical condition. But there's another dimension of state that language constantly manipulates: **epistemic states**.\n\nWhen you read \"Sarah realized the door was unlocked,\" nothing in the physical world changed. The door was already unlocked. What changed was Sarah's **knowledge state** — her model of the world updated to include this fact.\n\nThis is a different KIND of operator. Not entity transformation, but **belief transformation**. And it turns out there's a rich formal framework for this: **Dynamic Epistemic Logic**."
+        },
+        {
+          "type": "Analogy",
+          "left": {
+            "title": "Entity-State Operators",
+            "items": [
+              "PTRANS — changes physical location",
+              "ATRANS — changes possession/ownership",
+              "PROPEL — applies physical force",
+              "Input: entity before-state",
+              "Output: entity after-state"
+            ]
+          },
+          "right": {
+            "title": "Epistemic-State Operators",
+            "items": [
+              "OBSERVE — updates belief from perception",
+              "INFER — updates belief from reasoning",
+              "DOUBT — weakens belief confidence",
+              "Input: agent's belief state",
+              "Output: agent's new belief state"
+            ]
+          },
+          "bridgeText": "Both are operators in the mathematical sense: functions that transform states. The difference is WHAT kind of state they operate on."
+        },
+        {
+          "type": "Callout",
+          "variant": "insight",
+          "content": "**Key insight:** The same geometric framework (rotations in complex vector space) that works for entity-state operators should work for epistemic operators. Knowledge states live in a vector space too — we just need to find the right representation."
+        }
+      ]
+    },
+    {
+      "type": "Fragment",
+      "title": "Dynamic Epistemic Logic: A Crash Course",
+      "content": [
+        {
+          "type": "Section",
+          "title": "Hintikka's Foundation",
+          "content": "Jaakko Hintikka (1962) formalized knowledge and belief using **modal logic**. The key operators:\n\n**K_a φ** — \"Agent a knows that φ is true\"\n**B_a φ** — \"Agent a believes that φ is true\"\n\nThese aren't just labels — they're operators with precise semantics. K_a operates on propositions and returns truth values, constrained by axioms that capture what \"knowing\" means."
+        },
+        {
+          "type": "DefinitionList",
+          "definitions": [
+            {
+              "term": "K_a φ → φ (Truth Axiom)",
+              "definition": "If agent a knows φ, then φ is actually true. Knowledge implies truth — you can't 'know' something false. This distinguishes knowledge from belief."
+            },
+            {
+              "term": "K_a φ → K_a K_a φ (Positive Introspection)",
+              "definition": "If you know something, you know that you know it. Knowledge is transparent to itself."
+            },
+            {
+              "term": "¬K_a φ → K_a ¬K_a φ (Negative Introspection)",
+              "definition": "If you don't know something, you know that you don't know it. You're aware of your own ignorance. (This is controversial — do we always know what we don't know?)"
+            },
+            {
+              "term": "B_a φ (Belief without truth requirement)",
+              "definition": "Belief doesn't require truth. You can believe something false. This is weaker than knowledge: K_a φ implies B_a φ, but not vice versa."
+            }
+          ]
+        },
+        {
+          "type": "DeepDive",
+          "title": "The KD45 Axiom System",
+          "content": "Epistemic logic uses different axiom systems for knowledge vs. belief:\n\n**S5 for Knowledge:**\n- (K) K_a(φ → ψ) → (K_a φ → K_a ψ) — knowledge distributes over implication\n- (T) K_a φ → φ — knowledge implies truth\n- (4) K_a φ → K_a K_a φ — positive introspection\n- (5) ¬K_a φ → K_a ¬K_a φ — negative introspection\n\n**KD45 for Belief:**\n- (K) same distribution axiom\n- (D) B_a φ → ¬B_a ¬φ — beliefs are consistent (you can't believe both φ and ¬φ)\n- (4) B_a φ → B_a B_a φ — you believe what you believe\n- (5) ¬B_a φ → B_a ¬B_a φ — you know what you don't believe\n\nNote: (D) replaces (T). Beliefs don't have to be true, but they should be internally consistent.\n\n**For our operator framework:** These axioms are CONSTRAINTS on valid epistemic operators. An OBSERVE operator that produces inconsistent beliefs violates (D). A LEARN operator must satisfy (T) if it produces knowledge."
+        },
+        {
+          "type": "Section",
+          "title": "Dynamic Updates: Where Operators Come In",
+          "content": "Static epistemic logic describes knowledge states. **Dynamic Epistemic Logic** (Baltag, Moss, Solecki, 1998) adds **update operators** that TRANSFORM knowledge states.\n\nThe key innovation: model how events change what agents know.\n\n**Public Announcement [φ]ψ** — \"After publicly announcing φ, ψ holds\"\nThis is an operator! It takes the current epistemic state and produces a new one where everyone knows φ (and knows that everyone knows it, and so on).\n\n**Private Communication** — Agent a tells agent b that φ, without others knowing\nThis updates b's knowledge while leaving others unchanged. More complex operator.\n\n**The connection to Schank:** These are epistemic analogs of MTRANS (information transfer). But DEL makes the transformation PRECISE — we know exactly how the belief state changes."
+        }
+      ]
+    },
+    {
+      "type": "Fragment",
+      "title": "Epistemic Operators as Geometric Transformations",
+      "content": [
+        {
+          "type": "Section",
+          "title": "The Representation Challenge",
+          "content": "Our entity-state operators use complex vector embeddings. Entity states are points in this space; operators are rotations that move points around.\n\nCan we do the same for epistemic states? The challenge: epistemic states are MORE STRUCTURED than entity states. It's not just \"Sarah knows X\" — it's a whole MODEL of what Sarah knows, believes, is uncertain about, and knows that she doesn't know.\n\nOne approach: represent epistemic states as **distributions** over possible worlds, then represent operators as transformations of these distributions."
+        },
+        {
+          "type": "Example",
+          "title": "Geometric OBSERVE Operator",
+          "setup": "Let's model what happens when Sarah observes that the door is unlocked.\n\n**Before:** Sarah's belief state is a distribution over {door_locked, door_unlocked}, say (0.7, 0.3) — she thinks it's probably locked.\n\n**Operator:** OBSERVE(door_unlocked)\n\n**After:** Her belief state becomes (0, 1) — certainty that it's unlocked.",
+          "steps": [
+            {
+              "label": "Represent as Vector",
+              "detail": "Encode belief state as a vector in probability simplex:\n**Before:** b = (0.7, 0.3)\n**After:** b' = (0, 1)\n\nIn higher dimensions, this generalizes to distributions over many possible states."
+            },
+            {
+              "label": "OBSERVE as Projection",
+              "detail": "The OBSERVE operator projects onto the subspace consistent with the observation:\n\nOBSERVE(X) = project onto {states where X is true}, then renormalize\n\nGeometrically: collapse the probability mass onto the observed outcome. This is Bayesian updating with a delta-function likelihood."
+            },
+            {
+              "label": "In Complex Space",
+              "detail": "If we embed beliefs in complex space (like entity states), OBSERVE becomes a rotation that aligns the belief vector with the 'certainty' direction for the observed fact. Uncertainty = spread across directions; certainty = alignment with one direction."
+            }
+          ],
+          "punchline": "OBSERVE is a projection operator — it collapses uncertainty by eliminating possibilities inconsistent with what was observed. Geometrically: dimensional reduction."
+        },
+        {
+          "type": "InteractiveDemo",
+          "title": "Epistemic Operator Gallery",
+          "prompt": "For each scenario, identify the epistemic operator and describe its geometric effect on the belief state.",
+          "scenarios": [
+            {
+              "input": "\"John suspected Mary was lying, but then he saw the receipt.\"",
+              "reveal": "**Operator:** OBSERVE (seeing the receipt)\n**Before:** belief(Mary_honest) ≈ 0.3 (low confidence)\n**After:** belief(Mary_honest) = 1.0 (certain)\n\n**Geometric effect:** Projection onto the 'Mary is honest' subspace. All probability mass collapses onto states consistent with the receipt evidence. This is a rank-reducing transformation."
+            },
+            {
+              "input": "\"Sarah realized that if the train left at 3pm, she would miss her meeting.\"",
+              "reveal": "**Operator:** INFER (deductive reasoning)\n**Before:** knows(train_time=3pm), knows(meeting_time=3:30pm), knows(travel_time=45min)\n**After:** knows(will_miss_meeting)\n\n**Geometric effect:** Not projection but INFERENCE — computing the logical closure of current knowledge. In vector terms: extending the belief vector into new dimensions that are logically entailed by current beliefs. This EXPANDS the knowledge state."
+            },
+            {
+              "input": "\"After reading the conflicting reports, Marcus wasn't sure what to believe.\"",
+              "reveal": "**Operator:** DOUBT (uncertainty increase)\n**Before:** belief(X) = high confidence\n**After:** belief(X) = spread across possibilities\n\n**Geometric effect:** The INVERSE of OBSERVE. Instead of collapsing onto certainty, DOUBT spreads probability mass across alternatives. Geometrically: increasing the 'spread' or entropy of the belief distribution. Moving away from axis-aligned (certain) toward diagonal (uncertain)."
+            },
+            {
+              "input": "\"The detective concluded that either the butler or the maid did it, but couldn't determine which.\"",
+              "reveal": "**Operator:** INFER (partial) + CONSTRAIN\n**Before:** belief spread across {butler, maid, gardener, cook}\n**After:** belief spread across {butler, maid} only\n\n**Geometric effect:** Partial projection — eliminate some possibilities (gardener, cook) while maintaining uncertainty among the rest. The belief vector is projected onto a lower-dimensional subspace but not all the way to a single point."
+            }
+          ]
+        },
+        {
+          "type": "Section",
+          "title": "A Taxonomy of Epistemic Operators",
+          "content": "Based on geometric effects, we can classify epistemic operators:\n\n**Projection operators (certainty-increasing):**\n- OBSERVE — direct perceptual evidence\n- LEARN — receiving reliable information\n- PROVE — deductive certainty\n\n**Expansion operators (knowledge-increasing without certainty change):**\n- INFER — computing logical consequences\n- REALIZE — noticing implications of existing knowledge\n\n**Diffusion operators (uncertainty-increasing):**\n- DOUBT — encountering contradictory evidence\n- FORGET — information decay over time\n- CONFUSE — conflicting signals\n\n**Transfer operators (multi-agent):**\n- TELL — change another agent's beliefs\n- ANNOUNCE — change all agents' common knowledge\n- DECEIVE — create false beliefs in another agent"
+        }
+      ]
+    },
+    {
+      "type": "Fragment",
+      "title": "The Detection-Correction Gap",
+      "content": [
+        {
+          "type": "Section",
+          "title": "A Puzzle from CausalT5K",
+          "content": "Recent benchmarks like CausalT5K found something striking: language models can DETECT causal reasoning errors at 77-91% accuracy, but only CORRECT about half of them.\n\nThe model knows something is wrong. It just can't fix it.\n\nThe epistemic operator framework explains this gap perfectly: **detection and correction require different operators**, and correction is harder."
+        },
+        {
+          "type": "Example",
+          "title": "Why Detection ≠ Correction",
+          "setup": "Consider a causal reasoning problem where a model is asked about a confounded scenario.\n\n**Question:** \"Ice cream sales and drowning rates both increase in summer. Does eating ice cream cause drowning?\"",
+          "steps": [
+            {
+              "label": "Detection = RECOGNIZE",
+              "detail": "To detect the error, the model needs:\n\nRECOGNIZE(confounding_pattern)\n\nThis is pattern matching on epistemic states. The model has seen examples of spurious correlations and recognizes this as one. It's an OBSERVATION operator on its own reasoning — noticing a pattern.\n\n**Geometric:** Check if the current reasoning trajectory passes through a 'known fallacy' region of belief space."
+            },
+            {
+              "label": "Correction = CONSTRUCT + APPLY",
+              "detail": "To correct, the model needs:\n\n1. IDENTIFY the confounder (summer/heat)\n2. CONSTRUCT the correct causal graph\n3. APPLY the right inference (control for confounder)\n4. GENERATE a corrected explanation\n\nThis is a CHAIN of epistemic operators, including constructive operators that build new knowledge structures.\n\n**Geometric:** Not just recognizing a region, but navigating FROM that region TO a correct region. Requires knowing the direction to move, not just the location."
+            },
+            {
+              "label": "The Gap",
+              "detail": "Detection is CLASSIFICATION (is this state in the 'error' region?).\nCorrection is GENERATION (produce a path from error to correct).\n\nThe second is strictly harder. You can recognize you're lost without knowing the way home."
+            }
+          ],
+          "punchline": "The detection-correction gap is an operator gap: detecting requires RECOGNITION operators, correcting requires CONSTRUCTION + TRANSFORMATION operators chained together."
+        },
+        {
+          "type": "Callout",
+          "variant": "warning",
+          "content": "**The Wise Refusal Protocol:** CausalT5K proposes a three-step protocol for handling detected errors:\n\n1. **DETECT** — recognize the flaw (77-91% success)\n2. **IDENTIFY** — state what information is missing\n3. **REFUSE** — decline to endorse the flawed conclusion\n\nThis is a three-operator chain: RECOGNIZE → DIAGNOSE → WITHHOLD. Each step requires a different epistemic operator. The protocol works when models can execute all three in sequence."
+        },
+        {
+          "type": "DeepDive",
+          "title": "Operator Chain Analysis of Wise Refusal",
+          "content": "Let's decompose the Wise Refusal protocol into precise operators:\n\n**Step 1: DETECT**\n- Operator: RECOGNIZE(reasoning_pattern)\n- Input: current chain of thought\n- Output: classification {valid, flawed}\n- Geometric: binary projection onto valid/invalid subspaces\n\n**Step 2: IDENTIFY (the hard part)**\n- Operator: DIAGNOSE(flaw)\n- Input: detected flaw + causal structure\n- Output: specific missing information or violated principle\n- Geometric: not just detecting distance from valid region, but computing the DIRECTION — which axis is wrong?\n\n**Step 3: REFUSE**\n- Operator: WITHHOLD(conclusion)\n- Input: diagnosed flaw\n- Output: calibrated uncertainty expression (\"I don't know because X\")\n- Geometric: project onto 'uncertain' subspace, tagged with reason\n\n**Why DIAGNOSE is hard:**\nRECOGNIZE is a learned classifier — lots of training signal.\nDIAGNOSE requires causal understanding — knowing WHY something is wrong.\nThis is the detection-correction gap in microcosm.\n\n**The geometric insight:** RECOGNIZE requires learning a BOUNDARY (valid vs. invalid). DIAGNOSE requires learning a VECTOR FIELD (which direction is the error?)."
+        }
+      ]
+    },
+    {
+      "type": "Fragment",
+      "title": "Dempster-Shafer: Calibrated Uncertainty",
+      "content": [
+        {
+          "type": "Section",
+          "title": "Beyond Probability: Belief Functions",
+          "content": "Standard probability assigns a single number P(X) to each proposition. But what if you're uncertain AND you don't know HOW uncertain you are?\n\n**Dempster-Shafer theory** introduces two measures:\n- **Belief(X)** — minimum probability committed to X\n- **Plausibility(X)** — maximum probability X could have\n\nThe gap between them is your **ignorance** — the uncertainty about your uncertainty.\n\nFor epistemic operators, this matters: OBSERVE should produce calibrated outputs, distinguishing \"I'm confident X is true\" from \"I have no idea about X.\""
+        },
+        {
+          "type": "DefinitionList",
+          "definitions": [
+            {
+              "term": "Belief Function Bel(X)",
+              "definition": "The minimum probability that must be assigned to X given the evidence. If Bel(X) = 0.7, you're at least 70% confident in X, possibly more."
+            },
+            {
+              "term": "Plausibility Function Pl(X)",
+              "definition": "The maximum probability X could have — 1 minus the belief in the negation. Pl(X) = 1 - Bel(¬X). If Pl(X) = 0.9, X could be as likely as 90%."
+            },
+            {
+              "term": "Ignorance Interval [Bel(X), Pl(X)]",
+              "definition": "The range of possible probabilities given your evidence. Wide interval = high ignorance. Narrow interval = precise belief. Point (Bel = Pl) = certainty."
+            },
+            {
+              "term": "Mass Function m(A)",
+              "definition": "The basic probability assignment — how much evidence directly supports subset A (not its supersets). Unlike probability, mass can be assigned to sets of possibilities, not just singletons."
+            }
+          ]
+        },
+        {
+          "type": "Example",
+          "title": "Why DS Theory Matters for Operators",
+          "setup": "Consider the sentence: \"The witness said the car was blue or green, but wasn't sure which.\"",
+          "steps": [
+            {
+              "label": "Standard Probability Approach",
+              "detail": "Force a distribution: P(blue) = 0.5, P(green) = 0.5\n\nBut this implies MORE certainty than the evidence supports. The witness didn't say \"equally likely\" — they said \"one or the other but I don't know.\""
+            },
+            {
+              "label": "Dempster-Shafer Approach",
+              "detail": "Assign mass to the SET {blue, green}: m({blue, green}) = 1.0\n\nNow:\n- Bel(blue) = 0 (no direct evidence for blue specifically)\n- Pl(blue) = 1 (blue is plausible)\n- Bel(blue ∨ green) = 1 (definitely one of these)\n\nThe ignorance interval for 'blue' is [0, 1] — we genuinely don't know."
+            },
+            {
+              "label": "Operator Implication",
+              "detail": "An OBSERVE operator processing this testimony should output a DS belief function, not a point probability. The output should ENCODE the ignorance, not collapse it.\n\nGeometrically: instead of projecting to a point, project to a REGION (the valid belief interval)."
+            }
+          ],
+          "punchline": "DS belief functions let operators output CALIBRATED uncertainty — distinguishing 'confident' from 'clueless' rather than forcing fake precision."
+        },
+        {
+          "type": "Section",
+          "title": "Integrating DS into the Operator Framework",
+          "content": "How do we incorporate Dempster-Shafer into our geometric operator framework?\n\n**Proposal:** Instead of belief states as vectors, use **belief polytopes** — regions in probability space bounded by Bel and Pl.\n\n- OBSERVE narrows the polytope (increases Bel, decreases Pl)\n- DOUBT widens the polytope (decreases Bel, increases Pl)\n- INFER computes the DS combination of multiple pieces of evidence\n\nThe geometric operators become **region transformations** rather than point transformations. This naturally handles uncertainty about uncertainty."
+        }
+      ]
+    },
+    {
+      "type": "Fragment",
+      "title": "Putting It Together: A Unified Framework",
+      "content": [
+        {
+          "type": "Section",
+          "title": "Two Operator Classes, One Framework",
+          "content": "We now have two parallel operator systems:\n\n**Entity-State Operators** (Schank's originals):\n- Transform physical/social states of entities\n- PTRANS, ATRANS, MTRANS, PROPEL, etc.\n- Geometric: rotations in entity embedding space\n\n**Epistemic-State Operators** (the extension):\n- Transform knowledge/belief states of agents\n- OBSERVE, INFER, DOUBT, WITHHOLD, etc.\n- Geometric: projections/diffusions in belief space\n\nThe key insight: **events in language often involve BOTH simultaneously.**"
+        },
+        {
+          "type": "Example",
+          "title": "Dual-Track Operator Analysis",
+          "setup": "**Sentence:** \"Sarah saw John give the book to Mary.\"",
+          "steps": [
+            {
+              "label": "Entity-State Track",
+              "detail": "ATRANS(John, book, John → Mary)\n- possession(book): John → Mary\n\nThis is the physical event: the book changed hands."
+            },
+            {
+              "label": "Epistemic-State Track (Sarah)",
+              "detail": "OBSERVE(Sarah, ATRANS(John, book, John → Mary))\n- K_Sarah(possession(book) = Mary) — Sarah now knows Mary has the book\n\nSarah's epistemic state updated via perception."
+            },
+            {
+              "label": "Epistemic-State Track (Reader)",
+              "detail": "LEARN(reader, K_Sarah(ATRANS occurred))\n- We know that Sarah knows about the transfer\n- Nested epistemic states: K_reader(K_Sarah(possession(book) = Mary))"
+            },
+            {
+              "label": "Full Analysis",
+              "detail": "One sentence involves:\n1. One entity-state operator (ATRANS)\n2. One epistemic operator for a character (Sarah OBSERVE)\n3. One epistemic operator for the reader (we LEARN)\n\nNarrative comprehension requires tracking BOTH tracks simultaneously."
+            }
+          ],
+          "punchline": "Rich language understanding means running entity-state and epistemic-state operators in parallel, with the outputs of one feeding the inputs of the other."
+        },
+        {
+          "type": "InteractiveDemo",
+          "title": "Dual-Track Operator Decomposition",
+          "prompt": "For each sentence, identify both the entity-state operators AND the epistemic operators involved.",
+          "scenarios": [
+            {
+              "input": "\"The spy discovered that the plans had been moved.\"",
+              "reveal": "**Entity track:** PTRANS(someone, plans, original_location → new_location) — happened in the past\n\n**Epistemic track:**\n1. OBSERVE(spy, plans_not_at_original_location) — perceives absence\n2. INFER(spy, plans_moved) — deduces the PTRANS occurred\n3. UPDATE(spy, belief(plans_location) := unknown) — doesn't know new location\n\nNote: The entity operator happened before the epistemic operators. The spy is reconstructing past events from current evidence."
+            },
+            {
+              "input": "\"Maria told Peter the secret, but he didn't believe her.\"",
+              "reveal": "**Entity track:** MTRANS(Maria, secret, Maria → Peter) — information transfer attempted\n\n**Epistemic track:**\n1. TELL(Maria → Peter, secret) — Maria's epistemic action\n2. RECEIVE(Peter, secret) — Peter hears the content\n3. REJECT(Peter, secret) — Peter doesn't update beliefs\n\nFailed epistemic update! Peter's belief state unchanged despite MTRANS occurring. This is the \"hearing without believing\" pattern — MTRANS succeeded at entity level but LEARN failed at epistemic level."
+            },
+            {
+              "input": "\"Everyone knew that the company was failing, but no one wanted to admit it.\"",
+              "reveal": "**Entity track:** No entity state change in this sentence (it's about epistemic states)\n\n**Epistemic track:**\n1. COMMON_KNOWLEDGE(all, company_failing) — shared epistemic state\n2. SUPPRESS(each, expression_of_knowledge) — social suppression operator\n\nThis is pure epistemic content — no physical entities change state. The operators are entirely in belief-space: common knowledge plus social pressure against acknowledgment. A WITHHOLD operator operating at collective level."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "Fragment",
+      "title": "Test Your Understanding",
+      "content": [
+        {
+          "type": "Quiz",
+          "questions": [
+            {
+              "question": "What is the key difference between entity-state operators and epistemic-state operators?",
+              "options": [
+                "Entity operators are real, epistemic operators are theoretical",
+                "Entity operators transform physical/social states of things, epistemic operators transform belief/knowledge states of agents",
+                "Entity operators work on nouns, epistemic operators work on verbs",
+                "Epistemic operators are just a subset of entity operators for mental entities"
+              ],
+              "correctIndex": 1,
+              "explanation": "Entity-state operators (PTRANS, ATRANS, etc.) transform the states of entities in the world — location, possession, physical condition. Epistemic operators (OBSERVE, INFER, DOUBT) transform what agents know, believe, or are uncertain about. Both are geometric transformations, just in different spaces."
+            },
+            {
+              "question": "Why is the detection-correction gap explained by the operator framework?",
+              "options": [
+                "Detection requires more training data than correction",
+                "Detection uses RECOGNIZE operators (classification), correction requires CONSTRUCT + TRANSFORM operator chains (generation)",
+                "Detection is done by attention, correction by MLPs",
+                "Detection is supervised, correction is unsupervised"
+              ],
+              "correctIndex": 1,
+              "explanation": "Detecting an error requires recognizing a pattern — a classification/projection operator. Correcting an error requires constructing new knowledge and applying transformations to get from wrong to right — a chain of generative operators. Classification is easier than generation. Knowing you're lost is easier than knowing the way home."
+            },
+            {
+              "question": "What advantage does Dempster-Shafer theory offer over standard probability for epistemic operators?",
+              "options": [
+                "It's faster to compute",
+                "It allows representing ignorance — distinguishing 'confident' from 'clueless' rather than forcing fake precision",
+                "It works better with neural networks",
+                "It doesn't require normalization"
+              ],
+              "correctIndex": 1,
+              "explanation": "Standard probability forces a point estimate P(X), even when you don't know. DS theory provides Belief(X) and Plausibility(X), with the gap representing ignorance. An OBSERVE operator can output calibrated uncertainty intervals, not just point estimates. 'I have no idea' is different from 'I think it's 50/50.'"
+            },
+            {
+              "question": "In the Wise Refusal protocol, which step is hardest for language models?",
+              "options": [
+                "DETECT — recognizing that something is wrong",
+                "IDENTIFY — stating what specific information is missing",
+                "REFUSE — declining to endorse a flawed conclusion",
+                "All steps are equally hard"
+              ],
+              "correctIndex": 1,
+              "explanation": "DETECT is classification (77-91% success). REFUSE is a fixed response format. IDENTIFY requires DIAGNOSING the specific flaw — knowing not just THAT something is wrong, but WHY and WHAT'S MISSING. This requires deeper causal understanding. It's the difference between detecting distance from validity and computing the direction of the error."
+            },
+            {
+              "question": "For the sentence 'Sarah realized the door was unlocked,' what is the geometric effect of the REALIZE operator?",
+              "options": [
+                "Rotation in entity-state space (the door changed)",
+                "Projection onto certainty subspace — Sarah's belief about the door collapsed from uncertain to certain",
+                "Expansion — Sarah's knowledge increased in dimensionality",
+                "No geometric effect — nothing physical changed"
+              ],
+              "correctIndex": 1,
+              "explanation": "REALIZE is an epistemic operator. The door's state didn't change — it was already unlocked. What changed was Sarah's belief state about the door. Geometrically, her probability distribution over {door_locked, door_unlocked} projected onto the 'unlocked' axis. The operator collapsed uncertainty into certainty."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "Fragment",
+      "title": "Further Reading",
+      "content": [
+        {
+          "type": "Section",
+          "title": "Key References",
+          "content": "**Dynamic Epistemic Logic:**\n- [Stanford Encyclopedia: Epistemic Logic](https://plato.stanford.edu/entries/logic-epistemic/) — Comprehensive introduction\n- [Stanford Encyclopedia: Dynamic Epistemic Logic](https://plato.stanford.edu/entries/dynamic-epistemic/) — The update operators\n- Baltag, Moss, Solecki (1998) — The foundational DEL paper\n\n**Dempster-Shafer Theory:**\n- [Wikipedia: Dempster-Shafer Theory](https://en.wikipedia.org/wiki/Dempster–Shafer_theory) — Good starting point\n- Shafer (1976) \"A Mathematical Theory of Evidence\" — The original book\n\n**The Detection-Correction Gap:**\n- CausalT5K benchmark (2026) — Where this puzzle was documented\n- [Calibrated uncertainty in LLMs](https://arxiv.org/abs/2207.05221) — Related work on model calibration\n\n**Connections to Our Framework:**\n- Brainstorm #22: Operators as Causal Interventions — The Pearl connection\n- Brainstorm #52: Pearl's Ladder as Operator Hierarchy — Rungs of causal reasoning\n- Brainstorm #37: Lie Algebra Structure — Why operator order matters"
+        }
+      ]
+    }
+  ]
+}
