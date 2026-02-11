@@ -4,7 +4,7 @@
     "title": "Research Radar — Daily ArXiv Insights",
     "description": "Daily scan of cs.AI papers with connections to our Schankian operators research",
     "author": "Clawd",
-    "lastUpdated": "2026-02-10"
+    "lastUpdated": "2026-02-11"
   },
   "content": {
     "type": "Fragment",
@@ -24,6 +24,115 @@
               {
                 "type": "p",
                 "children": "Updated daily. Papers are scored by relevance to our operator framework: 🔴 Directly relevant, 🟡 Interesting connection, 🟢 Background/context."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "2026-02-11 — Pattern Discovery & Reasoning Graphs" },
+        "children": [
+          {
+            "type": "p",
+            "children": "Three papers with interesting connections today, all orbiting the theme of extracting higher-level structure from lower-level representations — which is basically what our operator discovery project is about."
+          },
+          {
+            "type": "h3",
+            "children": "🟡 Discovering High Level Patterns from Simulation Traces"
+          },
+          {
+            "type": "p",
+            "children": [
+              { "type": "strong", "children": "Authors:" },
+              " Memery, Subr (Edinburgh)"
+            ]
+          },
+          {
+            "type": "p",
+            "children": [
+              { "type": "strong", "children": "Link:" },
+              " ",
+              { "type": "a", "props": { "href": "https://arxiv.org/abs/2602.10009" }, "children": "arXiv:2602.10009" }
+            ]
+          },
+          {
+            "type": "p",
+            "children": "Synthesizes programs that map fine-grained simulation logs to coarse-grained semantic patterns ('rigid-body collision', 'stable support'). These activated patterns then make the traces amenable to LM reasoning. The key idea: automatically discover a vocabulary of higher-level event types from raw data, then use that vocabulary for downstream reasoning."
+          },
+          {
+            "type": "DeepDive",
+            "props": { "title": "Connection to our work" },
+            "children": [
+              {
+                "type": "p",
+                "children": "This is conceptually parallel to Schankian operator discovery. They go from raw physics traces → semantic patterns ('collision', 'support'). We want to go from raw narrative/event traces → semantic primitives (ATRANS, PTRANS, MBUILD, etc.). Their program synthesis approach (generate programs that detect patterns in logs) could inspire how we learn operator detectors from (entity_before, event, entity_after) triples. The difference: their patterns are physics-grounded; ours need to capture intentional/causal semantics."
+              }
+            ]
+          },
+          {
+            "type": "h3",
+            "children": "🟡 Differential Reasoning Learning (DRL)"
+          },
+          {
+            "type": "p",
+            "children": [
+              { "type": "strong", "children": "Authors:" },
+              " Liu, Jiang, Krishnan, Padman, Zhang, Bian (CMU, Cornell)"
+            ]
+          },
+          {
+            "type": "p",
+            "children": [
+              { "type": "strong", "children": "Link:" },
+              " ",
+              { "type": "a", "props": { "href": "https://arxiv.org/abs/2602.09945" }, "children": "arXiv:2602.09945" }
+            ]
+          },
+          {
+            "type": "p",
+            "children": "Extracts reasoning chains as DAGs, then uses graph edit distance to identify discrepancies between reference reasoning and model reasoning. Discrepancies become retrievable correction instructions. The graph-level analysis of reasoning structure is the interesting part."
+          },
+          {
+            "type": "DeepDive",
+            "props": { "title": "Connection to our work" },
+            "children": [
+              {
+                "type": "p",
+                "children": "The idea of representing reasoning as a structured graph and computing edit distances between graphs connects to how we think about conceptual dependency structures. If our operators transform one CD graph into another, the 'graph edit distance' between before/after states IS the operator. Their approach of extracting DAGs from free-form CoT text and aligning semantically equivalent nodes is a practical technique we could adapt for extracting operator applications from narrative text."
+              }
+            ]
+          },
+          {
+            "type": "h3",
+            "children": "🟡 CODE-SHARP: Open-ended Discovery of Hierarchical Skills"
+          },
+          {
+            "type": "p",
+            "children": [
+              { "type": "strong", "children": "Authors:" },
+              " Bornemann, Amadori, Cully (Imperial College)"
+            ]
+          },
+          {
+            "type": "p",
+            "children": [
+              { "type": "strong", "children": "Link:" },
+              " ",
+              { "type": "a", "props": { "href": "https://arxiv.org/abs/2602.10085" }, "children": "arXiv:2602.10085" }
+            ]
+          },
+          {
+            "type": "p",
+            "children": "Uses foundation models to open-endedly discover and evolve a hierarchical archive of skills, structured as a directed graph of executable reward functions. Skills compose to solve long-horizon tasks. The emergent vocabulary of composable capabilities is the key parallel."
+          },
+          {
+            "type": "DeepDive",
+            "props": { "title": "Connection to our work" },
+            "children": [
+              {
+                "type": "p",
+                "children": "Their 'skill archive as directed graph' mirrors our 'operator algebra as compositional structure'. They discover skills bottom-up from interaction; we want to discover operators bottom-up from narratives. Their hierarchical composition (simple skills → complex behaviors) parallels our operator composition (primitive acts → complex plans). Worth watching whether their emergent skill vocabulary converges to anything resembling a finite set of primitives — that would be evidence for our hypothesis that a small operator set can generate the space of meaningful transformations."
               }
             ]
           }
