@@ -1,0 +1,318 @@
+{
+  "id": "sae-semantic-attractors",
+  "title": "SAE Features as Semantic Attractors",
+  "subtitle": "What if we could short-circuit transformer disambiguation by snapping ambiguous vectors to pre-computed, interpretable landmarks?",
+  "readTime": "22 min",
+  "state": {},
+  "content": {
+    "type": "Fragment",
+    "children": [
+      {
+        "type": "Section",
+        "props": { "title": "The Disambiguation Problem" },
+        "children": [
+          { "type": "p", "children": "Consider the word 'bank.' When BERT processes this token, it produces a 768-dimensional vector. But which bank? The financial institution? The river's edge? A data repository? A pool of blood?" },
+          { "type": "p", "children": "In standard transformers, disambiguation happens gradually. Layer after layer of attention refines the representation, pulling information from surrounding context until the vector settles into the right semantic neighborhood. 'I deposited money at the bank' — by layer 8 or 9, that vector has drifted firmly toward 'financial institution.'" },
+          {
+            "type": "DeepDive",
+            "props": { "title": "The Superposition Problem" },
+            "children": [
+              { "type": "p", "children": "Transformers maintain what researchers call 'superposition' — multiple potential meanings compressed into the same vector space. This is computationally efficient (one vector stores many possibilities) but semantically murky. The model carries forward all the ambiguity until downstream layers or the final prediction head are forced to commit." },
+              { "type": "p", "children": "This is wasteful if you already know where the vector should land. What if we could skip straight to the answer?" }
+            ]
+          },
+          { "type": "p", "children": "The core question: Can we short-circuit this iterative refinement by recognizing that an ambiguous vector is 'close enough' to a known, interpretable semantic landmark — and just snap it there?" }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "How SAEs Decompose Representations" },
+        "children": [
+          { "type": "p", "children": "Sparse Autoencoders (SAEs) offer a potential solution. Trained on neural network activations, SAEs learn to decompose dense, polysemantic vectors into sparse combinations of monosemantic features." },
+          {
+            "type": "Example",
+            "props": { "title": "Anthropic's 34 Million Features" },
+            "children": [
+              { "type": "p", "children": "In May 2024, Anthropic's 'Scaling Monosemanticity' paper extracted 34 million interpretable features from Claude 3 Sonnet. They found features for remarkably specific concepts:" },
+              { "type": "ul", "children": [
+                { "type": "li", "children": "Feature #4,291: 'Financial institutions and banking'" },
+                { "type": "li", "children": "Feature #12,087: 'Geographic features along waterways'" },
+                { "type": "li", "children": "Feature #891,203: 'Medical blood storage facilities'" },
+                { "type": "li", "children": "Feature #2,340,891: 'Database and data repository concepts'" }
+              ]}
+            ]
+          },
+          { "type": "p", "children": "Each feature corresponds to a direction in activation space. When the model processes text about river geography, feature #12,087 activates strongly. When processing financial documents, feature #4,291 lights up instead. The SAE has essentially discovered a vocabulary of semantic primitives." },
+          {
+            "type": "Analogy",
+            "props": { "title": "The Codebook Analogy" },
+            "children": [
+              { "type": "p", "children": "Think of the SAE dictionary like a codebook with 34 million entries. Each entry is a named direction in semantic space. For any input, the SAE tells you which tiny subset of entries are relevant and how strongly each applies. Instead of an opaque 768-dimensional blob, you get a sparse list: 'This is 0.8 × financial_institution + 0.3 × uncertainty + 0.1 × large_organization.'" }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "From Features to Attractors" },
+        "children": [
+          { "type": "p", "children": "Here's the key insight that transforms SAE features into something more powerful: treat each feature direction as an attractor basin in semantic space." },
+          { "type": "p", "children": "An attractor is a point (or region) that nearby states naturally flow toward. In physics, a ball rolling on a landscape will settle into the nearest valley. In semantic space, we can define similar valleys — and SAE features give us their locations." },
+          {
+            "type": "DeepDive",
+            "props": { "title": "Attractor Dynamics" },
+            "children": [
+              { "type": "p", "children": "Formally, if we have an ambiguous vector v and a set of SAE feature directions {f₁, f₂, ..., fₙ}, we can define an energy landscape where E(v) is minimized when v aligns with the nearest feature direction. The 'snap' operation projects v onto its nearest attractor:" },
+              { "type": "p", "children": "snap(v) = argmax_i (v · fᵢ / ||fᵢ||)" },
+              { "type": "p", "children": "This is essentially nearest-neighbor lookup in a pre-computed set of semantic landmarks. But because SAE features are interpretable, we can name what happened: 'This vector snapped to financial_institution with confidence 0.87.'" }
+            ]
+          },
+          {
+            "type": "Analogy",
+            "props": { "title": "Gravity Wells in Semantic Space" },
+            "children": [
+              { "type": "p", "children": "Imagine semantic space as a landscape with gravity wells at each SAE feature location. An ambiguous 'bank' vector sits on a ridge between the financial and geographic wells. A small nudge from context — 'money' or 'river' — tips it into one basin or the other. But once it starts falling, the attractor pulls it all the way to the canonical, interpretable feature location." },
+              { "type": "p", "children": "Normal transformer processing is like letting the ball slowly roll downhill through 12 layers. Attractor snapping is like teleporting it straight to the valley floor." }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "The Vector Quantization Connection" },
+        "children": [
+          { "type": "p", "children": "This idea has a name in machine learning: vector quantization (VQ). You replace continuous representations with their nearest discrete codebook entries." },
+          {
+            "type": "Example",
+            "props": { "title": "VQ-VAE in Vision" },
+            "children": [
+              { "type": "p", "children": "The famous VQ-VAE architecture (van den Oord et al., 2017) does exactly this for images. An encoder produces a continuous representation, which is then snapped to the nearest entry in a learned codebook. The decoder reconstructs from this discrete code." },
+              { "type": "p", "children": "Surprisingly, this discrete bottleneck improves generation quality. Why? The codebook forces the model to commit to canonical patterns rather than maintaining fuzzy, in-between representations. The same principle could apply to semantics." }
+            ]
+          },
+          { "type": "p", "children": "The NLP analog has been explored in word sense disambiguation research. Reisinger & Mooney (2010) learned multiple prototype vectors per word. Neelakantan et al. (2014) extended this with multi-sense embeddings. But both approaches required hand-defining the number of senses and training from scratch." },
+          { "type": "p", "children": "SAE attractors offer something better: a massive, empirically discovered set of semantic landmarks. Not 5 senses for 'bank' (like WordNet), but potentially 50+ features at different granularities — from broad ('financial concept') to narrow ('Swiss private banking'). And they come pre-trained from interpretability research." }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "The Snapping Mechanism" },
+        "children": [
+          { "type": "p", "children": "How would attractor snapping actually work in practice? Here's a concrete algorithm:" },
+          { "type": "ol", "children": [
+            { "type": "li", "children": "Extract the activation vector v at some intermediate layer (e.g., layer 6 of 12)" },
+            { "type": "li", "children": "Compute dot products between v and all SAE feature directions: scores = v · F" },
+            { "type": "li", "children": "Find the top-k features with highest scores" },
+            { "type": "li", "children": "If max(scores) > threshold τ, snap: replace v with the corresponding feature direction (or a weighted combination of top-k)" },
+            { "type": "li", "children": "Pass the snapped representation to subsequent layers" }
+          ]},
+          {
+            "type": "DeepDive",
+            "props": { "title": "Hard vs. Soft Snapping" },
+            "children": [
+              { "type": "p", "children": "Hard snapping: Replace v entirely with the nearest feature direction. This is maximally discrete but loses nuance." },
+              { "type": "p", "children": "Soft snapping: Replace v with a weighted combination of top-k features, where weights come from softmax over scores. This preserves more information but is less interpretable." },
+              { "type": "p", "children": "Residual snapping: Add the nearest feature direction to v rather than replacing: v' = v + α·f_nearest. This nudges toward the attractor without full commitment." },
+              { "type": "p", "children": "The right choice depends on the task. For interpretability, hard snapping is best. For downstream accuracy, soft or residual may preserve necessary nuance." }
+            ]
+          },
+          { "type": "p", "children": "The threshold τ is critical. Too low, and you snap prematurely — 'I went to the bank...' commits to financial before seeing 'of the river.' Too high, and you never snap, gaining nothing. This mirrors the explore/exploit tradeoff: commit early for efficiency, or wait for certainty?" }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "Interactive Demo: Attractor Basins" },
+        "children": [
+          {
+            "type": "InteractiveDemo",
+            "props": {
+              "title": "Explore Semantic Attractor Basins",
+              "description": "Drag the ambiguous 'bank' vector around 2D semantic space. Watch which attractor basin it falls into and see the snap happen when it crosses the threshold."
+            },
+            "children": [
+              { "type": "p", "children": "[Interactive visualization showing a 2D plane with 5 labeled attractor points: 'financial_institution' (blue), 'riverbank' (green), 'data_bank' (purple), 'blood_bank' (red), and 'bank_shot' (orange). Voronoi regions show basin boundaries. A draggable point represents the ambiguous vector. When dragged near an attractor, a threshold circle shows when the snap would occur. The snapped result is displayed with confidence score.]" }
+            ]
+          },
+          { "type": "p", "children": "Notice how the Voronoi boundaries don't respect our intuitions about semantic similarity. 'Blood_bank' and 'financial_institution' might be closer in embedding space than 'riverbank' and 'financial_institution' — they share the 'institution' component. The attractor landscape reveals the geometry of the model's learned semantic space." }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "The Compositionality Challenge" },
+        "children": [
+          { "type": "p", "children": "Single attractors aren't enough. Real semantics is compositional. 'Eroded riverbank' needs riverbank + physical_degradation. 'Investment bank scandal' needs financial_institution + wrongdoing + corporate_entity." },
+          {
+            "type": "Example",
+            "props": { "title": "Composite Meanings" },
+            "children": [
+              { "type": "p", "children": "Consider 'the corrupt bank manager.' A single attractor snap to 'financial_institution' loses crucial information. We need multiple features active simultaneously:" },
+              { "type": "ul", "children": [
+                { "type": "li", "children": "financial_institution: 0.85" },
+                { "type": "li", "children": "wrongdoing/corruption: 0.72" },
+                { "type": "li", "children": "person_in_authority: 0.68" },
+                { "type": "li", "children": "employment_role: 0.61" }
+              ]},
+              { "type": "p", "children": "The snapped representation should be a sparse combination of these features, not a single attractor." }
+            ]
+          },
+          { "type": "p", "children": "This connects to sparse distributed representations (SDRs) from computational neuroscience. Meaning is encoded not in single neurons but in patterns of activation across many neurons. Similarly, semantic attractors should define not points but sparse activation patterns across the feature dictionary." },
+          {
+            "type": "DeepDive",
+            "props": { "title": "Sparse Codes as Compositional Attractors" },
+            "children": [
+              { "type": "p", "children": "Instead of snapping to the single nearest feature, snap to a sparse combination of the top-k features that exceed threshold. The 'attractor' becomes a region in the high-dimensional space where these k features are all strongly active." },
+              { "type": "p", "children": "Formally: snap(v) = Σᵢ wᵢ·fᵢ where wᵢ = softmax(v·fᵢ) for top-k features." },
+              { "type": "p", "children": "This preserves compositionality while still providing discrete, interpretable commitments. You can read off 'what concepts are active' from the sparse code." }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "When to Snap: The Confidence Problem" },
+        "children": [
+          { "type": "p", "children": "'I went to the bank...' — should we snap? If we commit to 'financial_institution' now, but the next word is 'of the river,' we've made an error that propagates through all subsequent processing." },
+          {
+            "type": "Example",
+            "props": { "title": "Garden Path Sentences" },
+            "children": [
+              { "type": "p", "children": "'The old man the boats.' Early commitment to 'old' as an adjective causes a crash when 'man' turns out to be a verb. 'The horse raced past the barn fell.' If we snap 'raced' to active_movement, we miss that it's actually passive (the horse that was raced)." },
+              { "type": "p", "children": "Premature snapping is catastrophic for these constructions. We need enough context before committing." }
+            ]
+          },
+          { "type": "p", "children": "Several strategies address this:" },
+          { "type": "ul", "children": [
+            { "type": "li", "children": "Late-layer snapping: Only snap at layer 9+ when disambiguation is mostly complete anyway. Trades off efficiency for accuracy." },
+            { "type": "li", "children": "Confidence gating: Snap only when max(scores) > τ_high AND second_best < τ_low. Require clear winners." },
+            { "type": "li", "children": "Beam snapping: Keep top-3 attractor hypotheses alive, prune as more context arrives. Like beam search for semantics." },
+            { "type": "li", "children": "Learned snapping: Train a small classifier to predict 'is it safe to snap yet?' based on the activation pattern." }
+          ]},
+          {
+            "type": "Analogy",
+            "props": { "title": "The Court Ruling Analogy" },
+            "children": [
+              { "type": "p", "children": "Think of snapping like a court ruling. You don't want to rule prematurely before all evidence is presented. But once the case is clear, further deliberation wastes resources. The threshold τ is your standard of proof — beyond reasonable doubt (high τ) or preponderance of evidence (low τ)." }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "Why SAE Attractors Beat WordNet" },
+        "children": [
+          { "type": "p", "children": "Traditional word sense disambiguation uses hand-crafted sense inventories like WordNet. Why would SAE-derived attractors be better?" },
+          { "type": "ul", "children": [
+            { "type": "li", "children": "Coverage: WordNet has ~5 senses for 'bank.' SAE dictionaries might have 50+ relevant features at varying granularities — from 'financial concept' to 'Swiss private banking regulations.' They capture the long tail of meaning." },
+            { "type": "li", "children": "Empirical grounding: SAE features are discovered from actual model activations, not prescribed by lexicographers. They reflect what the model actually represents, not what humans think it should." },
+            { "type": "li", "children": "Gradedness: SAE features have activation strengths. 'Metaphorical bank' might activate financial_institution at 0.4 and abstract_container at 0.6. WordNet forces discrete sense choices." },
+            { "type": "li", "children": "Novel concepts: SAE dictionaries include features for concepts WordNet never anticipated — memes, internet culture, recent events, technical jargon. They grow with the training data." }
+          ]},
+          {
+            "type": "DeepDive",
+            "props": { "title": "Granularity Spectrum" },
+            "children": [
+              { "type": "p", "children": "SAE features exist at multiple levels of abstraction. For financial concepts, you might have:" },
+              { "type": "ul", "children": [
+                { "type": "li", "children": "Very broad: 'economic/financial concepts'" },
+                { "type": "li", "children": "Medium: 'banking institutions'" },
+                { "type": "li", "children": "Specific: 'retail banking services'" },
+                { "type": "li", "children": "Very specific: 'ATM withdrawal transactions'" }
+              ]},
+              { "type": "p", "children": "Different tasks need different granularities. Sentiment analysis might only need the broad feature; fraud detection needs the specific one. A hierarchy of attractors enables this flexibility." }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "Connection to Schankian Operators" },
+        "children": [
+          { "type": "p", "children": "Here's where attractors connect to the broader project of finding semantic primitives. If SAE features include operator-like patterns, then attractor basins define not just what entities are, but what operations are happening." },
+          {
+            "type": "Example",
+            "props": { "title": "Operator Detection via Attractors" },
+            "children": [
+              { "type": "p", "children": "Suppose SAE dictionaries contain features that correspond to Schankian primitives:" },
+              { "type": "ul", "children": [
+                { "type": "li", "children": "Feature #892,103 ≈ ATRANS (transfer of possession): activates on 'give,' 'sell,' 'donate,' 'bequeath'" },
+                { "type": "li", "children": "Feature #1,203,445 ≈ PTRANS (physical transfer): activates on 'walk,' 'fly,' 'send,' 'throw'" },
+                { "type": "li", "children": "Feature #445,221 ≈ MTRANS (mental transfer): activates on 'tell,' 'show,' 'teach,' 'learn'" }
+              ]},
+              { "type": "p", "children": "If these features exist, snapping to them gives you interpretable operator detection for free. 'John gave Mary a book' → snaps to ATRANS attractor with arguments (John, Mary, book). 'John walked to the store' → snaps to PTRANS attractor with arguments (John, store)." }
+            ]
+          },
+          { "type": "p", "children": "This is the payoff of the 'Mining SAE Operators' tutorial. We're not just disambiguating word senses — we're detecting semantic primitives that form the building blocks of meaning composition. The attractor framework gives us a mechanism for how that detection could work in practice." }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "Practical Architecture" },
+        "children": [
+          { "type": "p", "children": "How would you actually build an attractor-enhanced transformer? Here's a concrete architecture:" },
+          { "type": "ol", "children": [
+            { "type": "li", "children": "Start with a pre-trained transformer (BERT, GPT, etc.)" },
+            { "type": "li", "children": "Train an SAE on activations from layer N (middle layer, where representations are most semantic)" },
+            { "type": "li", "children": "Extract the SAE decoder matrix as your attractor codebook C" },
+            { "type": "li", "children": "At inference, after layer N, add an 'attractor layer' that projects activations onto C" },
+            { "type": "li", "children": "Pass the snapped representations to layers N+1 through L" }
+          ]},
+          {
+            "type": "DeepDive",
+            "props": { "title": "Training Considerations" },
+            "children": [
+              { "type": "p", "children": "Frozen codebook: Use the SAE dictionary as-is. Simple but may not be optimal for downstream tasks." },
+              { "type": "p", "children": "Fine-tuned codebook: Start with SAE features, fine-tune on task-specific data. Adapts attractors but may lose interpretability." },
+              { "type": "p", "children": "End-to-end training: Train the entire system (transformer + attractor layer) from scratch. Learns task-optimal attractors but requires massive compute." },
+              { "type": "p", "children": "Straight-through estimator: For hard snapping, use straight-through gradients to backprop through the discrete snap operation. This is how VQ-VAE trains." }
+            ]
+          },
+          {
+            "type": "Example",
+            "props": { "title": "Efficiency Gains" },
+            "children": [
+              { "type": "p", "children": "Consider a 12-layer transformer where disambiguation is mostly complete by layer 8. If we snap at layer 6 with high confidence, we could potentially skip or simplify layers 7-8. For a model serving millions of requests, this is meaningful cost reduction." },
+              { "type": "p", "children": "Even better: if the snapped representation is a sparse code (only 50 features active out of 34M), subsequent layers can be redesigned to operate on sparse inputs, enabling further speedups." }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "Open Questions" },
+        "children": [
+          { "type": "p", "children": "This framework raises several research questions worth investigating:" },
+          { "type": "ul", "children": [
+            { "type": "li", "children": "Does snapping destroy useful ambiguity? Some downstream tasks might benefit from hedged, uncertain representations. When is commitment helpful vs harmful?" },
+            { "type": "li", "children": "How to handle novel concepts? An input genuinely unlike any attractor shouldn't be forced to snap. Can we detect 'out-of-distribution' semantics and skip snapping?" },
+            { "type": "li", "children": "Can attractors be hierarchical? Snap first to a coarse category ('animal'), then refine ('mammal' → 'dog' → 'golden retriever'). This mirrors human categorical perception." },
+            { "type": "li", "children": "What's the right layer for snapping? Too early loses context; too late gains little. Is there an optimal 'commitment point' in transformer processing?" },
+            { "type": "li", "children": "Do SAE features from one model transfer to another? Can we use Anthropic's Claude features as attractors in a BERT model? Initial evidence suggests partial transfer is possible." }
+          ]},
+          { "type": "p", "children": "These questions point toward a research agenda: not just using SAEs for interpretability, but using them as architectural components that reshape how neural networks process meaning." }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "Implications: A More Resolute Transformer" },
+        "children": [
+          { "type": "p", "children": "The big picture: attractor snapping could enable transformers that are faster, more interpretable, and more compositional than current architectures." },
+          {
+            "type": "Example",
+            "props": { "title": "Comparison to Mixture of Experts" },
+            "children": [
+              { "type": "p", "children": "Mixture of Experts (MoE) models like Mixtral already use discrete routing decisions mid-network. 'Which expert should handle this token?' is a kind of snap. SAE attractors generalize this: instead of snapping to a small number of experts, snap to a sparse combination from a massive dictionary of semantic primitives." }
+            ]
+          },
+          { "type": "p", "children": "Current transformers are hedgy by design. They maintain superpositions of meaning because that's what gradient descent learns to do. An attractor-enhanced architecture forces discrete commitments at specific points — closer to how human cognition works. You hear 'bank,' briefly entertain both meanings, then commit within milliseconds. You don't carry both forward through 12 more processing stages." },
+          { "type": "p", "children": "If this works, we get three wins:" },
+          { "type": "ul", "children": [
+            { "type": "li", "children": "Efficiency: Skip redundant refinement layers when commitment is confident" },
+            { "type": "li", "children": "Interpretability: The sparse attractor code tells you exactly what concepts are active" },
+            { "type": "li", "children": "Compositionality: Discrete primitives combine more reliably than continuous vectors" }
+          ]},
+          { "type": "p", "children": "The SAE revolution in interpretability may turn out to be the precursor to an architectural revolution. Features discovered for understanding models could become the building blocks for better models." }
+        ]
+      }
+    ]
+  }
+}

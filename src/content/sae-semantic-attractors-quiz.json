@@ -1,0 +1,73 @@
+{
+  "id": "sae-semantic-attractors-quiz",
+  "title": "SAE Semantic Attractors Quiz",
+  "tutorialId": "sae-semantic-attractors",
+  "questions": [
+    {
+      "id": "q1",
+      "type": "multiple-choice",
+      "question": "What is the main advantage of using SAE features as semantic attractors compared to standard transformer processing?",
+      "options": [
+        "They use more parameters for better accuracy",
+        "They can short-circuit iterative disambiguation by snapping to interpretable landmarks",
+        "They eliminate the need for attention mechanisms entirely",
+        "They work only on single-word inputs"
+      ],
+      "correctAnswer": 1,
+      "explanation": "The key advantage is efficiency through discrete commitment. Instead of letting 12 layers gradually refine an ambiguous vector, attractor snapping can jump directly to the resolved meaning if confidence is high enough."
+    },
+    {
+      "id": "q2",
+      "type": "multiple-choice",
+      "question": "What is 'hard snapping' vs 'soft snapping' in the attractor framework?",
+      "options": [
+        "Hard snapping uses GPUs, soft snapping uses CPUs",
+        "Hard snapping replaces the vector entirely with the nearest feature; soft snapping uses a weighted combination",
+        "Hard snapping only works on nouns, soft snapping works on all word types",
+        "Hard snapping requires more training data than soft snapping"
+      ],
+      "correctAnswer": 1,
+      "explanation": "Hard snapping fully commits to the nearest attractor (maximally discrete but loses nuance). Soft snapping computes a weighted combination of top-k features (preserves more information but is less interpretable). Residual snapping adds the attractor direction to the original vector as a nudge."
+    },
+    {
+      "id": "q3",
+      "type": "true-false",
+      "question": "SAE attractors can only represent single concepts — they cannot handle compositional meanings like 'corrupt bank manager.'",
+      "correctAnswer": false,
+      "explanation": "Compositional meanings can be represented by snapping to sparse combinations of multiple features. 'Corrupt bank manager' would activate financial_institution + wrongdoing + person_in_authority + employment_role simultaneously, forming a sparse distributed representation."
+    },
+    {
+      "id": "q4",
+      "type": "multiple-choice",
+      "question": "Why might SAE-derived attractors be superior to WordNet senses for word sense disambiguation?",
+      "options": [
+        "WordNet is not available in English",
+        "SAE features offer better coverage, empirical grounding, gradedness, and novel concept inclusion",
+        "WordNet requires more compute than SAE features",
+        "SAE features are hand-crafted by linguists"
+      ],
+      "correctAnswer": 1,
+      "explanation": "SAE features are discovered empirically from model activations (not hand-crafted), cover a vast long-tail of meanings, include novel concepts WordNet never anticipated, and can express graded activation strengths rather than forcing discrete sense choices."
+    },
+    {
+      "id": "q5",
+      "type": "multiple-choice",
+      "question": "What is the 'confidence problem' in attractor snapping?",
+      "options": [
+        "SAE features lack confidence scores",
+        "Snapping too early (before enough context) can cause errors that propagate through the network",
+        "Users don't trust AI systems with discrete outputs",
+        "The attractor codebook becomes overconfident during training"
+      ],
+      "correctAnswer": 1,
+      "explanation": "Premature snapping is catastrophic for garden-path sentences and other constructions where early words are ambiguous. 'I went to the bank...' shouldn't commit to financial_institution until seeing whether the sentence continues '...to deposit money' or '...of the river.'"
+    },
+    {
+      "id": "q6",
+      "type": "true-false",
+      "question": "The attractor framework connects to Schankian primitives by potentially providing a mechanism for detecting operators like ATRANS (transfer of possession) as attractor basins.",
+      "correctAnswer": true,
+      "explanation": "If SAE dictionaries contain features corresponding to semantic primitives like ATRANS, PTRANS, and MTRANS, then snapping to these attractors provides interpretable operator detection. 'John gave Mary a book' would snap to an ATRANS attractor, enabling structured meaning representation."
+    }
+  ]
+}
