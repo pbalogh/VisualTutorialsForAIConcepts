@@ -355,6 +355,18 @@ const tutorials = [
     difficulty: 2,
   },
   {
+    id: 'brainstorm-18-telicity-eigenvalues',
+    title: 'Telicity from Eigenvalues',
+    description: 'How Vendler\'s telic/atelic distinction emerges from operator eigenvalues — our first testable prediction connecting learned matrices to established linguistics',
+    tags: ['schankian', 'linguistics', 'eigenvalues', 'prediction'],
+    icon: '🎯',
+    gradient: 'from-rose-500 to-red-600',
+    shadowColor: 'shadow-rose-500/30',
+    glowColor: 'rgba(244, 63, 94, 0.4)',
+    readTime: '22 min',
+    difficulty: 2,
+  },
+  {
     id: 'brainstorm-06-tensor-products-fail',
     title: 'Tensor Products Fail at Compositionality',
     description: 'Why operators succeed where vector composition breaks down — bounded vs exponential dimensionality',

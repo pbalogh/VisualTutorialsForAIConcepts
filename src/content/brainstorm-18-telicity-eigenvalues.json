@@ -1,0 +1,410 @@
+{
+  "id": "brainstorm-18-telicity-eigenvalues",
+  "title": "Telicity from Eigenvalues",
+  "subtitle": "How the telic/atelic distinction in linguistics emerges from operator eigenvalues — and why this is our first testable prediction",
+  "readTime": "22 min",
+  "state": "brainstorm_18",
+  "content": {
+    "type": "Fragment",
+    "children": [
+      {
+        "type": "Section",
+        "props": { "title": "Events Have Endpoints (or Don't)" },
+        "children": [
+          {
+            "type": "p",
+            "children": "Every event in language is either BOUNDED or UNBOUNDED. 'Build a house' has a natural endpoint — the moment the house is complete. 'Run' has no inherent endpoint — you could run forever. Linguists call this property TELICITY, from the Greek 'telos' (end, completion)."
+          },
+          {
+            "type": "p",
+            "children": "This isn't philosophy — it's empirically detectable in how language works. And it turns out to be the key to turning our operator framework from theory into testable science."
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "The Linguistic Test" },
+        "children": [
+          {
+            "type": "p",
+            "children": "There's a beautifully simple test for telicity: the 'in X time' vs. 'for X time' diagnostic."
+          },
+          {
+            "type": "InteractiveDemo",
+            "props": {
+              "title": "Telic or Atelic?",
+              "prompt": "For each sentence, try both 'in an hour' and 'for an hour.' Which sounds natural? That tells you if the event is telic (bounded) or atelic (unbounded).",
+              "scenarios": [
+                {
+                  "input": "\"Sarah wrote a letter ___\"",
+                  "reveal": "**TELIC.** 'Sarah wrote a letter in an hour' ✅ (reached completion). 'Sarah wrote a letter for an hour' ❌ (implies she stopped without finishing — the letter has a natural endpoint). The letter is a BOUNDED object — there's a 'done' state."
+                },
+                {
+                  "input": "\"Sarah wrote poetry ___\"",
+                  "reveal": "**ATELIC.** 'Sarah wrote poetry for an hour' ✅ (any duration works). 'Sarah wrote poetry in an hour' ❌ (in an hour... then what? Poetry has no completion point). 'Poetry' is UNBOUNDED — there's no 'all the poetry is written' state."
+                },
+                {
+                  "input": "\"The ice melted ___\"",
+                  "reveal": "**TELIC.** 'The ice melted in twenty minutes' ✅ (reached the endpoint: fully liquid). 'The ice melted for twenty minutes' sounds odd unless you mean it started and then stopped. Melting has a natural endpoint: no more ice."
+                },
+                {
+                  "input": "\"The children played ___\"",
+                  "reveal": "**ATELIC.** 'The children played for three hours' ✅ (any duration). 'The children played in three hours' ❌ (makes no sense — play doesn't 'finish'). Playing is an activity with no inherent endpoint."
+                },
+                {
+                  "input": "\"John drank beer ___\"",
+                  "reveal": "**ATELIC.** 'John drank beer for an hour' ✅. But watch what happens when you BOUND the object: 'John drank THE beer in five minutes' ✅ — now it's TELIC! The same verb becomes telic when the object is bounded. This is called the TELICITY SHIFT and it's crucial for our framework."
+                }
+              ]
+            }
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "Vendler's Four Classes" },
+        "children": [
+          {
+            "type": "p",
+            "children": "Zeno Vendler (1957) classified events along two axes: telicity (bounded?) and duration (takes time?). This gives four fundamental event types:"
+          },
+          {
+            "type": "DefinitionList",
+            "props": {
+              "items": [
+                {
+                  "term": "Achievement (telic, punctual)",
+                  "definition": "Instantaneous events with an endpoint. 'Find the key,' 'reach the summit,' 'recognize a face.' The state change is instant — one moment you haven't found it, the next you have."
+                },
+                {
+                  "term": "Accomplishment (telic, durative)",
+                  "definition": "Extended events with an endpoint. 'Build a house,' 'write a novel,' 'cross the river.' Takes time, but there's a definite completion state. The process CONVERGES toward done."
+                },
+                {
+                  "term": "Activity (atelic, durative)",
+                  "definition": "Extended events with no endpoint. 'Run,' 'swim,' 'think,' 'rain.' Takes time, but there's no inherent completion. You can stop anytime and you've still 'run.'"
+                },
+                {
+                  "term": "State (atelic, non-dynamic)",
+                  "definition": "'Know French,' 'be tall,' 'own a house.' Not even an event — a condition that holds. No process, no endpoint, no transformation. Just... is."
+                }
+              ]
+            }
+          },
+          {
+            "type": "Callout",
+            "props": { "type": "info" },
+            "children": [
+              {
+                "type": "p",
+                "children": "Key insight: these aren't arbitrary categories. They reflect deep structure in how events transform the world. And that structure should be VISIBLE in the eigenvalues of learned operator matrices."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "The Eigenvalue Prediction" },
+        "children": [
+          {
+            "type": "p",
+            "children": "Here's where our operator framework makes a concrete, testable prediction. If operators are full rotation matrices and events are transformations of entity state, then the eigenvalues of the operator matrix encode EXACTLY whether the event converges."
+          },
+          {
+            "type": "Example",
+            "props": { "title": "Eigenvalues Map to Vendler Classes" },
+            "children": [
+              {
+                "type": "p",
+                "children": "After training operator matrices on real event data, eigendecompose them and examine the eigenvalue spectrum:"
+              },
+              {
+                "type": "Steps",
+                "props": {
+                  "steps": [
+                    {
+                      "title": "Accomplishments → |λ| < 1 (convergent)",
+                      "description": "'Build a house': each application of the BUILD operator moves the state closer to 'complete.' Eigenvalues less than 1 on the relevant dimensions mean the transformation is CONTRACTIVE — it shrinks the distance to the target state. After enough applications: done. The attractor IS the completion state."
+                    },
+                    {
+                      "title": "Activities → |λ| ≈ 1 (non-convergent)",
+                      "description": "'Run': each application of the RUN operator changes the state (location updates) but doesn't converge anywhere. Eigenvalues near 1 mean the transformation preserves distance — it's a true rotation, not a contraction. You can apply it forever without 'finishing.'"
+                    },
+                    {
+                      "title": "Achievements → |λ| ≈ 0 (instantaneous collapse)",
+                      "description": "'Find the key': the FIND operator has eigenvalues near 0 on the 'searching' dimension — one application collapses 'searching' to 'found.' It's not gradual convergence; it's a single projection. Like OBSERVE in our epistemic operators: one application and the state jumps."
+                    },
+                    {
+                      "title": "States → |λ| = exactly 1 (fixed point)",
+                      "description": "'Know French': the identity operator. Every eigenvalue is 1. Nothing changes. The state IS the eigenstate. No transformation occurs because there IS no event — just a condition."
+                    }
+                  ]
+                }
+              },
+              {
+                "type": "Callout",
+                "props": { "type": "success" },
+                "children": [
+                  {
+                    "type": "p",
+                    "children": "The prediction: trained operator matrices, when eigendecomposed, should CLUSTER into four groups matching Vendler's classes — without any linguistic labels in the training data. The eigenvalue spectrum discovers the telic/atelic distinction from pure event semantics."
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "The Telicity Shift: Why Full Matrices Matter" },
+        "children": [
+          {
+            "type": "p",
+            "children": "Here's the most interesting part — and the reason diagonal rotations can't handle this."
+          },
+          {
+            "type": "p",
+            "children": "Remember: 'John drank beer' is atelic, but 'John drank THE beer' is telic. The SAME operator (INGEST) changes from non-convergent to convergent depending on whether the object is bounded."
+          },
+          {
+            "type": "Example",
+            "props": { "title": "How Objects Change Eigenvalues" },
+            "children": [
+              {
+                "type": "p",
+                "children": "With a full rotation matrix on concatenated [agent|object] embeddings, the effective eigenvalues DEPEND on the object:"
+              },
+              {
+                "type": "Steps",
+                "props": {
+                  "steps": [
+                    {
+                      "title": "Unbounded object: 'drank beer'",
+                      "description": "Beer (as a mass noun) has no bounded quantity in its embedding. When INGEST operates on [John|beer], the cross-entity interaction terms in the full matrix produce effective eigenvalues ≈ 1 on the 'consumption progress' dimension. Result: atelic. John can drink beer indefinitely."
+                    },
+                    {
+                      "title": "Bounded object: 'drank THE beer'",
+                      "description": "'The beer' (specific, finite quantity) has a bounded embedding. When INGEST operates on [John|the_beer], the cross-entity terms produce effective eigenvalues < 1. Result: telic. Each sip moves closer to 'all gone.' The boundedness of the object INFECTS the operator's convergence."
+                    },
+                    {
+                      "title": "Why diagonal rotations can't do this",
+                      "description": "A diagonal operator treats each dimension independently. It can't say 'my eigenvalue on consumption-progress DEPENDS ON whether the object is bounded.' That requires the off-diagonal blocks of the full matrix — the cross-entity interaction terms from Brainstorm #55. The object's features mix with the transformation to determine convergence."
+                    }
+                  ]
+                }
+              },
+              {
+                "type": "Callout",
+                "props": { "type": "warning" },
+                "children": [
+                  {
+                    "type": "p",
+                    "children": "This is a SECOND testable prediction: the effective eigenvalues of INGEST (computed on the concatenated embedding) should differ between bounded and unbounded objects. Specifically, the 'consumption progress' eigenvalue should be < 1 for bounded objects and ≈ 1 for unbounded objects."
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "The Experimental Protocol" },
+        "children": [
+          {
+            "type": "p",
+            "children": "Here's how we turn this into a real experiment — the bridge from thought experiment to empirical science."
+          },
+          {
+            "type": "Example",
+            "props": { "title": "Experiment: Predicting Vendler Class from Eigenvalues" },
+            "children": [
+              {
+                "type": "p",
+                "children": "Design:"
+              },
+              {
+                "type": "Steps",
+                "props": {
+                  "steps": [
+                    {
+                      "title": "Training data: event triples with state changes",
+                      "description": "Collect (entity_before, event, entity_after) tuples — but with ALL participants' states (the multi-entity insight). Sources: ATOMIC knowledge base, VerbNet event decompositions, FrameNet annotated sentences. Include both telic and atelic events across all four Vendler classes."
+                    },
+                    {
+                      "title": "Train operators as full rotation matrices",
+                      "description": "Learn one matrix per operator type (15-20 operators). Each matrix operates on concatenated participant embeddings. Training objective: predict after-state from before-state + operator."
+                    },
+                    {
+                      "title": "Eigendecompose all trained operators",
+                      "description": "For each operator matrix, compute eigenvalues. Plot the eigenvalue spectrum. Compute 'effective eigenvalue' for different object types by evaluating the operator on specific [agent|object] pairs."
+                    },
+                    {
+                      "title": "Test Prediction 1: Vendler class clustering",
+                      "description": "Without any Vendler labels: do the eigenvalue spectra naturally cluster into four groups? Use k-means on eigenvalue distributions. Compare cluster assignments to linguist-labeled Vendler classes. Report accuracy."
+                    },
+                    {
+                      "title": "Test Prediction 2: Telicity shift",
+                      "description": "For operators like INGEST, compute effective eigenvalues with bounded vs. unbounded objects. Prediction: bounded objects → |λ| < 1, unbounded → |λ| ≈ 1. Measure the correlation between object boundedness and eigenvalue magnitude."
+                    },
+                    {
+                      "title": "Test Prediction 3: Convergence behavior",
+                      "description": "Apply operators REPEATEDLY to entity states. Telic operators should converge (state stops changing). Atelic operators should keep producing new states. Measure: does convergence rate correlate with eigenvalue magnitude?"
+                    }
+                  ]
+                }
+              },
+              {
+                "type": "Callout",
+                "props": { "type": "success" },
+                "children": [
+                  {
+                    "type": "p",
+                    "children": "If these predictions hold, we've shown that linguistic categories (Vendler classes) EMERGE from the mathematical structure of learned operators. No linguistic supervision needed — just event data and matrix algebra. This is the kind of result that makes reviewers sit up."
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "Why This Matters for the Paper" },
+        "children": [
+          {
+            "type": "p",
+            "children": "This telicity prediction transforms our paper from 'interesting theoretical framework' to 'framework with testable, falsifiable predictions that connect to established linguistics.' Here's what it gives us:"
+          },
+          {
+            "type": "DefinitionList",
+            "props": {
+              "items": [
+                {
+                  "term": "Falsifiability",
+                  "definition": "If eigenvalues DON'T cluster by Vendler class, something is wrong with our framework. This is a clear pass/fail test."
+                },
+                {
+                  "term": "Novel prediction",
+                  "definition": "Nobody has previously connected eigenvalue spectra of learned event operators to Vendler classes. This is new territory."
+                },
+                {
+                  "term": "Bridge to linguistics",
+                  "definition": "Vendler classes are a 70-year-old, well-established linguistic framework. Connecting to it gives our work credibility and a rich body of existing results to build on."
+                },
+                {
+                  "term": "Practical value",
+                  "definition": "If eigenvalues predict telicity, downstream NLP systems (timeline extraction, narrative understanding, question answering about event completion) get a new feature for free."
+                },
+                {
+                  "term": "Full matrix justification",
+                  "definition": "The telicity shift (bounded object → telic) is ONLY possible with full matrices. If we demonstrate it, that's empirical evidence for the full-matrix architecture decision."
+                }
+              ]
+            }
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "Test Your Understanding" },
+        "children": [
+          {
+            "type": "Quiz",
+            "props": {
+              "questions": [
+                {
+                  "question": "What makes an event telic?",
+                  "options": [
+                    "It involves intentional action",
+                    "It has a natural endpoint — a 'done' state that the event converges toward",
+                    "It takes a long time",
+                    "It requires multiple participants"
+                  ],
+                  "correctIndex": 1,
+                  "explanation": "Telic events have built-in endpoints. 'Build a house' is done when the house is built. 'Write a letter' is done when the letter is written. The 'in X time' test confirms it: 'built a house in three months' works because there's a completion moment."
+                },
+                {
+                  "question": "Why does 'drank beer' become telic when changed to 'drank THE beer'?",
+                  "options": [
+                    "The word 'the' always makes events telic",
+                    "Adding a determiner changes the verb's meaning",
+                    "The specific, bounded quantity of 'the beer' creates a natural endpoint — when all of it is consumed",
+                    "It doesn't actually become telic"
+                  ],
+                  "correctIndex": 2,
+                  "explanation": "'Beer' (mass noun) has no inherent quantity — you can always drink more. 'THE beer' (specific quantity) can be finished. The object's boundedness creates the endpoint. In our framework: the bounded object changes the effective eigenvalue of INGEST from ≈ 1 (non-convergent) to < 1 (convergent toward 'empty')."
+                },
+                {
+                  "question": "What eigenvalue pattern would you expect for the SEARCH operator?",
+                  "options": [
+                    "All eigenvalues = 1 (nothing changes)",
+                    "|λ| < 1 on 'found' dimension (converges toward finding)",
+                    "|λ| ≈ 1 on 'location' dimension (keeps moving) but depends on whether the target exists",
+                    "|λ| > 1 on all dimensions (diverges)"
+                  ],
+                  "correctIndex": 2,
+                  "explanation": "SEARCH is interesting — it's atelic by default ('searched for hours' ✅) but becomes telic with a findable object ('found the key in five minutes'). The SEARCH operator itself has |λ| ≈ 1 (keeps going), but composed with a bounded searchable object, the effective eigenvalue shifts to |λ| < 1 (converges to 'found'). Another telicity shift that requires full matrices."
+                },
+                {
+                  "question": "Why can't diagonal rotation matrices capture the telicity shift?",
+                  "options": [
+                    "Diagonal matrices are too slow to compute",
+                    "Diagonal matrices treat each dimension independently, so the operator's eigenvalues can't DEPEND on the object's properties",
+                    "Diagonal matrices can't represent telic events at all",
+                    "Diagonal matrices don't have eigenvalues"
+                  ],
+                  "correctIndex": 1,
+                  "explanation": "In a diagonal operator, each dimension gets its own fixed eigenvalue regardless of what the object is. The same INGEST operator would have the same convergence behavior for 'beer' and 'THE beer.' A full matrix mixes agent and object dimensions, so the effective eigenvalue on 'consumption progress' genuinely DEPENDS on whether the object embedding encodes boundedness."
+                },
+                {
+                  "question": "What would it mean if eigenvalue spectra of trained operators DON'T cluster by Vendler class?",
+                  "options": [
+                    "Vendler was wrong about event classification",
+                    "Our training data is insufficient",
+                    "Either our operator representation is wrong, or telicity is not encoded in the dimensions we're using — both are useful scientific findings",
+                    "Eigendecomposition doesn't work on event operators"
+                  ],
+                  "correctIndex": 2,
+                  "explanation": "A negative result is still a result. If eigenvalues don't predict Vendler class, either our matrix representation doesn't capture event structure well (architecture problem) or telicity is encoded differently than we hypothesize (theory problem). Both are useful and publishable — failed predictions tell you where to look next."
+                }
+              ]
+            }
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "Further Reading" },
+        "children": [
+          {
+            "type": "p",
+            "children": "Key references:"
+          },
+          {
+            "type": "p",
+            "children": "• Vendler, Z. (1957) 'Verbs and Times' — The foundational paper on event classification"
+          },
+          {
+            "type": "p",
+            "children": "• Dowty, D. (1979) 'Word Meaning and Montague Grammar' — Extended Vendler's work with formal semantics (also Brainstorm #8)"
+          },
+          {
+            "type": "p",
+            "children": "• Brainstorm #36: Eigenoperators and Semantic Attractors — The eigenvalue framework this builds on"
+          },
+          {
+            "type": "p",
+            "children": "• Brainstorm #55: From Flat Arrays to Full Rotation Matrices — Why full matrices are needed for telicity shifts"
+          },
+          {
+            "type": "p",
+            "children": "• Brainstorm #30: Vendler Classes in Embedding Space — Earlier brainstorm on this connection, now made concrete with eigenvalues"
+          }
+        ]
+      }
+    ]
+  }
+}
