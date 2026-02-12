@@ -355,6 +355,18 @@ const tutorials = [
     difficulty: 2,
   },
   {
+    id: 'brainstorm-02-frame-problem-annotations',
+    title: 'The Frame Problem and Implicit State Annotation',
+    description: 'How making the invisible visible solves AI\'s oldest problem — the hierarchical annotation schema for Darkness Visible',
+    tags: ['schankian', 'annotation', 'RAG', 'frame-problem'],
+    icon: '👁️',
+    gradient: 'from-slate-600 to-zinc-800',
+    shadowColor: 'shadow-slate-600/30',
+    glowColor: 'rgba(71, 85, 105, 0.4)',
+    readTime: '20 min',
+    difficulty: 2,
+  },
+  {
     id: 'brainstorm-18-telicity-eigenvalues',
     title: 'Telicity from Eigenvalues',
     description: 'How Vendler\'s telic/atelic distinction emerges from operator eigenvalues — our first testable prediction connecting learned matrices to established linguistics',

@@ -1,0 +1,528 @@
+{
+  "id": "brainstorm-02-frame-problem-annotations",
+  "title": "The Frame Problem and Implicit State Annotation",
+  "subtitle": "How making the invisible visible solves AI's oldest problem — and why it's the foundation for Darkness Visible",
+  "readTime": "20 min",
+  "state": "brainstorm_02",
+  "content": {
+    "type": "Fragment",
+    "children": [
+      {
+        "type": "Section",
+        "props": { "title": "AI's Oldest Unsolved Problem" },
+        "children": [
+          {
+            "type": "p",
+            "children": "In 1969, McCarthy and Hayes posed a question that has haunted AI ever since: when something happens, how does an intelligent system know what DIDN'T change?"
+          },
+          {
+            "type": "p",
+            "children": "If you move a cup from the table to the counter, you don't need to re-verify that gravity still works, the table still exists, the floor is still there, or that your name hasn't changed. Humans handle this effortlessly. AI systems choke on it."
+          },
+          {
+            "type": "p",
+            "children": "This is the FRAME PROBLEM — and despite 57 years of work, no one has cleanly solved it. Every formalism either requires explicitly listing everything that doesn't change (combinatorial explosion) or makes simplifying assumptions that break in edge cases."
+          },
+          {
+            "type": "Callout",
+            "props": { "type": "info" },
+            "children": [
+              {
+                "type": "p",
+                "children": "Dennett called the frame problem 'cognitive wheels' — an engineering problem that reveals something deep about the nature of understanding. The fact that humans solve it trivially but AI can't suggests we're missing something fundamental about how minds represent change."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "Flipping the Question" },
+        "children": [
+          {
+            "type": "p",
+            "children": "Here's our key insight: stop asking what DIDN'T change. Instead, ask what MUST be true given what happened."
+          },
+          {
+            "type": "p",
+            "children": "Consider: 'Marlowe rolled out of bed and stepped on a Lego.' What do you immediately know?"
+          },
+          {
+            "type": "InteractiveDemo",
+            "props": {
+              "title": "Implicit State Inference",
+              "prompt": "For each implicit state, think about WHY you infer it — what chain of reasoning gets you there from just 'rolled out of bed and stepped on a Lego'?",
+              "scenarios": [
+                {
+                  "input": "Layer 1: Physical preconditions",
+                  "reveal": "Marlowe was IN bed before rolling out. The bed EXISTS. Marlowe is a physical being capable of being in a bed. A Lego EXISTS on the floor. The floor EXISTS near the bed. These are all PRECONDITIONS — states that must have been true for the event to occur."
+                },
+                {
+                  "input": "Layer 2: Script knowledge",
+                  "reveal": "People sleep in beds. People remove shoes before getting into bed (cultural default). Therefore Marlowe is probably BAREFOOT. This isn't stated — it comes from a default SCRIPT about bedtime routines. Schank called these scripts: stereotyped sequences of events with default assumptions."
+                },
+                {
+                  "input": "Layer 3: Causal consequences",
+                  "reveal": "Stepping on a Lego while barefoot CAUSES PAIN. This is world knowledge about the interaction of bare feet and small hard objects. The pain is never mentioned in the text but every reader infers it instantly. This is an implicit POSTCONDITION of the event."
+                },
+                {
+                  "input": "Layer 4: Emotional/motivational states",
+                  "reveal": "Marlowe is now in PAIN. Pain causes DISPLEASURE. Displeasure motivates ACTION (move foot, pick up Lego, possibly curse). The emotional state and likely next actions are all implicit — inferred from the chain: barefoot + Lego + stepping = pain = displeasure = reaction."
+                }
+              ]
+            }
+          },
+          {
+            "type": "p",
+            "children": "Notice: you inferred at least 10 facts from a single sentence, none of them stated. And you did it INSTANTLY, without effort. This is what AI systems need to do — and what our annotation approach makes explicit."
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "The Annotation Hierarchy" },
+        "children": [
+          {
+            "type": "p",
+            "children": "Implicit states aren't flat — they have DEPTH. Each layer of inference depends on the layers above it. This gives us a natural hierarchy for annotation:"
+          },
+          {
+            "type": "Steps",
+            "props": {
+              "steps": [
+                {
+                  "title": "Layer 0: Surface Pragmatics",
+                  "description": "What speech act is being performed? What's the communicative intent? 'For sale: baby shoes, never worn' → this is a classified advertisement. Someone wants to ATRANS (transfer possession of) an object. This layer is about WHAT THE TEXT IS DOING."
+                },
+                {
+                  "title": "Layer 1: Entity & World Model",
+                  "description": "What objects, agents, and relationships exist? What are their properties? Baby shoes exist. They were acquired (someone bought or received them). A baby was expected (why else buy baby shoes?). This layer builds the ONTOLOGY — what exists in the world of the text."
+                },
+                {
+                  "title": "Layer 2: Scripts & Expectations",
+                  "description": "What default sequences of events are activated? The 'baby shoes' script: acquire shoes → baby arrives → baby wears shoes → baby outgrows shoes → discard or sell. Each script has DEFAULT PATHS — what normally happens. This layer is about WHAT SHOULD HAVE HAPPENED."
+                },
+                {
+                  "title": "Layer 3: Violation Detection",
+                  "description": "'Never worn' VIOLATES the default script. The shoes were acquired but the expected sequence didn't play out. This layer detects WHERE the actual events diverge from the script. Violations are the most information-dense parts of any narrative — they're where the real meaning lives."
+                },
+                {
+                  "title": "Layer 4: Causal Abduction",
+                  "description": "WHY was the script violated? The reader must generate candidate explanations and select the most likely. Wrong size? (mundane) Baby hasn't arrived yet? (but then why sell?) Baby will never arrive? (devastating). This layer is INFERENCE TO THE BEST EXPLANATION — abductive reasoning."
+                },
+                {
+                  "title": "Layer 5: Emotional & Motivational Inference",
+                  "description": "Given the abduced cause (loss of a baby), what is the seller's emotional state? Grief. Why are they selling? Moving on, or unable to bear the reminder. The emotional devastation of the story comes entirely from THIS layer — which is never stated and depends on every layer above it."
+                }
+              ]
+            }
+          },
+          {
+            "type": "Callout",
+            "props": { "type": "success" },
+            "children": [
+              {
+                "type": "p",
+                "children": "The hierarchy is key: you CAN'T do Layer 4 (causal abduction) without Layer 3 (violation detection). You CAN'T detect violations without Layer 2 (scripts). You CAN'T activate scripts without Layer 1 (world model). Each layer is a PRECONDITION for the next. This means annotation must be hierarchical too — and so must retrieval."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "Operators as the Annotation Vocabulary" },
+        "children": [
+          {
+            "type": "p",
+            "children": "What vocabulary do we use for these annotations? This is where Schankian operators earn their keep. Each layer maps naturally to operator types:"
+          },
+          {
+            "type": "DefinitionList",
+            "props": {
+              "items": [
+                {
+                  "term": "Layer 0 → Speech Act Operators",
+                  "definition": "MTRANS (information transfer), ATRANS (possession transfer), MBUILD (create mental structure). 'For sale' = speaker WANTS to ATRANS object to buyer."
+                },
+                {
+                  "term": "Layer 1 → State Operators",
+                  "definition": "Entity existence, properties, relationships. Baby shoes: EXIST(shoes, type=baby). ACQUIRED(someone, shoes). EXPECTED(baby). These are the precondition operators."
+                },
+                {
+                  "term": "Layer 2 → Script Operators",
+                  "definition": "Default event sequences with participants and expected state changes. SCRIPT(baby-arrival) = [ACQUIRE(shoes) → BORN(baby) → WEAR(baby, shoes) → OUTGROW(baby, shoes) → DISCARD/SELL(parent, shoes)]. Each step is itself an operator application."
+                },
+                {
+                  "term": "Layer 3 → Violation Operators (Epistemic)",
+                  "definition": "CONTRADICT(actual, expected). 'Never worn' → CONTRADICT(WEAR.never, SCRIPT.default.WEAR.expected). These connect to our epistemic operators (#50) — they're about the GAP between expected and actual."
+                },
+                {
+                  "term": "Layer 4 → Causal Operators",
+                  "definition": "CAUSE(event, state) and its inverse ABDUCE(state, candidate_causes). Why never worn? ABDUCE(never_worn, [wrong_size, not_arrived, loss]). Each candidate has a plausibility score based on consistency with other annotations."
+                },
+                {
+                  "term": "Layer 5 → Affective Operators",
+                  "definition": "FEEL(agent, emotion, intensity, cause). MOTIVATED_BY(action, emotion). The seller's grief, the act of selling as closure or coping. These are the deepest annotations — fully implicit, fully dependent on the chain above."
+                }
+              ]
+            }
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "Darkness Visible: Annotation as RAG Preprocessing" },
+        "children": [
+          {
+            "type": "p",
+            "children": "Here's the practical payoff — and the core of the Darkness Visible paper."
+          },
+          {
+            "type": "p",
+            "children": "Current RAG systems chunk documents, embed the chunks, and retrieve by similarity. But what if the information you need is IMPLICIT? If someone asks 'What emotions does the narrator of this story feel?', and the story never STATES any emotions, vanilla RAG fails. The answer exists only in the darkness — the subtext."
+          },
+          {
+            "type": "Example",
+            "props": { "title": "RAG Without Annotations" },
+            "children": [
+              {
+                "type": "p",
+                "children": "Document: 'For sale: baby shoes, never worn.'"
+              },
+              {
+                "type": "p",
+                "children": "Query: 'What is the emotional state of the author?'"
+              },
+              {
+                "type": "p",
+                "children": "Problem: The document contains zero emotional vocabulary. No 'sad', no 'grief', no 'loss.' Embedding similarity between 'emotional state' and 'baby shoes for sale' is LOW. The chunk won't even be retrieved, let alone correctly answered."
+              }
+            ]
+          },
+          {
+            "type": "Example",
+            "props": { "title": "RAG With Hierarchical Annotations" },
+            "children": [
+              {
+                "type": "p",
+                "children": "Document: 'For sale: baby shoes, never worn.'"
+              },
+              {
+                "type": "p",
+                "children": "Annotations (computed at indexing time):"
+              },
+              {
+                "type": "Steps",
+                "props": {
+                  "steps": [
+                    {
+                      "title": "L0: Speech act = SELL_REQUEST",
+                      "description": "Author wants to transfer possession of baby shoes to a buyer."
+                    },
+                    {
+                      "title": "L1: Entities = baby_shoes(new, unused), implied_baby(expected), author(parent?)",
+                      "description": "World model includes an expected baby that motivated the shoe purchase."
+                    },
+                    {
+                      "title": "L2: Script = baby_arrival INTERRUPTED before WEAR step",
+                      "description": "Default sequence was purchase → birth → wearing. Interrupted after purchase."
+                    },
+                    {
+                      "title": "L3: Violation = expected wearing never occurred",
+                      "description": "The 'never worn' contradicts the purpose of acquisition."
+                    },
+                    {
+                      "title": "L4: Abduction = probable child loss (stillbirth, miscarriage, or infant death)",
+                      "description": "Most consistent explanation for: shoes acquired + baby expected + never worn + now selling."
+                    },
+                    {
+                      "title": "L5: Emotion = GRIEF(author, high, child_loss); ACTION_MOTIVE(selling, coping/closure)",
+                      "description": "Author is grieving. Selling the shoes is either an attempt at closure or an inability to keep the reminder."
+                    }
+                  ]
+                }
+              },
+              {
+                "type": "p",
+                "children": "Now the query 'What is the emotional state of the author?' matches L5 directly. The word 'grief' IS in the annotation. The retrieval succeeds. The darkness has been made visible."
+              }
+            ]
+          },
+          {
+            "type": "Callout",
+            "props": { "type": "warning" },
+            "children": [
+              {
+                "type": "p",
+                "children": "Critical design question: should annotations be embedded ALONGSIDE the original text (augmented chunks), stored as SEPARATE chunks with pointers back to the source, or organized HIERARCHICALLY with each layer as its own retrieval target? Each approach has different trade-offs for retrieval precision, storage cost, and attribution. This is a core architectural decision for the paper."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "Why LLMs Fail Without This" },
+        "children": [
+          {
+            "type": "p",
+            "children": "Recent research ('To Think or Not To Think,' Gong et al. 2026) shows that even advanced reasoning models FAIL at Theory of Mind tasks — inferring what characters believe, feel, or intend. Their key finding: reasoning models don't consistently outperform non-reasoning models on ToM, and sometimes perform WORSE."
+          },
+          {
+            "type": "p",
+            "children": "Three of their findings map directly to our annotation hierarchy:"
+          },
+          {
+            "type": "DefinitionList",
+            "props": {
+              "items": [
+                {
+                  "term": "Finding: 'Slow thinking collapses' — longer reasoning chains hurt performance",
+                  "definition": "Without the hierarchical structure, models generate long chains that WANDER. They don't know which layer they're reasoning at. Our annotation hierarchy provides the scaffolding: first build the world model (L1), then identify scripts (L2), then detect violations (L3). Without this structure, chain-of-thought becomes chain-of-noise."
+                },
+                {
+                  "term": "Finding: 'Option matching shortcut' — models match surface patterns instead of reasoning",
+                  "definition": "This is EXACTLY what happens when you skip the intermediate layers. Without explicit L2 (scripts) and L3 (violations), the model tries to jump from surface text to emotional inference. It pattern-matches instead of reasoning because the intermediate representations DON'T EXIST in its context."
+                },
+                {
+                  "term": "Finding: 'Moderate and adaptive reasoning helps' — constrained reasoning works better",
+                  "definition": "The annotation hierarchy IS the constraint. Each layer is a bounded inference task. 'What entities exist?' is bounded. 'What script is active?' is bounded. 'Where is the violation?' is bounded. The hierarchy decomposes an unbounded inference (what does this text mean?) into a sequence of bounded ones."
+                }
+              ]
+            }
+          },
+          {
+            "type": "Callout",
+            "props": { "type": "info" },
+            "children": [
+              {
+                "type": "p",
+                "children": "Implication for Darkness Visible: the annotations don't just help retrieval — they help GENERATION too. When an LLM has the hierarchical annotations in its context, it doesn't need to do the deep inference itself. The darkness is already visible. This transforms the problem from 'infer implicit states from scratch' to 'read and synthesize explicit annotations.'"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "The ImplicitState-1K Benchmark" },
+        "children": [
+          {
+            "type": "p",
+            "children": "To test this approach, we need a benchmark. We propose ImplicitState-1K: 1000 short narratives with hierarchical implicit state annotations."
+          },
+          {
+            "type": "Example",
+            "props": { "title": "Benchmark Design" },
+            "children": [
+              {
+                "type": "Steps",
+                "props": {
+                  "steps": [
+                    {
+                      "title": "Collect 1000 short narratives (1-5 sentences)",
+                      "description": "Sources: literary microfiction, news headlines, jokes (which depend on implicit inference), advertisements, legal disclaimers. Each should have at least 3 layers of implicit state. Hemingway's 'baby shoes' is the archetype."
+                    },
+                    {
+                      "title": "Expert annotation at each layer",
+                      "description": "Human annotators produce Layer 0-5 annotations for each narrative. Use Schankian operators as the vocabulary. Inter-annotator agreement measures the reliability of each layer (expect: high agreement on L0-L1, lower on L4-L5)."
+                    },
+                    {
+                      "title": "Evaluation tasks per layer",
+                      "description": "L1: Entity identification (what exists?). L2: Script identification (what's the default sequence?). L3: Violation detection (where does actual diverge from expected?). L4: Abductive reasoning (why?). L5: Emotional inference (how do characters feel?). Each layer is a separate eval, allowing fine-grained diagnosis."
+                    },
+                    {
+                      "title": "RAG evaluation",
+                      "description": "Index the 1000 narratives in a RAG system. Ask questions that REQUIRE implicit inference. Compare retrieval and answer quality with vs. without hierarchical annotations. Measure: retrieval recall, answer accuracy, and annotation layer needed."
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          {
+            "type": "p",
+            "children": "Existing datasets that partially overlap: ATOMIC (commonsense knowledge graphs — covers some L1-L2 inferences), Event2Mind (mental state inference — L5), ProPara (procedural state tracking — L1-L3). None of them have the HIERARCHICAL DEPTH we need. ImplicitState-1K would be the first benchmark designed around annotation depth."
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "Connection to Our Operator Framework" },
+        "children": [
+          {
+            "type": "p",
+            "children": "The annotation hierarchy connects to our broader operator work in two directions:"
+          },
+          {
+            "type": "DefinitionList",
+            "props": {
+              "items": [
+                {
+                  "term": "Operators PRODUCE the annotations",
+                  "definition": "Given a sentence, apply operators to extract state changes. PTRANS, ATRANS, MTRANS decompose what happened. The operator's preconditions become L1 (world model). The operator's postconditions become L3 (consequences). Scripts (#14) are sequences of operators. Violations are where the expected next operator doesn't fire."
+                },
+                {
+                  "term": "Annotations VALIDATE the operators",
+                  "definition": "If our operators can automatically generate hierarchical annotations that match expert human annotations, that's strong evidence the operators capture real semantic structure. ImplicitState-1K becomes both a test for the annotations AND a test for the operators."
+                },
+                {
+                  "term": "Multi-entity state changes are essential",
+                  "definition": "'For sale: baby shoes, never worn.' The operator framework (Brainstorm #55) tracks ALL participants: the author (emotional state changed), the baby (expected but absent), the shoes (status: new, unworn, for sale), the world (a family's trajectory changed). Each participant's state change is an annotation at L1-L5."
+                },
+                {
+                  "term": "Eigenvalue predictions apply here too",
+                  "definition": "The 'baby shoes' story involves a TELIC event (pregnancy/birth script) that was INTERRUPTED — the operator's convergence toward the completion state was blocked. In eigenvalue terms: the script's contractive eigenvalue (|λ| < 1, converging toward 'baby wearing shoes') was overridden by an achievement event (loss, |λ| ≈ 0, instant state collapse). The violation is VISIBLE in the eigenvalue structure."
+                }
+              ]
+            }
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "Test Your Understanding" },
+        "children": [
+          {
+            "type": "Quiz",
+            "props": {
+              "questions": [
+                {
+                  "question": "What does the Frame Problem ask?",
+                  "options": [
+                    "How to represent visual frames in AI systems",
+                    "How an intelligent system knows what DIDN'T change when something happens",
+                    "How to decompose events into primitive actions",
+                    "How to store and retrieve knowledge efficiently"
+                  ],
+                  "correctIndex": 1,
+                  "explanation": "The Frame Problem (McCarthy & Hayes, 1969) asks: when an action occurs, how does a system determine what remains unchanged? Moving a cup doesn't change gravity, but a naive system would need to explicitly verify this. Our approach flips it: instead of tracking what didn't change, we annotate what MUST have changed or been true."
+                },
+                {
+                  "question": "In the baby shoes example, why can't vanilla RAG answer 'What is the author's emotional state?'",
+                  "options": [
+                    "The text is too short for embedding",
+                    "The text contains zero emotional vocabulary — the grief exists only in implicit inference",
+                    "RAG systems can't handle literature",
+                    "The question is ambiguous"
+                  ],
+                  "correctIndex": 1,
+                  "explanation": "The six-word story contains no emotional words. 'Grief', 'loss', 'sadness' never appear. The emotional content exists only in the SUBTEXT — the chain of inference from 'never worn' through script violation and causal abduction to emotional state. Without annotations that make this chain explicit, embedding similarity between the query and the document is too low for retrieval."
+                },
+                {
+                  "question": "Why must the annotation layers be hierarchical (not flat)?",
+                  "options": [
+                    "Hierarchical data is easier to store in databases",
+                    "Each layer DEPENDS on the layers above it — you can't detect violations without knowing the script",
+                    "Flat annotations would be too verbose",
+                    "Hierarchical structures are standard in NLP"
+                  ],
+                  "correctIndex": 1,
+                  "explanation": "The layers have dependency relationships. You can't do causal abduction (L4) without first detecting the violation (L3). You can't detect the violation without knowing the expected script (L2). You can't activate scripts without a world model (L1). Each layer is a PRECONDITION for the next. Flat annotations would lose these dependencies and make the inference chain opaque."
+                },
+                {
+                  "question": "How does the 'slow thinking collapses' finding from reasoning model research support our approach?",
+                  "options": [
+                    "It proves that reasoning models are fundamentally flawed",
+                    "It shows that long reasoning chains without hierarchical structure produce noise instead of insight",
+                    "It demonstrates that all chain-of-thought is harmful",
+                    "It suggests we should avoid reasoning entirely"
+                  ],
+                  "correctIndex": 1,
+                  "explanation": "Gong et al. found that longer reasoning chains HURT Theory of Mind performance. Without structure, models wander. Our annotation hierarchy provides exactly the missing structure: bounded inference tasks at each layer (what exists? what's the script? where's the violation? why?) that decompose the unbounded problem into tractable steps."
+                },
+                {
+                  "question": "What makes the 'baby shoes' story a better test case than the 'Marlowe/Lego' example?",
+                  "options": [
+                    "It's shorter",
+                    "It requires deeper layers of inference — the emotional content is entirely implicit and requires causal abduction, not just script completion",
+                    "It's more famous",
+                    "It involves more physical objects"
+                  ],
+                  "correctIndex": 1,
+                  "explanation": "The Lego example requires mostly L1-L3 inference (preconditions, scripts, consequences — barefoot + Lego = pain). The baby shoes example requires ALL layers through L5: you need to abduce a devastating cause (L4) and infer deep grief (L5) from a text that never mentions either. The deeper the required inference, the harder the test — and the more our hierarchical annotations help."
+                }
+              ]
+            }
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "Roadmap for Darkness Visible" },
+        "children": [
+          {
+            "type": "p",
+            "children": "Putting it all together — here's how this becomes the Darkness Visible paper:"
+          },
+          {
+            "type": "Steps",
+            "props": {
+              "steps": [
+                {
+                  "title": "Define the annotation schema (this tutorial)",
+                  "description": "Six layers (L0-L5), Schankian operators as vocabulary, hierarchical dependency structure. The schema is the theoretical contribution."
+                },
+                {
+                  "title": "Build ImplicitState-1K benchmark",
+                  "description": "1000 narratives with expert annotations at each layer. This is the empirical foundation. Start with 50-100 hand-annotated examples, then use LLMs to scale with human validation."
+                },
+                {
+                  "title": "Implement hierarchical annotation pipeline",
+                  "description": "Use LLMs (with the schema as prompt structure) to auto-annotate documents layer by layer. Each layer's output becomes input to the next. Validate against expert annotations."
+                },
+                {
+                  "title": "RAG integration experiment",
+                  "description": "Index documents with and without annotations. Test retrieval and answer quality on questions requiring implicit inference. Compare: no annotations vs. flat annotations vs. hierarchical annotations."
+                },
+                {
+                  "title": "Operator-based annotation generation",
+                  "description": "Use trained Schankian operators to generate annotations automatically. Compare operator-generated annotations to LLM-generated ones. This connects Darkness Visible back to the core operator paper."
+                }
+              ]
+            }
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "Further Reading" },
+        "children": [
+          {
+            "type": "p",
+            "children": "Key references and connections:"
+          },
+          {
+            "type": "p",
+            "children": "• McCarthy & Hayes (1969) 'Some Philosophical Problems from the Standpoint of AI' — The original frame problem paper"
+          },
+          {
+            "type": "p",
+            "children": "• Dennett (1984) 'Cognitive Wheels' — Why the frame problem reveals deep truths about understanding"
+          },
+          {
+            "type": "p",
+            "children": "• Brainstorm #4: ImplicitState-1K Benchmark — The dataset proposal"
+          },
+          {
+            "type": "p",
+            "children": "• Brainstorm #50: Epistemic State Operators — The vocabulary for violation and belief annotations (L3-L4)"
+          },
+          {
+            "type": "p",
+            "children": "• Brainstorm #24: Operators as LLM Interface Layer — Using LLMs' implicit knowledge to generate annotations"
+          },
+          {
+            "type": "p",
+            "children": "• Brainstorm #18: Telicity from Eigenvalues — Script interruption visible in eigenvalue structure"
+          },
+          {
+            "type": "p",
+            "children": "• Gong et al. (2026) 'To Think or Not To Think' — Evidence that reasoning models need structured scaffolding for Theory of Mind"
+          }
+        ]
+      }
+    ]
+  }
+}
