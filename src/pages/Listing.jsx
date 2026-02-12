@@ -343,6 +343,18 @@ const tutorials = [
     difficulty: 2,
   },
   {
+    id: 'brainstorm-36-eigenoperators',
+    title: 'Eigenoperators and Semantic Attractors',
+    description: 'What eigenvectors of operator matrices reveal about dimensions of meaning — PCA on operators, fixed-point attractors, and embedding compression',
+    tags: ['schankian', 'linear-algebra', 'eigenvalues', 'compression'],
+    icon: '🔮',
+    gradient: 'from-fuchsia-500 to-pink-600',
+    shadowColor: 'shadow-fuchsia-500/30',
+    glowColor: 'rgba(217, 70, 239, 0.4)',
+    readTime: '22 min',
+    difficulty: 2,
+  },
+  {
     id: 'brainstorm-06-tensor-products-fail',
     title: 'Tensor Products Fail at Compositionality',
     description: 'Why operators succeed where vector composition breaks down — bounded vs exponential dimensionality',

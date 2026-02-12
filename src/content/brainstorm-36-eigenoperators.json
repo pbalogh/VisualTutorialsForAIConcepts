@@ -1,0 +1,456 @@
+{
+  "id": "brainstorm-36-eigenoperators",
+  "title": "Eigenoperators and Semantic Attractors",
+  "subtitle": "What eigenvectors of operator matrices reveal about the dimensions of meaning — and how PCA on operators connects to semantic compression",
+  "readTime": "22 min",
+  "state": "brainstorm_36",
+  "content": {
+    "type": "Fragment",
+    "children": [
+      {
+        "type": "Section",
+        "props": { "title": "The Eigen-Question" },
+        "children": [
+          {
+            "type": "p",
+            "children": "We've established that Schankian operators are full rotation matrices acting on concatenated participant embeddings. But matrices have secret structure — and the key to unlocking it is the eigendecomposition."
+          },
+          {
+            "type": "p",
+            "children": "The fundamental question: when you apply an operator to an entity state, WHAT STAYS THE SAME and WHAT CHANGES? The answer lives in the eigenvectors."
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "Eigenvectors: The Quick Version" },
+        "children": [
+          {
+            "type": "p",
+            "children": "A matrix transforms vectors — it stretches, rotates, and shears them. But for any matrix, there are special vectors that DON'T change direction when the matrix is applied. They just get scaled. These are eigenvectors."
+          },
+          {
+            "type": "DefinitionList",
+            "props": {
+              "items": [
+                {
+                  "term": "Eigenvector",
+                  "definition": "A vector v such that Av = λv. When matrix A acts on v, the result points in the same direction — it's just scaled by λ. The vector is 'immune' to the matrix's rotation; it only feels the stretch."
+                },
+                {
+                  "term": "Eigenvalue (λ)",
+                  "definition": "The scaling factor. λ = 1 means the vector is completely unchanged. λ > 1 means it's amplified. λ < 1 means it's shrunk. λ = 0 means it's annihilated."
+                },
+                {
+                  "term": "Eigendecomposition",
+                  "definition": "Breaking a matrix into A = VΛV⁻¹ where V contains the eigenvectors as columns and Λ is diagonal with eigenvalues. This reveals the matrix's 'natural axes' — the directions it prefers to work along."
+                }
+              ]
+            }
+          },
+          {
+            "type": "Analogy",
+            "left": {
+              "title": "Physical Analogy",
+              "items": [
+                "Spin a ball on a table",
+                "Most points on the ball move in circles",
+                "But the axis of rotation stays fixed",
+                "That axis IS the eigenvector (λ = 1)",
+                "The ball's equator moves most (large λ)"
+              ]
+            },
+            "right": {
+              "title": "Operator Analogy",
+              "items": [
+                "Apply ATRANS to an entity state",
+                "Most embedding dimensions get transformed",
+                "But some dimensions don't change at all",
+                "Those ARE the eigenvectors of ATRANS",
+                "The most-changed dimensions are ATRANS's 'active axes'"
+              ]
+            },
+            "bridgeText": "Eigenvectors tell you what an operator DOESN'T touch. Everything else is what the operator IS."
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "What Eigenvectors Mean for Operators" },
+        "children": [
+          {
+            "type": "p",
+            "children": "Here's the punchline for our framework: if ATRANS (transfer of possession) is a full rotation matrix, its eigendecomposition tells us exactly which dimensions of the embedding space ATRANS cares about and which it ignores."
+          },
+          {
+            "type": "Example",
+            "props": { "title": "Decomposing ATRANS" },
+            "children": [
+              {
+                "type": "p",
+                "children": "Suppose we've trained a full rotation matrix W_ATRANS on examples of giving, selling, stealing, donating. We eigendecompose it: W_ATRANS = VΛV⁻¹."
+              },
+              {
+                "type": "Steps",
+                "props": {
+                  "steps": [
+                    {
+                      "title": "Find the λ ≈ 1 eigenvectors",
+                      "description": "These are the dimensions ATRANS DOESN'T change. If eigenvector v₃ has eigenvalue 0.99, then dimension v₃ is nearly unchanged by giving/selling/stealing. Maybe v₃ encodes 'physical health' — transferring possession doesn't affect how healthy you are."
+                    },
+                    {
+                      "title": "Find the λ ≠ 1 eigenvectors",
+                      "description": "These are the dimensions ATRANS DOES change. If eigenvector v₇ has eigenvalue 0.3, that dimension is strongly affected. Maybe v₇ encodes 'wealth' — giving away a possession reduces your wealth dimension."
+                    },
+                    {
+                      "title": "The eigenspectrum IS the operator's signature",
+                      "description": "Plot all eigenvalues: the pattern of which dimensions change and which don't IS what makes ATRANS different from PTRANS. PTRANS would have λ ≈ 1 for wealth-like dimensions (moving doesn't change your wealth) but λ ≠ 1 for location dimensions."
+                    }
+                  ]
+                }
+              },
+              {
+                "type": "Callout",
+                "props": { "type": "success" },
+                "children": [
+                  {
+                    "type": "p",
+                    "children": "The eigenvectors of an operator matrix ARE the semantic dimensions it operates on. The eigenvalues tell you HOW MUCH each dimension is affected. This is not metaphor — it's linear algebra."
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "The PCA Connection: Compressing Operator Space" },
+        "children": [
+          {
+            "type": "p",
+            "children": "Here's where your intuition about PCA connects. PCA (Principal Component Analysis) finds the directions of maximum variance in data — the axes that matter most. It works by eigendecomposing the covariance matrix. The eigenvectors with the largest eigenvalues are the principal components."
+          },
+          {
+            "type": "p",
+            "children": "Now apply this to our operators:"
+          },
+          {
+            "type": "Example",
+            "props": { "title": "PCA on Operator Matrices" },
+            "children": [
+              {
+                "type": "p",
+                "children": "We have 15 learned operator matrices (ATRANS, PTRANS, MTRANS, ...). Each is a (3d × 3d) matrix. We can ask: what are the principal components of this COLLECTION of operators?"
+              },
+              {
+                "type": "Steps",
+                "props": {
+                  "steps": [
+                    {
+                      "title": "Flatten each operator matrix into a vector",
+                      "description": "A (3d × 3d) matrix has 9d² entries. Flatten it into a vector of length 9d². Now each operator is a point in a 9d²-dimensional space."
+                    },
+                    {
+                      "title": "Run PCA on the 15 operator-vectors",
+                      "description": "Find the principal components — the directions of maximum variation among operators. PC1 might capture 'does this operator affect possession?' PC2 might capture 'does this operator involve physical force?'"
+                    },
+                    {
+                      "title": "The PCA dimensions ARE operator features",
+                      "description": "If 3 principal components explain 90% of the variance among operators, then operators live in a 3D space. Those 3 dimensions are the fundamental axes of variation among semantic primitives."
+                    },
+                    {
+                      "title": "Compression: low-rank operator approximation",
+                      "description": "If operators cluster in a low-dimensional PCA subspace, we can approximate each full matrix with a low-rank version: W ≈ UΣVᵀ where Σ has only a few significant values. This dramatically reduces parameters while preserving the important structure."
+                    }
+                  ]
+                }
+              },
+              {
+                "type": "Callout",
+                "props": { "type": "info" },
+                "children": [
+                  {
+                    "type": "p",
+                    "children": "If PCA on operator matrices reveals that 3-5 dimensions explain most variation, that's evidence for our universality hypothesis: all operators are combinations of a small number of fundamental semantic axes."
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "Fixed Points and Semantic Attractors" },
+        "children": [
+          {
+            "type": "p",
+            "children": "An eigenvector with eigenvalue λ = 1 is a FIXED POINT — the operator doesn't change it at all. But what about repeated application? If you keep applying an operator, what happens?"
+          },
+          {
+            "type": "Example",
+            "props": { "title": "Convergence to Attractors" },
+            "children": [
+              {
+                "type": "p",
+                "children": "Consider repeatedly applying HARM (the operator for damaging something):"
+              },
+              {
+                "type": "Steps",
+                "props": {
+                  "steps": [
+                    {
+                      "title": "First application: 'The storm damaged the house'",
+                      "description": "State: house_condition moves from [intact] toward [damaged]. The eigenvalue for the 'condition' dimension is λ = 0.5 — each application halves the distance to 'destroyed.'"
+                    },
+                    {
+                      "title": "Second application: 'Another storm hit'",
+                      "description": "State: house_condition moves further toward [destroyed]. λ = 0.5 again: the remaining 'intactness' is halved."
+                    },
+                    {
+                      "title": "Repeated application converges",
+                      "description": "After many applications, house_condition → [destroyed]. This is the ATTRACTOR — the fixed point that repeated application converges to. Mathematically: if |λ| < 1, repeated multiplication by λ → 0. The eigenvector direction with λ = 0 is the 'destroyed' state."
+                    }
+                  ]
+                }
+              },
+              {
+                "type": "Callout",
+                "props": { "type": "success" },
+                "children": [
+                  {
+                    "type": "p",
+                    "children": "Operators with |λ| < 1 have attractors — states they converge toward. 'Teaching' converges to 'learned.' 'Harming' converges to 'destroyed.' 'Giving' converges to 'fully transferred.' These are the TELIC endpoints of events — the natural completion states."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "DeepDive",
+            "props": { "title": "Telicity and Eigenvalues" },
+            "children": [
+              {
+                "type": "p",
+                "children": "Linguists distinguish TELIC events (have a natural endpoint) from ATELIC events (don't). 'Build a house' is telic — it's done when the house is built. 'Run' is atelic — there's no inherent completion point."
+              },
+              {
+                "type": "p",
+                "children": "In our framework:"
+              },
+              {
+                "type": "p",
+                "children": "TELIC operators have eigenvalues |λ| < 1 on the relevant dimensions. Repeated application converges to the endpoint (the attractor). 'Building' applied repeatedly → house_complete."
+              },
+              {
+                "type": "p",
+                "children": "ATELIC operators have eigenvalues |λ| = 1. Repeated application produces a trajectory but never converges. 'Running' applied repeatedly → keep moving, never 'done.' The eigenvector stays the same magnitude."
+              },
+              {
+                "type": "p",
+                "children": "This is a testable prediction: learn operators from data, eigendecompose them, and check whether telic verbs have |λ| < 1 and atelic verbs have |λ| ≈ 1. If they do, eigenvalues have DISCOVERED the telic/atelic distinction without being told about it."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "Eigenoperators and Embedding Compression" },
+        "children": [
+          {
+            "type": "p",
+            "children": "Now let's connect eigendecomposition to the embedding dimension question. If we eigendecompose all our operator matrices, we can ask: how many dimensions are actually USED?"
+          },
+          {
+            "type": "Example",
+            "props": { "title": "Effective Dimensionality" },
+            "children": [
+              {
+                "type": "p",
+                "children": "Suppose our embedding has d = 128 dimensions per entity (384 total for concatenated [agent|object|recipient]). Each operator is a 384×384 matrix. After eigendecomposition:"
+              },
+              {
+                "type": "Steps",
+                "props": {
+                  "steps": [
+                    {
+                      "title": "Count the 'active' eigenvalues",
+                      "description": "If ATRANS has 300 eigenvalues near 1.0 and only 84 that differ significantly, then ATRANS only uses 84 dimensions effectively. The other 300 are inert — ATRANS doesn't touch them."
+                    },
+                    {
+                      "title": "Compare across operators",
+                      "description": "If PTRANS uses 60 active dimensions and ATRANS uses 84 active dimensions, but they share 40 of them, then the total active subspace is 104 dimensions, not 144. Operators SHARE structure."
+                    },
+                    {
+                      "title": "The union of all active subspaces = the needed embedding",
+                      "description": "If the union of all operators' active eigenspaces spans 100 dimensions out of 384, we could compress our embedding to ~100 dimensions without losing anything important. The other 284 dimensions are noise."
+                    },
+                    {
+                      "title": "This IS rate-distortion in action",
+                      "description": "The number of active eigenvalues across all operators IS the rate-distortion bound (Brainstorm #56). The minimum embedding dimension = the size of the union of active eigenspaces."
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          {
+            "type": "Callout",
+            "props": { "type": "warning" },
+            "children": [
+              {
+                "type": "p",
+                "children": "Practical implication: after training operators as full matrices, eigendecompose them all, find the union of active subspaces, and project the embedding down to that subspace. You get the MINIMUM embedding that supports all operators — PCA-style compression but guided by operator structure, not just data variance."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "Shared vs. Private Eigenspaces" },
+        "children": [
+          {
+            "type": "p",
+            "children": "The most revealing analysis: which eigenvectors are SHARED across operators and which are PRIVATE?"
+          },
+          {
+            "type": "InteractiveDemo",
+            "props": {
+              "title": "Eigenspace Overlap Analysis",
+              "prompt": "For each pair of operators, predict whether their active eigenspaces would overlap (shared dimensions) or be disjoint (private dimensions).",
+              "scenarios": [
+                {
+                  "input": "ATRANS (give) vs. ATRANS-inverse (take)",
+                  "reveal": "**Mostly SHARED eigenspace.** Both operators act on the same dimensions (possession, wealth, social obligation) but with different eigenvalues. Giving has λ < 1 on 'giver-possession' (decreases it); taking has λ > 1 on the same dimension (increases it). The DIRECTIONS are the same; the MAGNITUDES are reciprocal. This is exactly what you'd expect if they're inverse operations."
+                },
+                {
+                  "input": "ATRANS (transfer possession) vs. PTRANS (transfer location)",
+                  "reveal": "**Mostly DISJOINT eigenspaces.** ATRANS's active dimensions are about possession, ownership, wealth. PTRANS's active dimensions are about physical location, proximity, path. They operate on different semantic axes. The small overlap might be dimensions like 'agency' (both require an actor) or 'has_something_changed' (both produce state changes)."
+                },
+                {
+                  "input": "MTRANS (tell) vs. MBUILD (think/decide)",
+                  "reveal": "**Partially SHARED.** Both operate on knowledge/belief dimensions, but MTRANS also needs communication-channel dimensions (who told whom, via what medium) while MBUILD is purely internal. The shared subspace is 'epistemic state change' — both modify what someone knows/believes. The private subspaces: MTRANS has 'social/communicative' dimensions; MBUILD has 'reasoning/inference' dimensions."
+                },
+                {
+                  "input": "PROPEL (apply force) vs. HARM (damage)",
+                  "reveal": "**Partially SHARED, with interesting structure.** PROPEL's eigenspace includes force, momentum, physical contact. HARM's eigenspace includes structural integrity, condition, function. The overlap: PROPEL is often a PRECONDITION for HARM (you have to apply force to damage something). So their eigenspaces share 'physical interaction' dimensions, but HARM additionally activates 'condition degradation' dimensions that PROPEL alone doesn't touch."
+                }
+              ]
+            }
+          },
+          {
+            "type": "Callout",
+            "props": { "type": "info" },
+            "children": [
+              {
+                "type": "p",
+                "children": "The eigenspace overlap matrix between all pairs of operators IS the structure of the operator algebra. It tells you which operators are related (shared eigenspaces), which are independent (disjoint), and which are inverses (shared eigenspaces with reciprocal eigenvalues). This is discoverable from trained matrices — no hand-labeling needed."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "Test Your Understanding" },
+        "children": [
+          {
+            "type": "Quiz",
+            "props": {
+              "questions": [
+                {
+                  "question": "What do eigenvectors of an operator matrix represent?",
+                  "options": [
+                    "The most common words associated with that operator",
+                    "The semantic dimensions the operator acts on — eigenvectors with λ ≈ 1 are unchanged, those with λ ≠ 1 are the operator's active axes",
+                    "The training examples used to learn the operator",
+                    "The error rate of the operator on test data"
+                  ],
+                  "correctIndex": 1,
+                  "explanation": "Eigenvectors are the 'natural axes' of the matrix. Eigenvalue λ ≈ 1 means that dimension is unchanged by the operator (ATRANS doesn't change your physical health). Eigenvalue λ ≠ 1 means the operator actively transforms that dimension (ATRANS changes your possession state)."
+                },
+                {
+                  "question": "How does PCA on the collection of operator matrices help?",
+                  "options": [
+                    "It makes operators faster to compute",
+                    "It finds the principal axes of variation among operators — the fundamental dimensions along which operators differ from each other",
+                    "It removes noise from the training data",
+                    "It converts matrices back to vectors"
+                  ],
+                  "correctIndex": 1,
+                  "explanation": "PCA on operator matrices finds the axes of maximum variation among operators. If 3 principal components explain 90% of the variation, then all 15 operators live in a 3D 'operator space' — meaning there are only 3 fundamental ways operators differ from each other. This would be strong evidence that a small set of semantic axes generates all operators."
+                },
+                {
+                  "question": "What does it mean if an operator has eigenvalues |λ| < 1 on certain dimensions?",
+                  "options": [
+                    "The operator is broken on those dimensions",
+                    "The operator is telic on those dimensions — repeated application converges to a fixed-point attractor",
+                    "The operator reverses those dimensions",
+                    "Those dimensions need more training data"
+                  ],
+                  "correctIndex": 1,
+                  "explanation": "|λ| < 1 means repeated application shrinks that dimension toward zero (or toward the attractor state). 'Teach' applied repeatedly converges to 'learned.' 'Harm' applied repeatedly converges to 'destroyed.' These are telic events with natural endpoints. Atelic events ('run', 'think') would have |λ| ≈ 1 — repeated application keeps going without converging."
+                },
+                {
+                  "question": "How can eigendecomposition determine the minimum embedding dimension?",
+                  "options": [
+                    "Count the total number of eigenvectors",
+                    "Find the union of all operators' active eigenspaces (dimensions where λ ≠ 1) — that's the minimum embedding that supports all operators",
+                    "Use the largest eigenvalue as the dimension",
+                    "Eigendecomposition can't determine embedding dimension"
+                  ],
+                  "correctIndex": 1,
+                  "explanation": "Each operator uses only some dimensions actively (λ ≠ 1). If ATRANS uses 84 of 384 and PTRANS uses 60, with 40 shared, the union is 104. All 15 operators' active subspaces might only span 100-150 of 384 dimensions — meaning we could compress to that size with no loss. The union of active eigenspaces IS the minimum embedding."
+                },
+                {
+                  "question": "What would it mean if ATRANS and PTRANS have completely disjoint eigenspaces?",
+                  "options": [
+                    "They are inverse operations",
+                    "They operate on completely different semantic dimensions — possession-change and location-change are independent",
+                    "One of them is wrong",
+                    "They need to be merged into one operator"
+                  ],
+                  "correctIndex": 1,
+                  "explanation": "Disjoint eigenspaces mean the operators transform DIFFERENT dimensions and don't interfere with each other. ATRANS changes possession dimensions; PTRANS changes location dimensions. They can be applied in any order with the same result — they commute. This is empirically testable: if they share eigenspace, they're entangled (order matters); if disjoint, they're independent."
+                }
+              ]
+            }
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "Further Reading" },
+        "children": [
+          {
+            "type": "p",
+            "children": "Key references and connections:"
+          },
+          {
+            "type": "p",
+            "children": "• Semantic Attractors paper (2025) — Understanding as convergence to fixed points: https://arxiv.org/html/2508.18290v1"
+          },
+          {
+            "type": "p",
+            "children": "• Hopfield Networks — Memory as attractor recall in neural networks: https://neuronaldynamics.epfl.ch/online/Ch17.html"
+          },
+          {
+            "type": "p",
+            "children": "• Brainstorm #55: From Flat Arrays to Full Rotation Matrices — Why we use full matrices (which make eigendecomposition so powerful)"
+          },
+          {
+            "type": "p",
+            "children": "• Brainstorm #56: Rate-Distortion Bounds — The eigenvalue spectrum gives the information-theoretic compression bound"
+          },
+          {
+            "type": "p",
+            "children": "• Brainstorm #45: MDL Operator Discovery — Minimum description length connects to effective rank (number of significant eigenvalues)"
+          }
+        ]
+      }
+    ]
+  }
+}
