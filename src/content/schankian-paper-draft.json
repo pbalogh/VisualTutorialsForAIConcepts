@@ -451,6 +451,24 @@
             "children": "The code: projects/graph-nn/code/schankian_learner_v1.py (~500 lines). Full results: memory/schankian-phase1-results.md"
           },
           {
+            "type": "Callout",
+            "props": {
+              "type": "warning"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": [
+                  {
+                    "type": "strong",
+                    "children": "\ud83d\udea8 Architecture Update (2026-02-12): Full Rotation Matrices on Concatenated Embeddings."
+                  },
+                  " A first-principles derivation (from graph DB flat arrays \u2192 bitvector compression \u2192 Bloom filter analogy \u2192 bitmask-as-rotation hierarchy) reveals that diagonal rotations cannot capture feature INTERACTIONS (\u2018smart AND arrogant\u2019 requires cross-dimensional coupling). The updated architecture uses full rotation matrices applied to CONCATENATED participant embeddings. This: (1) captures cross-entity feature interactions (agent's traits \u00d7 patient's traits), (2) transforms all participants simultaneously (connecting to the multi-entity state change insight), (3) subsumes diagonal rotation as a special case. Phase 1 validated the concept with diagonal ops; future phases will use full rotation matrices. See Brainstorming Entry 55."
+                ]
+              }
+            ]
+          },
+          {
             "type": "h3",
             "children": [
               "1.5 Open Questions",
@@ -2701,6 +2719,30 @@
           {
             "type": "p",
             "children": "Links: https://arxiv.org/abs/2006.08381 | https://arxiv.org/abs/2106.10818 | https://arxiv.org/abs/2602.10009 | https://arxiv.org/abs/1906.10816"
+          },
+          {
+            "type": "h3",
+            "children": "Entry 55: From Flat Arrays to Full Rotation Matrices \u2014 Deriving Operator Architecture from First Principles"
+          },
+          {
+            "type": "p",
+            "children": "\ud83d\udd25 Status: high priority (architecture decision) | Date: 2026-02-12"
+          },
+          {
+            "type": "p",
+            "children": "First-principles derivation starting from the simplest possible graph: 3 nodes [Tom, Dick, Harry], 2 relationships [Likes, Hates], stored as a flat weight array. Lookup is O(1) array indexing. Multi-hop queries = bitwise AND on bitvectors. This IS an adjacency tensor flattened to 1D \u2014 every graph DB does this."
+          },
+          {
+            "type": "p",
+            "children": "The compression question: replace N-length bitvectors with d-dimensional embeddings (d << N). Key insight: compression only works if it captures WHY relationships exist (shared structure, not just membership). Bloom filter analogy: entity embedding = universal hash, operator = hash function selector. Bitmask IS a crude rotation (0\u00b0 or 90\u00b0), revealing a hierarchy: Bloom filter bitmask \u2192 soft attention \u2192 diagonal rotation (RotatE) \u2192 full rotation matrix."
+          },
+          {
+            "type": "p",
+            "children": "Critical insight: diagonal operations CAN'T capture feature INTERACTIONS (\u2018smart AND arrogant\u2019 requires cross-dimensional coupling). ARCHITECTURE DECISION: Full rotation matrices on CONCATENATED participant embeddings. Captures cross-entity feature interactions, transforms all participants simultaneously, subsumes diagonal as special case. Cleaner explanation, more likely to succeed."
+          },
+          {
+            "type": "p",
+            "children": "Links: https://arxiv.org/abs/1902.10197 | https://en.wikipedia.org/wiki/Bloom_filter"
           }
         ]
       },

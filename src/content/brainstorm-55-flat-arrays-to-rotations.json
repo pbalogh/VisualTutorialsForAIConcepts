@@ -1,0 +1,396 @@
+{
+  "id": "brainstorm-55-flat-arrays-to-rotations",
+  "title": "From Flat Arrays to Full Rotation Matrices",
+  "subtitle": "Deriving the Schankian operator architecture from first principles — starting with the simplest possible graph database",
+  "readTime": "25 min",
+  "state": "brainstorm_55",
+  "content": [
+    {
+      "type": "Fragment",
+      "title": "Start Simple: A Graph as a Flat Array",
+      "content": [
+        {
+          "type": "Section",
+          "title": "The Simplest Possible Graph Database",
+          "content": "Forget neural networks. Forget embeddings. Let's start with the stupidest possible data structure that can represent a graph.\n\nWe have 3 people: **Tom, Dick, Harry.** Two relationship types: **Likes, Hates.** Initially no relationships exist."
+        },
+        {
+          "type": "Example",
+          "title": "The Flat Array",
+          "setup": "We represent all possible relationships as a single flat array. With 3 entities and 2 relationship types, we need 2 × 3 × 3 = 18 slots (each relationship type × each source × each target).",
+          "steps": [
+            {
+              "label": "The Layout",
+              "detail": "```\nIndex:  0  1  2    3  4  5    6  7  8    9  10 11   12 13 14   15 16 17\n        |Tom likes-|  |Dick likes| |Harry likes| |Tom hates-|  |Dick hates| |Harry hates|\n        T→T T→D T→H  D→T D→D D→H  H→T H→D H→H  T→T T→D T→H  D→T D→D D→H  H→T H→D H→H\n```\n\nInitially all null (no relationships exist)."
+            },
+            {
+              "label": "\"Tom hates everyone\"",
+              "detail": "Set indices 9, 10, 11 to 1:\n```\n[null,null,null, null,null,null, null,null,null, 1,1,1, null,null,null, null,null,null]\n```\n\nTom's \"hates\" row is `[1, 1, 1]` — he hates Tom, Dick, and Harry."
+            },
+            {
+              "label": "\"Tom only hates Dick\"",
+              "detail": "Tom's hates row would be `[0, 1, 0]` — only index 10 is set."
+            }
+          ],
+          "punchline": "This is just a 3D tensor (relationships × sources × targets) flattened to 1D. The lookup formula: `array[indexR × N × N + indexSource × N + indexTarget]`. It's O(1). It's exact. It's trivially simple."
+        },
+        {
+          "type": "Callout",
+          "variant": "insight",
+          "content": "**Key observation:** This is literally how graph databases work under the hood. An adjacency tensor, stored flat. Every graph operation is just array indexing."
+        }
+      ]
+    },
+    {
+      "type": "Fragment",
+      "title": "Queries as Bitvector Operations",
+      "content": [
+        {
+          "type": "Section",
+          "title": "The Result of a Query IS an Array",
+          "content": "Here's the insight that makes this powerful: when you ask \"Who does Tom hate?\", you don't get a single answer. You get an **array**:\n\n```\nhates[TOM] = [1, 1, 1]\n```\n\nThis IS the answer: everyone (every non-zero index is someone Tom hates). And arrays compose."
+        },
+        {
+          "type": "Example",
+          "title": "Multi-Hop Query via Bitwise AND",
+          "setup": "**Question:** \"Does Tom hate anyone who likes Harry?\"\n\nThis requires TWO lookups and a COMPOSITION.",
+          "steps": [
+            {
+              "label": "Step 1: Who does Tom hate?",
+              "detail": "```\nhates[TOM] = [1, 1, 1]  → Tom hates everyone\n```\nO(1) lookup."
+            },
+            {
+              "label": "Step 2: Who likes Harry?",
+              "detail": "```\nlikes[:, HARRY] = [0, 1, 0]  → Only Dick likes Harry\n```\nReverse lookup — also O(1) if we maintain a reverse index."
+            },
+            {
+              "label": "Step 3: Bitwise AND",
+              "detail": "```\n[1, 1, 1] AND [0, 1, 0] = [0, 1, 0]  → Dick!\n```\nTom hates Dick, and Dick likes Harry. Query answered."
+            }
+          ],
+          "punchline": "Two O(1) lookups + one bitwise AND (which is one CPU instruction per 64 entities with SIMD). Multi-hop graph queries become bitwise operations on arrays. This is how bitmap indexes in real databases work."
+        },
+        {
+          "type": "DeepDive",
+          "title": "Why This Matters",
+          "content": "The flat array approach has three beautiful properties:\n\n1. **Exact.** No approximation, no false positives, no uncertainty.\n2. **Composable.** Query results are bitvectors. Bitvectors compose via AND, OR, NOT. Complex queries decompose into simple bitwise operations.\n3. **Parallel.** Checking \"Does Tom hate ALL of {Dick, Harry}?\" is one vector comparison, not two separate lookups.\n\nBut it has one fatal flaw: **scale.** For N = 1 million entities and R = 100 relationships: 100 × 10⁶ × 10⁶ = 10¹⁴ slots. That's 100 terabytes for a single graph. Most slots are null.\n\nWe need **compression.**"
+        }
+      ]
+    },
+    {
+      "type": "Fragment",
+      "title": "Compression: The Central Question",
+      "content": [
+        {
+          "type": "Section",
+          "title": "When Does Compression Work?",
+          "content": "The naive approach: replace the N-length bitvector per entity per relationship with a shorter d-dimensional vector (d << N). Instead of storing exactly who Tom hates, store a **compressed representation** from which we can approximately reconstruct the answer.\n\nBut this only works under one condition: **there must be shared structure.**"
+        },
+        {
+          "type": "Example",
+          "title": "When Compression Succeeds vs. Fails",
+          "setup": "Two scenarios for why people hate each other.",
+          "steps": [
+            {
+              "label": "Scenario A: Shared Structure",
+              "detail": "Tom hates untrustworthy people. Dick also hates untrustworthy people. Harry hates untrustworthy people.\n\nCompression works! We just need:\n- One dimension encoding 'trustworthiness' per entity\n- The 'hates' operator says: 'check trustworthiness dimension'\n\nOne number per entity replaces an N-length bitvector."
+            },
+            {
+              "label": "Scenario B: No Shared Structure",
+              "detail": "Tom hates tall people. Dick hates short people. Harry hates people named Steve.\n\nCompression fails. There's no single set of features that predicts ALL hate relationships through ONE operator. The `hates` operator can't simultaneously encode height-for-Tom and inverse-height-for-Dick and name-matching-for-Harry.\n\nYou'd need separate operators per entity — which is just the flat array with extra steps."
+            }
+          ],
+          "punchline": "Compression works if and only if relationships have shared causal structure — the same features predict the relationship across different entities. This is an empirical question, and it's THE question for our entire research program."
+        },
+        {
+          "type": "Callout",
+          "variant": "warning",
+          "content": "**The fundamental bet of Schankian operators:** When we claim \"ATRANS is a universal primitive,\" we're claiming that the way possession changes when John gives Mary a book **shares structure** with how possession changes when Sarah sells Bob a car. If every act of giving is completely idiosyncratic, operators can't compress and our theory is wrong. The good news: decades of knowledge graph embedding research shows that real-world graphs DO compress well."
+        }
+      ]
+    },
+    {
+      "type": "Fragment",
+      "title": "The Bloom Filter Insight",
+      "content": [
+        {
+          "type": "Section",
+          "title": "From Set Membership to Feature Testing",
+          "content": "If compression truly captures WHY Tom hates someone, something remarkable happens. The membership test (\"Is Dick in Tom's hates set?\") becomes a **feature test** (\"Does Dick have the features that make Tom hate?\").\n\nThis is exactly what a Bloom filter does — but for semantics."
+        },
+        {
+          "type": "Analogy",
+          "left": {
+            "title": "Explicit Set (Flat Array)",
+            "items": [
+              "Stores WHO Tom hates: {Dick, Harry}",
+              "Exact but can't generalize",
+              "New person? Must explicitly add them",
+              "Size: O(N) per entity per relationship",
+              "No insight into WHY"
+            ]
+          },
+          "right": {
+            "title": "Feature Test (Compressed)",
+            "items": [
+              "Stores WHY Tom hates: untrustworthy people",
+              "Approximate but can predict new entities",
+              "New person? Just check their features",
+              "Size: O(d) where d = feature dimensions",
+              "The compression IS the explanation"
+            ]
+          },
+          "bridgeText": "The entity embedding is a universal hash of the entity. The operator is a hash function selector — it tells you which bits of the hash to check for this particular query. Same Bloom filter, different bit masks per operation."
+        },
+        {
+          "type": "DeepDive",
+          "title": "Bloom Filters and Hash Functions",
+          "content": "A Bloom filter tests set membership by hashing an item and checking if certain bits are set. It's:\n- **Lossy** (false positives possible, false negatives impossible)\n- **Compact** (much smaller than storing the full set)\n- **Only as good as its hash function**\n\nThe hash function is everything. If it captures the relevant features (trustworthiness for 'hates'), it works. If it captures irrelevant features (shoe size for 'hates'), it's useless.\n\nIn our framework:\n- The **entity embedding** is the hash of the entity (computed once, used for all relationships)\n- The **operator** is the hash function selector (different per relationship type)\n- The **quality of compression** = the quality of the hash = how well the features explain the relationship\n\nA bad embedding is like a bad hash function: it produces collisions (entities that look the same but shouldn't) and misses (entities that should match but don't)."
+        }
+      ]
+    },
+    {
+      "type": "Fragment",
+      "title": "The Bitmask-to-Rotation Ladder",
+      "content": [
+        {
+          "type": "Section",
+          "title": "A Bitmask IS a Crude Rotation",
+          "content": "Here's the key geometric insight: a bitmask applied to a vector IS a transformation — a very crude one. It selects which dimensions survive and which get zeroed out. And this connects to rotation in a precise way.\n\nThe spectrum from crude to elegant:"
+        },
+        {
+          "type": "DefinitionList",
+          "definitions": [
+            {
+              "term": "Level 0: Bloom Filter Bitmask",
+              "definition": "[1, 0, 1, 0] ⊙ [a, b, c, d] = [a, 0, c, 0] — Binary. Destructive. Selected features only. Like snapping to a grid: 0° or 90° rotation only. Each dimension either fully matters or is completely killed."
+            },
+            {
+              "term": "Level 1: Soft Attention Mask",
+              "definition": "[0.9, 0.1, 0.8, 0.2] ⊙ [a, b, c, d] = [0.9a, 0.1b, 0.8c, 0.2d] — Continuous weights. Emphasize some dimensions, de-emphasize others. This is what attention mechanisms in transformers do. Still diagonal (each dimension independent)."
+            },
+            {
+              "term": "Level 2: Diagonal Rotation (RotatE)",
+              "definition": "[e^(iθ₁), e^(iθ₂), e^(iθ₃), e^(iθ₄)] ⊙ [a, b, c, d] — Rotates each dimension by a different angle. Nothing is lost — every dimension survives, just reoriented. θ ≈ 0° means 'similar on this dimension.' θ = 180° means 'opposites.' θ = 90° means 'irrelevant' — which is the bitmask 0 as a special case!"
+            },
+            {
+              "term": "Level 3: Scaled Rotation",
+              "definition": "r·e^(iθ) per dimension — combines importance (magnitude r) with similarity pattern (angle θ). 'Matters a little, applies to similar people' = small r, near-zero θ. Strictly more expressive than pure rotation."
+            },
+            {
+              "term": "Level 4: Full Rotation Matrix",
+              "definition": "R · [a, b, c, d] where R is a full matrix — can MIX dimensions. 'Hates people who are smart AND arrogant' requires looking at dimensions simultaneously. Each output depends on ALL inputs. Most expressive, most powerful."
+            }
+          ]
+        },
+        {
+          "type": "Callout",
+          "variant": "insight",
+          "content": "**The punchline:** 90° rotation IS the bitmask! When a learned operator sets θ_k = 90° for dimension k, it's saying \"this feature doesn't matter for this relationship\" — exactly what a 0 in a bitmask means. But the operator can also say θ_k = 37° — \"this feature matters in a TWISTED way\" — which a bitmask can never express. The Bloom filter is the binary special case of what continuous rotations do."
+        },
+        {
+          "type": "InteractiveDemo",
+          "title": "What Does the Rotation Angle Mean?",
+          "prompt": "For each angle θ in a RotatE operator applied to one dimension, what relationship pattern does it encode?",
+          "scenarios": [
+            {
+              "input": "θ = 0° (no rotation)",
+              "reveal": "**'Hater and hated are SIMILAR on this dimension.'**\n\nTom's value on this dimension, rotated by 0°, should land near Dick's value. If this dimension encodes 'political leaning,' then Tom hates people with the SAME politics. (Maybe self-loathing, maybe intra-party rivalry.)"
+            },
+            {
+              "input": "θ = 180° (half rotation)",
+              "reveal": "**'Hater and hated are OPPOSITES on this dimension.'**\n\nTom's value, flipped 180°, should land near Dick's value. If this dimension encodes 'political leaning,' Tom hates people on the opposite side. This is the most intuitive pattern for 'hates.'"
+            },
+            {
+              "input": "θ = 90° (quarter rotation)",
+              "reveal": "**'This dimension is IRRELEVANT to this relationship.'**\n\nRotation by 90° makes the dimension orthogonal — it contributes no signal to the match. This is exactly a bitmask 0: 'don't look at this feature.' The rotation framework can learn to IGNORE dimensions, just like a Bloom filter."
+            },
+            {
+              "input": "θ = 37° (arbitrary angle)",
+              "reveal": "**'This feature matters, but in a twisted way.'**\n\nThe hater and hated aren't similar (0°) or opposite (180°) — they're offset by a specific amount. Maybe Tom hates people who are 'slightly more conservative than him.' This nuanced pattern is impossible for a bitmask to express but natural for a rotation."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "Fragment",
+      "title": "The Case for Full Rotation Matrices",
+      "content": [
+        {
+          "type": "Section",
+          "title": "Why Diagonal Isn't Enough",
+          "content": "All the levels from bitmask through scaled rotation share one limitation: they treat each dimension **independently**. Dimension 3 gets its own angle and weight, dimension 7 gets its own, and they never interact.\n\nThis means they can express:\n- \"Tom hates untrustworthy people\" ✓ (if trustworthiness = one dimension)\n- \"Tom hates arrogant people\" ✓ (if arrogance = one dimension)\n\nBut NOT:\n- \"Tom hates people who are smart AND arrogant\" ✗\n\nIf smartness is dimension 3 and arrogance is dimension 7, a diagonal operator weights each independently. It would match smart-but-humble people and dumb-but-arrogant people equally well. The AND — the **feature interaction** — requires looking at both dimensions simultaneously."
+        },
+        {
+          "type": "Analogy",
+          "left": {
+            "title": "Diagonal Operation",
+            "items": [
+              "[a, b, c, d] → [f(a), g(b), h(c), k(d)]",
+              "Each output depends on ONE input",
+              "Can weight/rotate dimensions independently",
+              "Can't express 'smart AND arrogant'",
+              "d parameters per operator"
+            ]
+          },
+          "right": {
+            "title": "Full Rotation Matrix",
+            "items": [
+              "[a, b, c, d] → [f(a,b,c,d), g(a,b,c,d), ...]",
+              "Each output depends on ALL inputs",
+              "Can mix dimensions freely",
+              "Can express any feature interaction",
+              "d² parameters per operator"
+            ]
+          },
+          "bridgeText": "The full matrix can compute composite features: 'hatable = 0.6×smart + 0.8×arrogant.' It MIXES the embedding dimensions, discovering that the relevant property is a combination of stored features, not any single one."
+        },
+        {
+          "type": "Section",
+          "title": "Full Matrices on Concatenated Participants",
+          "content": "Now connect this to the multi-entity insight: events don't change one entity — they change ALL participants.\n\nA full rotation matrix operating on the **concatenation** of all participant embeddings:\n\n```\n[embed(agent) | embed(object) | embed(recipient)]\n            ↓ full rotation matrix ↓\n[new_agent  | new_object   | new_recipient]\n```\n\nThis operator takes the **entire event context** and transforms all participants simultaneously, with cross-entity feature interactions. The matrix can express:\n\n- Agent's willingness INTERACTS WITH patient's receptivity\n- Object's transferability DEPENDS ON agent's possession\n- Recipient's new state DEPENDS ON both what was transferred and who sent it\n\nThis is exactly what a Schankian operator should do: transform the complete state of all participants in one operation."
+        },
+        {
+          "type": "Example",
+          "title": "ATRANS as a Full Rotation Matrix",
+          "setup": "\"John gave Mary the book.\" ATRANS operates on all three participants simultaneously.",
+          "steps": [
+            {
+              "label": "Input: Concatenated State",
+              "detail": "```\n[embed(John)         | embed(book)      | embed(Mary)       ]\n[possesses_book=1    | custodian=John   | possesses_book=0  ]\n[willingness=0.9     | transferable=1   | capacity=1        ]\n  ... d dims ...       ... d dims ...     ... d dims ...\n```\n\nTotal input: 3d-dimensional vector."
+            },
+            {
+              "label": "Operator: Full Rotation Matrix",
+              "detail": "```\nW_ATRANS is a (3d × 3d) matrix\n```\n\nCritically, the off-diagonal BLOCKS of this matrix capture cross-entity interactions:\n- Block [agent→object]: how the agent's state affects the object's transformation\n- Block [object→recipient]: how the object's properties affect the recipient's new state\n- Block [agent→recipient]: direct agent-recipient interaction (social dynamics of giving)"
+            },
+            {
+              "label": "Output: Transformed State",
+              "detail": "```\n[embed(John')        | embed(book')     | embed(Mary')      ]\n[possesses_book=0    | custodian=Mary   | possesses_book=1  ]\n[willingness=done    | transferable=1   | capacity=0.8      ]\n```\n\nAll three participants updated simultaneously, with interactions."
+            }
+          ],
+          "punchline": "One matrix multiply transforms the entire event context. The operator IS the event. No need for separate per-entity operations composed by hand — the full matrix handles interactions natively."
+        },
+        {
+          "type": "DeepDive",
+          "title": "Parameter Budget: Is This Feasible?",
+          "content": "**Concern:** A full (3d × 3d) matrix has 9d² parameters per operator. For d = 128, that's ~150K parameters per operator. With 15 operators: ~2.2M parameters total.\n\n**In context:**\n- GPT-2 Small: 117M parameters\n- A typical LoRA adapter: 1-10M parameters\n- Our entire operator set: ~2M parameters\n\nThis is tiny by modern standards. The parameter budget is not a concern.\n\n**The real question is trainability:** Can we learn meaningful (3d × 3d) matrices from data? With enough training triples (or, per today's insight, training tuples with all participants), yes. The key is having enough examples of each operator type to constrain the matrix.\n\n**Regularization options:**\n- Low-rank: factorize W = UV where U is (3d × r) and V is (r × 3d), with r << 3d. This smoothly interpolates between diagonal (r = 1) and full (r = 3d).\n- Block-sparse: allow full interaction within entity blocks, sparse between entities\n- Orthogonal constraint: keep W as a proper rotation (preserves information)\n\nThe rank r is itself learnable — start low, increase if needed. This lets the model discover how much cross-entity interaction each operator actually needs."
+        }
+      ]
+    },
+    {
+      "type": "Fragment",
+      "title": "The Complete Hierarchy",
+      "content": [
+        {
+          "type": "Section",
+          "title": "From Flat Arrays to Operators: The Full Picture",
+          "content": "We've derived the entire progression from first principles:"
+        },
+        {
+          "type": "DefinitionList",
+          "definitions": [
+            {
+              "term": "Flat Array (exact, uncompressed)",
+              "definition": "Store every relationship explicitly. O(1) lookup. Composes via bitwise AND. Size: O(R × N²). Works perfectly at small scale. Impossible at large scale."
+            },
+            {
+              "term": "Bloom Filter (binary compression)",
+              "definition": "Hash entities into compact bitvectors. Feature-based membership test replaces explicit set. Only works if hash captures WHY relationships exist."
+            },
+            {
+              "term": "Embedding + Diagonal Operator",
+              "definition": "One d-dimensional embedding per entity. Each operator selects/rotates features independently. Like a Bloom filter with continuous hash values and per-relationship bit masks."
+            },
+            {
+              "term": "Embedding + Full Rotation Matrix (OUR APPROACH)",
+              "definition": "One embedding per entity. Each operator is a full matrix on concatenated participant embeddings. Captures feature interactions within and across entities. The operator transforms the entire event context in one multiply."
+            }
+          ]
+        },
+        {
+          "type": "Callout",
+          "variant": "insight",
+          "content": "**The unifying insight:** Every level of this hierarchy answers the same question differently: \"What makes Tom hate Dick?\" The flat array says \"because I stored it.\" The Bloom filter says \"because Dick's features hash to the right bits.\" The diagonal rotation says \"because Dick's features, when rotated, align with Tom's.\" The full matrix says \"because the combination of Tom's features, Dick's features, and their interaction, when transformed by the HATES operator, produces a high score.\" Each level adds expressiveness. The full matrix can represent everything the others can, plus feature interactions they can't."
+        }
+      ]
+    },
+    {
+      "type": "Fragment",
+      "title": "Test Your Understanding",
+      "content": [
+        {
+          "type": "Quiz",
+          "questions": [
+            {
+              "question": "Why can't the flat array approach scale to large graphs?",
+              "options": [
+                "Array lookups become slow at large N",
+                "Storage is O(R × N²) — for 1M entities and 100 relationships, that's 100 trillion slots",
+                "Bitwise AND doesn't work on large arrays",
+                "You can't represent weighted relationships in a flat array"
+              ],
+              "correctIndex": 1,
+              "explanation": "The lookup is still O(1) and bitwise AND still works. The problem is purely storage: you need one slot for every possible (source, relationship, target) triple. At N = 1M, that's N² = 10¹² slots per relationship type. Most are null/zero, which is why compression becomes essential."
+            },
+            {
+              "question": "What is the key condition for embedding-based compression to work?",
+              "options": [
+                "The embedding dimensions must be orthogonal",
+                "There must be shared structure — the same features predict relationships across different entities",
+                "The number of relationships must be small",
+                "Entities must have pre-defined feature vectors"
+              ],
+              "correctIndex": 1,
+              "explanation": "If Tom hates untrustworthy people AND Dick hates untrustworthy people, one 'trustworthiness' dimension handles both. The operator captures the shared pattern. If every entity's hate pattern is completely idiosyncratic, no compression scheme can help — you're back to the flat array."
+            },
+            {
+              "question": "In RotatE, what does a rotation angle of 90° mean for a particular dimension?",
+              "options": [
+                "The source and target are similar on this dimension",
+                "The source and target are opposites on this dimension",
+                "This dimension is irrelevant to the relationship — equivalent to a bitmask 0",
+                "The relationship is uncertain on this dimension"
+              ],
+              "correctIndex": 2,
+              "explanation": "90° rotation makes the dimension orthogonal — it contributes no signal to the match score. This is exactly what a 0 in a Bloom filter bitmask means: 'ignore this feature for this relationship.' The bitmask is the binary special case of rotation."
+            },
+            {
+              "question": "Why do we need a FULL rotation matrix instead of diagonal rotations for Schankian operators?",
+              "options": [
+                "Full matrices are faster to compute",
+                "Diagonal rotations can't represent negative relationships",
+                "Full matrices can capture feature INTERACTIONS — like 'smart AND arrogant' — that diagonal operations miss because they treat each dimension independently",
+                "Full matrices use fewer parameters"
+              ],
+              "correctIndex": 2,
+              "explanation": "Diagonal operations process each dimension independently: they can weight 'smart' and 'arrogant' separately but can't express their conjunction. A full matrix mixes dimensions: it can compute composite features like 'hatable = 0.6×smart + 0.8×arrogant.' For Schankian operators, this means capturing how an agent's willingness INTERACTS with a patient's receptivity."
+            },
+            {
+              "question": "What is the advantage of operating on CONCATENATED participant embeddings rather than individual entities?",
+              "options": [
+                "It's computationally cheaper",
+                "It makes the embeddings more interpretable",
+                "The operator can capture cross-entity interactions — how one participant's state affects another's transformation",
+                "It reduces the number of operators needed"
+              ],
+              "correctIndex": 2,
+              "explanation": "When 'John gave Mary the book,' the change to Mary's state DEPENDS on what John had and what the book is. A per-entity operator can't express this dependency. A matrix on the concatenation [John|book|Mary] naturally captures: John's possession interacts with Mary's capacity to determine whether the transfer succeeds and how all three states change."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "Fragment",
+      "title": "What's Next",
+      "content": [
+        {
+          "type": "Section",
+          "title": "From Theory to Implementation",
+          "content": "We've derived the architecture from first principles. The next steps:\n\n1. **Data format:** Training examples must include ALL participants with before/after states (not just agent-patient pairs)\n2. **Matrix structure:** Start with low-rank factorization and increase rank if needed — let the data tell us how much cross-entity interaction each operator requires\n3. **Operator discovery:** Use MDL (Brainstorm #45) or DreamCoder-style library learning (Brainstorm #54) to determine how many distinct operators emerge\n4. **Evaluation:** Does the learned operator set compress event descriptions? Do ~14 operators emerge across random seeds?\n\nThe flat array → Bloom filter → rotation → full matrix progression isn't just pedagogy. It's a roadmap: each level tells us what we gain and what we sacrifice. The full matrix on concatenated participants is where the expressiveness-tractability tradeoff lands."
+        }
+      ]
+    }
+  ]
+}
