@@ -155,16 +155,16 @@
                 "props": {
                   "steps": [
                     {
-                      "label": "Represent as Vector",
-                      "detail": "Encode belief state as a vector in probability simplex:\n**Before:** b = (0.7, 0.3)\n**After:** b' = (0, 1)\n\nIn higher dimensions, this generalizes to distributions over many possible states."
+                      "title": "Represent as Vector",
+                      "description": "Encode belief state as a vector in probability simplex:\n**Before:** b = (0.7, 0.3)\n**After:** b' = (0, 1)\n\nIn higher dimensions, this generalizes to distributions over many possible states."
                     },
                     {
-                      "label": "OBSERVE as Projection",
-                      "detail": "The OBSERVE operator projects onto the subspace consistent with the observation:\n\nOBSERVE(X) = project onto {states where X is true}, then renormalize\n\nGeometrically: collapse the probability mass onto the observed outcome. This is Bayesian updating with a delta-function likelihood."
+                      "title": "OBSERVE as Projection",
+                      "description": "The OBSERVE operator projects onto the subspace consistent with the observation:\n\nOBSERVE(X) = project onto {states where X is true}, then renormalize\n\nGeometrically: collapse the probability mass onto the observed outcome. This is Bayesian updating with a delta-function likelihood."
                     },
                     {
-                      "label": "In Complex Space",
-                      "detail": "If we embed beliefs in complex space (like entity states), OBSERVE becomes a rotation that aligns the belief vector with the 'certainty' direction for the observed fact. Uncertainty = spread across directions; certainty = alignment with one direction."
+                      "title": "In Complex Space",
+                      "description": "If we embed beliefs in complex space (like entity states), OBSERVE becomes a rotation that aligns the belief vector with the 'certainty' direction for the observed fact. Uncertainty = spread across directions; certainty = alignment with one direction."
                     }
                   ]
                 }
@@ -252,16 +252,16 @@
                 "props": {
                   "steps": [
                     {
-                      "label": "Detection = RECOGNIZE",
-                      "detail": "To detect the error, the model needs:\n\nRECOGNIZE(confounding_pattern)\n\nThis is pattern matching on epistemic states. The model has seen examples of spurious correlations and recognizes this as one. It's an OBSERVATION operator on its own reasoning \u2014 noticing a pattern.\n\n**Geometric:** Check if the current reasoning trajectory passes through a 'known fallacy' region of belief space."
+                      "title": "Detection = RECOGNIZE",
+                      "description": "To detect the error, the model needs:\n\nRECOGNIZE(confounding_pattern)\n\nThis is pattern matching on epistemic states. The model has seen examples of spurious correlations and recognizes this as one. It's an OBSERVATION operator on its own reasoning \u2014 noticing a pattern.\n\n**Geometric:** Check if the current reasoning trajectory passes through a 'known fallacy' region of belief space."
                     },
                     {
-                      "label": "Correction = CONSTRUCT + APPLY",
-                      "detail": "To correct, the model needs:\n\n1. IDENTIFY the confounder (summer/heat)\n2. CONSTRUCT the correct causal graph\n3. APPLY the right inference (control for confounder)\n4. GENERATE a corrected explanation\n\nThis is a CHAIN of epistemic operators, including constructive operators that build new knowledge structures.\n\n**Geometric:** Not just recognizing a region, but navigating FROM that region TO a correct region. Requires knowing the direction to move, not just the location."
+                      "title": "Correction = CONSTRUCT + APPLY",
+                      "description": "To correct, the model needs:\n\n1. IDENTIFY the confounder (summer/heat)\n2. CONSTRUCT the correct causal graph\n3. APPLY the right inference (control for confounder)\n4. GENERATE a corrected explanation\n\nThis is a CHAIN of epistemic operators, including constructive operators that build new knowledge structures.\n\n**Geometric:** Not just recognizing a region, but navigating FROM that region TO a correct region. Requires knowing the direction to move, not just the location."
                     },
                     {
-                      "label": "The Gap",
-                      "detail": "Detection is CLASSIFICATION (is this state in the 'error' region?).\nCorrection is GENERATION (produce a path from error to correct).\n\nThe second is strictly harder. You can recognize you're lost without knowing the way home."
+                      "title": "The Gap",
+                      "description": "Detection is CLASSIFICATION (is this state in the 'error' region?).\nCorrection is GENERATION (produce a path from error to correct).\n\nThe second is strictly harder. You can recognize you're lost without knowing the way home."
                     }
                   ]
                 }
@@ -359,16 +359,16 @@
                 "props": {
                   "steps": [
                     {
-                      "label": "Standard Probability Approach",
-                      "detail": "Force a distribution: P(blue) = 0.5, P(green) = 0.5\n\nBut this implies MORE certainty than the evidence supports. The witness didn't say \"equally likely\" \u2014 they said \"one or the other but I don't know.\""
+                      "title": "Standard Probability Approach",
+                      "description": "Force a distribution: P(blue) = 0.5, P(green) = 0.5\n\nBut this implies MORE certainty than the evidence supports. The witness didn't say \"equally likely\" \u2014 they said \"one or the other but I don't know.\""
                     },
                     {
-                      "label": "Dempster-Shafer Approach",
-                      "detail": "Assign mass to the SET {blue, green}: m({blue, green}) = 1.0\n\nNow:\n- Bel(blue) = 0 (no direct evidence for blue specifically)\n- Pl(blue) = 1 (blue is plausible)\n- Bel(blue \u2228 green) = 1 (definitely one of these)\n\nThe ignorance interval for 'blue' is [0, 1] \u2014 we genuinely don't know."
+                      "title": "Dempster-Shafer Approach",
+                      "description": "Assign mass to the SET {blue, green}: m({blue, green}) = 1.0\n\nNow:\n- Bel(blue) = 0 (no direct evidence for blue specifically)\n- Pl(blue) = 1 (blue is plausible)\n- Bel(blue \u2228 green) = 1 (definitely one of these)\n\nThe ignorance interval for 'blue' is [0, 1] \u2014 we genuinely don't know."
                     },
                     {
-                      "label": "Operator Implication",
-                      "detail": "An OBSERVE operator processing this testimony should output a DS belief function, not a point probability. The output should ENCODE the ignorance, not collapse it.\n\nGeometrically: instead of projecting to a point, project to a REGION (the valid belief interval)."
+                      "title": "Operator Implication",
+                      "description": "An OBSERVE operator processing this testimony should output a DS belief function, not a point probability. The output should ENCODE the ignorance, not collapse it.\n\nGeometrically: instead of projecting to a point, project to a REGION (the valid belief interval)."
                     }
                   ]
                 }
@@ -431,20 +431,20 @@
                 "props": {
                   "steps": [
                     {
-                      "label": "Entity-State Track",
-                      "detail": "ATRANS(John, book, John \u2192 Mary)\n- possession(book): John \u2192 Mary\n\nThis is the physical event: the book changed hands."
+                      "title": "Entity-State Track",
+                      "description": "ATRANS(John, book, John \u2192 Mary)\n- possession(book): John \u2192 Mary\n\nThis is the physical event: the book changed hands."
                     },
                     {
-                      "label": "Epistemic-State Track (Sarah)",
-                      "detail": "OBSERVE(Sarah, ATRANS(John, book, John \u2192 Mary))\n- K_Sarah(possession(book) = Mary) \u2014 Sarah now knows Mary has the book\n\nSarah's epistemic state updated via perception."
+                      "title": "Epistemic-State Track (Sarah)",
+                      "description": "OBSERVE(Sarah, ATRANS(John, book, John \u2192 Mary))\n- K_Sarah(possession(book) = Mary) \u2014 Sarah now knows Mary has the book\n\nSarah's epistemic state updated via perception."
                     },
                     {
-                      "label": "Epistemic-State Track (Reader)",
-                      "detail": "LEARN(reader, K_Sarah(ATRANS occurred))\n- We know that Sarah knows about the transfer\n- Nested epistemic states: K_reader(K_Sarah(possession(book) = Mary))"
+                      "title": "Epistemic-State Track (Reader)",
+                      "description": "LEARN(reader, K_Sarah(ATRANS occurred))\n- We know that Sarah knows about the transfer\n- Nested epistemic states: K_reader(K_Sarah(possession(book) = Mary))"
                     },
                     {
-                      "label": "Full Analysis",
-                      "detail": "One sentence involves:\n1. One entity-state operator (ATRANS)\n2. One epistemic operator for a character (Sarah OBSERVE)\n3. One epistemic operator for the reader (we LEARN)\n\nNarrative comprehension requires tracking BOTH tracks simultaneously."
+                      "title": "Full Analysis",
+                      "description": "One sentence involves:\n1. One entity-state operator (ATRANS)\n2. One epistemic operator for a character (Sarah OBSERVE)\n3. One epistemic operator for the reader (we LEARN)\n\nNarrative comprehension requires tracking BOTH tracks simultaneously."
                     }
                   ]
                 }
