@@ -345,6 +345,24 @@
             "children": "Key insight: We never tell the model what the operators ARE. We only show it examples of (agent, op, patient) triples and let it discover the operator patterns from data."
           },
           {
+            "type": "Callout",
+            "props": {
+              "type": "warning"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": [
+                  {
+                    "type": "strong",
+                    "children": "\ud83d\udea8 Critical Insight (2026-02-12): Multi-Entity State Change."
+                  },
+                  " The current (agent, operator, patient) triple formulation is incomplete. An event doesn't just change ONE entity \u2014 it transforms the ENTIRE event context: the world state, the subject, the direct object, AND the indirect object. Example: \"John gave Mary the book\" changes: (1) John's possession state (\u2212book), (2) Mary's possession state (+book), (3) the book's location/custodian, and (4) the world's ownership graph. Our training data and operator model must account for ALL participant state changes, not just agent\u2192patient. This likely requires an annotation step to identify, describe, and vectorize each affected participant."
+                ]
+              }
+            ]
+          },
+          {
             "type": "h4",
             "children": "Results: 88.2% Operator Recovery"
           },
@@ -746,6 +764,24 @@
                 "children": "This separates TWO concerns: (1) capturing knowledge, (2) efficient retrieval"
               }
             ]
+          },
+          {
+            "type": "Callout",
+            "props": {
+              "type": "warning"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": [
+                  {
+                    "type": "strong",
+                    "children": "\ud83d\udea8 Multi-Entity Tracking Required (2026-02-12):"
+                  },
+                  " Entity state tracking must be PARALLEL across all event participants. When tracking 'the book' through a narrative, we also need to track how each event affects the giver, receiver, and world state simultaneously. This means our state trajectories aren't independent per-entity \u2014 they're coupled through shared events. The annotation pipeline needs to produce state-change vectors for ALL participants of each event."
+                ]
+              }
+            ]
           }
         ]
       },
@@ -790,6 +826,24 @@
                     "children": "\ud83d\udcdd Paper title confirmed (2026-02-12):"
                   },
                   " \"Darkness Visible: Enhancing Hierarchical RAG with Explicit Subtext Annotations\" \u2014 applying the implicit-state inference framework to hierarchical RAG pipelines. The Schankian operator vocabulary provides the annotation schema for making subtext explicit."
+                ]
+              }
+            ]
+          },
+          {
+            "type": "Callout",
+            "props": {
+              "type": "warning"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": [
+                  {
+                    "type": "strong",
+                    "children": "\ud83d\udea8 Annotation Scope (2026-02-12):"
+                  },
+                  " For \"Darkness Visible,\" the annotation step must identify ALL participants affected by each event and generate state-change descriptions for each. This multiplies the annotation work but dramatically enriches the implicit-state layer. A single sentence like \"John gave Mary the book\" should produce annotations for John (lost possession), Mary (gained possession), the book (changed custodian), and potentially the social relationship (gift implies goodwill)."
                 ]
               }
             ]
