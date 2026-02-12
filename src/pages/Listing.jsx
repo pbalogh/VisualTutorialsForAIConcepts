@@ -331,6 +331,18 @@ const tutorials = [
     difficulty: 3,
   },
   {
+    id: 'brainstorm-55-flat-arrays-to-rotations',
+    title: 'From Flat Arrays to Full Rotation Matrices',
+    description: 'Deriving the operator architecture from first principles — starting with the simplest graph database and building up to full rotation matrices on concatenated participants',
+    tags: ['schankian', 'architecture', 'rotation', 'first-principles'],
+    icon: '🔄',
+    gradient: 'from-amber-500 to-orange-600',
+    shadowColor: 'shadow-amber-500/30',
+    glowColor: 'rgba(245, 158, 11, 0.4)',
+    readTime: '25 min',
+    difficulty: 2,
+  },
+  {
     id: 'brainstorm-06-tensor-products-fail',
     title: 'Tensor Products Fail at Compositionality',
     description: 'Why operators succeed where vector composition breaks down — bounded vs exponential dimensionality',
