@@ -1260,48 +1260,233 @@
       {
         "type": "Section",
         "props": {
-          "title": "Paper 4: Vision Paper (Synthesis)"
+          "title": "Paper 4: Semantic Reward Machines — Operators as the Shared Language of Understanding and Planning"
         },
         "children": [
           {
-            "type": "p",
-            "children": "The big picture: a complete system for understanding narratives through learned operators + entity state tracking + temporal structure."
+            "type": "Callout",
+            "props": { "type": "tip" },
+            "children": "🎯 This paper's thesis: The same Schankian operators that let you UNDERSTAND a narrative also let you PLAN and EXECUTE actions. Comprehension and agency use the same primitives."
           },
           {
             "type": "h3",
-            "children": "Potential Title"
+            "children": "4.1 The Core Insight: Understanding IS Planning in Reverse"
+          },
+          {
+            "type": "p",
+            "children": "When you read 'John went to the store and bought milk,' you effortlessly reconstruct the plan: PTRANS(John, home→store), then ATRANS(store, milk, John) in exchange for ATRANS(John, money, store). You understand the narrative BECAUSE you can see the plan embedded in it."
+          },
+          {
+            "type": "p",
+            "children": "When an AI agent needs to get milk, it must construct the same sequence: move to store, exchange money for milk. The operators are identical. The direction is reversed — comprehension decomposes observed events into operators, planning composes operators into future events."
           },
           {
             "type": "Callout",
-            "props": {
-              "type": "tip"
-            },
-            "children": "🎯 'Entities, Operators, Anaphora, and Arrows: Oh My'"
+            "props": { "type": "info" },
+            "children": "This is exactly the forward-inverse model pair from Brainstorm #27. Forward: (state + operator) → new state (planning). Inverse: (old state, new state) → operator (comprehension). Same architecture, two APIs."
           },
           {
             "type": "h3",
-            "children": "Key Theoretical Contributions"
+            "children": "4.2 Reward Machines: The Missing Bridge"
+          },
+          {
+            "type": "p",
+            "children": "Reward Machines (RMs) are finite state automata used in reinforcement learning for temporally extended tasks. Each state represents progress toward a goal, and transitions are triggered by 'propositional events' — abstract descriptions of what just happened."
+          },
+          {
+            "type": "p",
+            "children": "Here's the key: Schankian operators ARE those transition functions."
+          },
+          {
+            "type": "Example",
+            "props": { "title": "The Restaurant Script as a Reward Machine" },
+            "children": [
+              {
+                "type": "Code",
+                "props": { "language": "text" },
+                "children": "STATE MACHINE: Restaurant Visit\n\n  [Outside] --PTRANS(self, →restaurant)--> [At Restaurant]\n  [At Restaurant] --ATTEND(host, self)--> [Being Seated]\n  [Being Seated] --PTRANS(self, →table)--> [At Table]\n  [At Table] --MTRANS(menu, →self)--> [Choosing]\n  [Choosing] --MBUILD(decision)--> [Ready to Order]\n  [Ready to Order] --MTRANS(order, self→waiter)--> [Waiting]\n  [Waiting] --PTRANS(food, kitchen→table)--> [Food Arrived]\n  [Food Arrived] --INGEST(self, food)--> [Eating]\n  [Eating] --ATRANS(self, money, →restaurant)--> [Paid]\n  [Paid] --PTRANS(self, restaurant→outside)--> [Done]"
+              },
+              {
+                "type": "p",
+                "children": "This IS Schank's restaurant script from 1977. It's also a valid Reward Machine from the 2022 RL literature. Same structure, 45 years apart, from completely different fields."
+              }
+            ]
+          },
+          {
+            "type": "h3",
+            "children": "4.3 What This Unification Buys Us"
+          },
+          {
+            "type": "h4",
+            "children": "For Narrative Understanding (Comprehension Direction)"
           },
           {
             "type": "ul",
             "children": [
-              {
-                "type": "li",
-                "children": "Empirical → Theoretical: Let data discover primitives, then analyze"
-              },
-              {
-                "type": "li",
-                "children": "CNN analogy: Don't hand-design Gabor filters, let them emerge"
-              },
-              {
-                "type": "li",
-                "children": "Operators as geometric transformations, not symbolic rules"
-              },
-              {
-                "type": "li",
-                "children": "State as trajectory, not snapshot"
-              }
+              { "type": "li", "children": "Script recognition: Match observed event sequences against known operator chains (RM pattern matching)" },
+              { "type": "li", "children": "Expectation generation: 'They sat down at the table' → predict MTRANS(menu) next (RM state → expected transitions)" },
+              { "type": "li", "children": "Anomaly detection: 'They sat down and started fighting' → unexpected transition → this isn't the restaurant script anymore" },
+              { "type": "li", "children": "Implicit state tracking: RM state encodes everything that's happened so far — Frank-after-shooting is a different RM state than Frank-before" }
             ]
+          },
+          {
+            "type": "h4",
+            "children": "For Agent Planning (Action Direction)"
+          },
+          {
+            "type": "ul",
+            "children": [
+              { "type": "li", "children": "Goal decomposition: 'Get milk' → plan the operator sequence (PTRANS + ATRANS + PTRANS)" },
+              { "type": "li", "children": "Failure recovery: If ATRANS fails (no money), the RM can backtrack or branch to an alternate path" },
+              { "type": "li", "children": "Multi-entity coordination: Parallel RMs for each entity, with synchronization points (the waiter's RM and your RM must agree on MTRANS(order))" },
+              { "type": "li", "children": "Transfer learning: Restaurant script ≈ Café script ≈ Fast food script — same RM topology, different parameters" }
+            ]
+          },
+          {
+            "type": "h4",
+            "children": "For Both (The Shared Primitive Vocabulary)"
+          },
+          {
+            "type": "p",
+            "children": "The operator vocabulary is identical whether you're parsing a story or planning an action. This means:"
+          },
+          {
+            "type": "ul",
+            "children": [
+              { "type": "li", "children": "An agent that reads instructions can execute them — same operators" },
+              { "type": "li", "children": "An agent that executes a plan can narrate what it did — same operators" },
+              { "type": "li", "children": "An agent that observes another agent can predict its next move — shared RM structure" },
+              { "type": "li", "children": "Debugging is human-readable: 'The agent applied PTRANS but should have applied ATRANS' makes sense to both the system and the developer" }
+            ]
+          },
+          {
+            "type": "h3",
+            "children": "4.4 The Symbol Grounding Problem (And How We Solve It)"
+          },
+          {
+            "type": "p",
+            "children": "Traditional Reward Machines assume someone has already defined the 'propositional events' — the symbols that trigger transitions. This is the symbol grounding problem: how do you go from raw observations to abstract event types?"
+          },
+          {
+            "type": "p",
+            "children": "This is exactly what Papers 1-3 solve:"
+          },
+          {
+            "type": "ComparisonTable",
+            "props": {
+              "headers": ["RM Component", "Our Solution", "Paper"],
+              "rows": [
+                ["Propositional events", "Learned Schankian operators from verb/event embeddings", "Paper 1"],
+                ["State representation", "Entity state trajectories in complex vector space", "Paper 2"],
+                ["Temporal ordering", "Separate entity chains with synchronization", "Paper 3"],
+                ["State transitions", "Full rotation matrices on concatenated participant embeddings", "Paper 1 (revised)"],
+                ["Script/RM topology", "Discovered from corpus via operator sequence clustering", "Paper 4 (this paper)"]
+              ]
+            }
+          },
+          {
+            "type": "Callout",
+            "props": { "type": "info" },
+            "children": "Neural Reward Machines (Dahan et al., 2024) solve symbol grounding with probabilistic Moore machines — learning to map observations to propositional symbols during RL training. We do the analogous thing for language: learn to map text to operator symbols during comprehension training."
+          },
+          {
+            "type": "h3",
+            "children": "4.5 Handling the Hard Cases"
+          },
+          {
+            "type": "h4",
+            "children": "Ambiguous Operators"
+          },
+          {
+            "type": "p",
+            "children": "'He shot the sheriff' — is this PROPEL (fired a gun) or HARM (injured/killed)? In the RM framework, this triggers BOTH transitions simultaneously with probabilities, and subsequent observations disambiguate. 'He shot the sheriff... a glance' collapses to MTRANS. 'He shot the sheriff... who fell dead' collapses to HARM. The RM maintains a belief state over possible transitions until disambiguation."
+          },
+          {
+            "type": "h4",
+            "children": "Parallel Entity Machines"
+          },
+          {
+            "type": "p",
+            "children": "'The cat's screaming was synchronous with Adam's dropping of the salad bowl.' Two entities, two parallel state machines, with a synchronization constraint. Multi-agent RM decomposition (from the RL literature) handles this naturally — each entity runs its own RM, with shared events as synchronization points."
+          },
+          {
+            "type": "h4",
+            "children": "Counterfactual Reasoning"
+          },
+          {
+            "type": "p",
+            "children": "'If John hadn't gone to the store...' — apply the INVERSE of PTRANS(John, home→store), then propagate forward from the counterfactual state. The RM framework makes this explicit: fork the machine at the counterfactual branch point, apply the inverse transition, and run the alternate trajectory. This connects directly to Brainstorm #3 (operator inverses for counterfactuals)."
+          },
+          {
+            "type": "h4",
+            "children": "Novel Situations (No Matching Script)"
+          },
+          {
+            "type": "p",
+            "children": "What happens when the agent encounters a situation with no matching RM? This is where compositional operators shine. Even without a known script, the agent can reason step by step: 'I need to achieve state X. What operator transforms current state → X? What are that operator's preconditions? Can I satisfy them?' This is STRIPS-style planning (Brainstorm #28) using learned operators instead of hand-coded rules."
+          },
+          {
+            "type": "h3",
+            "children": "4.6 The Architecture"
+          },
+          {
+            "type": "Code",
+            "props": { "language": "text" },
+            "children": "SEMANTIC REWARD MACHINE ARCHITECTURE\n\n┌─────────────────────────────────────────────────┐\n│                  INPUT LAYER                     │\n│  Text / Observations / Sensor Data               │\n└─────────────┬───────────────────────────────────┘\n              │\n┌─────────────▼───────────────────────────────────┐\n│           OPERATOR DETECTION (Paper 1)           │\n│  Entity extraction + Operator classification     │\n│  → (agent, OPERATOR, patient) triples            │\n└─────────────┬───────────────────────────────────┘\n              │\n┌─────────────▼───────────────────────────────────┐\n│          ENTITY STATE TRACKER (Paper 2)          │\n│  Maintains state trajectory per entity            │\n│  Applies operator transforms: s' = R_op · s      │\n│  Handles implicit pre/postconditions              │\n└─────────────┬───────────────────────────────────┘\n              │\n┌─────────────▼───────────────────────────────────┐\n│         TEMPORAL ORCHESTRATOR (Paper 3)           │\n│  Parallel entity chains + synchronization         │\n│  Coreference resolution (detective = Marlowe)     │\n│  Temporal ordering and causal structure            │\n└─────────────┬───────────────────────────────────┘\n              │\n┌─────────────▼───────────────────────────────────┐\n│         REWARD MACHINE LAYER (Paper 4)           │\n│                                                   │\n│  COMPREHENSION:          PLANNING:                │\n│  Events → RM transitions  Goals → RM traversal    │\n│  Script recognition       Plan generation         │\n│  Anomaly detection        Failure recovery        │\n│  Prediction               Multi-step reasoning    │\n│                                                   │\n│  Shared operator vocabulary for both directions   │\n└─────────────────────────────────────────────────┘"
+          },
+          {
+            "type": "h3",
+            "children": "4.7 Why This Matters (The Big Claims)"
+          },
+          {
+            "type": "ol",
+            "children": [
+              { "type": "li", "children": "Comprehension and planning are NOT separate capabilities. They are the same machinery run in opposite directions. An agent that understands stories can plan, and an agent that plans can narrate." },
+              { "type": "li", "children": "Schank was building Reward Machines in 1977. The RL community independently reinvented scripts as state machines in 2018-2022. The convergence validates both." },
+              { "type": "li", "children": "The operator vocabulary is finite, learnable, and compositional. Novel situations don't require novel operators — just novel COMPOSITIONS of known ones." },
+              { "type": "li", "children": "Interpretability is built in. Every decision the agent makes can be expressed in human-readable operator sequences. 'I applied PTRANS because the preconditions for ATRANS weren't met' is a debuggable explanation." },
+              { "type": "li", "children": "Transfer across domains is natural. Restaurant operators transfer to cafés. Physical PTRANS transfers from 'walking' to 'driving'. The operator is invariant; the grounding changes." }
+            ]
+          },
+          {
+            "type": "h3",
+            "children": "4.8 Evaluation Strategy"
+          },
+          {
+            "type": "ComparisonTable",
+            "props": {
+              "headers": ["Test", "What It Measures", "Existing Benchmark"],
+              "rows": [
+                ["Script completion", "Given partial script, predict next operator", "Narrative Cloze (Chambers & Jurafsky)"],
+                ["Plan generation", "Given goal state, generate operator sequence", "STRIPS planning benchmarks"],
+                ["Story understanding QA", "Answer questions requiring implicit state", "ProPara, bAbI, ImplicitState-1K"],
+                ["Anomaly detection", "Flag events that violate script expectations", "Custom: insert wrong operator in script"],
+                ["Transfer", "Train on restaurants, test on hotels/hospitals", "Zero-shot domain transfer"],
+                ["Counterfactual reasoning", "Answer 'what if X hadn't happened?'", "Counterfactual QA datasets"],
+                ["Narration from execution", "Agent executes plan, generates readable summary", "Human evaluation"]
+              ]
+            }
+          },
+          {
+            "type": "h3",
+            "children": "4.9 Related Work"
+          },
+          {
+            "type": "ul",
+            "children": [
+              { "type": "li", "children": "Reward Machines (Toro Icarte et al., JAIR 2022) — FSA for temporally extended RL tasks" },
+              { "type": "li", "children": "Neural Reward Machines (Dahan et al., 2024) — Probabilistic Moore machines, learn symbol grounding" },
+              { "type": "li", "children": "Ground-Compose-Reinforce (Oct 2025) — Automated RM construction from language specifications" },
+              { "type": "li", "children": "Schank & Abelson (1977) — Scripts, Plans, Goals and Understanding" },
+              { "type": "li", "children": "Bosselut et al. (ICLR 2018) — Neural Process Networks (actions as state transformers)" },
+              { "type": "li", "children": "DreamCoder (Ellis et al., PLDI 2021) — Library learning for compositional program synthesis (Brainstorm #54)" },
+              { "type": "li", "children": "STRIPS/PDDL — Classical planning with preconditions and effects (Brainstorm #28)" }
+            ]
+          },
+          {
+            "type": "Callout",
+            "props": { "type": "warning" },
+            "children": "Open question: How do we discover new scripts/RMs from data? DreamCoder-style library learning (#54) applied to operator sequences could extract recurring RM topologies from a narrative corpus — the restaurant script as an emergent pattern, not a hand-coded structure."
           }
         ]
       },
