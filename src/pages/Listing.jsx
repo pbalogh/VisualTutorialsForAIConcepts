@@ -561,6 +561,18 @@ const tutorials = [
     glowColor: 'rgba(139, 92, 246, 0.4)',
     readTime: '35 min',
     difficulty: 3,
+  },
+  {
+    id: 'word2sense',
+    title: 'Word2Sense: Interpretable by Design',
+    description: 'What if every dimension of a word embedding corresponded to a specific meaning? Sparse, non-negative, and readable.',
+    tags: ['embeddings', 'interpretability', 'LDA', 'sparse'],
+    icon: '💡',
+    gradient: 'from-yellow-500 to-amber-600',
+    shadowColor: 'shadow-yellow-500/30',
+    glowColor: 'rgba(234, 179, 8, 0.4)',
+    readTime: '16 min',
+    difficulty: 2,
   }
 ]
 
@@ -605,6 +617,12 @@ const tagColors = {
   'clustering': 'bg-amber-100 text-amber-700 border-amber-200',
   'visualization': 'bg-pink-100 text-pink-700 border-pink-200',
   'optimization': 'bg-green-100 text-green-700 border-green-200',
+  
+  // Embeddings / Interpretability
+  'embeddings': 'bg-yellow-100 text-yellow-700 border-yellow-200',
+  'interpretability': 'bg-amber-100 text-amber-700 border-amber-200',
+  'LDA': 'bg-orange-100 text-orange-700 border-orange-200',
+  'sparse': 'bg-lime-100 text-lime-700 border-lime-200',
   
   // Biology
   'biology': 'bg-emerald-100 text-emerald-700 border-emerald-200',

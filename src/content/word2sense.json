@@ -1,0 +1,256 @@
+{
+  "id": "word2sense",
+  "title": "Word2Sense: Interpretable by Design",
+  "subtitle": "What if every dimension of a word embedding corresponded to a specific meaning? Sparse, non-negative, and readable.",
+  "readTime": "16 min",
+  "difficulty": 2,
+  "tags": ["embeddings", "interpretability", "LDA", "sparse"],
+  "state": {},
+  "content": {
+    "type": "Fragment",
+    "children": [
+      {
+        "type": "Section",
+        "props": { "title": "The Interpretability Problem" },
+        "children": [
+          { "type": "p", "children": "Word embeddings are one of NLP's great success stories. Word2Vec, GloVe, and FastText transformed how machines understand language — from one-hot vectors with no notion of similarity to dense real-valued vectors where 'king' minus 'man' plus 'woman' equals 'queen.' The vector arithmetic felt almost magical." },
+          { "type": "p", "children": "But there's a catch. Pick any single dimension — say, dimension 47 of a 300-dimensional Word2Vec embedding. What does it mean? Nothing in particular. It's not 'animacy' or 'size' or 'financial-ness.' It's some opaque linear combination of everything the model learned, distributed across all 300 dimensions in a way that defies human interpretation." },
+          {
+            "type": "Analogy",
+            "props": { "title": "The Smoothie vs. Bento Box" },
+            "children": [
+              { "type": "p", "children": "Dense embeddings are like a smoothie. You blend strawberries, banana, spinach, and yogurt into a delicious drink — and it works great. But you can't look at the resulting green-pink liquid and say 'this part is strawberry, that part is spinach.' The ingredients are hopelessly mixed." },
+              { "type": "p", "children": "Word2Sense aims to produce a bento box instead. Each compartment holds one ingredient. The compartments are labeled. Most compartments are empty (you don't need all ingredients for every word). You can look at the box and immediately understand what's inside — and yet the meal is just as nutritious." }
+            ]
+          },
+          { "type": "p", "children": "This is the core ambition of Panigrahi, Simhadri, and Bhattacharyya's 2019 paper: word embeddings where every dimension corresponds to a specific, identifiable word sense. Not interpretable after post-hoc analysis. Interpretable by construction." },
+          { "type": "p", "children": "The question they ask is deceptively simple: What if we design the embedding process so that each dimension means something from the start?" }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "The LDA Approach" },
+        "children": [
+          { "type": "p", "children": "The key insight behind Word2Sense is that there's already a well-studied framework for discovering latent 'topics' from text data: Latent Dirichlet Allocation (LDA), the workhorse of topic modeling." },
+          { "type": "p", "children": "In standard LDA, you feed in a corpus of documents and say 'find me K topics.' The model discovers that Topic 23 is about finance (high probability for words like 'stock,' 'dividend,' 'portfolio') while Topic 87 is about cooking (high probability for 'simmer,' 'sauté,' 'tablespoon'). Each document is a mixture of topics, and each topic is a distribution over words." },
+          { "type": "p", "children": "Word2Sense repurposes this machinery. Instead of modeling documents as mixtures of topics, it models words as mixtures of senses. The 'documents' fed to LDA are co-occurrence contexts: for each target word, the set of words that frequently appear nearby in the corpus. Each discovered 'topic' becomes a sense — a fine-grained concept like 'financial transactions,' 'bodies of water,' or 'athletic competition.'" },
+          {
+            "type": "DeepDive",
+            "props": { "title": "From Topics to Senses: The Generative Story" },
+            "children": [
+              { "type": "p", "children": "LDA tells a generative 'story' about how documents were created: first pick a mixture of topics, then for each word, sample a topic from the mixture and then sample a word from that topic's vocabulary distribution. This story is fictional — no one writes documents this way — but it captures real statistical structure." },
+              { "type": "p", "children": "Word2Sense tells an analogous story about co-occurrence: a word 'has' a mixture of senses. When it appears in context, one of its senses is 'active,' and the co-occurring words are generated from that sense's vocabulary distribution. The word 'bank' might have 60% financial sense and 35% waterway sense (and 5% miscellaneous). When 'bank' appears near 'loan' and 'interest,' we infer the financial sense was active." },
+              { "type": "p", "children": "The mathematical machinery for recovering these latent senses from observed co-occurrence data is identical to standard LDA — but the interpretation is different. Each topic is now a word sense, and the topic mixture for each 'document' (word context) gives us the word's embedding: a sparse, non-negative vector over senses." }
+            ]
+          },
+          { "type": "p", "children": "The critical property inherited from LDA: the resulting representations are naturally sparse (most senses have zero or near-zero weight for any given word) and non-negative (you either have some degree of a sense or you don't — never negative). These aren't post-hoc properties extracted by additional analysis. They're built into the model." }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "Word2Sense Architecture" },
+        "children": [
+          { "type": "p", "children": "The pipeline from raw text to interpretable embeddings has three stages:" },
+          { "type": "p", "children": "Stage 1: Co-occurrence Extraction. Slide a context window across the corpus. For each target word, collect the set of words that appear within the window. This produces a 'pseudo-document' for each word — not a real document, but a bag of co-occurring terms that captures the word's distributional behavior." },
+          { "type": "p", "children": "Stage 2: LDA Inference. Run LDA on these pseudo-documents with K senses (topics). The model discovers K latent senses and assigns each word a K-dimensional vector: the posterior distribution over senses given the word's co-occurrence patterns. This is the Word2Sense embedding." },
+          { "type": "p", "children": "Stage 3: Sense Labeling (optional). Each sense k is a distribution over vocabulary. Looking at the top words for sense k gives a human-readable label. Sense 42 might have top words [stock, market, investor, portfolio, dividend] → 'Financial Markets.' Sense 187 might have [river, lake, stream, shore, flow] → 'Bodies of Water.'" },
+          {
+            "type": "Example",
+            "props": { "title": "The Pipeline in Action" },
+            "children": [
+              { "type": "p", "children": "Imagine a toy corpus with just a few hundred sentences about fishing, banking, and cooking." },
+              { "type": "p", "children": "Step 1: For the word 'bass,' co-occurrence extraction finds contexts like {fish, lake, catch, rod, lure} and {guitar, music, amp, low, frequency}." },
+              { "type": "p", "children": "Step 2: LDA with K=50 senses discovers that Sense 12 = fishing/aquatic life and Sense 31 = music/instruments." },
+              { "type": "p", "children": "Step 3: The embedding for 'bass' is a 50-dimensional vector that is nearly all zeros, except: [Sense 12: 0.45, Sense 31: 0.48, Sense 7 (low/deep): 0.05]. Two dominant senses, one minor one, forty-seven zeros. You can read this embedding like a label." }
+            ]
+          },
+          { "type": "p", "children": "Contrast this with Word2Vec's output for 'bass': a 300-dimensional vector like [0.23, -0.87, 0.11, -0.45, ...] where no single number tells you anything and the fishing meaning and music meaning are superposed into one opaque vector." }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "Reading the Embeddings" },
+        "children": [
+          { "type": "p", "children": "The real payoff of Word2Sense is that you can read the embeddings. Not 'read' in the sense of running a complicated analysis — literally look at the non-zero entries and know what they mean." },
+          {
+            "type": "Example",
+            "props": { "title": "What Does 'Bank' Look Like?" },
+            "children": [
+              { "type": "p", "children": "In a Word2Sense model with K=200 senses, the word 'bank' might look like this:" },
+              { "type": "ul", "children": [
+                { "type": "li", "children": "Sense 42 (Financial Institutions): 0.38 — money, loan, account, deposit, savings" },
+                { "type": "li", "children": "Sense 117 (Waterways & Terrain): 0.31 — river, shore, stream, erosion, flood" },
+                { "type": "li", "children": "Sense 84 (Storage & Accumulation): 0.12 — store, reserve, collection, stockpile" },
+                { "type": "li", "children": "Sense 156 (Tilting & Angles): 0.08 — turn, angle, lean, curve, aircraft" },
+                { "type": "li", "children": "All other 196 senses: 0.00" }
+              ]},
+              { "type": "p", "children": "Four active senses out of 200. Each one labeled and interpretable. You can immediately see that 'bank' is polysemous, identify its meanings, and even rank them by prominence. No post-hoc analysis needed." }
+            ]
+          },
+          {
+            "type": "Example",
+            "props": { "title": "What Does 'Run' Look Like?" },
+            "children": [
+              { "type": "p", "children": "The word 'run' is famously one of English's most polysemous words, with dozens of senses. A Word2Sense embedding might capture:" },
+              { "type": "ul", "children": [
+                { "type": "li", "children": "Sense 9 (Physical Movement): 0.25 — sprint, jog, race, marathon, dash" },
+                { "type": "li", "children": "Sense 42 (Financial Operations): 0.12 — bank run, panic, withdrawal, crisis" },
+                { "type": "li", "children": "Sense 67 (Managing/Operating): 0.18 — manage, operate, execute, lead, oversee" },
+                { "type": "li", "children": "Sense 103 (Computing/Execution): 0.15 — execute, process, program, compile, script" },
+                { "type": "li", "children": "Sense 88 (Sequences & Streaks): 0.10 — streak, consecutive, series, sequence" },
+                { "type": "li", "children": "Sense 145 (Textile Defects): 0.04 — stocking, tear, ladder, snag" },
+                { "type": "li", "children": "Sense 171 (Flowing Liquids): 0.06 — drip, flow, stream, leak, tap" }
+              ]},
+              { "type": "p", "children": "Seven active senses, each immediately recognizable. The embedding is a semantic fingerprint — a decomposition of the word into its constituent meanings, weighted by frequency in the corpus." }
+            ]
+          },
+          { "type": "p", "children": "This readability isn't a convenient side effect. It's the entire point. When you can read an embedding, you can debug it, audit it, and trust it. You can ask 'does this model know that crane is both a bird and a machine?' and just look at the vector." }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "Contextual Refinement" },
+        "children": [
+          { "type": "p", "children": "Static embeddings — one vector per word regardless of context — have an obvious limitation for polysemous words. The Word2Sense embedding for 'bank' carries both the financial and waterway senses simultaneously. But in the sentence 'I fished along the bank of the river,' only one sense is relevant." },
+          { "type": "p", "children": "Panigrahi et al. address this with a contextual refinement step. Given a short context window around the target word, they use the LDA model's inference machinery to compute a posterior distribution over senses conditioned on both the target word and its context." },
+          {
+            "type": "Analogy",
+            "props": { "title": "The Radio Dial" },
+            "children": [
+              { "type": "p", "children": "Think of the static Word2Sense embedding as a radio that receives multiple stations simultaneously. The word 'bank' picks up both the Financial FM and the River Radio signals. The result is noisy — you hear both broadcasts overlapping." },
+              { "type": "p", "children": "Contextual refinement is like tuning the dial. The context words 'river,' 'fished,' and 'along' act as a tuning signal that boosts River Radio and suppresses Financial FM. The output is still a vector over senses, but now Sense 117 (Waterways) has been amplified to 0.85 while Sense 42 (Financial) has been attenuated to 0.02. Same representation space, different weights." }
+            ]
+          },
+          { "type": "p", "children": "Crucially, the refinement happens within the same sense space. The contextual embedding is still a sparse, non-negative vector over the same K senses. You haven't lost interpretability — you've sharpened it. Context doesn't change what the dimensions mean; it changes which dimensions are active." },
+          { "type": "p", "children": "This makes Word2Sense embeddings partially contextual — not as powerful as full transformer-based contextual embeddings (BERT, GPT), but far more interpretable. You can see exactly which senses are being activated and suppressed by context, and why." }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "Performance vs Interpretability" },
+        "children": [
+          { "type": "p", "children": "The standard assumption in machine learning is that interpretability costs performance. You can have a powerful black box or a transparent but weaker model. Word2Sense challenges this assumption." },
+          { "type": "p", "children": "Panigrahi et al. evaluate their embeddings on a battery of standard tasks:" },
+          { "type": "ul", "children": [
+            { "type": "li", "children": "Word similarity (WS-353, SimLex-999): competitive with Word2Vec and GloVe" },
+            { "type": "li", "children": "Word analogy: reasonable performance considering the sparse representation" },
+            { "type": "li", "children": "Textual entailment: competitive with dense baselines" },
+            { "type": "li", "children": "Word sense induction: outperforms many baselines, naturally suited to this task" },
+            { "type": "li", "children": "Contextual word similarity (SCWS): strong results when using contextual refinement" }
+          ]},
+          { "type": "p", "children": "The 'tradeoff that wasn't' has caveats. Word2Sense doesn't dominate dense embeddings across the board — on some benchmarks, Word2Vec with its 300 dense dimensions still wins. But the gap is surprisingly small, and on tasks that specifically test disambiguation (like word sense induction and contextual similarity), Word2Sense excels." },
+          {
+            "type": "DeepDive",
+            "props": { "title": "Why Doesn't Sparsity Hurt More?" },
+            "children": [
+              { "type": "p", "children": "Intuitively, you'd expect that constraining embeddings to be sparse and non-negative would severely limit their expressive power. A 300-dimensional dense vector can represent 300 independent pieces of information. A 200-dimensional sparse vector with only 5-10 non-zero entries seems far more limited." },
+              { "type": "p", "children": "But this intuition is misleading. The combinatorial space of which senses are active is enormous: choosing 7 active senses from 200 gives C(200,7) ≈ 2.5 billion possible patterns, even before considering the continuous values. The combination of active senses and their weights provides more than enough representational capacity for the vocabulary." },
+              { "type": "p", "children": "Moreover, the non-negativity constraint isn't just a limitation — it's an inductive bias that matches the structure of semantic space. A word either participates in a sense or it doesn't. There's no meaningful notion of 'negative participation in the financial sense.' Non-negativity eliminates a form of cancellation that, in dense embeddings, creates some of the very uninterpretability we're trying to avoid." }
+            ]
+          },
+          { "type": "p", "children": "The deeper lesson: interpretability and performance are not always in tension. Sometimes the right structural constraint — sparsity, non-negativity, sense-level factoring — simultaneously improves interpretability and matches the actual structure of the problem. The constraint helps rather than hurts." }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "Interpretability By Design vs By Analysis" },
+        "children": [
+          { "type": "p", "children": "Word2Sense sits at one pole of a fundamental debate in AI interpretability: should we make models interpretable by construction, or should we build powerful black-box models and then interpret them after the fact?" },
+          { "type": "p", "children": "The 'by analysis' camp has produced remarkable results. Sparse Autoencoders (SAEs) take a trained model's opaque activations and decompose them into interpretable features. Anthropic's Scaling Monosemanticity work extracted 34 million interpretable features from Claude 3 Sonnet. Arora et al. (2018) showed that dense word embeddings contain recoverable sparse structure — you can train a sparse coding model to decompose GloVe vectors into interpretable atoms after the fact. Zhang and Olshausen (2019) used dictionary learning to achieve similar decompositions." },
+          { "type": "p", "children": "Word2Sense represents the 'by design' camp. Don't train a dense model and then decompose it. Design the model so that interpretability falls out of the training process itself. The embedding dimensions are senses from the start, not post-hoc discoveries." },
+          {
+            "type": "InteractiveDemo",
+            "props": {
+              "title": "By Design vs By Analysis: Two Paths to Interpretability",
+              "description": "Compare the two approaches side-by-side. On the left: Word2Sense builds sparse interpretable embeddings directly. On the right: dense embeddings are decomposed after training. Same result? Not quite."
+            },
+            "children": [
+              { "type": "p", "children": "[Interactive comparison showing two parallel pipelines. LEFT PIPELINE: Corpus → Co-occurrence → LDA → Sparse sense vector for 'bank': {Financial: 0.38, Waterway: 0.31, Storage: 0.12} — labeled 'Interpretable by Design.' RIGHT PIPELINE: Corpus → Word2Vec → Dense vector [0.23, -0.87, ...] → SAE/Sparse Coding → Recovered atoms: {atom_42: 0.35, atom_117: 0.28, atom_84: 0.15} — labeled 'Interpretable by Analysis.' Users can select different words to see how the two approaches represent them differently. Key differences highlighted: the by-design approach has labeled dimensions from the start; the by-analysis approach may recover different atoms depending on the decomposition method.]" }
+            ]
+          },
+          { "type": "p", "children": "Each approach has tradeoffs:" },
+          { "type": "ul", "children": [
+            { "type": "li", "children": "By design: Guaranteed interpretability, but may sacrifice some performance. The constraint limits the model's expressiveness." },
+            { "type": "li", "children": "By analysis: Maximum performance first, then interpret. But decomposition may be incomplete, unstable, or miss important structure." },
+            { "type": "li", "children": "By design: You know the dimensions are real senses because that's what you trained for. No question about whether recovered features are 'real.'" },
+            { "type": "li", "children": "By analysis: You can apply it to any model retroactively. No need to retrain. Works with state-of-the-art architectures." }
+          ]},
+          { "type": "p", "children": "The tension is real. The 'by analysis' approach has won in practice — modern NLP uses massive transformer models and then tries to understand them. But Word2Sense raises a haunting question: what if we're doing it backwards? What if the right inductive biases could give us models that are both powerful and natively interpretable?" },
+          { "type": "p", "children": "This question connects directly to ongoing work in mechanistic interpretability. SAEs decompose activations post-hoc. But what if transformer architectures could be modified — different activation functions, sparsity constraints, non-negativity — to produce natively interpretable representations? Word2Sense shows it's possible in the embedding space. The open question is whether it scales to the full model." }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "Where This Fits" },
+        "children": [
+          { "type": "p", "children": "Word2Sense occupies a specific position in the lineage of work on sparse, interpretable representations. Understanding that position clarifies what it contributes — and what came before and after." },
+          { "type": "p", "children": "Arora et al. (2018) — 'Linear Algebraic Structure of Word Senses' — proved that word embeddings exhibit superposition: multiple sparse concepts are linearly superposed in each dense vector, and sparse coding can recover them. This was the proof of concept that dense embeddings hide interpretable structure. But it's a post-hoc analysis: first train dense embeddings, then decompose them." },
+          { "type": "p", "children": "Word2Sense (2019) said: why decompose after the fact? Build the sparsity and interpretability into the training process. Use LDA instead of gradient-based embedding methods, and get sparse sense vectors directly. The philosophical shift from 'recover' to 'construct' is the paper's main contribution." },
+          { "type": "p", "children": "Zhang and Olshausen (2019) — 'A Natural Computation Approach to Dictionary Learning' — approached the same problem from the neural computation angle. They used dictionary learning (a cousin of sparse coding) to decompose word embeddings, drawing on biological models of sparse coding in visual cortex. Like Arora, this is interpretability by analysis, but grounded in a different theoretical framework." },
+          { "type": "p", "children": "Yun et al. (2021) — 'Transformer Visualization via Dictionary Learning' — extended dictionary learning to transformer activations. Instead of decomposing static embeddings, they decomposed contextual representations from BERT and GPT. This bridged the gap between word-level interpretability and model-level interpretability, and prefigured the SAE explosion of 2023-2024." },
+          { "type": "p", "children": "The trajectory tells a story:" },
+          { "type": "ul", "children": [
+            { "type": "li", "children": "2018 (Arora): 'Dense embeddings contain hidden sparse structure — we can recover it.'" },
+            { "type": "li", "children": "2019 (Word2Sense): 'Why recover? Build sparse interpretable structure from the start.'" },
+            { "type": "li", "children": "2019 (Zhang): 'The brain does sparse coding too — decompose with biological priors.'" },
+            { "type": "li", "children": "2021 (Yun): 'This works on transformer activations, not just static embeddings.'" },
+            { "type": "li", "children": "2023-24 (SAEs): 'Scale it to frontier models. 34 million interpretable features from Claude.'" }
+          ]},
+          { "type": "p", "children": "Word2Sense is the road not taken. The field overwhelmingly went with the 'by analysis' path — train powerful models, then dissect. But the 'by design' idea persists. Every time a researcher proposes architectural changes for interpretability (attention heads as human-readable gates, mixture-of-experts with interpretable routing, disentangled representations), they're echoing Word2Sense's fundamental bet: you can bake interpretability in, and it might not cost you as much as you think." },
+          { "type": "p", "children": "For our work on semantic operators: if each dimension of a Word2Sense embedding corresponds to a sense, then detecting which 'action sense' is active becomes trivial. You don't need an SAE to find the ATRANS feature in a dense embedding — in Word2Sense, it might just be dimension 73. The connection between interpretable embeddings and operator assignment is direct and immediate." }
+        ]
+      },
+      {
+        "type": "Quiz",
+        "props": {
+          "questions": [
+            {
+              "question": "What is the fundamental difference between Word2Sense and using SAEs to interpret dense embeddings?",
+              "options": [
+                "Word2Sense uses neural networks while SAEs use statistical methods",
+                "Word2Sense builds interpretable representations during training; SAEs decompose opaque representations after training",
+                "Word2Sense works on sentences while SAEs work on individual words",
+                "Word2Sense produces dense vectors while SAEs produce sparse vectors"
+              ],
+              "correct": 1,
+              "explanation": "This is the 'interpretability by design vs by analysis' distinction. Word2Sense uses LDA to produce embeddings where each dimension is a labeled sense from the start. SAEs take dense, opaque embeddings or activations from a trained model and decompose them into interpretable features post-hoc. The representations may look similar (sparse, with interpretable components), but the process is fundamentally different."
+            },
+            {
+              "question": "Why are Word2Sense embeddings naturally sparse and non-negative?",
+              "options": [
+                "A post-processing step clips negative values and zeros out small entries",
+                "The Word2Vec training objective encourages sparsity",
+                "LDA's Dirichlet prior produces distributions that are naturally sparse and non-negative",
+                "The co-occurrence matrix is already sparse and non-negative"
+              ],
+              "correct": 2,
+              "explanation": "LDA models topics (senses) as probability distributions, which are inherently non-negative (probabilities can't be negative). The Dirichlet prior used in LDA — especially with small concentration parameters — naturally produces sparse distributions: most topics get near-zero probability for any given document (or word). These properties aren't added on top; they're built into the generative model."
+            },
+            {
+              "question": "How does Word2Sense handle a polysemous word like 'bank'?",
+              "options": [
+                "It creates separate embedding vectors for each sense of the word",
+                "It assigns the word to its most common sense only",
+                "It produces a single vector with non-zero values on multiple sense dimensions simultaneously",
+                "It averages the embeddings of the word's definition words"
+              ],
+              "correct": 2,
+              "explanation": "Word2Sense represents polysemy naturally: the word 'bank' gets a single vector with non-zero values on both the 'financial institutions' dimension and the 'waterways' dimension (and possibly others). The magnitude on each dimension reflects how strongly the word is associated with that sense. Contextual refinement can then suppress irrelevant senses given surrounding context."
+            },
+            {
+              "question": "In the lineage of interpretable embedding research, what did Arora et al. (2018) demonstrate?",
+              "options": [
+                "That LDA can be used to create word embeddings",
+                "That dense word embeddings contain hidden sparse structure that can be recovered via sparse coding",
+                "That transformers produce interpretable attention patterns",
+                "That non-negative matrix factorization outperforms Word2Vec"
+              ],
+              "correct": 1,
+              "explanation": "Arora et al. showed that standard dense embeddings (like Word2Vec and GloVe) exhibit superposition: multiple sparse, interpretable concepts are linearly combined in each vector, and sparse coding techniques can recover them. This was a key proof-of-concept that interpretable structure exists in dense embeddings — though it required post-hoc analysis to reveal it. Word2Sense took the next step: building that sparse structure in from the start."
+            }
+          ]
+        }
+      }
+    ]
+  }
+}
