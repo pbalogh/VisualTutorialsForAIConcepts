@@ -124,6 +124,18 @@ function CreateTutorialModal({ isOpen, onClose }) {
 
 const tutorials = [
   {
+    id: 'ff-key-value-memories',
+    title: 'Feed-Forward Layers as Key-Value Memories',
+    description: 'The landmark paper revealing that MLP layers are giant lookup tables — each neuron stores a pattern (key) and a prediction (value)',
+    tags: ['transformers', 'MLP', 'mechanistic interpretability', 'memory'],
+    icon: '🗄️',
+    gradient: 'from-cyan-500 to-blue-600',
+    shadowColor: 'shadow-cyan-500/30',
+    glowColor: 'rgba(6, 182, 212, 0.4)',
+    readTime: '20 min',
+    difficulty: 2,
+  },
+  {
     id: 'word-sense-superposition',
     title: 'Word Senses in Superposition',
     description: 'How polysemous word embeddings are weighted sums of sense vectors — and how sparse coding recovers them. The intellectual ancestor of SAEs.',
