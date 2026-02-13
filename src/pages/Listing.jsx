@@ -124,6 +124,19 @@ function CreateTutorialModal({ isOpen, onClose }) {
 
 const tutorials = [
   {
+    id: 'diffusion-sae-research',
+    title: 'SAE-Guided Diffusion: Research Exploration',
+    description: 'Living document tracking our investigation into combining sparse autoencoders with diffusion models for controllable text generation',
+    tags: ['research', 'diffusion', 'SAE', 'generative'],
+    icon: '🌊',
+    gradient: 'from-sky-500 to-indigo-600',
+    shadowColor: 'shadow-sky-500/30',
+    glowColor: 'rgba(14, 165, 233, 0.4)',
+    readTime: 'Ongoing',
+    difficulty: 3,
+    featured: true,
+  },
+  {
     id: 'research-blog',
     title: 'Research Radar — Daily ArXiv Insights',
     description: 'Daily scan of cs.AI papers with connections to our Schankian operators research. Updated automatically.',
@@ -528,6 +541,15 @@ const tutorials = [
 
 // Semantic tag color system - filled backgrounds
 const tagColors = {
+  // Research / Generative
+  'research': 'bg-sky-100 text-sky-700 border-sky-200',
+  'diffusion': 'bg-blue-100 text-blue-700 border-blue-200',
+  'SAE': 'bg-indigo-100 text-indigo-700 border-indigo-200',
+  'generative': 'bg-cyan-100 text-cyan-700 border-cyan-200',
+  'papers': 'bg-sky-100 text-sky-700 border-sky-200',
+  'daily': 'bg-teal-100 text-teal-700 border-teal-200',
+  'roadmap': 'bg-indigo-100 text-indigo-700 border-indigo-200',
+  
   // Status tags - special styling
   'experimental': 'bg-gradient-to-r from-orange-400 to-amber-400 text-white border-transparent',
   'meta': 'bg-violet-100 text-violet-700 border-violet-200',
