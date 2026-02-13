@@ -250,6 +250,121 @@
                 ]
               }
             ]
+          },
+          {
+            "type": "DeepDive",
+            "title": "[Feb 13 3pm] 🔥🔥 Activation Steering for Masked Diffusion Language Models (Dec 2025)",
+            "children": [
+              {
+                "type": "p",
+                "children": [
+                  { "type": "strong", "children": ["Paper:"] },
+                  " Shnaidman, Feiglin, Yaari, Mentel, Levi, Lapid. 'Activation Steering for Masked Diffusion Language Models' (arXiv:2512.24143, Dec 2025)"
+                ]
+              },
+              {
+                "type": "p",
+                "children": [
+                  { "type": "strong", "children": ["Key insight:"] },
+                  " Applies activation steering DIRECTLY to LLaDA-8B-Instruct — a masked diffusion language model. Computes layer-wise steering vectors from a single forward pass using contrastive examples, without simulating the denoising trajectory. These steering directions are applied at EVERY reverse-diffusion step, yielding efficient inference-time control of high-level attributes."
+                ]
+              },
+              {
+                "type": "p",
+                "children": [
+                  { "type": "strong", "children": ["Why this is huge:"] },
+                  " This paper proves that activation steering transfers from AR LLMs to masked diffusion LMs. The steering vectors work across transformer sub-modules and can target prompt vs. response tokens separately. The fact that contrastive steering vectors computed from a single forward pass work across ALL denoising steps is remarkable — it means the internal representations of diffusion LMs are stable enough for this kind of intervention."
+                ]
+              },
+              {
+                "type": "p",
+                "children": [
+                  { "type": "strong", "children": ["Relevance:"] },
+                  " ⭐⭐⭐ THIS IS OUR IDEA 2 IMPLEMENTED! Someone has already done activation steering on text diffusion models. Our SAE-based approach would be the natural next step: instead of manually-designed contrastive steering vectors, use SAE features as the steering basis. This paper provides the proof-of-concept that steering diffusion LMs at inference time is viable."
+                ]
+              }
+            ]
+          },
+          {
+            "type": "DeepDive",
+            "title": "[Feb 13 3pm] SAE-SSV: Supervised Steering in Sparse SAE Spaces (Dec 2025)",
+            "children": [
+              {
+                "type": "p",
+                "children": [
+                  { "type": "strong", "children": ["Paper:"] },
+                  " He et al., 'SAE-SSV: Supervised Steering in Sparse Representation Spaces for Reliable Control of Language Models' (arXiv:2505.16188, NJIT/Rutgers/Cisco)"
+                ]
+              },
+              {
+                "type": "p",
+                "children": [
+                  { "type": "strong", "children": ["Key insight:"] },
+                  " Uses SAEs to obtain sparse latent representations, then trains linear classifiers to identify a SMALL SUBSPACE of task-relevant dimensions. Learns supervised steering vectors constrained to this subspace. Critical finding: a notably small subspace is sufficient for effective steering in open-ended generation (sentiment, truthfulness, politics)."
+                ]
+              },
+              {
+                "type": "p",
+                "children": [
+                  { "type": "strong", "children": ["Relevance:"] },
+                  " ⭐⭐⭐ DIRECT METHODOLOGY for our work. The 'small subspace' finding is crucial — we don't need the full 16K-128K SAE feature space for effective diffusion steering. We can identify a compact, task-relevant subset. Their supervised approach outperforms unsupervised methods in open-ended generation, which is exactly our use case. Code available on GitHub."
+                ]
+              }
+            ]
+          },
+          {
+            "type": "DeepDive",
+            "title": "[Feb 13 3pm] DSAS: Dynamic Steering Across LLMs and Diffusion (Apple, Dec 2025)",
+            "children": [
+              {
+                "type": "p",
+                "children": [
+                  { "type": "strong", "children": ["Paper:"] },
+                  " Suau, Gonzàlez, Rodríguez (Apple). 'Dynamically Scaled Activation Steering' (arXiv:2512.03661, Dec 2025)"
+                ]
+              },
+              {
+                "type": "p",
+                "children": [
+                  { "type": "strong", "children": ["Key insight:"] },
+                  " A steering-agnostic framework that decouples WHEN to steer from HOW to steer. Computes context-dependent per-token scaling factors that selectively adjust steering strength. Works on BOTH LLMs AND text-to-image diffusion models without modification. Learns to intervene strongly only when undesired behavior is detected."
+                ]
+              },
+              {
+                "type": "p",
+                "children": [
+                  { "type": "strong", "children": ["Relevance:"] },
+                  " ⭐⭐⭐ CROSS-MODAL FRAMEWORK. Apple proves that activation steering methods generalize from LLMs to T2I diffusion with zero modification. The dynamic per-token scaling is exactly what we'd want for SAE-guided diffusion: stronger SAE feature enforcement where needed, lighter touch where the model is already on track. Combined with SAE-SSV's subspace selection, this gives us a complete per-step, per-token adaptive steering framework."
+                ]
+              }
+            ]
+          },
+          {
+            "type": "DeepDive",
+            "title": "[Feb 13 3pm] ⚠️ Endogenous Resistance to SAE-Based Steering (Feb 2026)",
+            "children": [
+              {
+                "type": "p",
+                "children": [
+                  { "type": "strong", "children": ["Paper:"] },
+                  " Pepper et al., 'Endogenous Resistance to Activation Steering in Language Models' (arXiv:2602.06941, Feb 2026)"
+                ]
+              },
+              {
+                "type": "p",
+                "children": [
+                  { "type": "strong", "children": ["Key insight:"] },
+                  " Large LLMs (Llama-3.3-70B) can RESIST SAE-based steering mid-generation, self-correcting back to the original task even when steering is active throughout. They identify 26 SAE latents linked to this 'Endogenous Steering Resistance' (ESR). Zero-ablating these reduces resistance by 25%. Smaller models show much less resistance."
+                ]
+              },
+              {
+                "type": "p",
+                "children": [
+                  { "type": "strong", "children": ["Relevance:"] },
+                  " ⭐⭐ IMPORTANT CAVEAT for our approach. If we steer diffusion LMs via SAE features, larger models may develop internal resistance to misaligned steering. This is good for safety (models resist adversarial feature injection) but could limit our steering effectiveness. The diffusion setting may be different though — at each denoising step the model starts from noisy input, so it may have less 'context' to detect steering than in AR generation."
+                ]
+              }
+            ]
           }
         ]
       },
@@ -348,6 +463,40 @@
                 "children": [
                   { "type": "strong", "children": ["Relevance:"] },
                   " ⭐⭐⭐ DIRECT VALIDATION OF IDEA 3! This is theoretical proof that WHEN you apply guidance during diffusion matters enormously. For semantic noise schedules, this suggests: apply coarse semantic steering late (when it matters most), syntactic/fine-grained steering can be earlier. The 'semantic features last' intuition is validated — late-stage guidance (when structure is mostly formed) is where steering has the most impact."
+                ]
+              }
+            ]
+          },
+          {
+            "type": "DeepDive",
+            "title": "[Feb 13 3pm] 🔥 SAEs Reveal Concept Emergence Timeline in Diffusion (NeurIPS 2025)",
+            "children": [
+              {
+                "type": "p",
+                "children": [
+                  { "type": "strong", "children": ["Paper:"] },
+                  " Tinaz et al., 'Emergence and Evolution of Interpretable Concepts in Diffusion Models' (arXiv:2504.15473, NeurIPS 2025)"
+                ]
+              },
+              {
+                "type": "p",
+                "children": [
+                  { "type": "strong", "children": ["Key insight:"] },
+                  " Applies SAEs to probe a text-to-image diffusion model's activations. Discovers human-interpretable concepts and tracks how they emerge during generation. CRITICAL FINDING: even before the first reverse diffusion step completes, scene composition can be predicted from spatial distribution of activated SAE concepts."
+                ]
+              },
+              {
+                "type": "p",
+                "children": [
+                  { "type": "strong", "children": ["Temporal hierarchy discovered:"] },
+                  " (1) Early stages: image COMPOSITION can be effectively controlled via SAE feature intervention. (2) Middle stages: composition finalizes, but STYLE interventions are still effective. (3) Final stages: only minor TEXTURAL details subject to change. This is a coarse→fine semantic hierarchy emerging naturally!"
+                ]
+              },
+              {
+                "type": "p",
+                "children": [
+                  { "type": "strong", "children": ["Relevance:"] },
+                  " ⭐⭐⭐ STRONGEST VALIDATION OF IDEA 3 YET! This is empirical proof that diffusion models naturally develop a semantic hierarchy across denoising steps — exactly what we want to exploit with semantic noise schedules. Composition → Style → Texture maps directly to our proposed coarse-semantics-first, fine-details-last scheme. AND they use SAEs to discover and control this hierarchy! The key question: does this composition→style→texture hierarchy also hold in TEXT diffusion (topic → tone → word choice)?"
                 ]
               }
             ]
@@ -455,6 +604,40 @@
                 "children": [
                   { "type": "strong", "children": ["Relevance:"] },
                   " ⭐⭐⭐ METHODOLOGY FOR IDEA 4! Instead of a task-specific classifier, we could use SAE feature detection as the 'classifier'. The SLCD framework shows how to efficiently train a small model to guide diffusion toward objectives — our 'objective' would be matching target SAE feature activations. Their theoretical framework (KL-regularized + no-regret learning) could provide guarantees for SAE-guided denoising."
+                ]
+              }
+            ]
+          },
+          {
+            "type": "DeepDive",
+            "title": "[Feb 13 3pm] DiffLens: Mechanistic Interpretability for Diffusion Control (CVPR 2025)",
+            "children": [
+              {
+                "type": "p",
+                "children": [
+                  { "type": "strong", "children": ["Paper:"] },
+                  " Li et al., 'Dissecting and Mitigating Diffusion Bias via Mechanistic Interpretability' (arXiv:2503.20483, CVPR 2025)"
+                ]
+              },
+              {
+                "type": "p",
+                "children": [
+                  { "type": "strong", "children": ["Key insight:"] },
+                  " Identifies specific 'bias features' — internal decision-making mechanisms — within diffusion model architectures via mechanistic interpretability. By directly manipulating these features, they achieve granular control over generation attributes (gender, race in images) while preserving output quality. Works on both unconditional AND conditional diffusion models."
+                ]
+              },
+              {
+                "type": "p",
+                "children": [
+                  { "type": "strong", "children": ["Critical detail:"] },
+                  " They discover that different intrinsic features control different fine-grained aspects of generation — some control composition, others control attributes. This internal factorization is exactly the kind of 'parts list' our dictionary-guided denoising idea proposes."
+                ]
+              },
+              {
+                "type": "p",
+                "children": [
+                  { "type": "strong", "children": ["Relevance:"] },
+                  " ⭐⭐⭐ DIRECT SUPPORT for Idea 4. This proves that diffusion models have identifiable, manipulable internal features that map to interpretable generation attributes. Our SAE dictionary would serve the same role as their 'bias features' but in a more systematic, complete way — the SAE dictionary gives us ALL the features, not just bias-related ones. Their manipulation technique (direct feature intervention at each step) is exactly our dictionary-guided denoising."
                 ]
               }
             ]
