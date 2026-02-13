@@ -124,6 +124,18 @@ function CreateTutorialModal({ isOpen, onClose }) {
 
 const tutorials = [
   {
+    id: 'word-sense-superposition',
+    title: 'Word Senses in Superposition',
+    description: 'How polysemous word embeddings are weighted sums of sense vectors — and how sparse coding recovers them. The intellectual ancestor of SAEs.',
+    tags: ['embeddings', 'polysemy', 'sparse coding', 'superposition'],
+    icon: '🔮',
+    gradient: 'from-amber-500 to-orange-600',
+    shadowColor: 'shadow-amber-500/30',
+    glowColor: 'rgba(245, 158, 11, 0.4)',
+    readTime: '20 min',
+    difficulty: 2,
+  },
+  {
     id: 'diffusion-models',
     title: 'Diffusion Models: From Images to Text to SAE',
     description: 'Understanding diffusion from first principles — how it conquers images, struggles with text, and how SAE dictionaries could unlock controllable generation',
