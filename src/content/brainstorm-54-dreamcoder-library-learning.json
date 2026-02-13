@@ -1,0 +1,671 @@
+{
+  "id": "brainstorm-54-dreamcoder-library-learning",
+  "title": "DreamCoder-Style Library Learning for Operator Discovery",
+  "subtitle": "How wake-sleep loops can discover reusable semantic primitives — from program synthesis to Schankian operators",
+  "readTime": "22 min",
+  "difficulty": 3,
+  "tags": ["schankian", "program-synthesis", "library-learning", "wake-sleep"],
+  "state": "brainstorm_54",
+  "content": {
+    "type": "Fragment",
+    "children": [
+      {
+        "type": "Section",
+        "props": { "title": "The Library Learning Insight" },
+        "children": [
+          {
+            "type": "p",
+            "children": "DreamCoder (Ellis et al., 2021) revolutionized program synthesis with a simple but profound insight: the best primitives aren't given — they're DISCOVERED through iterative compression of successful programs."
+          },
+          {
+            "type": "p",
+            "children": "This connects directly to our Schankian operator project. Instead of hand-coding primitives like ATRANS, PTRANS, MTRANS, we can LEARN them from event data using the same wake-sleep architecture that discovers programming primitives."
+          },
+          {
+            "type": "Callout",
+            "props": {
+              "type": "key-insight",
+              "title": "The Core Analogy"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "DreamCoder discovers reusable PROGRAM fragments. We want to discover reusable SEMANTIC fragments. Both are compression problems — finding the minimal set of building blocks that can compose into the full range of observed phenomena."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "How DreamCoder Works" },
+        "children": [
+          {
+            "type": "p",
+            "children": "DreamCoder alternates between two phases in a wake-sleep loop. Understanding this architecture is crucial because we'll adapt it for operator discovery."
+          },
+          {
+            "type": "DefinitionList",
+            "props": {
+              "items": [
+                {
+                  "term": "Wake Phase",
+                  "definition": "Given tasks (input-output examples), search for programs that solve them using the current library. This is synthesis — combining primitives to explain observations."
+                },
+                {
+                  "term": "Sleep Phase",
+                  "definition": "Analyze successful programs from the wake phase. Extract common subexpressions and add them to the library as new primitives. This is abstraction — finding reusable patterns."
+                },
+                {
+                  "term": "Library",
+                  "definition": "The growing vocabulary of primitives. Starts with basic operations (+, -, if, map). Grows to include discovered abstractions (fold-with-plus, filter-even, etc.)."
+                },
+                {
+                  "term": "MDL Objective",
+                  "definition": "Minimum Description Length. The library should minimize: (library size) + (total program lengths using that library). This balances having useful primitives vs. library bloat."
+                }
+              ]
+            }
+          },
+          {
+            "type": "DeepDive",
+            "props": { 
+              "title": "The MDL Sweet Spot",
+              "id": "mdl-sweet-spot"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "MDL is the secret sauce. Too few primitives → programs are long and convoluted. Too many primitives → the library is bloated with rarely-used operations. MDL finds the sweet spot automatically."
+              },
+              {
+                "type": "p",
+                "children": "Mathematically: minimize L(Library) + Σ L(Program_i | Library), where L is description length in bits. Adding a primitive costs bits (larger library) but saves bits if many programs use it (shorter programs)."
+              },
+              {
+                "type": "p",
+                "children": "This connects to Kolmogorov complexity — the theoretical minimum description length. True primitives are those that can't be further compressed; they're the incompressible atoms of the domain."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "Interactive: The Wake-Sleep Loop" },
+        "children": [
+          {
+            "type": "p",
+            "children": "Let's visualize how DreamCoder discovers primitives. In this demo, we'll watch the wake-sleep loop discover common patterns from a simple domain: list manipulation."
+          },
+          {
+            "type": "InteractiveDemo",
+            "props": {
+              "id": "wake-sleep-demo",
+              "title": "Wake-Sleep Library Learning",
+              "component": "WakeSleepDemo",
+              "description": "Watch primitives emerge from compression pressure",
+              "config": {
+                "initialLibrary": ["map", "filter", "+", "-", "*", "head", "tail", "cons"],
+                "tasks": [
+                  {"name": "double-all", "input": "[1,2,3]", "output": "[2,4,6]"},
+                  {"name": "triple-all", "input": "[1,2,3]", "output": "[3,6,9]"},
+                  {"name": "square-all", "input": "[1,2,3]", "output": "[1,4,9]"},
+                  {"name": "increment-all", "input": "[1,2,3]", "output": "[2,3,4]"},
+                  {"name": "sum-pairs", "input": "[[1,2],[3,4]]", "output": "[3,7]"}
+                ],
+                "showCompression": true,
+                "animationSpeed": 1000
+              },
+              "height": 450
+            }
+          },
+          {
+            "type": "p",
+            "children": "Notice how after a few iterations, the system discovers 'map-with-multiply' as a useful abstraction — it appears in multiple solutions and compresses the overall description length."
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "From Programs to Operators" },
+        "children": [
+          {
+            "type": "p",
+            "children": "Now here's the key insight: event descriptions are programs too. 'John gave Mary the book' is a 'program' that transforms world states. The operator ATRANS is a reusable 'function' that appears across many such programs."
+          },
+          {
+            "type": "Analogy",
+            "left": {
+              "title": "DreamCoder Domain",
+              "items": [
+                "Tasks: input-output pairs of lists",
+                "Programs: compositions of primitives",
+                "Library: {map, filter, fold, ...}",
+                "Discovery: find common subexpressions",
+                "Goal: shortest total description"
+              ]
+            },
+            "right": {
+              "title": "Operator Domain",
+              "items": [
+                "Tasks: before-after state pairs",
+                "Programs: operator compositions",
+                "Library: {ATRANS, PTRANS, MTRANS, ...}",
+                "Discovery: find common state transforms",
+                "Goal: minimal operator vocabulary"
+              ]
+            },
+            "bridgeText": "The same compression algorithm works in both domains. The 'programs' are different (functions vs. state transforms) but the learning principle is identical."
+          },
+          {
+            "type": "Example",
+            "props": { "title": "Discovering ATRANS from Data" },
+            "children": [
+              {
+                "type": "p",
+                "children": "Imagine training on event descriptions with before/after entity states:"
+              },
+              {
+                "type": "CodeBlock",
+                "props": {
+                  "language": "text",
+                  "code": "Event: 'John gave Mary the book'\nBefore: John.has=[book], Mary.has=[]\nAfter:  John.has=[], Mary.has=[book]\n\nEvent: 'Alice sold Bob the car'\nBefore: Alice.has=[car], Bob.has=[]\nAfter:  Alice.has=[], Bob.has=[car]\n\nEvent: 'The thief stole the painting'\nBefore: Museum.has=[painting], Thief.has=[]\nAfter:  Museum.has=[], Thief.has=[painting]"
+                }
+              },
+              {
+                "type": "p",
+                "children": "All three events share the same state transformation pattern: possession transfers from source to destination. A wake-sleep loop would discover this as a reusable primitive — ATRANS — that compresses all three descriptions."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "The Operator Library Learning Architecture" },
+        "children": [
+          {
+            "type": "p",
+            "children": "Let's formalize how DreamCoder's architecture maps to operator discovery. This gives us a concrete training procedure."
+          },
+          {
+            "type": "Steps",
+            "props": {
+              "steps": [
+                {
+                  "title": "Initialize Library",
+                  "description": "Start with basic transforms: IDENTITY (no change), NEGATE (flip sign), SCALE (multiply). These are the '+' and '-' of state space."
+                },
+                {
+                  "title": "Wake Phase: Explain Events",
+                  "description": "For each event in training data, search for operator compositions that transform the before-state into the after-state. Record successful 'programs' (operator sequences)."
+                },
+                {
+                  "title": "Sleep Phase: Extract Patterns",
+                  "description": "Analyze successful operator sequences. Find common sub-sequences. If [OP_A, OP_B, OP_C] appears frequently, add it as new primitive OP_ABC."
+                },
+                {
+                  "title": "Compress Library (MDL)",
+                  "description": "Remove primitives that don't pay for themselves. A primitive is worth keeping only if it saves more bits in program lengths than it costs in library size."
+                },
+                {
+                  "title": "Iterate",
+                  "description": "Repeat wake-sleep cycles. Library evolves toward the optimal set of primitives for the domain."
+                }
+              ]
+            }
+          },
+          {
+            "type": "DeepDive",
+            "props": { 
+              "title": "Neural vs. Symbolic Search",
+              "id": "neural-vs-symbolic"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "DreamCoder uses symbolic search (enumeration) in the wake phase. This is exact but slow. For operators, we can use neural search: train a neural network to predict likely operator sequences for an event."
+              },
+              {
+                "type": "p",
+                "children": "The neural 'recognition model' learns to amortize search: instead of enumerating all possibilities, it directly predicts high-probability operator compositions. This is exactly how the sleep phase trains the recognition model in DreamCoder."
+              },
+              {
+                "type": "p",
+                "children": "For Schankian operators: the recognition model takes an event description (text) and outputs a probability distribution over operator compositions. This is essentially a structured prediction problem with a learned vocabulary."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "Interactive: Operator Discovery Simulation" },
+        "children": [
+          {
+            "type": "p",
+            "children": "Let's simulate the operator discovery process. Feed in event descriptions and watch the system learn to decompose them into reusable primitives."
+          },
+          {
+            "type": "InteractiveDemo",
+            "props": {
+              "id": "operator-discovery-demo",
+              "title": "Discover Operators from Events",
+              "component": "OperatorDiscoveryDemo",
+              "description": "Watch ATRANS, PTRANS, and MTRANS emerge from event data",
+              "config": {
+                "events": [
+                  {"text": "John gave Mary the book", "type": "transfer"},
+                  {"text": "Alice walked to the store", "type": "movement"},
+                  {"text": "Bob told Carol the secret", "type": "information"},
+                  {"text": "The company sold the product", "type": "transfer"},
+                  {"text": "She ran home", "type": "movement"},
+                  {"text": "He taught her mathematics", "type": "information"}
+                ],
+                "showLibraryGrowth": true,
+                "showMDLScore": true,
+                "iterations": 5
+              },
+              "height": 500
+            }
+          },
+          {
+            "type": "p",
+            "children": "After several iterations, the system discovers three stable primitives: one for possession transfer (ATRANS), one for physical movement (PTRANS), and one for information transfer (MTRANS). These are exactly Schank's classic primitives — but discovered, not hand-coded!"
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "Why This Beats Pure Clustering" },
+        "children": [
+          {
+            "type": "p",
+            "children": "You might ask: why not just cluster verb embeddings? Why the elaborate wake-sleep machinery? The answer is COMPOSITIONALITY."
+          },
+          {
+            "type": "Example",
+            "props": { "title": "The Compositionality Advantage" },
+            "children": [
+              {
+                "type": "p",
+                "children": "Consider the event: 'John mailed Mary the package.' This involves BOTH physical movement (package travels through postal system) AND possession transfer (John no longer has it, Mary will)."
+              },
+              {
+                "type": "p",
+                "children": "Pure clustering would put 'mail' in ONE cluster — either transfer or movement. But library learning discovers that 'mail' = PTRANS ∘ ATRANS (composition). It's not a single primitive; it's a compound operation."
+              },
+              {
+                "type": "p",
+                "children": "This compositionality is why library learning is more powerful. It discovers not just primitives but how they COMBINE — which is essential for understanding complex events."
+              }
+            ]
+          },
+          {
+            "type": "Callout",
+            "props": {
+              "type": "technical",
+              "title": "Compositional Structure"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "Library learning discovers: (1) atomic primitives, (2) common compositions, (3) how to decompose novel events. Clustering only gives you (1). The compositional structure is what makes operators actually useful for reasoning."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "The Role of Dreaming" },
+        "children": [
+          {
+            "type": "p",
+            "children": "DreamCoder's 'dreaming' phase (part of sleep) is particularly clever: it generates SYNTHETIC tasks that exercise the newly discovered primitives. This prevents forgetting and ensures the library generalizes."
+          },
+          {
+            "type": "DeepDive",
+            "props": { 
+              "title": "Dreaming for Operators",
+              "id": "dreaming-operators"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "For Schankian operators, dreaming would generate synthetic events: 'What if we applied ATRANS to these entities?' → generate plausible event description → train recognition model to recover the operator."
+              },
+              {
+                "type": "p",
+                "children": "This is essentially DATA AUGMENTATION guided by the learned primitives. If we've discovered ATRANS, we can generate infinite training examples of possession transfer by composing ATRANS with different entities."
+              },
+              {
+                "type": "p",
+                "children": "The dreaming phase also tests compositional generalization: 'Can the system understand PTRANS ∘ ATRANS even if it never saw that exact combination in training?' If not, the primitives aren't truly compositional."
+              }
+            ]
+          },
+          {
+            "type": "p",
+            "children": "This connects to human dreaming, which consolidates memories by replaying and recombining experiences. The analogy isn't just poetic — it's functional. Both human and machine dreaming serve to extract abstract patterns from specific experiences."
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "Quiz: Wake-Sleep Fundamentals" },
+        "children": [
+          {
+            "type": "Quiz",
+            "props": {
+              "id": "wake-sleep-quiz",
+              "questions": [
+                {
+                  "question": "What happens during the WAKE phase of DreamCoder?",
+                  "options": [
+                    "New primitives are added to the library",
+                    "The system searches for programs to solve tasks",
+                    "Common subexpressions are extracted",
+                    "The library is compressed via MDL"
+                  ],
+                  "correct": 1,
+                  "explanation": "The wake phase is about SYNTHESIS — using the current library to find programs that solve the given tasks. Abstraction and library modification happen in the sleep phase."
+                },
+                {
+                  "question": "Why does MDL (Minimum Description Length) prevent library bloat?",
+                  "options": [
+                    "It limits the number of primitives to a fixed constant",
+                    "It only adds primitives that are used more than 10 times",
+                    "It balances library size against total program length savings",
+                    "It removes all primitives after each iteration"
+                  ],
+                  "correct": 2,
+                  "explanation": "MDL is an economic trade-off: adding a primitive costs bits (larger library) but saves bits if many programs use it. A primitive only survives if the savings exceed the cost. This automatically finds the right number of primitives."
+                },
+                {
+                  "question": "What advantage does library learning have over pure clustering for operators?",
+                  "options": [
+                    "It's faster to compute",
+                    "It requires less training data",
+                    "It discovers compositional structure, not just categories",
+                    "It produces more clusters"
+                  ],
+                  "correct": 2,
+                  "explanation": "Library learning discovers how primitives COMPOSE — that 'mail' = PTRANS ∘ ATRANS. Clustering would just put 'mail' in one category, missing the compositional structure that's essential for understanding complex events."
+                }
+              ]
+            }
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "Connecting to Our Framework" },
+        "children": [
+          {
+            "type": "p",
+            "children": "How does DreamCoder-style learning fit with our rotation matrix operators? Beautifully, it turns out."
+          },
+          {
+            "type": "Steps",
+            "props": {
+              "steps": [
+                {
+                  "title": "Operators as Matrix Functions",
+                  "description": "Each primitive operator is a learnable rotation matrix W_op. The library is a set of these matrices plus rules for composing them (matrix multiplication)."
+                },
+                {
+                  "title": "Programs as Matrix Products",
+                  "description": "An event 'program' is a product of operator matrices: W_event = W_op1 × W_op2 × ... The result transforms the before-state embedding to the after-state embedding."
+                },
+                {
+                  "title": "Discovery via Factorization",
+                  "description": "The sleep phase finds common matrix factors across event programs. If W_A × W_B appears in many events, we add W_AB = W_A × W_B as a new primitive."
+                },
+                {
+                  "title": "MDL on Matrix Parameters",
+                  "description": "Library size = number of parameters in all operator matrices. Program length = number of operator applications. MDL finds the right trade-off."
+                }
+              ]
+            }
+          },
+          {
+            "type": "Callout",
+            "props": {
+              "type": "connection",
+              "title": "Unifying Two Approaches"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "This bridges our geometric (rotation matrix) framework with the symbolic (discrete primitive) tradition. Operators are BOTH learnable continuous transforms AND discrete compositional units. DreamCoder's library learning gives us the algorithm to discover them."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "Practical Considerations" },
+        "children": [
+          {
+            "type": "p",
+            "children": "Moving from theory to practice requires addressing several challenges."
+          },
+          {
+            "type": "DefinitionList",
+            "props": {
+              "items": [
+                {
+                  "term": "State Representation",
+                  "definition": "What are the 'before' and 'after' states? We need embeddings of entity states that capture relevant properties (possession, location, knowledge, etc.). LLM embeddings are a starting point; domain-specific encodings may work better."
+                },
+                {
+                  "term": "Search Complexity",
+                  "definition": "The space of operator compositions is exponentially large. Need efficient search: beam search, learned proposal distributions, or constrained enumeration."
+                },
+                {
+                  "term": "Operator Arity",
+                  "definition": "Operators have different numbers of arguments (ATRANS has 3: giver, receiver, object; PTRANS has 2: mover, destination). The library must handle variable arity."
+                },
+                {
+                  "term": "Evaluation",
+                  "definition": "How do we know the discovered operators are 'right'? Comparison to Schank's hand-coded primitives. Cross-linguistic universality. Downstream task performance (event prediction, QA)."
+                }
+              ]
+            }
+          },
+          {
+            "type": "DeepDive",
+            "props": { 
+              "title": "Handling Variable Arity",
+              "id": "variable-arity"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "A key technical challenge: operators have different numbers of arguments. PTRANS(person, destination) has 2. ATRANS(giver, receiver, object) has 3. How do we handle this in a uniform framework?"
+              },
+              {
+                "type": "p",
+                "children": "Solution 1: Fixed maximum arity with NULL slots. All operators take 4 arguments; unused slots get null embedding. Simple but wasteful."
+              },
+              {
+                "type": "p",
+                "children": "Solution 2: Concatenate all participant embeddings, regardless of count. Operator matrices adapt their size based on input. More flexible but requires careful architecture."
+              },
+              {
+                "type": "p",
+                "children": "Solution 3: Graph neural network approach. Each participant is a node; the operator is a message-passing function. Most elegant but highest complexity."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "Quiz: Putting It Together" },
+        "children": [
+          {
+            "type": "Quiz",
+            "props": {
+              "id": "integration-quiz",
+              "questions": [
+                {
+                  "question": "In our framework, what does an 'operator program' look like?",
+                  "options": [
+                    "A sequence of text tokens",
+                    "A product of rotation matrices",
+                    "A list of verb lemmas",
+                    "A set of entity embeddings"
+                  ],
+                  "correct": 1,
+                  "explanation": "An event 'program' is a composition of operator matrices: W_event = W_op1 × W_op2 × ... This product transforms the before-state to the after-state."
+                },
+                {
+                  "question": "What does 'dreaming' accomplish in operator learning?",
+                  "options": [
+                    "It reduces memory usage",
+                    "It speeds up the wake phase",
+                    "It generates synthetic events to test and reinforce primitives",
+                    "It removes unused operators from the library"
+                  ],
+                  "correct": 2,
+                  "explanation": "Dreaming generates synthetic events by composing discovered operators. This tests compositional generalization and provides additional training data for the recognition model."
+                },
+                {
+                  "question": "How would we detect that 'mail' = PTRANS ∘ ATRANS?",
+                  "options": [
+                    "By looking up 'mail' in a dictionary",
+                    "By clustering 'mail' with similar verbs",
+                    "By finding that the composition best explains 'mail' events via MDL",
+                    "By asking GPT-4 to decompose it"
+                  ],
+                  "correct": 2,
+                  "explanation": "Library learning would discover that decomposing 'mail' as PTRANS ∘ ATRANS yields a shorter total description (via MDL) than treating 'mail' as a separate primitive. The composition is preferred because it reuses existing primitives."
+                }
+              ]
+            }
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "Related Work and Extensions" },
+        "children": [
+          {
+            "type": "p",
+            "children": "DreamCoder isn't the only approach to library learning. Several related ideas connect to our operator discovery goal."
+          },
+          {
+            "type": "DefinitionList",
+            "props": {
+              "items": [
+                {
+                  "term": "LAPS (Ellis et al., 2021)",
+                  "definition": "Language-guided program synthesis. Uses natural language hints to guide the search. For operators: event descriptions themselves are the language hints."
+                },
+                {
+                  "term": "LLM + Program Synthesis (2023-2024)",
+                  "definition": "Recent work uses LLMs to propose candidate programs, DreamCoder-style to refine. For operators: LLMs generate candidate decompositions, wake-sleep validates and abstracts."
+                },
+                {
+                  "term": "Grammar Induction",
+                  "definition": "Discovers hierarchical structure in sequences. Operators form a 'grammar' of event descriptions. Grammar induction methods could discover operator composition rules."
+                },
+                {
+                  "term": "ILP (Inductive Logic Programming)",
+                  "definition": "Learns logical rules from examples. Could learn operator definitions as logical predicates: ATRANS(X,Y,Z) :- has(X,Z,before), has(Y,Z,after)."
+                }
+              ]
+            }
+          },
+          {
+            "type": "Callout",
+            "props": {
+              "type": "future",
+              "title": "The LLM Shortcut"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "Modern LLMs might already encode operator-like structure. Instead of learning from scratch, we could use DreamCoder-style abstraction on LLM-generated event decompositions. The LLM provides the search; the library learning provides the compression."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "Key Takeaways" },
+        "children": [
+          {
+            "type": "DefinitionList",
+            "props": {
+              "items": [
+                {
+                  "term": "1. Operators can be DISCOVERED",
+                  "definition": "We don't need to hand-code Schankian primitives. Wake-sleep library learning can discover them from event data through compression pressure."
+                },
+                {
+                  "term": "2. MDL is the objective",
+                  "definition": "Minimum Description Length automatically finds the right number and type of primitives. True primitives are those that can't be further compressed."
+                },
+                {
+                  "term": "3. Compositionality is key",
+                  "definition": "Library learning discovers how operators COMBINE, not just what they are. This compositional structure is what makes operators useful for reasoning about novel events."
+                },
+                {
+                  "term": "4. Dreaming enables generalization",
+                  "definition": "Synthetic event generation tests and reinforces compositional abilities. The system learns to handle combinations it's never seen."
+                },
+                {
+                  "term": "5. Bridges geometric and symbolic",
+                  "definition": "Operators are both learnable rotation matrices (continuous, geometric) and discrete compositional primitives (symbolic, combinatorial). DreamCoder-style learning unifies both views."
+                }
+              ]
+            }
+          },
+          {
+            "type": "p",
+            "children": "The DreamCoder approach transforms operator discovery from a linguistic taxonomy problem into a compression and abstraction problem. This is more principled (MDL gives clear objectives), more scalable (wake-sleep is iterative), and more likely to discover genuinely universal primitives."
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "Further Reading" },
+        "children": [
+          {
+            "type": "p",
+            "children": "To go deeper into the ideas covered in this tutorial:"
+          },
+          {
+            "type": "DefinitionList",
+            "props": {
+              "items": [
+                {
+                  "term": "DreamCoder Paper",
+                  "definition": "Ellis et al. (2021) 'DreamCoder: Bootstrapping Inductive Program Synthesis with Wake-Sleep Library Learning' — the foundational paper."
+                },
+                {
+                  "term": "LAPS Paper",
+                  "definition": "Wong et al. (2021) 'Leveraging Language to Learn Program Abstractions and Search Heuristics' — language-guided extension."
+                },
+                {
+                  "term": "Brainstorm #45: MDL Operator Discovery",
+                  "definition": "Our deeper dive into using Minimum Description Length specifically for finding the optimal operator set."
+                },
+                {
+                  "term": "Brainstorm #39: Information Bottleneck",
+                  "definition": "Related compression-based approach: bottleneck the information flow to discover essential semantic content."
+                }
+              ]
+            }
+          }
+        ]
+      }
+    ]
+  }
+}

@@ -477,6 +477,18 @@ const tutorials = [
     difficulty: 3,
   },
   {
+    id: 'brainstorm-54-dreamcoder-library-learning',
+    title: 'DreamCoder-Style Library Learning',
+    description: 'How wake-sleep loops can discover reusable semantic primitives — from program synthesis to Schankian operators',
+    tags: ['schankian', 'program-synthesis', 'library-learning'],
+    icon: '🌙',
+    gradient: 'from-indigo-500 to-violet-600',
+    shadowColor: 'shadow-indigo-500/30',
+    glowColor: 'rgba(99, 102, 241, 0.4)',
+    readTime: '22 min',
+    difficulty: 3,
+  },
+  {
     id: 'thoughtblend',
     title: 'ThoughtBlend',
     description: 'Synthesize perspectives through dialectical color mixing — add sources as color swatches and blend them into structured text or dialogue',
