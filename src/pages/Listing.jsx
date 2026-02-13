@@ -124,6 +124,19 @@ function CreateTutorialModal({ isOpen, onClose }) {
 
 const tutorials = [
   {
+    id: 'diffusion-models',
+    title: 'Diffusion Models: From Images to Text to SAE',
+    description: 'Understanding diffusion from first principles — how it conquers images, struggles with text, and how SAE dictionaries could unlock controllable generation',
+    tags: ['diffusion', 'generative', 'SAE', 'fundamentals'],
+    icon: '🎨',
+    gradient: 'from-violet-500 to-fuchsia-600',
+    shadowColor: 'shadow-violet-500/30',
+    glowColor: 'rgba(139, 92, 246, 0.4)',
+    readTime: '25 min',
+    difficulty: 2,
+    featured: true,
+  },
+  {
     id: 'diffusion-sae-research',
     title: 'SAE-Guided Diffusion: Research Exploration',
     description: 'Living document tracking our investigation into combining sparse autoencoders with diffusion models for controllable text generation',

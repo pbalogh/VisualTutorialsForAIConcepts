@@ -1,0 +1,360 @@
+{
+  "id": "diffusion-models",
+  "title": "Diffusion Models: From Images to Text to SAE-Guided Generation",
+  "subtitle": "Understanding diffusion from first principles, and exploring how SAE dictionaries could transform controllable text generation",
+  "readTime": "25 min",
+  "state": {},
+  "content": {
+    "type": "Fragment",
+    "children": [
+      {
+        "type": "Section",
+        "props": { "title": "The Core Intuition" },
+        "children": [
+          { "type": "p", "children": "Imagine a sculptor who starts with a block of marble and chips away everything that isn't the statue. Diffusion models work similarly, but in reverse: they learn to start from pure noise (the marble block) and gradually reveal the structure hidden within." },
+          { "type": "p", "children": "The key insight is deceptively simple: if you can learn how noise was added to data, you can reverse the process to generate new data from noise." },
+          {
+            "type": "Analogy",
+            "props": { "title": "The Ink Drop" },
+            "children": [
+              { "type": "p", "children": "Drop ink into water. Watch it diffuse outward until the water is uniformly gray. Now imagine you could run time backward — watching the gray water reconcentrate into a perfect ink drop." },
+              { "type": "p", "children": "That's diffusion in reverse. The forward process (adding noise) is easy and well-understood. The magic is learning the reverse: given any gray water, predict where the ink should flow to become more concentrated." }
+            ]
+          },
+          {
+            "type": "DeepDive",
+            "props": { "title": "The Mathematics: Score Functions" },
+            "children": [
+              { "type": "p", "children": "Formally, diffusion models learn the score function: the gradient of the log probability density, ∇ₓ log p(x). This vector field points toward higher-probability regions of data space." },
+              { "type": "p", "children": "At each noise level, the model learns: 'given this noisy image, which direction leads toward more realistic data?' By following this gradient iteratively, we climb from noise to samples." },
+              { "type": "p", "children": "The training objective is denoising score matching: given clean data x and noised version x̃, predict the noise that was added. This implicitly learns the score function without ever computing p(x) directly." }
+            ]
+          },
+          {
+            "type": "Quiz",
+            "props": {
+              "question": "What does a diffusion model actually learn during training?",
+              "options": [
+                "How to add noise to images",
+                "How to predict what noise was added at each step",
+                "The exact probability distribution of the training data",
+                "How to compress images into smaller representations"
+              ],
+              "correctIndex": 1,
+              "explanation": "Diffusion models learn to predict the noise that was added at each step. By learning to denoise, they implicitly learn the direction toward higher-probability data, which allows them to generate new samples by starting from pure noise and iteratively denoising."
+            }
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "Image Diffusion: Where It All Started" },
+        "children": [
+          { "type": "p", "children": "Image diffusion models like DDPM (2020), Stable Diffusion, DALL-E 3, and Imagen have revolutionized visual generation. Why do they work so well for images?" },
+          { "type": "p", "children": "Images are naturally continuous — pixel values smoothly vary from 0 to 255. This means you can add Gaussian noise at any level, and the noised image remains a valid image. The forward process is mathematically clean: just add independent Gaussian noise to each pixel." },
+          {
+            "type": "Example",
+            "props": { "title": "The Noise Schedule" },
+            "children": [
+              { "type": "p", "children": "A typical diffusion model uses 1000 timesteps. At t=0, you have the clean image. At t=1000, you have pure Gaussian noise." },
+              { "type": "ul", "children": [
+                { "type": "li", "children": "t=0-100: Fine details destroyed (individual pixel noise)" },
+                { "type": "li", "children": "t=100-500: Textures and edges blurred" },
+                { "type": "li", "children": "t=500-800: Major structures become unrecognizable" },
+                { "type": "li", "children": "t=800-1000: Converges to pure static" }
+              ]},
+              { "type": "p", "children": "During generation, we reverse this: coarse structure emerges first, then details sharpen progressively." }
+            ]
+          },
+          {
+            "type": "DeepDive",
+            "props": { "title": "Latent Diffusion (Stable Diffusion)" },
+            "children": [
+              { "type": "p", "children": "Running diffusion directly on 512×512 images is computationally expensive. Stable Diffusion's key innovation: diffuse in a compressed latent space." },
+              { "type": "p", "children": "Architecture: Encoder compresses image to ~64×64 latent → Diffusion happens in latent space → Decoder reconstructs full image" },
+              { "type": "p", "children": "This is 50× more efficient while preserving quality, because the latent space strips away perceptually irrelevant details." }
+            ]
+          },
+          {
+            "type": "InteractiveDemo",
+            "props": { "title": "Conceptual Noise Levels", "id": "noise-levels-demo" },
+            "children": [
+              { "type": "p", "children": "[Imagine a slider from t=0 to t=1000]" },
+              { "type": "ul", "children": [
+                { "type": "li", "children": "t=0: Crystal clear image of a cat" },
+                { "type": "li", "children": "t=250: Slightly fuzzy, like a photo through fog" },
+                { "type": "li", "children": "t=500: Major shapes visible, details gone" },
+                { "type": "li", "children": "t=750: Vague blobs of color" },
+                { "type": "li", "children": "t=1000: Pure TV static" }
+              ]},
+              { "type": "p", "children": "Generation reverses this: starting from static, the model iteratively predicts 'what structure is hidden here?' until a sharp image emerges." }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "The Text Problem: Why Language Is Hard" },
+        "children": [
+          { "type": "p", "children": "Text diffusion should be revolutionary — imagine generating entire documents at once, editing any part, controlling style precisely. But there's a fundamental problem: text is discrete." },
+          { "type": "p", "children": "You can't smoothly add Gaussian noise to tokens. The word 'cat' can't become 10% 'car' and 90% 'cat'. Tokens are categorical: you're either saying one word or another." },
+          {
+            "type": "Example",
+            "props": { "title": "The Discreteness Problem" },
+            "children": [
+              { "type": "p", "children": "In image space: pixel value 128 + noise → 135 (still a valid pixel)" },
+              { "type": "p", "children": "In text space: 'cat' + noise → ??? (there's no token between 'cat' and 'car')" },
+              { "type": "p", "children": "This breaks the smooth forward/reverse process that makes image diffusion elegant." }
+            ]
+          },
+          { "type": "p", "children": "Three main approaches have emerged to tackle this:" },
+          {
+            "type": "DeepDive",
+            "props": { "title": "Approach 1: Continuous Embedding Diffusion" },
+            "children": [
+              { "type": "p", "children": "Papers: Diffusion-LM (2022), SSD-LM (2023)" },
+              { "type": "p", "children": "Idea: Embed tokens into continuous vector space, run diffusion there, then map back to tokens." },
+              { "type": "p", "children": "Problem: The mapping back is lossy. You might land between valid token embeddings, and rounding introduces errors that compound." },
+              { "type": "p", "children": "Status: Works, but struggles to match autoregressive LLM quality." }
+            ]
+          },
+          {
+            "type": "DeepDive",
+            "props": { "title": "Approach 2: Discrete Diffusion" },
+            "children": [
+              { "type": "p", "children": "Papers: D3PM (2021), MDLM (2024), SEDD (2024)" },
+              { "type": "p", "children": "Idea: Replace Gaussian noise with discrete corruption — masking tokens, swapping them randomly, or interpolating between states." },
+              { "type": "p", "children": "MDLM uses masked diffusion: forward process randomly masks tokens; reverse process predicts what was masked. Like BERT training, but generative." },
+              { "type": "p", "children": "Status: Getting competitive! MDLM and SEDD are closing the gap with autoregressive models while offering parallel generation." }
+            ]
+          },
+          {
+            "type": "DeepDive",
+            "props": { "title": "Approach 3: Latent Text Diffusion" },
+            "children": [
+              { "type": "p", "children": "Papers: LD4LG (2023), Plaid (2024), LLaDA (2025)" },
+              { "type": "p", "children": "Idea: Train a VAE to encode text into continuous latent space. Run diffusion in that latent space. Decode back to text." },
+              { "type": "p", "children": "This is analogous to Stable Diffusion for images. The latent space can be designed to be smooth and continuous." },
+              { "type": "p", "children": "Status: Most promising direction. Plaid shows strong results on text generation benchmarks." }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "Why This Matters: Non-Autoregressive Generation" },
+        "children": [
+          { "type": "p", "children": "GPT and friends generate text left-to-right, one token at a time. This works incredibly well, but has limitations." },
+          {
+            "type": "Example",
+            "props": { "title": "Autoregressive Limitations" },
+            "children": [
+              { "type": "ul", "children": [
+                { "type": "li", "children": "Can't look ahead: By the time you realize paragraph 3 contradicts paragraph 1, you've already generated paragraph 2" },
+                { "type": "li", "children": "Hard to edit: Changing one word might require regenerating everything after it" },
+                { "type": "li", "children": "Sequential bottleneck: Can't parallelize token generation" },
+                { "type": "li", "children": "Poor infilling: Completing text in the middle is awkward" }
+              ]}
+            ]
+          },
+          { "type": "p", "children": "Diffusion models generate all positions simultaneously (or through global iterative refinement). This enables:" },
+          { "type": "ul", "children": [
+            { "type": "li", "children": "Global coherence: Every refinement step sees the whole document" },
+            { "type": "li", "children": "Natural editing: Change any part, then re-denoise to propagate consistency" },
+            { "type": "li", "children": "Flexible infilling: Just condition on the known parts" },
+            { "type": "li", "children": "Controllability: Guide the entire generation process, not just the next token" }
+          ]},
+          {
+            "type": "Analogy",
+            "props": { "title": "Writing vs Sculpting" },
+            "children": [
+              { "type": "p", "children": "Autoregressive = writing a novel sentence by sentence, never looking back" },
+              { "type": "p", "children": "Diffusion = sculpting a statue, refining the whole form progressively, stepping back to assess balance" }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "Enter SAE Dictionaries" },
+        "children": [
+          { "type": "p", "children": "Sparse Autoencoders (SAEs) decompose neural network activations into sparse combinations of interpretable features. Anthropic's landmark 2024 paper extracted 34 million features from Claude 3 Sonnet." },
+          { "type": "p", "children": "Each feature represents a recognizable concept: 'financial institutions', 'sarcasm', 'scientific register', 'uncertainty hedging'. Activations become interpretable sums: this text activates 0.8× feature_sarcasm + 0.3× feature_science + ..." },
+          {
+            "type": "Example",
+            "props": { "title": "What SAE Features Look Like" },
+            "children": [
+              { "type": "p", "children": "From Anthropic's research:" },
+              { "type": "ul", "children": [
+                { "type": "li", "children": "Feature #4,291: Activates on financial/banking contexts" },
+                { "type": "li", "children": "Feature #12,087: Geographic features along waterways" },
+                { "type": "li", "children": "Feature #34,127,089: The Golden Gate Bridge specifically" }
+              ]},
+              { "type": "p", "children": "These aren't hand-coded — they emerge from unsupervised learning on model activations." }
+            ]
+          },
+          { "type": "p", "children": "Here's the key question: Can we use SAE dictionaries to make diffusion models more controllable and interpretable?" }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "The Four Big Ideas" },
+        "children": [
+          { "type": "p", "children": "We've identified four ways SAE dictionaries could transform text diffusion. These are research directions, not established results — but the theoretical grounding is strong." }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "Idea 1: Structured Latent Spaces" },
+        "children": [
+          { "type": "p", "children": "What if we used SAE feature space as the diffusion latent space?" },
+          { "type": "p", "children": "Instead of diffusing in an opaque learned latent space (like Stable Diffusion's VAE), diffuse directly in the space spanned by interpretable SAE features." },
+          {
+            "type": "Example",
+            "props": { "title": "How It Would Work" },
+            "children": [
+              { "type": "p", "children": "Current approach: Text → Encoder → [opaque 512-dim vector] → Diffusion → Decoder → Text" },
+              { "type": "p", "children": "SAE approach: Text → SAE Encoder → [sparse activation over 34M interpretable features] → Diffusion → SAE Decoder → Text" },
+              { "type": "p", "children": "During generation, the denoising process would be 'assembling' text by composing known semantic features, not navigating an uninterpretable manifold." }
+            ]
+          },
+          {
+            "type": "DeepDive",
+            "props": { "title": "Evidence: Yu et al. ICML 2022" },
+            "children": [
+              { "type": "p", "children": "The paper 'Latent Diffusion Energy-Based Model for Interpretable Text Modeling' found that structured latent spaces improve both generation quality AND interpretability in text diffusion." },
+              { "type": "p", "children": "This directly supports our hypothesis: the structure of the latent space matters, and interpretable structure helps rather than hurts." }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "Idea 2: Feature Steering for Conditional Generation" },
+        "children": [
+          { "type": "p", "children": "Use SAE features as precise control knobs for generation. Instead of vague text prompts, directly specify which semantic features to activate." },
+          {
+            "type": "Example",
+            "props": { "title": "Steering in Action" },
+            "children": [
+              { "type": "p", "children": "Current: 'Write a sarcastic scientific paper abstract'" },
+              { "type": "p", "children": "SAE-steered: Activate feature_sarcasm=0.8, feature_scientific_register=1.0, feature_hedging=0.3, then denoise" },
+              { "type": "p", "children": "The features ARE the meaning. No ambiguity about what 'sarcastic' means to the model." }
+            ]
+          },
+          {
+            "type": "DeepDive",
+            "props": { "title": "Critical Finding: Output Features" },
+            "children": [
+              { "type": "p", "children": "Recent research (Arad et al.) reveals a crucial distinction: SAE features come in two types." },
+              { "type": "p", "children": "'Input features' detect concepts in the input but don't causally affect output." },
+              { "type": "p", "children": "'Output features' (later layers) actually steer what the model generates." },
+              { "type": "p", "children": "For generation, we specifically need output features. Using input features for steering is 2-3× less effective. This narrows which SAE features are useful for our purposes." }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "Idea 3: Semantically-Aware Noise Schedules" },
+        "children": [
+          { "type": "p", "children": "What if we corrupted different semantic levels at different rates?" },
+          { "type": "p", "children": "We know SAE features have hierarchy — some encode high-level concepts (topic, sentiment), others encode low-level details (specific word choices, syntax patterns)." },
+          {
+            "type": "Analogy",
+            "props": { "title": "Painting in Layers" },
+            "children": [
+              { "type": "p", "children": "A painter doesn't add random noise to a canvas and subtract it. They work in layers: composition sketch → value blocking → color harmony → fine details." },
+              { "type": "p", "children": "A semantic noise schedule would: Corrupt fine details first (word choice, phrasing) → Then structure (sentence flow) → Last, high-level features (topic, intent)" },
+              { "type": "p", "children": "Generation reverses this: topic crystallizes first, then structure, then word-level polish. This matches how humans actually compose." }
+            ]
+          },
+          {
+            "type": "Example",
+            "props": { "title": "Implementation Sketch" },
+            "children": [
+              { "type": "p", "children": "Partition SAE features into semantic levels (could use layer of origin, feature complexity, or learned hierarchy)." },
+              { "type": "p", "children": "Design noise schedule: Level 1 features (syntax) corrupted at t=0-300; Level 2 (structure) at t=200-600; Level 3 (topic) at t=500-1000." },
+              { "type": "p", "children": "During generation, high-level meaning emerges first, then progressively sharpens to specific words." }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "Idea 4: Dictionary-Guided Denoising" },
+        "children": [
+          { "type": "p", "children": "At each denoising step, constrain the output to be a sparse combination of known SAE features. The dictionary becomes a 'parts list' that the model must build from." },
+          {
+            "type": "Example",
+            "props": { "title": "Constrained Denoising" },
+            "children": [
+              { "type": "p", "children": "Standard denoising: noisy vector → neural net → slightly less noisy vector (anywhere in continuous space)" },
+              { "type": "p", "children": "Dictionary-guided: noisy vector → neural net → project onto sparse SAE basis → next step" },
+              { "type": "p", "children": "This projection step snaps each intermediate state to a valid combination of known semantic features." }
+            ]
+          },
+          {
+            "type": "DeepDive",
+            "props": { "title": "Why This Could Work" },
+            "children": [
+              { "type": "p", "children": "Sparse coding has a long history of improving generalization. By constraining the denoising path to stay on the manifold of interpretable feature combinations, we might:" },
+              { "type": "ul", "children": [
+                { "type": "li", "children": "Reduce the hypothesis space the model must search" },
+                { "type": "li", "children": "Prevent degenerate samples that fall between valid meanings" },
+                { "type": "li", "children": "Enable sample-efficient training (the structure is given, not learned)" },
+                { "type": "li", "children": "Make intermediate states interpretable (debugging!)" }
+              ]}
+            ]
+          },
+          {
+            "type": "DeepDive",
+            "props": { "title": "Enabling Research: Schiff et al. Codebase" },
+            "children": [
+              { "type": "p", "children": "The discrete-diffusion-guidance repository (Schiff et al.) provides open-source infrastructure for guided discrete diffusion with MDLM." },
+              { "type": "p", "children": "This directly enables experiments with dictionary-guided denoising. The guidance mechanism could be adapted to enforce SAE sparsity constraints at each step." }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "Open Questions and Challenges" },
+        "children": [
+          { "type": "p", "children": "These ideas are promising but untested. Key challenges:" },
+          {
+            "type": "ul", "children": [
+              { "type": "li", "children": [{ "type": "strong", "children": "Invertibility:" }, " Can we reliably map from SAE features back to coherent text? SAEs are trained for analysis, not generation. The decoding direction may be lossy."] },
+              { "type": "li", "children": [{ "type": "strong", "children": "Feature completeness:" }, " Do the 34M features cover all concepts needed for generation? There may be 'gaps' in feature space that correspond to valid text."] },
+              { "type": "li", "children": [{ "type": "strong", "children": "Computational cost:" }, " Projecting onto sparse bases at each denoising step adds overhead. Is the interpretability worth the compute?"] },
+              { "type": "li", "children": [{ "type": "strong", "children": "Training data:" }, " We'd need to train on SAE-decomposed representations. This requires running SAE extraction on massive text corpora."] }
+            ]
+          },
+          {
+            "type": "Quiz",
+            "props": {
+              "question": "Why is the 'output features vs input features' distinction critical for using SAEs in generation?",
+              "options": [
+                "Output features are more numerous",
+                "Input features can't be extracted from text",
+                "Output features causally affect what the model generates, while input features only detect concepts",
+                "Output features are easier to compute"
+              ],
+              "correctIndex": 2,
+              "explanation": "Input features detect concepts in the input but don't necessarily influence generation. Output features (typically from later layers) actually steer the model's output. For generation/steering, we need features that causally affect output, making output features essential."
+            }
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "What's Next" },
+        "children": [
+          { "type": "p", "children": "This tutorial provides the conceptual foundation. We're actively researching these directions with a biannual literature sweep (see the companion 'SAE-Guided Diffusion Research' document for ongoing findings)." },
+          { "type": "p", "children": "Most tractable starting point: Idea 2 (Feature Steering). We can experiment with steering existing text diffusion models using SAE features, without building new architectures from scratch." },
+          { "type": "p", "children": "The infrastructure exists (MDLM, guidance codebases, SAE feature extractions). The theoretical grounding is solid. Now we need experiments." }
+        ]
+      }
+    ]
+  }
+}
