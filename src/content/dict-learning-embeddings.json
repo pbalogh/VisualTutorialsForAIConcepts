@@ -1,0 +1,286 @@
+{
+  "id": "dict-learning-embeddings",
+  "title": "Dictionary Learning for Word Embeddings",
+  "subtitle": "How sparse coding reveals the hidden structure of word vectors — from visual cortex to language, a direct ancestor of SAEs",
+  "readTime": "18 min",
+  "difficulty": 2,
+  "tags": ["embeddings", "dictionary learning", "sparse coding", "interpretability"],
+  "state": {},
+  "content": {
+    "type": "Fragment",
+    "children": [
+      {
+        "type": "Section",
+        "props": { "title": "From Visual Cortex to Word Vectors" },
+        "children": [
+          { "type": "p", "children": "In 1996, Bruno Olshausen asked a deceptively simple question: if you train an algorithm to represent natural images as sparse combinations of elementary features, what features does it learn?" },
+          { "type": "p", "children": "The answer was stunning. The algorithm independently discovered features that look almost identical to the receptive fields of neurons in the primary visual cortex (V1) — oriented edges, Gabor-like filters, localized patterns at different scales. The visual system, it seemed, had evolved to implement sparse coding." },
+          { "type": "p", "children": "Two decades later, Olshausen and his collaborators asked the same question about language. If you take word embeddings — the dense 300-dimensional vectors that Word2Vec or GloVe assign to every word — and decompose them into sparse combinations of elementary 'word factors,' what factors emerge?" },
+          { "type": "p", "children": "The answer, documented in Zhang, Chen, Cheung, and Olshausen (2019), is equally stunning: the algorithm discovers recognizable semantic and syntactic categories. Factors for 'animals,' for 'past tense verbs,' for 'geographic locations,' for 'royalty.' The same mathematical principle that explained vision now explains language." },
+          {
+            "type": "Analogy",
+            "props": { "title": "The Periodic Table of Words" },
+            "children": [
+              { "type": "p", "children": "Chemists discovered that all matter is composed of a relatively small set of elements — hydrogen, oxygen, carbon. These elements combine in different proportions to create every substance in the universe. Water is 2 parts hydrogen and 1 part oxygen." },
+              { "type": "p", "children": "This paper discovers that all word meanings are composed of a relatively small set of semantic 'elements' — factors like [animal], [male], [royalty], [past-tense]. The word 'king' is a specific combination: high [royalty] + high [male] + high [singular]. 'Queens' would be high [royalty] + high [female] + high [plural]. Same elements, different proportions — different meaning." },
+              { "type": "p", "children": "And just as the periodic table was discovered by finding patterns in nature, these word factors are discovered automatically by finding patterns in how words are used." }
+            ]
+          },
+          {
+            "type": "DeepDive",
+            "props": { "title": "Olshausen 1996: The Paper That Started It All" },
+            "children": [
+              { "type": "p", "children": "Olshausen and Field's 1996 Nature paper, 'Emergence of simple-cell receptive field properties by learning a sparse code for natural images,' is one of the most cited papers in computational neuroscience. It showed that sparse coding on natural image patches produces features resembling V1 simple cells." },
+              { "type": "p", "children": "The key insight was that natural images have exploitable statistical structure. A 12×12 pixel patch can be described as a sum of a few (sparse!) basis functions from an overcomplete dictionary. The learned basis functions look like localized, oriented edges — exactly what V1 neurons respond to." },
+              { "type": "p", "children": "This established a powerful principle: sparse coding on natural data produces interpretable, biologically meaningful features. Zhang et al. (2019) asks: does this principle generalize from images to language? From pixel patches to word vectors? The answer is yes." }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "What Is Dictionary Learning?" },
+        "children": [
+          { "type": "p", "children": "Dictionary learning is a simple and powerful idea. You have a collection of data points — in our case, word embedding vectors. You want to express each data point as a combination of a small number of 'atoms' drawn from a learned dictionary. The mathematical formulation is clean:" },
+          { "type": "p", "children": "Given a matrix X of word embeddings (each column is a word vector), find a dictionary D and sparse codes S such that: X ≈ D · S" },
+          { "type": "p", "children": "Here D is the dictionary matrix — each column is a 'word factor' or 'atom.' S is the sparse codes matrix — each column tells you how much of each factor is present in each word. The constraint is that S must be sparse: most entries are zero. Each word activates only a handful of factors." },
+          {
+            "type": "Example",
+            "props": { "title": "A Concrete Example" },
+            "children": [
+              { "type": "p", "children": "Suppose we have 300-dimensional GloVe embeddings for 50,000 words, and we learn a dictionary with 2,000 factors." },
+              { "type": "ul", "children": [
+                { "type": "li", "children": "X is 300 × 50,000 — each column is one word's embedding" },
+                { "type": "li", "children": "D is 300 × 2,000 — each column is one learned 'word factor'" },
+                { "type": "li", "children": "S is 2,000 × 50,000 — each column tells how to combine factors for one word" }
+              ]},
+              { "type": "p", "children": "The dictionary is overcomplete: 2,000 factors to represent 300-dimensional vectors. This overcompleteness is crucial — it allows the representation to be both sparse AND expressive. Each word only needs ~20-30 active factors out of 2,000." },
+              { "type": "p", "children": "For the word 'king,' the sparse code might look like: 0.8 × factor_royalty + 0.6 × factor_male + 0.4 × factor_authority + 0.3 × factor_singular + ... (with ~1,970 factors at zero)" }
+            ]
+          },
+          {
+            "type": "DeepDive",
+            "props": { "title": "Why Overcomplete? The Geometry of Sparse Codes" },
+            "children": [
+              { "type": "p", "children": "A complete dictionary has exactly as many factors as the dimension of the data (300 factors for 300-dimensional embeddings). Every vector has a unique representation — but it's not sparse. You need all 300 factors." },
+              { "type": "p", "children": "An overcomplete dictionary has MORE factors than the dimension (e.g., 2,000 factors for 300 dimensions). Now there are infinitely many ways to represent each vector. Adding the sparsity constraint selects the representation that uses the fewest factors." },
+              { "type": "p", "children": "This overcomplete + sparse combination is what produces interpretable factors. Intuitively: if you're forced to describe every word using just a few factors from a large menu, those factors had better correspond to real, meaningful semantic categories. Random directions wouldn't give you sparse representations." },
+              { "type": "p", "children": "Mathematically, the optimization minimizes: ||X - DS||² + λ||S||₁. The first term ensures accurate reconstruction. The second (L1 penalty) enforces sparsity. The hyperparameter λ controls the tradeoff: higher λ means sparser codes but worse reconstruction." },
+              { "type": "p", "children": "This is the SAME mathematical framework that Sparse Autoencoders (SAEs) use in mechanistic interpretability. The connection isn't metaphorical — it's exactly the same optimization problem applied to different data." }
+            ]
+          },
+          {
+            "type": "Quiz",
+            "props": {
+              "question": "Why is the dictionary overcomplete (more factors than the embedding dimension)?",
+              "options": [
+                "To make the computation faster",
+                "Because word embeddings are very high-dimensional",
+                "To allow sparse representations — each word uses only a few factors from a large menu, forcing factors to be meaningful",
+                "Because there are more words than dimensions"
+              ],
+              "correctIndex": 2,
+              "explanation": "An overcomplete dictionary has more factors than the embedding dimension. When combined with a sparsity constraint (each word uses only a few factors), this forces the learned factors to correspond to real semantic or syntactic categories. If factors were random, you couldn't get sparse representations — you'd need many of them to reconstruct any word. This same principle drives SAEs in mechanistic interpretability."
+            }
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "Opening the Black Box" },
+        "children": [
+          { "type": "p", "children": "So what happens when Zhang et al. actually run dictionary learning on word embeddings? They applied sparse coding to GloVe embeddings (300-dimensional vectors trained on 840 billion tokens) and Word2Vec embeddings, learning dictionaries of varying sizes." },
+          { "type": "p", "children": "The results are remarkable. The learned factors cluster into clearly recognizable semantic and syntactic groups. Each factor, when you look at the words that activate it most strongly, tells a coherent story." },
+          {
+            "type": "Example",
+            "props": { "title": "Discovered Word Factors" },
+            "children": [
+              { "type": "p", "children": "Here are some of the factors the algorithm discovers automatically:" },
+              { "type": "ul", "children": [
+                { "type": "li", "children": "Animal factor: dog, cat, horse, elephant, tiger, lion, wolf, bear — all with high positive activation" },
+                { "type": "li", "children": "Music factor: song, album, band, guitar, concert, singer, melody, rhythm" },
+                { "type": "li", "children": "Past tense factor: walked, played, decided, started, began, returned, moved" },
+                { "type": "li", "children": "Geography factor: river, mountain, coast, valley, island, peninsula, continent" },
+                { "type": "li", "children": "Female factor: she, her, woman, girl, mother, daughter, queen, actress" },
+                { "type": "li", "children": "Negative sentiment factor: terrible, awful, horrible, disgusting, worst, ugly" }
+              ]},
+              { "type": "p", "children": "Nobody told the algorithm about animals, music, or verb tenses. These categories emerged purely from the statistical structure of the embedding space — the same way oriented edges emerged from natural image statistics in Olshausen's original work." }
+            ]
+          },
+          { "type": "p", "children": "This connects directly to theoretical work by Arora et al. (2018), who proved that word embeddings are essentially superpositions of multiple 'discourse vectors' — each corresponding to a different sense or topic. Dictionary learning is the practical tool that recovers these superimposed components. What Arora proved theoretically, Zhang et al. demonstrate empirically." },
+          { "type": "p", "children": "The parallel to Panigrahi et al.'s Word2Sense (2019) is also illuminating. Word2Sense uses topic modeling (LDA) to decompose word embeddings into senses. Dictionary learning is a different decomposition — one that emphasizes sparsity over probabilistic topics — but they're both trying to answer the same question: what are the hidden components inside a word vector?" },
+          {
+            "type": "InteractiveDemo",
+            "props": { "title": "Factor Activation Explorer", "id": "factor-explorer-demo" },
+            "children": [
+              { "type": "p", "children": "Imagine selecting different words and seeing which factors light up. Here's what the sparse decomposition looks like for a few words:" },
+              { "type": "p", "children": "🔤 \"king\" → [royalty: 0.82] [male: 0.71] [authority: 0.45] [singular: 0.33] [human: 0.28]" },
+              { "type": "p", "children": "🔤 \"queen\" → [royalty: 0.79] [female: 0.73] [authority: 0.41] [singular: 0.35] [human: 0.30]" },
+              { "type": "p", "children": "🔤 \"dog\" → [animal: 0.88] [pet: 0.62] [mammal: 0.41] [domestic: 0.35] [singular: 0.22]" },
+              { "type": "p", "children": "🔤 \"walked\" → [motion: 0.75] [past-tense: 0.81] [human-action: 0.38] [physical: 0.29]" },
+              { "type": "p", "children": "🔤 \"Paris\" → [city: 0.84] [European: 0.72] [French: 0.68] [capital: 0.55] [tourism: 0.31]" },
+              { "type": "p", "children": "Notice the pattern: each word activates only 4-6 factors out of potentially thousands. That's sparsity in action. And the active factors are recognizable, nameable categories — that's interpretability." }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "Visualization: Words as Combinations" },
+        "children": [
+          { "type": "p", "children": "One of the most powerful applications of this factorization is visualization. Standard word embedding visualizations use dimensionality reduction (t-SNE, PCA) to project 300 dimensions down to 2. This necessarily loses most of the information and often produces misleading clusters." },
+          { "type": "p", "children": "Dictionary learning offers a fundamentally different approach to visualization. Instead of squashing dimensions, it identifies the meaningful dimensions. You can visualize each word as a bar chart of its factor activations — a sparse, interpretable 'fingerprint' of its meaning." },
+          {
+            "type": "Example",
+            "props": { "title": "Visualizing the King-Queen Relationship" },
+            "children": [
+              { "type": "p", "children": "Consider four words: king, queen, man, woman. In the original 300-dimensional space, their relationship is opaque. But in factor space:" },
+              { "type": "p", "children": "king:  ████████ royalty  ███████ male    ████ authority  ███ singular" },
+              { "type": "p", "children": "queen: ████████ royalty  ███████ female  ████ authority  ███ singular" },
+              { "type": "p", "children": "man:   █ royalty         ███████ male    █ authority    ███ singular" },
+              { "type": "p", "children": "woman: █ royalty         ███████ female  █ authority    ███ singular" },
+              { "type": "p", "children": "Now the analogy king:queen::man:woman becomes visually obvious. The only factor that changes is gender (male ↔ female). The royalty and authority factors stay constant within each pair. This is what t-SNE can never show you — the specific dimensions along which words relate." }
+            ]
+          },
+          { "type": "p", "children": "This visualization approach makes word embedding structure legible to humans in a way that t-SNE scatter plots never could. You can see not just THAT words are related, but HOW they are related — which specific semantic or syntactic dimensions they share or differ on." },
+          {
+            "type": "Analogy",
+            "props": { "title": "Nutrition Labels for Words" },
+            "children": [
+              { "type": "p", "children": "Think of a nutrition label on food packaging. Instead of describing a food as a single number ('caloric density'), the label breaks it down into interpretable components: protein, fat, carbohydrates, fiber, vitamins." },
+              { "type": "p", "children": "Dictionary learning creates 'semantic nutrition labels' for words. Instead of describing 'king' as a single opaque 300-dimensional vector, it breaks it down into interpretable components: royalty content, gender, authority level, number (singular/plural)." },
+              { "type": "p", "children": "Just as nutrition labels let you compare foods along specific dimensions ('this cereal has more fiber but less protein'), factor labels let you compare words along specific semantic dimensions ('king has more royalty than man, but the same gender factor')." }
+            ]
+          },
+          {
+            "type": "InteractiveDemo",
+            "props": { "title": "Factor Comparison Viewer", "id": "factor-comparison-demo" },
+            "children": [
+              { "type": "p", "children": "Compare how related words differ in their factor activations. The factors that CHANGE reveal the semantic relationship:" },
+              { "type": "p", "children": "📊 Pair: 'walk' vs 'walked'" },
+              { "type": "ul", "children": [
+                { "type": "li", "children": "SAME: [motion: 0.75] [human-action: 0.38] [physical: 0.29]" },
+                { "type": "li", "children": "CHANGED: [past-tense: 0→0.81] — only the tense factor flips!" }
+              ]},
+              { "type": "p", "children": "📊 Pair: 'dog' vs 'dogs'" },
+              { "type": "ul", "children": [
+                { "type": "li", "children": "SAME: [animal: 0.88] [pet: 0.62] [mammal: 0.41] [domestic: 0.35]" },
+                { "type": "li", "children": "CHANGED: [singular: 0.22→0] [plural: 0→0.25] — only number changes!" }
+              ]},
+              { "type": "p", "children": "📊 Pair: 'France' vs 'French'" },
+              { "type": "ul", "children": [
+                { "type": "li", "children": "SAME: [European: 0.72] [French-culture: 0.68]" },
+                { "type": "li", "children": "CHANGED: [country: 0.84→0.1] [adjective: 0.1→0.78] [language: 0.1→0.65]" }
+              ]},
+              { "type": "p", "children": "This is the power of sparse factor decomposition: relationships between words become visible as differences between their factor profiles." }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "Supercharging Word Analogies" },
+        "children": [
+          { "type": "p", "children": "Word analogy tasks — 'king is to queen as man is to ???' — have been the standard benchmark for word embeddings since Mikolov's original Word2Vec paper. The standard approach uses vector arithmetic: king - man + woman ≈ queen. This works surprisingly well, but not perfectly." },
+          { "type": "p", "children": "Zhang et al. showed that dictionary learning can significantly improve analogy performance. The key insight: instead of doing arithmetic in the original dense 300-dimensional space, do it in the sparse factor space." },
+          {
+            "type": "Example",
+            "props": { "title": "Why Sparse Factor Arithmetic Works Better" },
+            "children": [
+              { "type": "p", "children": "In the original embedding space, 'king - man + woman' involves subtracting and adding dense 300-dimensional vectors. Every dimension participates, and irrelevant dimensions add noise." },
+              { "type": "p", "children": "In sparse factor space, the analogy becomes crisp:" },
+              { "type": "ul", "children": [
+                { "type": "li", "children": "king factors:  [royalty: 0.82, male: 0.71, authority: 0.45, ...]" },
+                { "type": "li", "children": "- man factors: [male: 0.71, ...]" },
+                { "type": "li", "children": "+ woman factors: [female: 0.73, ...]" },
+                { "type": "li", "children": "= result: [royalty: 0.82, female: 0.73, authority: 0.45, ...] ← that's queen!" }
+              ]},
+              { "type": "p", "children": "The sparsity means most factors are zero, so the arithmetic only involves the relevant dimensions. The gender factor cleanly swaps from male to female. The royalty and authority factors pass through unchanged. No noise from irrelevant dimensions." },
+              { "type": "p", "children": "Zhang et al. report large improvements over the standard vector arithmetic approach on Google's word analogy test set, particularly on syntactic analogies (tense, number, degree)." }
+            ]
+          },
+          { "type": "p", "children": "The improvement is especially dramatic for syntactic analogies. Tense relationships (walk:walked :: run:ran), number relationships (dog:dogs :: cat:cats), and comparative forms (big:bigger :: small:smaller) all benefit from the clean factor decomposition. The tense factor, the number factor, the degree factor — each can be swapped precisely." },
+          {
+            "type": "DeepDive",
+            "props": { "title": "The Factor Selection Method" },
+            "children": [
+              { "type": "p", "children": "Zhang et al. developed a clever method for improving analogies using factors. Given an analogy a:b::c:?, they:" },
+              { "type": "p", "children": "1. Decompose all three words (a, b, c) into their sparse factor representations." },
+              { "type": "p", "children": "2. Identify the 'difference factors' — the factors that change significantly between a and b. For king:queen, this identifies the gender factor." },
+              { "type": "p", "children": "3. Apply ONLY those difference factors to c. Instead of doing full vector arithmetic (which mixes all dimensions), they surgically modify just the relevant factors." },
+              { "type": "p", "children": "4. Reconstruct the answer word from the modified factors." },
+              { "type": "p", "children": "This 'factor selection' approach dramatically reduces noise. Traditional vector arithmetic touches all 300 dimensions. Factor-based arithmetic touches only the 2-5 factors that actually encode the relationship. It's like the difference between rewriting an entire document vs. finding and replacing just the relevant words." }
+            ]
+          },
+          {
+            "type": "Quiz",
+            "props": {
+              "question": "How does dictionary learning improve word analogy performance?",
+              "options": [
+                "By making the embeddings higher-dimensional",
+                "By training on more data",
+                "By identifying which sparse factors encode the relationship and doing arithmetic only on those factors",
+                "By using a neural network instead of linear algebra"
+              ],
+              "correctIndex": 2,
+              "explanation": "Dictionary learning decomposes words into sparse factors. For analogies, the key insight is that the relationship (e.g., gender, tense) is encoded in just a few factors. By identifying these 'difference factors' and operating only on them, you avoid noise from the hundreds of irrelevant dimensions. This is surgical editing of meaning — changing just the gender factor while leaving royalty, authority, etc. untouched."
+            }
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "The SAE Connection: A Direct Intellectual Lineage" },
+        "children": [
+          { "type": "p", "children": "If you've been following the mechanistic interpretability revolution — Anthropic's analysis of Claude, OpenAI's work on GPT internals — you might notice something familiar. Sparse Autoencoders (SAEs) decompose neural network activations into sparse combinations of interpretable features. That's exactly what dictionary learning does to word embeddings." },
+          { "type": "p", "children": "This isn't a coincidence. There is a direct intellectual lineage:" },
+          { "type": "ul", "children": [
+            { "type": "li", "children": "1996 — Olshausen & Field: Sparse coding on natural images → interpretable V1-like features" },
+            { "type": "li", "children": "2019 — Zhang, Chen, Cheung & Olshausen (this paper): Sparse coding on word embeddings → interpretable semantic/syntactic factors" },
+            { "type": "li", "children": "2021 — Yun et al.: Sparse coding on transformer activations → interpretable features inside neural networks" },
+            { "type": "li", "children": "2023 — Cunningham et al., Bricken et al.: Sparse Autoencoders for mechanistic interpretability of LLMs" },
+            { "type": "li", "children": "2024 — Anthropic: SAEs at scale, extracting millions of interpretable features from Claude" }
+          ]},
+          { "type": "p", "children": "The mathematical framework is identical throughout this lineage. In every case, you have:" },
+          { "type": "ul", "children": [
+            { "type": "li", "children": "Dense input: image patches / word embeddings / transformer activations" },
+            { "type": "li", "children": "Overcomplete dictionary: more factors than input dimensions" },
+            { "type": "li", "children": "Sparsity constraint: each input uses only a few factors" },
+            { "type": "li", "children": "Result: interpretable factors emerge automatically" }
+          ]},
+          { "type": "p", "children": "The 'word factors' in this paper ARE proto-SAE features. When Anthropic finds a 'Golden Gate Bridge feature' in Claude, they're doing the same thing Zhang et al. do when they find a 'geography factor' in GloVe — decomposing a dense, entangled representation into sparse, interpretable components." },
+          {
+            "type": "Example",
+            "props": { "title": "Same Math, Different Data" },
+            "children": [
+              { "type": "p", "children": "The optimization problem is nearly identical across the lineage:" },
+              { "type": "p", "children": "Dictionary Learning (this paper): minimize ||X - DS||² + λ||S||₁" },
+              { "type": "p", "children": "SAE (mechanistic interp): minimize ||x - D·σ(E·x + b)||² + λ||σ(E·x + b)||₁" },
+              { "type": "p", "children": "The SAE version adds an encoder E and nonlinearity σ (ReLU), making the sparse code computation amortized (a single forward pass) rather than iterative. But the objective is the same: reconstruct the input from a sparse combination of dictionary elements, with an L1 penalty for sparsity." },
+              { "type": "p", "children": "The key difference: dictionary learning solves the optimization per-example (slow but mathematically clean). SAEs train a neural network to approximate the solution (fast but approximate). Both produce overcomplete sparse representations. Both yield interpretable features." }
+            ]
+          },
+          { "type": "p", "children": "Understanding this paper is understanding the seed idea of SAE-based interpretability. When people say 'SAEs find interpretable features in neural networks,' they're extending a principle that Olshausen established for vision in 1996, that Zhang et al. demonstrated for word embeddings in 2019, and that Yun et al. brought to transformers in 2021." }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "Implications and Open Questions" },
+        "children": [
+          { "type": "p", "children": "The deepest implication of this paper is that language and vision share the same statistical structure at a fundamental level. Natural images have sparse structure — most of the 'stuff' in an image can be described by a few oriented edges. Word embeddings have sparse structure — most of a word's meaning can be described by a few semantic/syntactic factors." },
+          { "type": "p", "children": "Why? One possibility: both reflect the structure of the world itself. The world has objects with properties. Objects combine in compositional ways. Both visual and linguistic representations encode this compositional structure, and sparse coding recovers it." },
+          { "type": "p", "children": "This raises profound questions about the nature of neural representations — both biological and artificial:" },
+          { "type": "ul", "children": [
+            { "type": "li", "children": "Universality: Is sparse coding a universal principle? Does it apply to ALL learned representations — audio, motor control, abstract reasoning?" },
+            { "type": "li", "children": "Emergence: Why does training on prediction tasks (next word, missing pixel) produce representations that have this sparse structure? Is it inevitable?" },
+            { "type": "li", "children": "Biology: If the brain uses sparse coding for vision AND language, how are the codes integrated? How does a 'dog' visual feature connect to a 'dog' linguistic factor?" },
+            { "type": "li", "children": "Scale: This paper worked on static word embeddings (Word2Vec/GloVe). Modern transformers use contextual embeddings. Does sparse coding still work? (Yun et al. 2021 showed that it does — the factors become richer and context-dependent.)" },
+            { "type": "li", "children": "Interpretability: If SAEs can extract interpretable features from LLMs using the same math, does this mean we can eventually 'read' what a language model is thinking — the way we can read a nutrition label?" }
+          ]},
+          { "type": "p", "children": "The trajectory from Olshausen (1996) to Anthropic (2024) suggests that sparse coding may be one of the most powerful tools we have for understanding both biological and artificial intelligence. This paper — sitting in the middle of that trajectory — is where the idea leapt from perception to language, setting the stage for everything that followed." },
+          { "type": "p", "children": "As you explore the companion tutorials in this series — Arora et al.'s theoretical framework for embedding superpositions, Panigrahi et al.'s Word2Sense approach via topic models, and Yun et al.'s extension to transformer activations — you'll see the same core idea recurring: dense neural representations are superpositions of sparse, interpretable components. Dictionary learning is how we take them apart." }
+        ]
+      }
+    ]
+  }
+}

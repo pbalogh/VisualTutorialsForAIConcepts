@@ -563,6 +563,18 @@ const tutorials = [
     difficulty: 3,
   },
   {
+    id: 'dict-learning-embeddings',
+    title: 'Dictionary Learning for Word Embeddings',
+    description: 'How sparse coding reveals the hidden structure of word vectors — from visual cortex to language, a direct ancestor of SAEs',
+    tags: ['embeddings', 'dictionary learning', 'sparse coding', 'interpretability'],
+    icon: '📖',
+    gradient: 'from-emerald-500 to-teal-600',
+    shadowColor: 'shadow-emerald-500/30',
+    glowColor: 'rgba(16, 185, 129, 0.4)',
+    readTime: '18 min',
+    difficulty: 2,
+  },
+  {
     id: 'transformer-dict-learning',
     title: 'Transformer Factors: The SAE Origin Story',
     description: 'Dictionary learning on transformer hidden states reveals interpretable factors — the direct intellectual ancestor of modern SAEs',
@@ -657,6 +669,9 @@ const tagColors = {
   // ThoughtBlend tags
   'synthesis': 'bg-teal-100 text-teal-700 border-teal-200',
   'dialectics': 'bg-emerald-100 text-emerald-700 border-emerald-200',
+  
+  // Embeddings / Sparse Coding
+  'sparse coding': 'bg-cyan-100 text-cyan-700 border-cyan-200',
 }
 
 // Difficulty display
