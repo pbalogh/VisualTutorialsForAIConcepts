@@ -216,6 +216,40 @@
                 ]
               }
             ]
+          },
+          {
+            "type": "DeepDive",
+            "title": "[Feb 13 1pm] 🔥 Concept Steerers: k-SAE for Image Diffusion Control (Jan 2025)",
+            "children": [
+              {
+                "type": "p",
+                "children": [
+                  { "type": "strong", "children": ["Paper:"] },
+                  " Kim et al., 'Concept Steerers: Leveraging K-Sparse Autoencoders for Test-Time Controllable Generations' (arXiv:2501.19066)"
+                ]
+              },
+              {
+                "type": "p",
+                "children": [
+                  { "type": "strong", "children": ["Key insight:"] },
+                  " Uses k-sparse autoencoders to steer IMAGE diffusion models at test time. They train k-SAEs on text embeddings from prompts, identify monosemantic concepts, then steer generation toward or away from concepts (e.g., remove 'nudity', add 'photographic style'). No retraining, no LoRA, no quality loss."
+                ]
+              },
+              {
+                "type": "p",
+                "children": [
+                  { "type": "strong", "children": ["Results:"] },
+                  " 20% improvement in unsafe concept removal, 5x faster than SOTA. Code available."
+                ]
+              },
+              {
+                "type": "p",
+                "children": [
+                  { "type": "strong", "children": ["Relevance:"] },
+                  " ⭐⭐⭐ DIRECT PRIOR ART! This is exactly our Idea 2 applied to image diffusion. They prove SAE-based steering of diffusion models works. The key question: can we adapt this from image (steering text embeddings → CLIP space) to text diffusion (steering over token space)? Their approach works at the embedding level, which is analogous to what we'd do with text embeddings."
+                ]
+              }
+            ]
           }
         ]
       },
@@ -280,6 +314,40 @@
                 "children": [
                   { "type": "strong", "children": ["Relevance:"] },
                   " ⭐⭐ NOISE SCHEDULE INSIGHT. Their 'context-aware reweighting' based on signal-to-noise ratio is exactly the kind of adaptive noise scheduling we envision, just applied to positional context rather than semantic level. Could we combine their SNR-based approach with semantic feature levels?"
+                ]
+              }
+            ]
+          },
+          {
+            "type": "DeepDive",
+            "title": "[Feb 13 1pm] Theory-Informed CFG: Guidance Timing Matters (July 2025)",
+            "children": [
+              {
+                "type": "p",
+                "children": [
+                  { "type": "strong", "children": ["Paper:"] },
+                  " Rojas et al., 'Theory-Informed Improvements to Classifier-Free Guidance for Discrete Diffusion Models' (arXiv:2507.08965)"
+                ]
+              },
+              {
+                "type": "p",
+                "children": [
+                  { "type": "strong", "children": ["Key insight:"] },
+                  " Theoretical analysis of CFG in masked discrete diffusion reveals: HIGH GUIDANCE EARLY IN SAMPLING (when inputs are heavily masked) HARMS quality, while LATE-STAGE guidance has larger effect. Also identifies how current CFG can cause 'imbalanced transitions' like unmasking too rapidly early on."
+                ]
+              },
+              {
+                "type": "p",
+                "children": [
+                  { "type": "strong", "children": ["Solution:"] },
+                  " A 'smoothened transport' mechanism achievable via one-line code change. Tested on ImageNet (masked diffusion) and QM9 (uniform diffusion)."
+                ]
+              },
+              {
+                "type": "p",
+                "children": [
+                  { "type": "strong", "children": ["Relevance:"] },
+                  " ⭐⭐⭐ DIRECT VALIDATION OF IDEA 3! This is theoretical proof that WHEN you apply guidance during diffusion matters enormously. For semantic noise schedules, this suggests: apply coarse semantic steering late (when it matters most), syntactic/fine-grained steering can be earlier. The 'semantic features last' intuition is validated — late-stage guidance (when structure is mostly formed) is where steering has the most impact."
                 ]
               }
             ]
@@ -353,6 +421,40 @@
                 "children": [
                   { "type": "strong", "children": ["Relevance:"] },
                   " ⭐⭐ ARCHITECTURE INSIGHT. The residual EBM at each step is philosophically similar to our 'project onto SAE features' idea. Both add a correction/constraint at each denoising step. We could potentially formulate SAE projection as an energy function: lower energy when the representation is close to a sparse SAE reconstruction."
+                ]
+              }
+            ]
+          },
+          {
+            "type": "DeepDive",
+            "title": "[Feb 13 1pm] SLCD: Supervised Learning Controllable Diffusion (May 2025)",
+            "children": [
+              {
+                "type": "p",
+                "children": [
+                  { "type": "strong", "children": ["Paper:"] },
+                  " Oertell et al., 'Efficient Controllable Diffusion via Optimal Classifier Guidance' (arXiv:2505.21666)"
+                ]
+              },
+              {
+                "type": "p",
+                "children": [
+                  { "type": "strong", "children": ["Key insight:"] },
+                  " Frames controllable generation as KL-regularized optimization. Iteratively generates online data, trains a SMALL CLASSIFIER to guide diffusion. The classifier is trained on-the-fly to guide toward desired objectives. Provably converges to optimal solution."
+                ]
+              },
+              {
+                "type": "p",
+                "children": [
+                  { "type": "strong", "children": ["Results:"] },
+                  " Works on both continuous (image) AND discrete (biological sequence) diffusion. Same inference time as base model. Code available."
+                ]
+              },
+              {
+                "type": "p",
+                "children": [
+                  { "type": "strong", "children": ["Relevance:"] },
+                  " ⭐⭐⭐ METHODOLOGY FOR IDEA 4! Instead of a task-specific classifier, we could use SAE feature detection as the 'classifier'. The SLCD framework shows how to efficiently train a small model to guide diffusion toward objectives — our 'objective' would be matching target SAE feature activations. Their theoretical framework (KL-regularized + no-regret learning) could provide guarantees for SAE-guided denoising."
                 ]
               }
             ]
