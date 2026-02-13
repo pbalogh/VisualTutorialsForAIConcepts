@@ -1,0 +1,258 @@
+{
+  "id": "transformer-dict-learning",
+  "title": "Transformer Factors: The SAE Origin Story",
+  "subtitle": "Dictionary learning on transformer hidden states reveals interpretable factors — the direct intellectual ancestor of modern SAEs",
+  "readTime": "20 min",
+  "state": {},
+  "content": {
+    "type": "Fragment",
+    "children": [
+      {
+        "type": "Section",
+        "props": { "title": "The Lineage: From Visual Cortex to Claude's Mind" },
+        "children": [
+          { "type": "p", "children": "In 2024, Anthropic announced they'd found 34 million interpretable features inside Claude using Sparse Autoencoders. The internet went wild. But the core idea — that neural representations are sparse superpositions of interpretable factors, discoverable through dictionary learning — is nearly three decades old. And this tutorial is about the paper that carried it across the critical gap: from static word embeddings into the beating heart of transformer models." },
+          { "type": "p", "children": "The lineage is remarkably clean, and remarkably personal — it runs through one lab, one mathematical insight, and one mentor:" },
+          {
+            "type": "Example",
+            "props": { "title": "The Intellectual Lineage" },
+            "children": [
+              { "type": "p", "children": "🧠 1996 — Bruno Olshausen & David Field: Sparse coding on images. They showed that learning an overcomplete dictionary with a sparsity penalty on the visual cortex's responses produces Gabor-like filters — the same edge detectors the brain uses. Key idea: natural images are sparse superpositions of simple basis elements." },
+              { "type": "p", "children": "📝 2018 — Sanjeev Arora et al.: 'A Latent Variable Model Approach to Word Embeddings.' Theoretical proof that word embeddings can be modeled as sparse combinations of 'discourse vectors.' This gave mathematical legitimacy to applying sparse coding to NLP." },
+              { "type": "p", "children": "📖 2019 — Yun Zhang & Bruno Olshausen: Applied sparse coding to static word embeddings (Word2Vec, GloVe). Found interpretable 'word factors' — but these were static. Every use of 'bank' got the same vector, the same factors." },
+              { "type": "p", "children": "🔬 2021 — Zeyu Yun, Yubei Chen, Bruno Olshausen & Yann LeCun (THIS PAPER): Extended the approach to contextualized transformer embeddings. Applied dictionary learning to BERT's hidden states and found interpretable 'transformer factors' at every layer. The same word in different contexts activates different factors." },
+              { "type": "p", "children": "💥 2023-2024 — Cunningham et al., Bricken et al., Anthropic's 'Scaling Monosemanticity': Sparse Autoencoders (SAEs) applied to LLM activations at scale. 34 million features extracted from Claude 3 Sonnet. Mathematically identical to dictionary learning, just with an autoencoder training objective and much bigger models." }
+            ]
+          },
+          { "type": "p", "children": "Notice the throughline: same math (overcomplete dictionary + sparsity), same core insight (representations are superpositions of interpretable features), same research lineage (Olshausen is co-author on 1996, 2019, AND 2021). This isn't a coincidence. This is one idea evolving across domains — from pixels to static word vectors to contextualized transformer representations to modern interpretability." },
+          {
+            "type": "DeepDive",
+            "props": { "title": "What 'Overcomplete Dictionary' Means" },
+            "children": [
+              { "type": "p", "children": "A complete dictionary for a 768-dimensional space (like BERT's hidden states) would have exactly 768 basis vectors. Any vector can be expressed as a combination of these 768 elements — but the representation isn't unique, and the elements aren't necessarily interpretable." },
+              { "type": "p", "children": "An overcomplete dictionary has MORE than 768 elements — say 2,000 or 10,000. Now there are infinitely many ways to decompose any vector. But if you add a sparsity constraint — 'use as few dictionary elements as possible' — you force the system to find the most efficient, most meaningful decomposition. Each dictionary element ends up capturing a coherent, interpretable concept." },
+              { "type": "p", "children": "This is exactly what SAEs do: they learn a dictionary (the decoder weights) that's overcomplete (more hidden units than input dimensions), with a sparsity penalty (L1 loss on activations). Same math. Same idea. Different decade." }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "From Static to Contextualized: Why Transformers Change Everything" },
+        "children": [
+          { "type": "p", "children": "Zhang & Olshausen (2019) applied dictionary learning to static word embeddings like Word2Vec and GloVe. The results were nice: you'd get word-level factors capturing things like 'sports-related,' 'financial,' 'geographic.' But these embeddings have a fatal limitation." },
+          { "type": "p", "children": "In Word2Vec, the word 'bank' has ONE vector. Whether it appears in 'river bank,' 'bank robbery,' or 'bank on it,' that single 768-dimensional vector tries to encode all possible meanings simultaneously. Dictionary learning on these static embeddings can reveal the multiple senses, but it can't tell you which sense is active in any particular context." },
+          {
+            "type": "Analogy",
+            "props": { "title": "The Paint Can Analogy" },
+            "children": [
+              { "type": "p", "children": "Static word embeddings are like mixing all the paint colors for a word's meanings into one can. 'Bank' becomes a muddy brownish-green — part river-blue, part money-green, part billiards-brown. You can chemically analyze the mixture and discover which pure pigments are present (that's dictionary learning on static embeddings). But you can't tell which color the painter actually intended to use." },
+              { "type": "p", "children": "Transformer embeddings are like a painter who selects fresh colors for each stroke based on the rest of the painting. 'I sat by the river bank' activates river-blue. 'I robbed the bank' activates money-green. The contextualized embedding already encodes which meaning is active — but the encoding is distributed and opaque. Dictionary learning on these contextualized vectors tells you not just which pigments exist but exactly which ones the painter is using, how intensely, and why." }
+            ]
+          },
+          { "type": "p", "children": "This is what Yun et al. (2021) achieved. By collecting BERT's hidden-state vectors across thousands of contexts and applying dictionary learning, they decomposed each contextualized embedding into a sparse combination of 'transformer factors.' And because these embeddings are already context-specific, the factors capture something static embeddings never could: the dynamic, context-dependent structure of meaning." },
+          { "type": "p", "children": "The challenge is also harder. Static embeddings are fixed — you have one vector per word, and you learn one dictionary. Contextualized embeddings vary with every sentence. The hidden state for 'bank' in 'river bank' is different from 'bank robbery.' You need a dictionary that works across ALL contexts — a universal set of factors that can explain any hidden state the model produces." }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "Dictionary Learning on Transformer Hidden States" },
+        "children": [
+          { "type": "p", "children": "Here's the method, step by step. It's beautifully simple — which is part of why it's so powerful." },
+          { "type": "p", "children": "Step 1: Run BERT on a large corpus (BookCorpus, Wikipedia). For each token in each sentence, at each layer, extract the hidden-state vector h ∈ ℝ⁷⁶⁸. This gives you millions of 768-dimensional vectors." },
+          { "type": "p", "children": "Step 2: For each layer separately, learn an overcomplete dictionary D ∈ ℝ⁷⁶⁸ˣᴷ where K > 768 (e.g., K = 2000). The dictionary columns are the 'transformer factors.'" },
+          { "type": "p", "children": "Step 3: Decompose each hidden state as a sparse linear combination: h ≈ Dα, where α ∈ ℝᴷ is sparse (mostly zeros). The non-zero entries in α tell you which factors are active for this token in this context." },
+          {
+            "type": "DeepDive",
+            "props": { "title": "The Optimization Problem" },
+            "children": [
+              { "type": "p", "children": "The dictionary learning objective minimizes reconstruction error plus a sparsity penalty:" },
+              { "type": "p", "children": "min_{D, α} Σᵢ ‖hᵢ − Dαᵢ‖² + λΣᵢ‖αᵢ‖₁" },
+              { "type": "p", "children": "The first term says: the dictionary should accurately reconstruct each hidden state. The second term (L1 penalty) says: use as few dictionary elements as possible. λ controls the trade-off — higher λ means sparser representations (fewer active factors per token)." },
+              { "type": "p", "children": "This is solved via alternating optimization: fix D, solve for each αᵢ (a LASSO problem); fix all αᵢ, update D. Repeat until convergence. The algorithm they use is based on Olshausen & Field's original 1996 approach, adapted for the scale of transformer hidden states." },
+              { "type": "p", "children": "Compare to SAEs: An SAE optimizes min ‖h − D·ReLU(Eᵀh + b)‖² + λ‖ReLU(Eᵀh + b)‖₁. The encoder E replaces the iterative sparse coding step. The decoder D IS the dictionary. The objective is essentially identical — reconstruction + sparsity — but the SAE amortizes the inference step through a learned encoder, making it much faster at test time." }
+            ]
+          },
+          {
+            "type": "InteractiveDemo",
+            "props": {
+              "title": "Sparse Decomposition in Action",
+              "description": "See how a hidden-state vector decomposes into transformer factors. The bar chart shows which factors are active (non-zero coefficients) for the word 'bank' in two different sentences."
+            },
+            "children": [
+              { "type": "p", "children": "Sentence 1: 'She sat on the grassy bank overlooking the river.'" },
+              { "type": "p", "children": "Active factors: Factor 47 (geographic features, 0.82) · Factor 203 (natural landscapes, 0.64) · Factor 89 (water-related, 0.51) · Factor 412 (physical positions, 0.33)" },
+              { "type": "p", "children": "— 4 out of 2,000 factors active. That's 99.8% sparse." },
+              { "type": "p", "children": "Sentence 2: 'The investment bank announced quarterly earnings.'" },
+              { "type": "p", "children": "Active factors: Factor 156 (financial institutions, 0.91) · Factor 328 (corporate entities, 0.67) · Factor 71 (monetary concepts, 0.44) · Factor 501 (announcements/communication, 0.28) · Factor 189 (temporal/periodic, 0.19)" },
+              { "type": "p", "children": "— 5 out of 2,000 factors active. COMPLETELY different set of factors for the same word." },
+              { "type": "p", "children": "This is the power of contextualized decomposition: the dictionary is shared, but the activation pattern is unique to each context. The factors provide a human-readable 'explanation' of what each token means in its specific context." }
+            ]
+          },
+          { "type": "p", "children": "The result: at each layer, you get a dictionary of ~2,000 interpretable factors. Each token's hidden state can be expressed as a sparse combination of these factors. And the factors themselves are semantically coherent — they capture genuine linguistic structure, not arbitrary directions." }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "What the Factors Reveal" },
+        "children": [
+          { "type": "p", "children": "The transformer factors discovered by Yun et al. operate at three distinct levels of linguistic organization. This hierarchy was not imposed by the method — it emerged naturally from the data. The dictionary learning algorithm had no knowledge of linguistics. It simply found that the most efficient sparse decomposition of transformer hidden states organizes into these three levels." },
+          {
+            "type": "Example",
+            "props": { "title": "Word-Level Factors: Polysemy in Action" },
+            "children": [
+              { "type": "p", "children": "Some factors specialize in disambiguating word senses. When BERT processes the word 'plant,' different factors activate depending on context:" },
+              { "type": "ul", "children": [
+                { "type": "li", "children": "'The factory plant produces 500 cars daily' → Industrial/manufacturing factor activates strongly" },
+                { "type": "li", "children": "'The tropical plant grows rapidly in humid conditions' → Botanical/organism factor activates" },
+                { "type": "li", "children": "'She planned to plant the evidence' → Deception/intentional-action factor activates" }
+              ]},
+              { "type": "p", "children": "These factors essentially solve word sense disambiguation — a classic NLP problem — as a side effect of sparse decomposition. No labeled sense data required." }
+            ]
+          },
+          {
+            "type": "Example",
+            "props": { "title": "Sentence-Level Factors: Syntactic Structure" },
+            "children": [
+              { "type": "p", "children": "Other factors capture syntactic patterns that span multiple tokens:" },
+              { "type": "ul", "children": [
+                { "type": "li", "children": "A 'noun phrase head' factor activates on the main noun in noun phrases regardless of which specific noun it is" },
+                { "type": "li", "children": "A 'relative clause' factor lights up on tokens involved in relative clause constructions ('the dog THAT bit the man')" },
+                { "type": "li", "children": "A 'negation scope' factor tracks which tokens fall under the scope of a negation word" }
+              ]},
+              { "type": "p", "children": "These sentence-level factors reveal that BERT's hidden states encode grammatical structure — and that this structure can be read off as individual sparse features, not tangled up in distributed patterns." }
+            ]
+          },
+          {
+            "type": "Example",
+            "props": { "title": "Long-Range Factors: Dependency Tracking" },
+            "children": [
+              { "type": "p", "children": "The most surprising factors capture long-range dependencies — relationships between tokens that may be far apart in the sentence:" },
+              { "type": "ul", "children": [
+                { "type": "li", "children": "Subject-verb agreement factors that co-activate on both the subject and its verb, even across intervening clauses" },
+                { "type": "li", "children": "Coreference factors that link pronouns to their antecedents ('The CEO said SHE would resign' — a factor links 'CEO' and 'she')" },
+                { "type": "li", "children": "Discourse coherence factors that track topical continuity across sentences" }
+              ]},
+              { "type": "p", "children": "These long-range factors demonstrate that dictionary learning can extract the very thing that makes transformers special: their ability to model relationships across arbitrary distances through self-attention." }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "Layer-by-Layer Hierarchy: From Surface to Meaning" },
+        "children": [
+          { "type": "p", "children": "Perhaps the most elegant finding: the factors at different BERT layers capture different levels of linguistic abstraction. This wasn't imposed by the method — it was discovered by applying dictionary learning independently at each layer and then examining what emerged." },
+          {
+            "type": "InteractiveDemo",
+            "props": {
+              "title": "Factor Evolution Across Layers",
+              "description": "Track how the dominant factors for the word 'cell' change from layer 1 to layer 12, transitioning from surface-level to semantic representations."
+            },
+            "children": [
+              { "type": "p", "children": "Input: 'The prisoner returned to his cell after the exercise period.'" },
+              { "type": "p", "children": "🔤 Layer 1-2 (Surface): Top factors are character-level and positional — 'short common English word,' 'noun following possessive pronoun,' 'mid-sentence position.' These factors care about FORM, not meaning." },
+              { "type": "p", "children": "📐 Layer 3-5 (Syntactic): Factors shift to grammatical — 'direct object of verb,' 'concrete noun,' 'location/destination.' The word's syntactic role becomes prominent. The factor 'cell' shares with 'room,' 'office,' 'building.'" },
+              { "type": "p", "children": "🧩 Layer 6-8 (Transitional): A mix of syntactic and semantic factors. 'Confined space,' 'institutional setting,' 'place of return' — factors that blend structure with meaning." },
+              { "type": "p", "children": "💡 Layer 9-12 (Semantic): Dominant factors are fully semantic — 'imprisonment/confinement,' 'criminal justice context,' 'involuntary restriction.' The biological-cell and phone-cell factors are essentially silent. The transformer has committed to the prison interpretation." },
+              { "type": "p", "children": "The progression is strikingly clean: earlier layers decompose into surface and syntactic factors, later layers decompose into increasingly abstract semantic factors. This mirrors the 'probing' literature (which finds syntax in middle layers, semantics in later layers) — but here it emerges from unsupervised decomposition, not supervised probes." }
+            ]
+          },
+          { "type": "p", "children": "This layer-by-layer hierarchy is important for several reasons. First, it confirms that transformers genuinely build hierarchical representations — not just gradually refining the same features, but transitioning between qualitatively different types of features. Second, it means you need different dictionaries at different layers. A dictionary trained on layer 2 captures different structure than one trained on layer 10." },
+          { "type": "p", "children": "Modern SAE research has independently rediscovered this. Anthropic trains separate SAEs for each layer of Claude, and they find exactly the same hierarchy: early-layer SAE features are more syntactic and surface-level, later-layer features are more semantic and abstract. Yun et al. documented this pattern three years earlier." }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "The Superposition Hypothesis — Proven in 2021" },
+        "children": [
+          { "type": "p", "children": "In 2022, Anthropic published 'Toy Models of Superposition,' arguing that neural networks store more features than they have dimensions by 'superimposing' features in the same vector space. This became one of the most influential interpretability papers. The 'superposition hypothesis' became a foundational concept." },
+          { "type": "p", "children": "But Yun et al. (2021) had already demonstrated this empirically. Their entire paper IS the superposition hypothesis in action. When they decompose a 768-dimensional hidden state into a sparse combination of 2,000 factors, they are directly showing that the transformer represents ~2,000 features in a 768-dimensional space. That's only possible through superposition." },
+          {
+            "type": "Analogy",
+            "props": { "title": "The Radio Station Analogy" },
+            "children": [
+              { "type": "p", "children": "Imagine a city with 2,000 radio stations but only 768 frequencies. Classical physics says this is impossible — you'd get nothing but static. But if each station only broadcasts occasionally (sparsity!) and you have a good enough receiver (the dictionary), you can separate them." },
+              { "type": "p", "children": "This is compressed sensing / sparse coding applied to neural representations. The transformer 'broadcasts' 2,000 features through 768 dimensions. At any given moment, only ~5-20 are active (sparse!). The dictionary learning algorithm is the 'receiver' that separates them back out. Yun et al. built this receiver for BERT. Anthropic built it for Claude. Same signal, same math, bigger radio tower." }
+            ]
+          },
+          {
+            "type": "Quiz",
+            "props": {
+              "question": "Why can 2,000 features fit in 768 dimensions without catastrophic interference?",
+              "options": [
+                "The features are orthogonal to each other",
+                "Only a small number of features are active at any time (sparsity), so they rarely collide",
+                "768 dimensions is actually enough for 2,000 features without any tricks",
+                "The model compresses features lossily, accepting some information loss"
+              ],
+              "correctIndex": 1,
+              "explanation": "Sparsity is the key. If all 2,000 features were active simultaneously, 768 dimensions couldn't possibly encode them. But if only 5-20 are active at once, random high-dimensional vectors are nearly orthogonal with high probability, so a small active set rarely interferes. This is the same principle behind compressed sensing in signal processing — and it's the mathematical foundation of both dictionary learning and SAEs."
+            }
+          },
+          { "type": "p", "children": "The superposition hypothesis isn't just confirmed by this work — it's the working assumption that makes the method possible. You can't do dictionary learning with an overcomplete dictionary unless you believe the representation is a superposition. Yun et al. believed it, proved it worked, and published it. Three years later, the interpretability community arrived at the same conclusion through a different path." }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "The Direct Line to SAEs" },
+        "children": [
+          { "type": "p", "children": "Let's make the connection explicit. Side by side, dictionary learning (Yun et al. 2021) and Sparse Autoencoders (Anthropic 2024) are doing the same thing with minor algorithmic differences:" },
+          {
+            "type": "DeepDive",
+            "props": { "title": "Dictionary Learning vs. SAEs: A Technical Comparison" },
+            "children": [
+              { "type": "p", "children": "📊 GOAL — Dictionary Learning: Decompose hidden states h = Dα where α is sparse. SAE: Decompose hidden states h ≈ W_dec · ReLU(W_enc · h + b) where activations are sparse. Same goal: find the sparse interpretable components of each hidden state." },
+              { "type": "p", "children": "📐 DICTIONARY — Dictionary Learning: The columns of D, learned via alternating optimization. SAE: The columns of W_dec (the decoder weight matrix). Same mathematical object." },
+              { "type": "p", "children": "🔍 INFERENCE — Dictionary Learning: Iterative sparse coding (LASSO / Basis Pursuit). Slow but principled. SAE: Single forward pass through encoder network. Fast but approximate. This is the main practical difference — SAEs trade optimality for speed." },
+              { "type": "p", "children": "📉 SPARSITY — Dictionary Learning: L1 penalty on coefficients α. SAE: L1 penalty on encoder activations. Identical mathematical penalty, different optimization path." },
+              { "type": "p", "children": "📏 SCALE — Dictionary Learning (2021): BERT-base, 768 dimensions, ~2,000 factors. SAE (2024): Claude 3 Sonnet, 4,096+ dimensions, 34 million features. Three orders of magnitude difference in model size, five orders of magnitude in dictionary size." },
+              { "type": "p", "children": "🎯 INTERPRETABILITY — Dictionary Learning: Manually inspected factors, found word-level, syntactic, semantic patterns. SAE: Automated interpretability with language models scoring feature descriptions. Same type of findings, but at scale." }
+            ]
+          },
+          { "type": "p", "children": "The key insight that SAEs added was architectural: instead of running iterative sparse coding for each new input (slow), learn an encoder network that approximates the sparse coding solution in a single forward pass (fast). This amortized inference makes it practical to run on billions of tokens through models with trillions of parameters. But the underlying mathematical framework — overcomplete dictionary + sparsity penalty + reconstruction loss — is identical." },
+          { "type": "p", "children": "To put it bluntly: if you understand Yun et al. (2021), you understand the core of SAEs. Everything else is engineering and scale." }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "What Changed Between 2021 and 2024" },
+        "children": [
+          { "type": "p", "children": "If the core idea was proven in 2021, why did it take until 2023-2024 for SAEs to explode? This is a case study in how ideas propagate (or fail to propagate) across research communities." },
+          { "type": "p", "children": "Factor 1: The models changed. In 2021, BERT was the standard. BERT is an encoder-only model trained with masked language modeling. It's useful, but nobody worries about BERT 'thinking dangerous thoughts' or 'deceiving users.' The urgency for interpretability was low. By 2023, we had GPT-4, Claude, and LLaMA — generative models that could write code, impersonate people, and reason about their own reasoning. Suddenly, understanding what's inside these models became urgent." },
+          { "type": "p", "children": "Factor 2: The community shifted. Yun et al. published in the DeeLIO Workshop at NAACL — a computational linguistics venue. The SAE work came from Anthropic's interpretability team, OpenAI alumni, and the EleutherAI community — groups that are AI-safety-motivated. The same technique went from 'interesting linguistics tool' to 'critical safety infrastructure' when the application changed." },
+          { "type": "p", "children": "Factor 3: Scale became feasible. Training a dictionary with 34 million elements on Claude 3 Sonnet's activations requires enormous compute. In 2021, this wasn't practical. By 2024, it was." },
+          { "type": "p", "children": "Factor 4: The amortization trick. Replacing iterative sparse coding with a learned encoder (the 'auto' in 'autoencoder') was crucial for scalability. You can't run 1,000 iterations of LASSO for every token in a trillion-token dataset. An SAE encoder does it in one forward pass." },
+          {
+            "type": "Quiz",
+            "props": {
+              "question": "What was the biggest reason the interpretability community 'rediscovered' dictionary learning as SAEs in 2023-2024?",
+              "options": [
+                "The mathematical framework was fundamentally different",
+                "BERT was too small for the technique to work",
+                "The shift from encoder-only models to generative LLMs created urgent need for interpretability",
+                "Dictionary learning had been proven not to work on NLP data"
+              ],
+              "correctIndex": 2,
+              "explanation": "The math was the same. The technique worked on BERT just fine. What changed was the stakes: generative LLMs raised urgent questions about model behavior, alignment, and safety. Dictionary learning was a 'nice linguistics result' for BERT. For Claude and GPT-4, the same technique became critical infrastructure for understanding and controlling powerful AI systems."
+            }
+          },
+          { "type": "p", "children": "There's a lesson here about how research ideas travel. Yun et al.'s paper has modest citation counts. It appeared in a workshop, not a main conference. The computational linguistics community nodded politely and moved on. Three years later, the safety/interpretability community reinvented the wheel — bigger, shinier, and with a lot more urgency — but it's the same wheel." },
+          { "type": "p", "children": "This is not a criticism of anyone. The SAE community brought genuine innovations: amortized inference, automated interpretability scoring, feature steering, and the scale to make it practically useful. But the intellectual foundation was laid by the sparse coding community, and Yun et al. (2021) was the bridge paper that carried it from vision to NLP to transformers." }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "What This Means for You" },
+        "children": [
+          { "type": "p", "children": "If you're following the mechanistic interpretability field, understanding this paper gives you a deeper foundation than most researchers have. Here's what you gain:" },
+          { "type": "p", "children": "1. Mathematical grounding. SAEs aren't a novel invention — they're a specific implementation of a well-studied mathematical framework (sparse coding / dictionary learning). The theoretical guarantees from compressed sensing, the convergence properties of LASSO, and the geometric intuitions from overcomplete representations all apply directly." },
+          { "type": "p", "children": "2. The right mental model. When people talk about 'features in superposition,' they're describing exactly what Yun et al. demonstrated: a 768-dimensional space encoding ~2,000 interpretable factors through sparsity. The terminology changed (factors → features, dictionary → decoder), but the geometry is identical." },
+          { "type": "p", "children": "3. Research intuitions. Many open questions in SAE research — 'How many features should we learn? What's the right sparsity level? How do features change across layers?' — were explored in the dictionary learning literature decades before SAEs. The sparse coding community's answers are directly applicable." },
+          { "type": "p", "children": "4. The big picture. AI interpretability is not a new problem invented in 2023. It's the latest chapter in a story that starts with understanding the visual cortex. The core insight — that neural systems represent information as sparse superpositions of interpretable basis elements — appears to be a universal principle of representation. Brains do it. Transformers do it. The technique for discovering these representations is the same in both cases." },
+          { "type": "p", "children": "Yun, Chen, Olshausen, and LeCun didn't just write a paper about BERT. They demonstrated that the mathematical framework Olshausen developed for understanding biological vision in 1996 works equally well for understanding artificial language models in 2021. And that framework — sparse decomposition of overcomplete representations — is now the foundation of the entire mechanistic interpretability field. The SAE origin story starts here." }
+        ]
+      }
+    ]
+  }
+}
