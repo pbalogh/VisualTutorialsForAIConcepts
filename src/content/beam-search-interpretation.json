@@ -318,6 +318,39 @@
             "type": "Code",
             "props": { "language": "python" },
             "children": "# Pseudocode for testing the disambiguation operators\n\nimport sae_lens\n\n# Prepare sentences with controlled ambiguity\nsentences = {\n    'early_resolve': 'The river bank was steep and muddy',\n    'late_resolve':  'The bank was visible from far away near the river',\n    'never_resolve': 'He sat on the bank and watched the current',\n    'garden_path':   'The horse raced past the barn fell',\n}\n\nfor name, sentence in sentences.items():\n    # Get SAE features at every layer\n    features_by_layer = extract_sae_features(model, sae, sentence)\n    \n    # Track specific features across layers\n    financial = [features_by_layer[L]['financial_institution'] for L in range(12)]\n    river     = [features_by_layer[L]['river_bank'] for L in range(12)]\n    \n    # Look for:\n    # - COMMIT: sharp divergence point between financial and river\n    # - MAINTAIN: plateau after commitment\n    # - REANALYZE: reversal (if it occurs)\n    # - EXPIRE: gradual decay of losing candidate\n    \n    plot_feature_trajectories(name, financial, river)"
+          },
+          {
+            "type": "h3",
+            "children": "Architectural Proposal: Stack-Based Backtracking"
+          },
+          {
+            "type": "p",
+            "children": "Beyond testing the current architecture, we can propose a better one. Instead of relying on emergent disambiguation from attention (one primitive doing everything), add explicit disambiguation machinery:"
+          },
+          {
+            "type": "Code",
+            "props": { "language": "text" },
+            "children": "STACK-BASED DISAMBIGUATION ARCHITECTURE\n\nINTERPRETATION STACK        RESIDUAL STREAM\n                              \n[financial, L4] ←PUSH        ──■──────────────→\n                               ↑ bookmark\n                               (save residual snapshot)\n\nProcessing continues with committed interpretation...\n\n[financial, L4]              ──■──●──●──●──●──→\n                                  layers 5-9\n\nLayer 10: \"near the river\" → CONTRADICTION DETECTED\n  coherence = dot(river_evidence, financial_dir) < threshold\n\nPOP stack → financial\nREWIND to bookmark (layer 4 state)\nCOMMIT to river interpretation\n\n[river, L4]                  ──■──→ re-process from here\n                               ↑ rewind to bookmark"
+          },
+          {
+            "type": "p",
+            "children": "Three rewind mechanisms, from simple to elegant:"
+          },
+          {
+            "type": "ComparisonTable",
+            "props": {
+              "headers": ["Option", "Mechanism", "Cost", "Quality"],
+              "rows": [
+                ["KV-cache checkpoint", "Save full KV-cache at bookmark, restore and re-run layers", "High (re-processes layers)", "Exact"],
+                ["Residual injection", "Blend: current += α(bookmark - current)", "Low (one vector op)", "Approximate"],
+                ["Learned REWIND op", "Trained module: REWIND(current, bookmark, signal)", "Medium (one forward pass)", "Learned, potentially best"]
+              ]
+            }
+          },
+          {
+            "type": "Callout",
+            "props": { "type": "info" },
+            "children": "This is cheaper than forking the stream into parallel paths (the GLR approach). Instead of running two interpreters, you run one and save checkpoints. It's closer to how humans seem to work: commit fast, backtrack only when forced. The stack depth = your beam width."
           }
         ]
       },

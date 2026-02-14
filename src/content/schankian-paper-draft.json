@@ -3277,6 +3277,18 @@
             "children": "Proposed fix: FORK the residual stream at detected ambiguity points. Main stream = committed interpretation. Shelf stream(s) = pre-commitment snapshots stored as SPARSE DELTAS (~30 values, not 768). MERGE back on contradiction (REANALYZE). Expire after N layers if no contradiction. This is a GLR parser in the residual stream — same algorithm compilers have used since 1985."
           },
           {
+            "type": "h4",
+            "children": "Refinement: Stack-Based Backtracking"
+          },
+          {
+            "type": "p",
+            "children": "Cleaner alternative to forked streams: push interpretation commitments onto a stack with bookmarked residual stream snapshots. Run one interpreter, not two. On contradiction, pop the stack, rewind to the bookmark, and re-commit to the next candidate. This is recursive descent parsing with backtracking — simpler than GLR, cheaper than parallel streams, and closer to how human cognition actually works (commit-then-backtrack, not parallel-process)."
+          },
+          {
+            "type": "p",
+            "children": "Requires two hard components: (1) a coherence monitor that detects contradictions via dot(new_evidence, committed_direction) < threshold, and (2) a rewind mechanism — either KV-cache checkpointing (exact but expensive), residual injection blending (cheap but approximate), or a learned REWIND operator (elegant but needs training)."
+          },
+          {
             "type": "p",
             "children": "Meta-observation: the same Darkness Visible insight (make implicit state explicit for better retrieval) applies to MODEL INTERNALS. The transformer needs its own implicit-explicit enrichment."
           },
