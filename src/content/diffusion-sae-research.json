@@ -518,6 +518,40 @@
           },
           {
             "type": "DeepDive",
+            "title": "[Feb 14 11am] 🔥 ILRR: Learning-Free Activation Alignment for Diffusion Steering (Jan 2026)",
+            "children": [
+              {
+                "type": "p",
+                "children": [
+                  { "type": "strong", "children": ["Paper:"] },
+                  " Avrahami & Nachmani, 'ILRR: Inference-Time Steering Method for Masked Diffusion Language Models' (arXiv:2601.21647, Jan 29, 2026)"
+                ]
+              },
+              {
+                "type": "p",
+                "children": [
+                  { "type": "strong", "children": ["Key insight:"] },
+                  " Introduces Iterative Latent Representation Refinement — a learning-free framework for steering DLMs by dynamically aligning the internal activations of the generated sequence with those of a reference sequence throughout denoising. No training, no reward model — just activation alignment at each step. Works on both LLaDA and MDLM."
+                ]
+              },
+              {
+                "type": "p",
+                "children": [
+                  { "type": "strong", "children": ["Key results:"] },
+                  " 10-60% improvement in attribute accuracy over comparable baselines. Introduces 'Spatially Modulated Steering' that enables steering long texts using shorter references by regulating guidance intensity across the sequence. Only one additional forward pass per denoising step."
+                ]
+              },
+              {
+                "type": "p",
+                "children": [
+                  { "type": "strong", "children": ["Relevance:"] },
+                  " ⭐⭐⭐ DIRECT BRIDGE TO OUR WORK. ILRR aligns generated activations with reference activations at each denoising step — our Idea 4 (dictionary-guided denoising) would replace 'reference activations' with 'target SAE feature activations'. The framework is already built for DLMs, learning-free, and demonstrates that per-step activation guidance works. Their spatially modulated steering (varying guidance intensity across positions) maps directly to our per-feature semantic weighting concept. This is essentially our Idea 4 minus the SAE component."
+                ]
+              }
+            ]
+          },
+          {
+            "type": "DeepDive",
             "title": "[Feb 13 7pm] 🧪 Our Experiment: Delta-Guided Attention Validates SAE Features as Attractors",
             "children": [
               {
@@ -718,6 +752,74 @@
                 ]
               }
             ]
+          },
+          {
+            "type": "DeepDive",
+            "title": "[Feb 14 11am] Where-to-Unmask: Oracle Ordering via Ground-Truth Margins (Feb 2026)",
+            "children": [
+              {
+                "type": "p",
+                "children": [
+                  { "type": "strong", "children": ["Paper:"] },
+                  " Asano et al., 'Where-to-Unmask: Ground-Truth-Guided Unmasking Order Learning for Masked Diffusion Language Models' (arXiv:2602.09501, Feb 10, 2026)"
+                ]
+              },
+              {
+                "type": "p",
+                "children": [
+                  { "type": "strong", "children": ["Key insight:"] },
+                  " Introduces Gt-Margin — a position-wise score based on the probability margin between the correct token and its strongest alternative. This yields an oracle unmasking order that prioritizes 'easier' positions first. A supervised planner trained via learning-to-rank imitates this oracle ordering from masked contexts, improving reasoning accuracy without modifying the token prediction model."
+                ]
+              },
+              {
+                "type": "p",
+                "children": [
+                  { "type": "strong", "children": ["Why this matters:"] },
+                  " Decouples WHERE-to-unmask from WHAT-to-unmask. The unmasking planner is a separate, lightweight module that plugs into standard MDLM sampling. Shows that heuristic confidence-based orderings (like Margin score) can yield incorrect outputs — learned orderings are better."
+                ]
+              },
+              {
+                "type": "p",
+                "children": [
+                  { "type": "strong", "children": ["Relevance:"] },
+                  " ⭐⭐⭐ COMPLEMENTS LoMDM for Idea 3. While LoMDM jointly learns ordering + prediction, Where-to-Unmask trains a separate ordering planner. For our SAE-aware noise schedule, this modular approach is very attractive: we could train an SAE-feature-aware unmasking planner that decides generation order based on which SAE features are active/confident, without modifying the base diffusion model. The 'easy positions first' principle maps to 'high-confidence SAE features first'."
+                ]
+              }
+            ]
+          },
+          {
+            "type": "DeepDive",
+            "title": "[Feb 14 11am] MDLM Parallelism & Generation Order: Adaptive Behavior at Scale (Jan 2026)",
+            "children": [
+              {
+                "type": "p",
+                "children": [
+                  { "type": "strong", "children": ["Paper:"] },
+                  " Zhong et al., 'Parallelism and Generation Order in Masked Diffusion Language Models: Limits Today, Potential Tomorrow' (arXiv:2601.15593, Jan 22, 2026)"
+                ]
+              },
+              {
+                "type": "p",
+                "children": [
+                  { "type": "strong", "children": ["Key insight:"] },
+                  " Comprehensive evaluation of 8 MDLMs (up to 100B parameters) on 58 benchmarks. MDLMs exhibit ADAPTIVE decoding behavior: parallelism and generation order vary significantly with task domain, reasoning stage, and whether output is correct. On tasks requiring 'backward information' (e.g., Sudoku), MDLMs naturally adopt solution orders that fill easier positions first."
+                ]
+              },
+              {
+                "type": "p",
+                "children": [
+                  { "type": "strong", "children": ["Generate-then-Edit paradigm:"] },
+                  " Proposes theoretical motivation for a two-phase approach: parallel generation followed by editing, which mitigates inter-token dependency loss while retaining parallel decoding efficiency."
+                ]
+              },
+              {
+                "type": "p",
+                "children": [
+                  { "type": "strong", "children": ["Relevance:"] },
+                  " ⭐⭐ EMPIRICAL GROUNDING for Idea 3. The finding that MDLMs already adapt their generation order per-task validates our intuition that non-uniform ordering matters. The Generate-then-Edit paradigm could work with our approach: generate with SAE-guided semantic ordering, then edit with SAE feature constraints. The 'dependency loss from parallelism' finding is an important caveat — our semantic noise schedule should preserve key inter-token dependencies."
+                ]
+              }
+            ]
           }
         ]
       },
@@ -856,6 +958,40 @@
                 "children": [
                   { "type": "strong", "children": ["Relevance:"] },
                   " ⭐⭐⭐ DIRECT SUPPORT for Idea 4. This proves that diffusion models have identifiable, manipulable internal features that map to interpretable generation attributes. Our SAE dictionary would serve the same role as their 'bias features' but in a more systematic, complete way — the SAE dictionary gives us ALL the features, not just bias-related ones. Their manipulation technique (direct feature intervention at each step) is exactly our dictionary-guided denoising."
+                ]
+              }
+            ]
+          },
+          {
+            "type": "DeepDive",
+            "title": "[Feb 14 11am] EntRGi: Entropy-Aware Reward Guidance for Discrete Diffusion (Feb 2026)",
+            "children": [
+              {
+                "type": "p",
+                "children": [
+                  { "type": "strong", "children": ["Paper:"] },
+                  " Tejaswi et al., 'EntRGi: Entropy Aware Reward Guidance for Diffusion Language Models' (arXiv:2602.05000, Feb 4, 2026)"
+                ]
+              },
+              {
+                "type": "p",
+                "children": [
+                  { "type": "strong", "children": ["Key insight:"] },
+                  " Addresses the fundamental challenge of reward guidance in DISCRETE diffusion: you can't differentiate through discrete tokens. Existing approaches either use continuous relaxations (degrading gradient quality since reward models were never trained on continuous inputs) or straight-through estimators (incorrect optimization). EntRGi dynamically modulates the continuous relaxation using the model's confidence/entropy, getting the best of both worlds."
+                ]
+              },
+              {
+                "type": "p",
+                "children": [
+                  { "type": "strong", "children": ["Results:"] },
+                  " Tested on 7B-parameter diffusion LM across 3 reward models and 3 multi-skill benchmarks. Consistent improvements over state-of-the-art reward guidance methods."
+                ]
+              },
+              {
+                "type": "p",
+                "children": [
+                  { "type": "strong", "children": ["Relevance:"] },
+                  " ⭐⭐⭐ SOLVES A KEY TECHNICAL CHALLENGE for Idea 4. If we want to guide discrete diffusion toward target SAE features, we face the same discrete/continuous gradient mismatch. EntRGi's entropy-aware relaxation provides a principled way to compute guidance gradients: when the model is confident (low entropy), use discrete tokens for accurate reward/feature signals; when uncertain (high entropy), use continuous relaxation for smooth gradients. This is exactly the adaptive guidance mechanism our dictionary-guided denoising needs."
                 ]
               }
             ]
