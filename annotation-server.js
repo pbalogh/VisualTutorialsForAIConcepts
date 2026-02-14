@@ -26,6 +26,31 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const PORT = 5190
 const CONTENT_DIR = path.join(__dirname, 'src/content')
 const TUTORIALS_REPO = __dirname
+const CLAWDBOT_LOG = path.join(process.env.HOME, 'clawd/memory/annotation-log.md')
+
+/**
+ * Log annotation actions to Clawdbot's memory so it can see what happened.
+ */
+async function logToClawdbot({ action, tutorialId, selectedText, question }) {
+  try {
+    const timestamp = new Date().toISOString().replace('T', ' ').slice(0, 19)
+    const selected = String(selectedText || '').slice(0, 80)
+    let entry = `- **${timestamp}** [${action}] in \`${tutorialId}\`: "${selected}"`
+    if (question) entry += `\n  - Question: "${String(question).slice(0, 120)}"`
+    entry += '\n'
+
+    // Ensure the file exists with a header
+    try {
+      await fs.access(CLAWDBOT_LOG)
+    } catch {
+      await fs.writeFile(CLAWDBOT_LOG, '# Annotation Log\n\nActions taken via the tutorial annotation server.\n\n')
+    }
+
+    await fs.appendFile(CLAWDBOT_LOG, entry)
+  } catch (e) {
+    console.log(`⚠️ Could not write to Clawdbot log: ${e.message}`)
+  }
+}
 
 /**
  * Parse JSON body from request
@@ -1240,6 +1265,9 @@ const server = http.createServer(async (req, res) => {
       
       const commitMsg = `[${action}] "${String(selectedText).slice(0, 40)}..." in ${tutorialId}`
       commitAndPush(jsonPath, commitMsg).catch(() => {})
+      
+      // Log to Clawdbot memory
+      logToClawdbot({ action, tutorialId, selectedText, question }).catch(() => {})
       
       return sendJson(res, 200, {
         success: true,
