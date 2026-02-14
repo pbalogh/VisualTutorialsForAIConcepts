@@ -26,7 +26,7 @@
           {
             "type": "p",
             "children": [
-              "The field of text diffusion is moving fast. As of early 2025, models like LLaDA (8B parameters, rivaling LLaMA3) and Mercury (1,109 tokens/sec) have proven that discrete diffusion over text is viable at scale. Meanwhile, SAE-based steering of language models is maturing rapidly, with papers showing 2-3x improvements when the right features are selected. The question we're asking: ",
+              "The field of text diffusion is moving fast. As of early 2026, models like LLaDA2.0 (100B parameters with MoE), Dream 7B, and Gemini Diffusion (1,479 tok/sec) have proven that discrete diffusion scales to frontier quality. Meanwhile, SAE-based steering of language models is maturing rapidly, with DLM-Scope (Feb 2026) showing that SAEs work BETTER on diffusion LMs than AR LLMs — SAE insertion can actually REDUCE loss in DLMs. The question we're asking: ",
               { "type": "em", "children": ["can these two threads be woven together?"] }
             ]
           },
@@ -112,6 +112,122 @@
                 "children": [
                   { "type": "strong", "children": ["Relevance:"] },
                   " ⭐⭐ PRACTICAL ENABLER. If we can convert an AR model to a diffusion model, and we already have SAEs trained on that AR model's activations, we might be able to reuse those SAEs in the diffusion setting. The feature space from GPT-2 SAEs could potentially serve as the structured latent space for DiffuGPT."
+                ]
+              }
+            ]
+          },
+          {
+            "type": "DeepDive",
+            "title": "[Feb 14] 🔥🔥🔥 DLM-Scope: First SAE Framework for Diffusion LMs (Feb 2026)",
+            "children": [
+              {
+                "type": "p",
+                "children": [
+                  { "type": "strong", "children": ["Paper:"] },
+                  " Wang et al., 'DLM-Scope: Mechanistic Interpretability of Diffusion Language Models via Sparse Autoencoders' (arXiv:2602.05859, Feb 5, 2026, HKU/Alibaba)"
+                ]
+              },
+              {
+                "type": "p",
+                "children": [
+                  { "type": "strong", "children": ["Key insight:"] },
+                  " First SAE-based interpretability framework specifically for diffusion language models. Trains Top-K SAEs on Dream-7B and LLaDA-8B. CRITICAL FINDING: SAE insertion affects DLMs DIFFERENTLY than LLMs — while SAE insertion in LLMs typically incurs a loss penalty, in DLMs it can REDUCE cross-entropy loss when applied to early layers!"
+                ]
+              },
+              {
+                "type": "p",
+                "children": [
+                  { "type": "strong", "children": ["Other findings:"] },
+                  " (1) SAE features in DLMs enable MORE effective diffusion-time interventions, often outperforming LLM steering. (2) SAEs can provide useful signals for DLM decoding order. (3) SAE features are stable during post-training (SFT) phase of DLMs."
+                ]
+              },
+              {
+                "type": "p",
+                "children": [
+                  { "type": "strong", "children": ["Relevance:"] },
+                  " ⭐⭐⭐ GAME-CHANGER for our project. This is direct validation that SAEs work on diffusion LMs AND work BETTER than on AR LLMs for steering. The early-layer loss reduction suggests DLMs have a natural affinity for SAE-structured representations. Our Idea 1 (structured latent spaces) gets strong support — if SAEs reduce loss when inserted, the SAE feature space may be a MORE natural space for DLM computation than raw activations."
+                ]
+              },
+              {
+                "type": "p",
+                "children": [
+                  { "type": "strong", "children": ["New research question:"] },
+                  " Why does SAE insertion reduce loss in DLMs but increase it in LLMs? Is this because diffusion's iterative refinement naturally benefits from sparse, disentangled representations?"
+                ]
+              }
+            ]
+          },
+          {
+            "type": "DeepDive",
+            "title": "[Feb 14] GLP: Diffusion Models as Meta-Models of LLM Activations (Feb 2026)",
+            "children": [
+              {
+                "type": "p",
+                "children": [
+                  { "type": "strong", "children": ["Paper:"] },
+                  " Luo, Feng, Darrell, Radford, Steinhardt (UC Berkeley). 'Learning a Generative Meta-Model of LLM Activations' (arXiv:2602.06964, Feb 6, 2026)"
+                ]
+              },
+              {
+                "type": "p",
+                "children": [
+                  { "type": "strong", "children": ["Key insight:"] },
+                  " Trains diffusion models on ONE BILLION residual stream activations to create 'meta-models' that learn the distribution of a network's internal states. Critical finding: applying the meta-model's learned prior to steering interventions IMPROVES FLUENCY by projecting off-manifold activations back onto the natural activation manifold."
+                ]
+              },
+              {
+                "type": "p",
+                "children": [
+                  { "type": "strong", "children": ["Scaling behavior:"] },
+                  " Diffusion loss decreases smoothly with compute and reliably predicts downstream utility. Meta-model neurons increasingly isolate concepts into individual units (like SAEs do)."
+                ]
+              },
+              {
+                "type": "p",
+                "children": [
+                  { "type": "strong", "children": ["Relevance:"] },
+                  " ⭐⭐⭐ ALTERNATIVE APPROACH to our work. While we propose using SAE feature space for diffusion, GLP proposes using diffusion TO MODEL activation space. These are complementary: GLP shows that diffusion naturally learns to represent the structure of activations; we propose using that structure (via SAEs) as the diffusion target. Key implication: GLP's on-manifold projection could be combined with SAE steering for better fluency."
+                ]
+              },
+              {
+                "type": "p",
+                "children": [
+                  { "type": "strong", "children": ["New research question:"] },
+                  " Could we train a diffusion model in SAE feature space (our Idea 1) and use GLP-style manifold projection to ensure generated features stay on the valid SAE manifold?"
+                ]
+              }
+            ]
+          },
+          {
+            "type": "DeepDive",
+            "title": "[Feb 14] LoMDM: Learnable Generation Orderings (Feb 2026)",
+            "children": [
+              {
+                "type": "p",
+                "children": [
+                  { "type": "strong", "children": ["Paper:"] },
+                  " Jong Chul Ye et al. (KAIST/KRAFTON), 'Unifying Masked Diffusion Models with Various Generation Orders and Beyond' (arXiv:2602.02112, Feb 3, 2026)"
+                ]
+              },
+              {
+                "type": "p",
+                "children": [
+                  { "type": "strong", "children": ["Key insight:"] },
+                  " Introduces 'learnable-order masked diffusion model' (LoMDM) that JOINTLY learns generation ordering and diffusion backbone through a single objective from scratch. This enables context-dependent ordering where different inputs can have different optimal generation orders."
+                ]
+              },
+              {
+                "type": "p",
+                "children": [
+                  { "type": "strong", "children": ["Framework:"] },
+                  " OeMDM (order-expressive MDM) provides a unified framework interpreting MDM, ARM, and block diffusion in a single formulation."
+                ]
+              },
+              {
+                "type": "p",
+                "children": [
+                  { "type": "strong", "children": ["Relevance:"] },
+                  " ⭐⭐⭐ DIRECT SUPPORT for Idea 3. If generation order can be learned, we could learn an SAE-feature-aware ordering: denoise high-level semantic features first, low-level syntactic features last. LoMDM proves the ordering is learnable; we'd add the constraint that ordering should follow semantic hierarchy."
                 ]
               }
             ]
@@ -449,6 +565,40 @@
           },
           {
             "type": "DeepDive",
+            "title": "[Feb 14] On the Role of Discreteness: Core Limitations Identified (Dec 2025)",
+            "children": [
+              {
+                "type": "p",
+                "children": [
+                  { "type": "strong", "children": ["Paper:"] },
+                  " Jin et al., 'On the Role of Discreteness in Diffusion LLMs' (arXiv:2512.22630, Dec 27, 2025)"
+                ]
+              },
+              {
+                "type": "p",
+                "children": [
+                  { "type": "strong", "children": ["Key insight:"] },
+                  " Identifies TWO core structural limitations in current diffusion LMs: (1) Uniform corruption does not respect how information is distributed across positions — treating all tokens equally ignores positional importance. (2) Token-wise marginal training cannot capture multi-token dependencies during parallel decoding."
+                ]
+              },
+              {
+                "type": "p",
+                "children": [
+                  { "type": "strong", "children": ["Relevance:"] },
+                  " ⭐⭐⭐ VALIDATES OUR CORE INTUITION for Idea 3! The 'uniform corruption ignores information distribution' critique is exactly why we propose SEMANTIC-aware noise schedules. If different features encode different amounts of information (high-level semantics vs. low-level syntax), uniform noising is suboptimal. SAE features provide a natural basis for NON-uniform corruption based on semantic importance."
+                ]
+              },
+              {
+                "type": "p",
+                "children": [
+                  { "type": "strong", "children": ["New research question:"] },
+                  " Can SAE feature importance scores define a corruption schedule that addresses their critique? Features with higher causal influence on generation should be noised last."
+                ]
+              }
+            ]
+          },
+          {
+            "type": "DeepDive",
             "title": "[Feb 13] Evidence from SAE Layer Analysis",
             "children": [
               {
@@ -736,7 +886,9 @@
                   { "type": "li", "children": [{ "type": "strong", "children": ["DiffuLLaMA"] }, " (Gong et al., 2024) — Converted LLaMA2 7B to diffusion. Shows AR→diffusion adaptation works."] },
                   { "type": "li", "children": [{ "type": "strong", "children": ["CARD"] }, " (Li et al., Jan 2025) — Causal diffusion with KV-cache support. 1.7-4x inference speedup. Bridges AR efficiency with diffusion parallelism."] },
                   { "type": "li", "children": [{ "type": "strong", "children": ["EDLM"] }, " (Xu et al., ICLR 2025) — Energy-based correction at each step. SOTA diffusion LM perplexity."] },
-                  { "type": "li", "children": [{ "type": "strong", "children": ["Gemini Diffusion"] }, " (Google, May 2025) — Google's entry into text diffusion. State-of-the-art."] }
+                  { "type": "li", "children": [{ "type": "strong", "children": ["Gemini Diffusion"] }, " (Google, May 2025) — Google's entry into text diffusion. 1,479 tokens/sec. State-of-the-art."] },
+                  { "type": "li", "children": [{ "type": "strong", "children": ["Dream 7B"] }, " (HKU/Huawei, Aug 2025) — Most powerful open diffusion LM. Matches Qwen2.5-7B on general/math/code. Any-order generation."] },
+                  { "type": "li", "children": [{ "type": "strong", "children": ["LLaDA2.0"] }, " (Ant Group, Dec 2025) — First 100B diffusion LM using MoE. Proves frontier-scale text diffusion is viable. Matches Qwen3-30B."] }
                 ]
               }
             ]
@@ -774,11 +926,12 @@
           {
             "type": "ul",
             "children": [
-              { "type": "li", "children": ["🔍 Search for 'score-based generative model discrete data' and 'sparse representation diffusion' in next sweep"] },
-              { "type": "li", "children": ["🧪 Prototype: take a small MDLM, extract SAE features at each denoising step, visualize how features evolve during generation"] },
-              { "type": "li", "children": ["📐 Quantify SAE reconstruction error and its impact on text quality when used as encode→diffuse→decode pipeline"] },
-              { "type": "li", "children": ["📊 Map the discrete-diffusion-guidance codebase — it has MDLM + guidance already, perfect starting point"] },
-              { "type": "li", "children": ["📅 Prototype review: Feb 20, 2025"] }
+              { "type": "li", "children": ["🔥 PRIORITY: Study DLM-Scope codebase — they already have SAEs trained on LLaDA/Dream. This is our starting point."] },
+              { "type": "li", "children": ["🧪 Replicate DLM-Scope's finding that SAE insertion reduces loss in early layers of DLMs. Understand WHY."] },
+              { "type": "li", "children": ["📐 Experiment: Compare SAE-based steering in DLMs (DLM-Scope approach) vs. LLMs. Quantify the improvement."] },
+              { "type": "li", "children": ["🔍 Investigate GLP as complementary approach: can GLP's manifold projection improve SAE-guided generation?"] },
+              { "type": "li", "children": ["📊 Design SAE-feature-aware noise schedule using LoMDM's learnable ordering framework."] },
+              { "type": "li", "children": ["📅 Prototype review: Feb 20, 2025 — update based on DLM-Scope findings"] }
             ]
           }
         ]
