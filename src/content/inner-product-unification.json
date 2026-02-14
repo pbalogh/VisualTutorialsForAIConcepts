@@ -9,7 +9,9 @@
     "children": [
       {
         "type": "Section",
-        "props": { "title": "Start With a Shadow" },
+        "props": {
+          "title": "Start With a Shadow"
+        },
         "children": [
           {
             "type": "p",
@@ -25,14 +27,18 @@
           },
           {
             "type": "Callout",
-            "props": { "type": "tip" },
+            "props": {
+              "type": "tip"
+            },
             "children": "Everything in this tutorial — dot products, Fourier transforms, cosine similarity, complex rotations — is about computing shadows. If you understand the shadow, you understand all of it."
           }
         ]
       },
       {
         "type": "Section",
-        "props": { "title": "The Right Triangle: Where Cosine Comes From" },
+        "props": {
+          "title": "The Right Triangle: Where Cosine Comes From"
+        },
         "children": [
           {
             "type": "p",
@@ -48,16 +54,27 @@
           },
           {
             "type": "Code",
-            "props": { "language": "text" },
+            "props": {
+              "language": "text"
+            },
             "children": "                /|\n               / |\n              /  |\n  hypotenuse /   | opposite\n            /    | (vertical)\n           /     |\n          / θ    |\n         /-------+\n         adjacent\n        (horizontal)"
           },
           {
             "type": "DefinitionList",
             "props": {
               "items": [
-                { "term": "Hypotenuse", "definition": "The longest side (opposite the right angle). The 'stick' itself." },
-                { "term": "Adjacent", "definition": "The side next to angle θ, along the ground. The 'shadow'." },
-                { "term": "Opposite", "definition": "The side across from angle θ, going up. The 'height' above the ground." }
+                {
+                  "term": "Hypotenuse",
+                  "definition": "The longest side (opposite the right angle). The 'stick' itself."
+                },
+                {
+                  "term": "Adjacent",
+                  "definition": "The side next to angle θ, along the ground. The 'shadow'."
+                },
+                {
+                  "term": "Opposite",
+                  "definition": "The side across from angle θ, going up. The 'height' above the ground."
+                }
               ]
             }
           },
@@ -88,27 +105,66 @@
           {
             "type": "ComparisonTable",
             "props": {
-              "headers": ["Angle θ", "cos(θ)", "Shadow Length", "What It Means"],
+              "headers": [
+                "Angle θ",
+                "cos(θ)",
+                "Shadow Length",
+                "What It Means"
+              ],
               "rows": [
-                ["0°", "1.0", "10", "Stick lies flat. Shadow = full length. TOTAL alignment."],
-                ["30°", "0.87", "8.7", "Slightly tilted. Most of the stick still projects horizontally."],
-                ["45°", "0.71", "7.1", "Equal parts horizontal and vertical. Shadow is 71% of stick."],
-                ["60°", "0.50", "5.0", "Mostly tilted up. Only half projects onto the ground."],
-                ["90°", "0.0", "0", "Stick points straight up. NO shadow at all. ZERO alignment."],
-                ["180°", "-1.0", "-10", "Stick points the OTHER way. Shadow is reversed. ANTI-aligned."]
+                [
+                  "0°",
+                  "1.0",
+                  "10",
+                  "Stick lies flat. Shadow = full length. TOTAL alignment."
+                ],
+                [
+                  "30°",
+                  "0.87",
+                  "8.7",
+                  "Slightly tilted. Most of the stick still projects horizontally."
+                ],
+                [
+                  "45°",
+                  "0.71",
+                  "7.1",
+                  "Equal parts horizontal and vertical. Shadow is 71% of stick."
+                ],
+                [
+                  "60°",
+                  "0.50",
+                  "5.0",
+                  "Mostly tilted up. Only half projects onto the ground."
+                ],
+                [
+                  "90°",
+                  "0.0",
+                  "0",
+                  "Stick points straight up. NO shadow at all. ZERO alignment."
+                ],
+                [
+                  "180°",
+                  "-1.0",
+                  "-10",
+                  "Stick points the OTHER way. Shadow is reversed. ANTI-aligned."
+                ]
               ]
             }
           },
           {
             "type": "Callout",
-            "props": { "type": "info" },
+            "props": {
+              "type": "info"
+            },
             "children": "This table IS the entire story. Cosine measures 'how much of this thing lies along that thing.' 1 = total overlap, 0 = nothing in common, -1 = perfectly opposite. Every application we'll see is just this table in different costumes."
           }
         ]
       },
       {
         "type": "Section",
-        "props": { "title": "From Sticks to Arrows: Vectors" },
+        "props": {
+          "title": "From Sticks to Arrows: Vectors"
+        },
         "children": [
           {
             "type": "p",
@@ -124,7 +180,9 @@
           },
           {
             "type": "Code",
-            "props": { "language": "text" },
+            "props": {
+              "language": "text"
+            },
             "children": "Vector a = [4, 3]  → points right 4, up 3\nVector b = [1, 2]  → points right 1, up 2\n\n          ↑ y\n          |\n        3 +        a = [4,3]\n          |       /\n        2 +   b  /\n          |  / \\ /\n        1 + /  θ\n          |/\n     -----+--------→ x\n          0  1  2  3  4"
           },
           {
@@ -145,7 +203,9 @@
           },
           {
             "type": "Code",
-            "props": { "language": "text" },
+            "props": {
+              "language": "text"
+            },
             "children": "a · b = (4)(1) + (3)(2)\n      =   4   +   6\n      =  10"
           },
           {
@@ -163,8 +223,14 @@
           {
             "type": "ul",
             "children": [
-              { "type": "li", "children": "(4)(1) = 4: Both vectors point right. They AGREE in the x-direction. Positive contribution." },
-              { "type": "li", "children": "(3)(2) = 6: Both vectors point up. They AGREE in the y-direction. Positive contribution." }
+              {
+                "type": "li",
+                "children": "(4)(1) = 4: Both vectors point right. They AGREE in the x-direction. Positive contribution."
+              },
+              {
+                "type": "li",
+                "children": "(3)(2) = 6: Both vectors point up. They AGREE in the y-direction. Positive contribution."
+              }
             ]
           },
           {
@@ -173,11 +239,15 @@
           },
           {
             "type": "Example",
-            "props": { "title": "Disagreement Example" },
+            "props": {
+              "title": "Disagreement Example"
+            },
             "children": [
               {
                 "type": "Code",
-                "props": { "language": "text" },
+                "props": {
+                  "language": "text"
+                },
                 "children": "a = [4, 3]\nc = [-2, 1]\n\na · c = (4)(-2) + (3)(1)\n      =   -8    +   3\n      =   -5\n\nNegative! c mostly points AWAY from a."
               }
             ]
@@ -200,19 +270,25 @@
           },
           {
             "type": "Code",
-            "props": { "language": "text" },
+            "props": {
+              "language": "text"
+            },
             "children": "|a| = √(4² + 3²) = √(16 + 9) = √25 = 5\n|b| = √(1² + 2²) = √(1 + 4)  = √5  ≈ 2.24\n\na · b = 10 (we computed this)\n\nSo: cos(θ) = (a · b) / (|a| × |b|)\n           = 10 / (5 × 2.24)\n           = 10 / 11.18\n           = 0.894\n\nθ = arccos(0.894) ≈ 26.6°\n\nThe vectors are about 27° apart — quite similar!"
           },
           {
             "type": "Callout",
-            "props": { "type": "tip" },
+            "props": {
+              "type": "tip"
+            },
             "children": "When people say 'cosine similarity' in machine learning, this is ALL they mean: compute the dot product, divide by both lengths, and you get a number between -1 and 1 that measures how much two vectors point the same way. It's the shadow ratio."
           }
         ]
       },
       {
         "type": "Section",
-        "props": { "title": "The Leap: From 2D Arrows to Signals" },
+        "props": {
+          "title": "The Leap: From 2D Arrows to Signals"
+        },
         "children": [
           {
             "type": "p",
@@ -224,7 +300,9 @@
           },
           {
             "type": "Code",
-            "props": { "language": "text" },
+            "props": {
+              "language": "text"
+            },
             "children": "signal = [0.7, 0.9, 0.3, -0.4, -0.8, -0.6, 0.1, 0.5]\n\nThis IS a vector in 8-dimensional space.\nEach time point is a dimension.\nThe value at that time is the coordinate."
           },
           {
@@ -233,7 +311,9 @@
           },
           {
             "type": "Code",
-            "props": { "language": "text" },
+            "props": {
+              "language": "text"
+            },
             "children": "probe = [0, 0.71, 1, 0.71, 0, -0.71, -1, -0.71]\n\n(This is sin(t) sampled at t = 0, π/4, π/2, 3π/4, π, ...)"
           },
           {
@@ -242,12 +322,16 @@
           },
           {
             "type": "Code",
-            "props": { "language": "text" },
+            "props": {
+              "language": "text"
+            },
             "children": "signal · probe = (0.7)(0) + (0.9)(0.71) + (0.3)(1) + (-0.4)(0.71)\n               + (-0.8)(0) + (-0.6)(-0.71) + (0.1)(-1) + (0.5)(-0.71)\n\n               = 0 + 0.639 + 0.3 + (-0.284)\n               + 0 + 0.426 + (-0.1) + (-0.355)\n\n               = 0.626\n\nPositive! This frequency IS present in the signal."
           },
           {
             "type": "Callout",
-            "props": { "type": "info" },
+            "props": {
+              "type": "info"
+            },
             "children": "The Fourier transform is a dot product between your signal (an 8D vector) and a sine wave (another 8D vector). It computes the shadow of your signal onto that sine wave. A big shadow means the frequency is strongly present. No shadow means it's absent."
           },
           {
@@ -261,9 +345,18 @@
           {
             "type": "ul",
             "children": [
-              { "type": "li", "children": "When the signal is positive AND the probe sine wave is positive → positive product → evidence FOR this frequency" },
-              { "type": "li", "children": "When the signal is negative AND the probe is negative → positive product → ALSO evidence for this frequency (they agree in being negative together)" },
-              { "type": "li", "children": "When one is positive and the other is negative → negative product → evidence AGAINST" }
+              {
+                "type": "li",
+                "children": "When the signal is positive AND the probe sine wave is positive → positive product → evidence FOR this frequency"
+              },
+              {
+                "type": "li",
+                "children": "When the signal is negative AND the probe is negative → positive product → ALSO evidence for this frequency (they agree in being negative together)"
+              },
+              {
+                "type": "li",
+                "children": "When one is positive and the other is negative → negative product → evidence AGAINST"
+              }
             ]
           },
           {
@@ -282,7 +375,9 @@
       },
       {
         "type": "Section",
-        "props": { "title": "The Phase Problem: Why You Need Complex Numbers" },
+        "props": {
+          "title": "The Phase Problem: Why You Need Complex Numbers"
+        },
         "children": [
           {
             "type": "p",
@@ -290,7 +385,9 @@
           },
           {
             "type": "Code",
-            "props": { "language": "text" },
+            "props": {
+              "language": "text"
+            },
             "children": "Signal:     [1, 0.71, 0, -0.71, -1, -0.71, 0, 0.71]  ← cos(t), starts at peak\nProbe sin:  [0, 0.71, 1,  0.71,  0, -0.71, -1, -0.71] ← sin(t), starts at zero\n\nDot product = (1)(0) + (0.71)(0.71) + (0)(1) + (-0.71)(0.71)\n            + (-1)(0) + (-0.71)(-0.71) + (0)(-1) + (0.71)(-0.71)\n\n            = 0 + 0.504 + 0 - 0.504 + 0 + 0.504 + 0 - 0.504\n            = 0   ← ZERO! But the frequency IS there!"
           },
           {
@@ -307,7 +404,9 @@
           },
           {
             "type": "Code",
-            "props": { "language": "text" },
+            "props": {
+              "language": "text"
+            },
             "children": "Probe cos: [1, 0.71, 0, -0.71, -1, -0.71, 0, 0.71]  ← cos(t)\nProbe sin: [0, 0.71, 1,  0.71,  0, -0.71, -1, -0.71] ← sin(t)\n\nSignal · cos_probe = (1)(1) + (0.71)(0.71) + ... = 4.0  ← BIG!\nSignal · sin_probe = (1)(0) + (0.71)(0.71) + ... = 0.0  ← zero\n\nThe cosine probe catches it! The frequency was there all along,\njust shifted to align with cosine instead of sine."
           },
           {
@@ -324,7 +423,9 @@
           },
           {
             "type": "Code",
-            "props": { "language": "text" },
+            "props": {
+              "language": "text"
+            },
             "children": "F(f) = (cosine component) + i × (sine component)\n     = 4.0 + i × 0.0\n     = 4.0\n\nMagnitude: |F(f)| = √(4² + 0²) = 4    ← HOW MUCH frequency\nPhase:     ∠F(f) = arctan(0/4) = 0°    ← WHERE the peaks are"
           },
           {
@@ -341,14 +442,18 @@
           },
           {
             "type": "Callout",
-            "props": { "type": "warning" },
+            "props": {
+              "type": "warning"
+            },
             "children": "This is why complex numbers appear in physics and signal processing everywhere. They're not an abstract curiosity — they're the natural language for 'shadow plus rotation angle.' Real numbers measure shadow length. Complex numbers measure shadow length AND direction."
           }
         ]
       },
       {
         "type": "Section",
-        "props": { "title": "The Unification Table" },
+        "props": {
+          "title": "The Unification Table"
+        },
         "children": [
           {
             "type": "p",
@@ -357,20 +462,64 @@
           {
             "type": "ComparisonTable",
             "props": {
-              "headers": ["Operation", "Object A", "Object B (Probe)", "Shadow Tells You", "The Cosine Measures"],
+              "headers": [
+                "Operation",
+                "Object A",
+                "Object B (Probe)",
+                "Shadow Tells You",
+                "The Cosine Measures"
+              ],
               "rows": [
-                ["Dot product", "Vector a", "Vector b", "How similar are a and b?", "Angle between two arrows"],
-                ["Cosine similarity", "Document embedding", "Query embedding", "How relevant is this document?", "Angle between meanings"],
-                ["Fourier transform", "Signal", "Sine wave at freq f", "How much of freq f is present?", "Phase shift of that frequency"],
-                ["Convolution (CNN)", "Image patch", "Learned filter", "Does this pattern appear here?", "Match between pattern and data"],
-                ["Attention (Transformer)", "Query vector", "Key vector", "How much should I attend to this?", "Relevance of this token"],
-                ["Schankian operator", "Entity embedding", "Rotated entity", "Does this operator produce this result?", "Angle of the rotation = the operator"]
+                [
+                  "Dot product",
+                  "Vector a",
+                  "Vector b",
+                  "How similar are a and b?",
+                  "Angle between two arrows"
+                ],
+                [
+                  "Cosine similarity",
+                  "Document embedding",
+                  "Query embedding",
+                  "How relevant is this document?",
+                  "Angle between meanings"
+                ],
+                [
+                  "Fourier transform",
+                  "Signal",
+                  "Sine wave at freq f",
+                  "How much of freq f is present?",
+                  "Phase shift of that frequency"
+                ],
+                [
+                  "Convolution (CNN)",
+                  "Image patch",
+                  "Learned filter",
+                  "Does this pattern appear here?",
+                  "Match between pattern and data"
+                ],
+                [
+                  "Attention (Transformer)",
+                  "Query vector",
+                  "Key vector",
+                  "How much should I attend to this?",
+                  "Relevance of this token"
+                ],
+                [
+                  "Schankian operator",
+                  "Entity embedding",
+                  "Rotated entity",
+                  "Does this operator produce this result?",
+                  "Angle of the rotation = the operator"
+                ]
               ]
             }
           },
           {
             "type": "Callout",
-            "props": { "type": "info" },
+            "props": {
+              "type": "info"
+            },
             "children": "Every row is: multiply corresponding elements, sum the products, interpret the result as 'how much of A lies along B.' The probe changes (sine wave, document vector, attention key), the interpretation changes, but the operation is identical."
           },
           {
@@ -393,7 +542,9 @@
       },
       {
         "type": "Section",
-        "props": { "title": "Why This Matters for Everything" },
+        "props": {
+          "title": "Why This Matters for Everything"
+        },
         "children": [
           {
             "type": "h3",
@@ -439,23 +590,171 @@
       },
       {
         "type": "Section",
-        "props": { "title": "Key Takeaways" },
+        "props": {
+          "title": "Key Takeaways"
+        },
         "children": [
           {
             "type": "ol",
             "children": [
-              { "type": "li", "children": "Cosine = adjacent / hypotenuse = 'what fraction of this thing lies along that thing.' It ranges from 1 (identical) to 0 (unrelated) to -1 (opposite)." },
-              { "type": "li", "children": "The dot product computes this by multiplying corresponding elements and summing. Multiplication rewards agreement (++ or --) and punishes disagreement (+-)." },
-              { "type": "li", "children": "The Fourier transform is a dot product between a signal and sine/cosine waves. It measures how much of each frequency is 'in' the signal — the shadow of the signal onto each frequency." },
-              { "type": "li", "children": "Complex numbers (e^(iθ) = cos + i·sin) combine the two probes into one, capturing both magnitude (how much) and phase (at what angle)." },
-              { "type": "li", "children": "Cosine similarity, attention, convolution, and operator scoring are ALL the same operation: project onto a probe, measure the shadow." },
-              { "type": "li", "children": "The 'subterranean solution' is the inner product — the universal operation for asking 'how much of this is that?'" }
+              {
+                "type": "li",
+                "children": "Cosine = adjacent / hypotenuse = 'what fraction of this thing lies along that thing.' It ranges from 1 (identical) to 0 (unrelated) to -1 (opposite)."
+              },
+              {
+                "type": "li",
+                "children": "The dot product computes this by multiplying corresponding elements and summing. Multiplication rewards agreement (++ or --) and punishes disagreement (+-)."
+              },
+              {
+                "type": "li",
+                "children": "The Fourier transform is a dot product between a signal and sine/cosine waves. It measures how much of each frequency is 'in' the signal — the shadow of the signal onto each frequency."
+              },
+              {
+                "type": "li",
+                "children": "Complex numbers (e^(iθ) = cos + i·sin) combine the two probes into one, capturing both magnitude (how much) and phase (at what angle)."
+              },
+              {
+                "type": "li",
+                "children": "Cosine similarity, attention, convolution, and operator scoring are ALL the same operation: project onto a probe, measure the shadow."
+              },
+              {
+                "type": "li",
+                "children": "The 'subterranean solution' is the inner product — the universal operation for asking 'how much of this is that?'"
+              }
             ]
           },
           {
             "type": "Callout",
-            "props": { "type": "info" },
+            "props": {
+              "type": "info"
+            },
             "children": "This tutorial is part of the Schankian Operators research program. The connection to operators: they're complex rotations (e^(iθ)) applied via the same inner product machinery. See the main paper draft for the full technical context."
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "children": [
+          {
+            "type": "Sidebar",
+            "props": {
+              "type": "tip",
+              "title": "📚 Learn More: text\nCopy\nSignal:     [1, 0.71, 0, -0.71, -1, -0.71, 0, 0.71...",
+              "id": "ann-1771082022610-f1wpzk",
+              "sourceId": "source-ann-1771082022610-f1wpzk"
+            },
+            "children": [
+              {
+                "type": "p",
+                "props": {
+                  "className": "text-sm text-gray-600 mb-3"
+                },
+                "children": "Curated resources to deepen your understanding:"
+              },
+              {
+                "type": "p",
+                "props": {
+                  "className": "mb-2"
+                },
+                "children": [
+                  {
+                    "type": "a",
+                    "props": {
+                      "href": "https://www.youtube.com/results?search_query=text%0ACopy%0ASignal%3A%20%20%20%20%20%5B1%2C%200.71%2C%200%2C%20-0.71%2C%20-1%2C%20-0.71%2C%200%2C%200.71%5D%20%20%E2%86%90%20cos(t)%2C%20tutorial",
+                      "target": "_blank",
+                      "rel": "noopener noreferrer",
+                      "className": "text-blue-600 hover:text-blue-800 font-medium"
+                    },
+                    "children": "🎬 Search YouTube for \"text\nCopy\nSignal:     [1, 0.71, 0, -0.71, -1, -0.71, 0, 0.71]  ← cos(t),\""
+                  },
+                  {
+                    "type": "span",
+                    "props": {
+                      "className": "text-xs text-gray-500 ml-2"
+                    },
+                    "children": "(Video)"
+                  },
+                  {
+                    "type": "span",
+                    "props": {
+                      "className": "block text-sm text-gray-600 ml-6"
+                    },
+                    "children": "Video explanations often make concepts click"
+                  }
+                ]
+              },
+              {
+                "type": "p",
+                "props": {
+                  "className": "mb-2"
+                },
+                "children": [
+                  {
+                    "type": "a",
+                    "props": {
+                      "href": "https://www.khanacademy.org/search?referer=%2F&page_search_query=text%0ACopy%0ASignal%3A%20%20%20%20%20%5B1%2C%200.71%2C%200%2C%20-0.71%2C%20-1%2C%20-0.71%2C%200%2C%200.71%5D%20%20%E2%86%90%20cos(t)%2C",
+                      "target": "_blank",
+                      "rel": "noopener noreferrer",
+                      "className": "text-blue-600 hover:text-blue-800 font-medium"
+                    },
+                    "children": "🎮 Search Khan Academy"
+                  },
+                  {
+                    "type": "span",
+                    "props": {
+                      "className": "text-xs text-gray-500 ml-2"
+                    },
+                    "children": "(Interactive)"
+                  },
+                  {
+                    "type": "span",
+                    "props": {
+                      "className": "block text-sm text-gray-600 ml-6"
+                    },
+                    "children": "Free, structured lessons with practice problems"
+                  }
+                ]
+              },
+              {
+                "type": "p",
+                "props": {
+                  "className": "mb-2"
+                },
+                "children": [
+                  {
+                    "type": "a",
+                    "props": {
+                      "href": "https://en.wikipedia.org/wiki/text%0ACopy%0ASignal%3A_____%5B1%2C_0.71%2C_0%2C_-0.71%2C_-1%2C_-0.71%2C_0%2C_0.71%5D__%E2%86%90_cos(t)%2C",
+                      "target": "_blank",
+                      "rel": "noopener noreferrer",
+                      "className": "text-blue-600 hover:text-blue-800 font-medium"
+                    },
+                    "children": "📖 Wikipedia: text\nCopy\nSignal:     [1, 0.71, 0, -0.71, -1, -0.71, 0, 0.71]  ← cos(t),"
+                  },
+                  {
+                    "type": "span",
+                    "props": {
+                      "className": "text-xs text-gray-500 ml-2"
+                    },
+                    "children": "(Reference)"
+                  },
+                  {
+                    "type": "span",
+                    "props": {
+                      "className": "block text-sm text-gray-600 ml-6"
+                    },
+                    "children": "Good starting point for definitions and context"
+                  }
+                ]
+              },
+              {
+                "type": "p",
+                "props": {
+                  "className": "text-xs text-gray-400 mt-3"
+                },
+                "children": "Sources for \"text\nCopy\nSignal:     [1,...\" — 2/14/2026, 10:13:30 AM"
+              }
+            ]
           }
         ]
       }
