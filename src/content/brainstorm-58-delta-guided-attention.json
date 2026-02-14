@@ -1,0 +1,450 @@
+{
+  "id": "brainstorm-58-delta-guided-attention",
+  "title": "Delta-Guided Attention",
+  "subtitle": "SAE Features as Attractor Targets for Contextual Disambiguation — making attention goal-directed",
+  "readTime": "20 min",
+  "difficulty": 3,
+  "tags": ["schankian", "SAE", "attention", "interpretability", "transformers"],
+  "state": "brainstorm_58",
+  "content": {
+    "type": "Fragment",
+    "children": [
+      {
+        "type": "Section",
+        "props": { "title": "The Core Insight" },
+        "children": [
+          {
+            "type": "p",
+            "children": "What if attention wasn't just 'looking for relevant context' but was actively SEEKING specific missing information? Delta-Guided Attention proposes that SAE features can serve as named destinations — interpretable attractors that the model is trying to reach."
+          },
+          {
+            "type": "p",
+            "children": "The idea is radical: instead of learned query projections (Q = W_q·x), use the DELTA between your current representation and nearby interpretable features as the query. This makes attention explicitly goal-directed."
+          },
+          {
+            "type": "Callout",
+            "props": {
+              "type": "key-insight",
+              "title": "Attention as Navigation"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "Current attention: 'What in my context is generally relevant?' Delta-guided attention: 'What in my context has the specific information I need to become [FEATURE_X]?' This reframes attention from exploration to targeted search."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "The Three-Step Process" },
+        "children": [
+          {
+            "type": "p",
+            "children": "Delta-guided attention works in three stages, each building on the previous:"
+          },
+          {
+            "type": "DefinitionList",
+            "props": {
+              "items": [
+                {
+                  "term": "Step 1: Feature Decomposition",
+                  "definition": "Decompose the current token's vector via SAE to find nearby interpretable features. These are the candidate 'destinations' — the semantic concepts the token might be trying to become."
+                },
+                {
+                  "term": "Step 2: Delta Computation",
+                  "definition": "For each candidate feature, compute the delta: Δ = feature_centroid - current_vector. This delta represents 'what's missing' — the information needed to snap to that interpretable state."
+                },
+                {
+                  "term": "Step 3: Delta as Query",
+                  "definition": "Use the delta as an implicit attention query. The model searches context for tokens whose vectors resemble the missing information. Attention becomes feature-seeking, not just relevance-seeking."
+                }
+              ]
+            }
+          },
+          {
+            "type": "DeepDive",
+            "props": {
+              "title": "Why Deltas Are Better Than Learned Queries",
+              "id": "why-deltas"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "Learned query projections (W_q) are black boxes — we don't know what they're looking for. Delta-derived queries are transparent: they literally encode 'I need more of [feature X]'."
+              },
+              {
+                "type": "p",
+                "children": "This connects to the sparse coding insight: if SAE features are monosemantic (each represents one concept), then the delta tells you exactly which concepts the model is uncertain about. Interpretability becomes free."
+              },
+              {
+                "type": "p",
+                "children": "Mathematically: traditional Q = W_q·x has d² parameters to learn. Delta Q = f(SAE_nearest(x) - x) uses the SAE dictionary directly — no additional parameters, just feature lookup."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "Interactive: Delta-Guided Attention Demo" },
+        "children": [
+          {
+            "type": "p",
+            "children": "Let's visualize how delta-guided attention works. In this demo, we'll see how a polysemous word ('bank') uses context to snap to the correct SAE feature."
+          },
+          {
+            "type": "InteractiveDemo",
+            "props": {
+              "id": "delta-attention-demo",
+              "title": "Delta-Guided Feature Selection",
+              "component": "DeltaAttentionDemo",
+              "description": "Watch how deltas guide attention to disambiguating context",
+              "config": {
+                "word": "bank",
+                "initialVector": [0.5, 0.3, 0.2, 0.4],
+                "candidateFeatures": [
+                  {"name": "FINANCIAL_INSTITUTION", "vector": [0.9, 0.1, 0.2, 0.3], "color": "#22c55e"},
+                  {"name": "RIVER_BANK", "vector": [0.1, 0.8, 0.3, 0.2], "color": "#3b82f6"},
+                  {"name": "VERB_DEPOSIT", "vector": [0.4, 0.2, 0.9, 0.1], "color": "#f59e0b"}
+                ],
+                "contextTokens": [
+                  {"word": "money", "vector": [0.85, 0.15, 0.3, 0.25]},
+                  {"word": "river", "vector": [0.15, 0.75, 0.2, 0.3]},
+                  {"word": "account", "vector": [0.8, 0.1, 0.5, 0.2]},
+                  {"word": "fishing", "vector": [0.2, 0.7, 0.15, 0.4]}
+                ],
+                "showDeltas": true,
+                "showAttentionWeights": true
+              },
+              "height": 500
+            }
+          },
+          {
+            "type": "p",
+            "children": "Notice how the delta toward FINANCIAL_INSTITUTION creates high attention weights for 'money' and 'account' — tokens that contain the missing information. The delta toward RIVER_BANK attends to 'river' and 'fishing'. The winning feature is determined by which delta finds the most matching context."
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "Connection to Semantic Attractors" },
+        "children": [
+          {
+            "type": "p",
+            "children": "Delta-guided attention connects deeply to the semantic attractor framework (Brainstorm #36). SAE features ARE attractors — stable points in representation space that tokens converge toward through layer-by-layer processing."
+          },
+          {
+            "type": "Analogy",
+            "left": {
+              "title": "Physical Attractors",
+              "items": [
+                "Ball rolling toward valley bottom",
+                "Gravity provides the 'pull'",
+                "Gradient points toward attractor",
+                "Energy minimization drives dynamics",
+                "Multiple basins = multiple stable states"
+              ]
+            },
+            "right": {
+              "title": "Semantic Attractors",
+              "items": [
+                "Token vector moving toward SAE feature",
+                "Context provides the 'pull'",
+                "Delta points toward feature centroid",
+                "Attention searches for missing info",
+                "Multiple features = polysemy resolution"
+              ]
+            }
+          },
+          {
+            "type": "p",
+            "children": "The key insight: attention is the mechanism that PULLS tokens toward attractors. Delta-guided attention makes this explicit — the query literally IS the gradient toward the nearest attractor."
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "A Testable Hypothesis" },
+        "children": [
+          {
+            "type": "p",
+            "children": "Here's the exciting part: this isn't just theory. We can TEST whether transformers already do something like delta-guided attention implicitly."
+          },
+          {
+            "type": "Callout",
+            "props": {
+              "type": "experiment",
+              "title": "The Correlation Test"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "Hypothesis: Attention patterns at layer L+1 should correlate with SAE feature deltas computed at layer L."
+              },
+              {
+                "type": "p",
+                "children": "Method: (1) Extract hidden states at layer L, (2) Decompose via SAE to find nearest features and compute deltas, (3) Extract attention patterns at layer L+1, (4) Measure correlation between delta vectors and attention-weighted context."
+              },
+              {
+                "type": "p",
+                "children": "Prediction: If transformers implicitly use delta-guided attention, we should see significant correlation. The attention at L+1 should 'look for' what's missing at L."
+              }
+            ]
+          },
+          {
+            "type": "DeepDive",
+            "props": {
+              "title": "Why This Matters for Interpretability",
+              "id": "interpretability"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "If confirmed, this gives us a new interpretability tool: we can predict what a head will attend to by computing SAE deltas. No more 'what is this head looking for?' — the delta tells you directly."
+              },
+              {
+                "type": "p",
+                "children": "It also suggests an architectural intervention: replace W_q with explicit delta computation. This would make attention fully interpretable by construction, not just post-hoc."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "Interactive: Build Your Own Delta Query" },
+        "children": [
+          {
+            "type": "p",
+            "children": "Let's explore delta computation hands-on. Given a token embedding and several candidate features, you'll compute deltas and see how they create different attention patterns."
+          },
+          {
+            "type": "InteractiveDemo",
+            "props": {
+              "id": "delta-builder",
+              "title": "Delta Query Builder",
+              "component": "DeltaQueryBuilder",
+              "description": "Construct delta-guided queries and see the resulting attention",
+              "config": {
+                "dimensions": 4,
+                "showVectorArithmetic": true,
+                "allowFeatureSelection": true,
+                "features": [
+                  {"id": "f1", "name": "TRANSFER_OWNERSHIP", "description": "Exchange of possession"},
+                  {"id": "f2", "name": "PHYSICAL_MOTION", "description": "Movement through space"},
+                  {"id": "f3", "name": "INFORMATION_FLOW", "description": "Communication of knowledge"},
+                  {"id": "f4", "name": "CAUSAL_FORCE", "description": "Making something happen"}
+                ]
+              },
+              "height": 450
+            }
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "Connection to Operator Disambiguation" },
+        "children": [
+          {
+            "type": "p",
+            "children": "Delta-guided attention has direct implications for our Schankian operator work. Consider: 'He shot the president.' Is this PROPEL (bullet), HARM, or INFORM (photography)?"
+          },
+          {
+            "type": "p",
+            "children": "With delta-guided attention, the model would:"
+          },
+          {
+            "type": "DefinitionList",
+            "props": {
+              "items": [
+                {
+                  "term": "1. Identify candidate operators",
+                  "definition": "SAE decomposition finds PROPEL, HARM, INFORM as nearby features for 'shot'"
+                },
+                {
+                  "term": "2. Compute deltas",
+                  "definition": "Δ_PROPEL = PROPEL_centroid - shot_vector, etc."
+                },
+                {
+                  "term": "3. Search context with each delta",
+                  "definition": "Δ_PROPEL looks for weapon/projectile words, Δ_INFORM looks for camera/photo words"
+                },
+                {
+                  "term": "4. Winner takes all",
+                  "definition": "The delta that finds the most supporting context determines the operator"
+                }
+              ]
+            }
+          },
+          {
+            "type": "p",
+            "children": "This is exactly how context-dependent operator selection should work! Delta-guided attention provides a mechanistic account of operator disambiguation."
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "Architectural Proposal" },
+        "children": [
+          {
+            "type": "p",
+            "children": "Taking this further, we could design an attention variant that makes delta-guidance explicit:"
+          },
+          {
+            "type": "Example",
+            "props": {
+              "title": "Delta-Guided Attention Head",
+              "language": "python"
+            },
+            "children": [
+              {
+                "type": "pre",
+                "children": "class DeltaGuidedAttention(nn.Module):\n    def __init__(self, d_model, sae_dict):\n        self.sae = sae_dict  # Pre-trained SAE dictionary\n        self.W_k = nn.Linear(d_model, d_model)\n        self.W_v = nn.Linear(d_model, d_model)\n        # No W_q! Query comes from delta\n    \n    def forward(self, x, context):\n        # 1. Find nearest SAE features\n        features, activations = self.sae.encode(x)\n        \n        # 2. Compute deltas to top-k features\n        top_k = activations.topk(k=3)\n        deltas = [self.sae.features[i] - x for i in top_k.indices]\n        \n        # 3. Use deltas as queries\n        K = self.W_k(context)\n        V = self.W_v(context)\n        \n        outputs = []\n        for delta in deltas:\n            attn = softmax(delta @ K.T / sqrt(d))\n            outputs.append(attn @ V)\n        \n        # 4. Combine based on feature activations\n        return sum(a * o for a, o in zip(top_k.values, outputs))"
+              }
+            ]
+          },
+          {
+            "type": "p",
+            "children": "This architecture would be interpretable by design: we always know WHAT the model is looking for (the delta) and WHY (to reach a specific SAE feature)."
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "Connections to Prior Work" },
+        "children": [
+          {
+            "type": "p",
+            "children": "Delta-guided attention connects to several threads in the literature:"
+          },
+          {
+            "type": "DefinitionList",
+            "props": {
+              "items": [
+                {
+                  "term": "Arora's Superposition Recovery",
+                  "definition": "Showed that sparse coding can recover individual sense vectors from polysemous embeddings. Our deltas point toward these recovered senses."
+                },
+                {
+                  "term": "Anthropic's Scaling Monosemanticity",
+                  "definition": "34M interpretable features from Claude. These ARE our attractor destinations — delta-guided attention searches for them."
+                },
+                {
+                  "term": "Semantic Attractors (Brainstorm #36)",
+                  "definition": "Understanding as convergence to fixed points. Delta-guided attention is the convergence mechanism."
+                },
+                {
+                  "term": "Hopfield Networks",
+                  "definition": "Modern Hopfield networks use attention for memory retrieval. Delta-guided attention adds directionality — retrieving the SPECIFIC memory needed."
+                }
+              ]
+            }
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "Quiz: Test Your Understanding" },
+        "children": [
+          {
+            "type": "Quiz",
+            "props": {
+              "id": "delta-attention-quiz",
+              "questions": [
+                {
+                  "id": "q1",
+                  "text": "In delta-guided attention, what does the 'delta' represent?",
+                  "options": [
+                    "The change in loss during training",
+                    "The difference between the current vector and a target SAE feature",
+                    "The gradient of the attention weights",
+                    "The learning rate adaptation"
+                  ],
+                  "correct": 1,
+                  "explanation": "The delta is the vector difference between where you are (current token embedding) and where you might want to go (an SAE feature centroid). It represents 'what's missing' to become that interpretable concept."
+                },
+                {
+                  "id": "q2",
+                  "text": "Why might delta-guided attention improve interpretability?",
+                  "options": [
+                    "It uses smaller matrices",
+                    "The query explicitly encodes what information is being sought",
+                    "It runs faster than standard attention",
+                    "It requires less training data"
+                  ],
+                  "correct": 1,
+                  "explanation": "Traditional attention queries (Q = W_q·x) are opaque — we don't know what they're looking for. Delta queries are transparent: they literally encode 'I need information to become [FEATURE_X]'."
+                },
+                {
+                  "id": "q3",
+                  "text": "How does delta-guided attention relate to polysemy?",
+                  "options": [
+                    "It eliminates polysemy from the vocabulary",
+                    "It uses different deltas for different senses, letting context select the right one",
+                    "It requires separate models for each word sense",
+                    "It has no connection to polysemy"
+                  ],
+                  "correct": 1,
+                  "explanation": "A polysemous word like 'bank' has multiple nearby SAE features (FINANCIAL, RIVER, etc.). Each produces a different delta. The delta that finds the most supporting context 'wins', effectively disambiguating the word."
+                },
+                {
+                  "id": "q4",
+                  "text": "The hypothesis that 'attention at L+1 correlates with SAE deltas at L' would suggest that:",
+                  "options": [
+                    "SAEs are not useful for interpretability",
+                    "Transformers might already be doing something like delta-guided attention implicitly",
+                    "Attention mechanisms should be removed from transformers",
+                    "Layer L+1 should be skipped during inference"
+                  ],
+                  "correct": 1,
+                  "explanation": "If attention patterns correlate with SAE deltas from the previous layer, it suggests the model is already (implicitly) looking for information needed to reach interpretable features — validating the delta-guided attention hypothesis."
+                }
+              ]
+            }
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "Summary & Next Steps" },
+        "children": [
+          {
+            "type": "Callout",
+            "props": {
+              "type": "summary",
+              "title": "Key Takeaways"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "1. Delta-guided attention reframes attention as goal-directed search, not generic relevance matching."
+              },
+              {
+                "type": "p",
+                "children": "2. The delta (SAE_feature - current_vector) explicitly encodes what information is missing."
+              },
+              {
+                "type": "p",
+                "children": "3. This provides a mechanistic account of polysemy resolution and operator disambiguation."
+              },
+              {
+                "type": "p",
+                "children": "4. The hypothesis is testable: attention patterns should correlate with SAE deltas."
+              },
+              {
+                "type": "p",
+                "children": "5. Architecturally, we could replace learned W_q with explicit delta computation for interpretable-by-design attention."
+              }
+            ]
+          },
+          {
+            "type": "p",
+            "children": "Next experiments: (1) Measure the correlation between attention patterns and SAE deltas in existing models. (2) Prototype a delta-guided attention head and compare disambiguation accuracy. (3) Connect to Schankian operator selection — can delta-guided attention learn to select the right operator from context?"
+          }
+        ]
+      }
+    ]
+  }
+}

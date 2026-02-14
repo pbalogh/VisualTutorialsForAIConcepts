@@ -513,6 +513,18 @@ const tutorials = [
     difficulty: 3,
   },
   {
+    id: 'brainstorm-58-delta-guided-attention',
+    title: 'Delta-Guided Attention',
+    description: 'SAE features as attractor targets for contextual disambiguation — making attention explicitly goal-directed',
+    tags: ['schankian', 'SAE', 'attention', 'interpretability'],
+    icon: '🎯',
+    gradient: 'from-cyan-500 to-teal-600',
+    shadowColor: 'shadow-cyan-500/30',
+    glowColor: 'rgba(6, 182, 212, 0.4)',
+    readTime: '20 min',
+    difficulty: 3,
+  },
+  {
     id: 'thoughtblend',
     title: 'ThoughtBlend',
     description: 'Synthesize perspectives through dialectical color mixing — add sources as color swatches and blend them into structured text or dialogue',
