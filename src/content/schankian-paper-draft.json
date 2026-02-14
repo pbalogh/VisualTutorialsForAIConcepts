@@ -3249,6 +3249,42 @@
             "children": "Links: https://arxiv.org/abs/1305.0297 | https://arxiv.org/abs/1307.6894 | https://www.researchgate.net/publication/391439657 | https://arxiv.org/abs/2511.13706 | https://arxiv.org/abs/2510.15987"
           }
         ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "Entry 60: Process-Level Operators — Why Transformers Need Explicit Disambiguation Primitives"
+        },
+        "children": [
+          {
+            "type": "h3",
+            "children": "Entry 60: Process-Level Operators — Why Transformers Need Explicit Disambiguation Primitives"
+          },
+          {
+            "type": "p",
+            "children": "🔴 Status: potential_paper | Date: 2026-02-14"
+          },
+          {
+            "type": "p",
+            "children": "There are TWO layers of operators running during comprehension. Text-level: HARM(cop, Frank), TRANSFER(John, book, Mary) — what the story says. Process-level: COMMIT(financial), UNCOMMIT(river), OBSERVE(anti-river), REANALYZE(swap) — what the reader/model DOES while processing. Current transformers implement only text-level operations explicitly. Process-level operations emerge implicitly from repeated application of one primitive (dot-product attention), like building a calculator from only addition."
+          },
+          {
+            "type": "p",
+            "children": "Critical flaw: UNCOMMIT and absence-of-evidence are collapsed. Anti-river evidence ('downtown') and simply not encountering river evidence both produce zero activation after ReLU. But 'I know it's NOT a river' and 'I don't know if it's a river' are different epistemic states. The architecture can't distinguish them."
+          },
+          {
+            "type": "p",
+            "children": "Proposed fix: FORK the residual stream at detected ambiguity points. Main stream = committed interpretation. Shelf stream(s) = pre-commitment snapshots stored as SPARSE DELTAS (~30 values, not 768). MERGE back on contradiction (REANALYZE). Expire after N layers if no contradiction. This is a GLR parser in the residual stream — same algorithm compilers have used since 1985."
+          },
+          {
+            "type": "p",
+            "children": "Meta-observation: the same Darkness Visible insight (make implicit state explicit for better retrieval) applies to MODEL INTERNALS. The transformer needs its own implicit-explicit enrichment."
+          },
+          {
+            "type": "p",
+            "children": "Links: https://en.wikipedia.org/wiki/GLR_parser | https://arxiv.org/abs/2401.04088 | https://arxiv.org/abs/2302.01318 | https://doi.org/10.1016/S0010-0277(98)00034-1"
+          }
+        ]
       }
     ]
   }
