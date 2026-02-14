@@ -303,7 +303,7 @@
             "props": {
               "language": "text"
             },
-            "children": "signal = [0.7, 0.9, 0.3, -0.4, -0.8, -0.6, 0.1, 0.5]\n\nThis IS a vector in 8-dimensional space.\nEach time point is a dimension.\nThe value at that time is the coordinate."
+            "children": "signal = [0.7, 0.9, 0.3, -0.4, -0.8, -0.6, 0.1, 0.5]\n\n  1.0 ┤\n      │    ●\n  0.5 ┤ ●        ·  ·  ·  ·  ·  ·  ·  ·  ·  ·  ●\n      │       ●\n  0.0 ┤─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ●─ ─ ─ ─\n      │          ●\n -0.5 ┤                ●\n      │             ●\n -1.0 ┤\n      └──┬──┬──┬──┬──┬──┬──┬──\n         t0 t1 t2 t3 t4 t5 t6 t7\n\nThis IS a vector in 8-dimensional space.\nEach time point is a dimension.\nThe value at that time is the coordinate."
           },
           {
             "type": "p",
@@ -314,7 +314,16 @@
             "props": {
               "language": "text"
             },
-            "children": "probe = [0, 0.71, 1, 0.71, 0, -0.71, -1, -0.71]\n\n(This is sin(t) sampled at t = 0, π/4, π/2, 3π/4, π, ...)"
+            "children": "probe = [0, 0.71, 1, 0.71, 0, -0.71, -1, -0.71]\n\n  1.0 ┤        ●\n      │     ●     ●\n  0.5 ┤\n      │\n  0.0 ┤─●─ ─ ─ ─ ─ ─●─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─\n      │\n -0.5 ┤                 ●     ●\n      │                    ●\n -1.0 ┤\n      └──┬──┬──┬──┬──┬──┬──┬──\n         t0 t1 t2 t3 t4 t5 t6 t7\n\n(This is sin(t) sampled at t = 0, π/4, π/2, 3π/4, π, ...)\nA clean sine wave: rises smoothly, peaks, falls, troughs."
+          },
+          {
+            "type": "p",
+            "children": "Now plot them together — this is what the dot product 'sees':"
+          },
+          {
+            "type": "Code",
+            "props": { "language": "text" },
+            "children": "SIGNAL (●) vs PROBE (○) — overlaid:\n\n  1.0 ┤    ●  ○\n      │ ●  ○  ○\n  0.5 ┤ ○     ●                             ●\n      │    ●\n  0.0 ┤─○─ ─ ─ ─ ─ ─○─ ─ ─ ─ ─ ─ ─●─ ─ ─ ─\n      │          ●  ○                 ○\n -0.5 ┤       ○  ●  ○                    ○\n      │          ○\n -1.0 ┤\n      └──┬──┬──┬──┬──┬──┬──┬──\n         t0 t1 t2 t3 t4 t5 t6 t7\n\nWhere both curves are on the SAME SIDE of zero → positive product (agree)\nWhere they're on OPPOSITE sides → negative product (disagree)\nThe dot product sums all the evidence: +0.639 +0.300 -0.284 +0.426 -0.100 -0.355 = +0.626"
           },
           {
             "type": "p",
@@ -388,7 +397,7 @@
             "props": {
               "language": "text"
             },
-            "children": "Signal:     [1, 0.71, 0, -0.71, -1, -0.71, 0, 0.71]  ← cos(t), starts at peak\nProbe sin:  [0, 0.71, 1,  0.71,  0, -0.71, -1, -0.71] ← sin(t), starts at zero\n\nDot product = (1)(0) + (0.71)(0.71) + (0)(1) + (-0.71)(0.71)\n            + (-1)(0) + (-0.71)(-0.71) + (0)(-1) + (0.71)(-0.71)\n\n            = 0 + 0.504 + 0 - 0.504 + 0 + 0.504 + 0 - 0.504\n            = 0   ← ZERO! But the frequency IS there!"
+            "children": "Signal (cos): [1, 0.71, 0, -0.71, -1, -0.71, 0, 0.71]  ← starts at PEAK\nProbe (sin):  [0, 0.71, 1,  0.71,  0, -0.71, -1, -0.71] ← starts at ZERO\n\nSIGNAL (●) vs PROBE (○) — 90° out of phase:\n\n  1.0 ┤ ●     ○\n      │    ●  ○  ○\n  0.5 ┤    ○\n      │\n  0.0 ┤─○─ ─ ●─ ─ ─○─ ─ ●─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─\n      │          ○  ●                 ○\n -0.5 ┤             ○                    ○  ●\n      │ ●        ○\n -1.0 ┤\n\nThey're the SAME frequency but SHIFTED. When one is up, the\nother is crossing zero. Agreements and disagreements cancel perfectly:\n\nDot product = 0 + 0.504 + 0 - 0.504 + 0 + 0.504 + 0 - 0.504\n            = 0   ← ZERO! But the frequency IS there!"
           },
           {
             "type": "p",
