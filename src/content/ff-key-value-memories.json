@@ -9,104 +9,306 @@
     "children": [
       {
         "type": "Section",
-        "props": { "title": "The Neglected Two-Thirds" },
+        "props": {
+          "title": "The Neglected Two-Thirds"
+        },
         "children": [
-          { "type": "p", "children": "Quick: what percentage of a transformer's parameters live in the attention layers?" },
-          { "type": "p", "children": "If you guessed 'most of them,' you'd be wrong. Attention gets all the glory — the papers, the visualizations, the interpretability work — but it's actually the MINORITY. In a standard transformer, roughly TWO-THIRDS of the parameters live in the feed-forward (MLP) layers." },
-          { "type": "p", "children": "Think about that. In GPT-2, BERT, and their descendants, the bulk of the learned knowledge is stored in matrices that, until this paper, were treated as mysterious black boxes. Attention moves information around. But what actually STORES the knowledge? What knows that Paris is the capital of France? What recognizes that 'un-' typically negates a word?" },
-          { "type": "p", "children": "Geva, Schuster, Berant, and Levy (EMNLP 2021) answered this question with a beautifully simple insight: feed-forward layers are key-value memories. Each neuron is a memory slot. The first weight matrix stores 'keys' — patterns to match. The second matrix stores 'values' — what to predict when a pattern matches." },
+          {
+            "type": "p",
+            "children": "Quick: what percentage of a transformer's parameters live in the attention layers?"
+          },
+          {
+            "type": "p",
+            "children": "If you guessed 'most of them,' you'd be wrong. Attention gets all the glory — the papers, the visualizations, the interpretability work — but it's actually the MINORITY. In a standard transformer, roughly TWO-THIRDS of the parameters live in the feed-forward (MLP) layers."
+          },
+          {
+            "type": "p",
+            "children": "Think about that. In GPT-2, BERT, and their descendants, the bulk of the learned knowledge is stored in matrices that, until this paper, were treated as mysterious black boxes. Attention moves information around. But what actually STORES the knowledge? What knows that Paris is the capital of France? What recognizes that 'un-' typically negates a word?"
+          },
+          {
+            "type": "p",
+            "children": "Geva, Schuster, Berant, and Levy (EMNLP 2021) answered this question with a beautifully simple insight: feed-forward layers are key-value memories. Each neuron is a memory slot. The first weight matrix stores 'keys' — patterns to match. The second matrix stores 'values' — what to predict when a pattern matches."
+          },
           {
             "type": "Example",
-            "props": { "title": "Parameter Count Reality Check" },
+            "props": {
+              "title": "Parameter Count Reality Check"
+            },
             "children": [
-              { "type": "p", "children": "Let's count parameters in a single transformer layer (using BERT-base dimensions):" },
-              { "type": "p", "children": "Attention: Q, K, V projections = 3 × (768 × 768) = 1.77M. Output projection = 768 × 768 = 0.59M. Total attention: ~2.36M parameters." },
-              { "type": "p", "children": "Feed-Forward: W_up = 768 × 3072 = 2.36M. W_down = 3072 × 768 = 2.36M. Total MLP: ~4.72M parameters." },
-              { "type": "p", "children": "The MLP has TWICE as many parameters as attention. Across 12 layers, that's 56M parameters in MLPs vs 28M in attention. Two-thirds of the model is MLP!" },
-              { "type": "p", "children": "And yet, if you searched for 'transformer interpretability' before 2021, you'd find hundreds of papers visualizing attention patterns and almost nothing about what the MLPs were doing. This paper changed that." }
+              {
+                "type": "p",
+                "children": "Let's count parameters in a single transformer layer (using BERT-base dimensions):"
+              },
+              {
+                "type": "p",
+                "children": "Attention: Q, K, V projections = 3 × (768 × 768) = 1.77M. Output projection = 768 × 768 = 0.59M. Total attention: ~2.36M parameters."
+              },
+              {
+                "type": "p",
+                "children": "Feed-Forward: W_up = 768 × 3072 = 2.36M. W_down = 3072 × 768 = 2.36M. Total MLP: ~4.72M parameters."
+              },
+              {
+                "type": "p",
+                "children": "The MLP has TWICE as many parameters as attention. Across 12 layers, that's 56M parameters in MLPs vs 28M in attention. Two-thirds of the model is MLP!"
+              },
+              {
+                "type": "p",
+                "children": "And yet, if you searched for 'transformer interpretability' before 2021, you'd find hundreds of papers visualizing attention patterns and almost nothing about what the MLPs were doing. This paper changed that."
+              }
             ]
           },
-          { "type": "p", "children": "The key-value memory framework doesn't just explain what MLPs do — it reveals that transformers are, at their core, sophisticated retrieval systems. Attention figures out WHAT to look up. MLPs perform the actual lookup and return the stored knowledge. Understanding this changes how you think about everything from knowledge editing to mechanistic interpretability." }
+          {
+            "type": "p",
+            "children": "The key-value memory framework doesn't just explain what MLPs do — it reveals that transformers are, at their core, sophisticated retrieval systems. Attention figures out WHAT to look up. MLPs perform the actual lookup and return the stored knowledge. Understanding this changes how you think about everything from knowledge editing to mechanistic interpretability."
+          }
         ]
       },
       {
         "type": "Section",
-        "props": { "title": "The Key-Value Memory Framework" },
+        "props": {
+          "title": "The Key-Value Memory Framework"
+        },
         "children": [
-          { "type": "p", "children": "Let's build the key-value interpretation from the ground up, using the concrete MLP architecture you've already been learning." },
-          { "type": "p", "children": "A feed-forward layer takes an input x (the residual stream at some position) and produces an output. The architecture has two linear transformations with a nonlinearity in between:" },
-          { "type": "p", "children": "h = ReLU(W_up · x + b₁)     — expand: 768 → 3072" },
-          { "type": "p", "children": "output = W_down · h + b₂    — compress: 3072 → 768" },
-          { "type": "p", "children": "Now here's the insight that makes this a memory system. Consider what each component is doing:" },
+          {
+            "type": "p",
+            "children": "Let's build the key-value interpretation from the ground up, using the concrete MLP architecture you've already been learning."
+          },
+          {
+            "type": "p",
+            "children": "A feed-forward layer takes an input x (the residual stream at some position) and produces an output. The architecture has two linear transformations with a nonlinearity in between:"
+          },
+          {
+            "type": "p",
+            "children": "h = ReLU(W_up · x + b₁)     — expand: 768 → 3072"
+          },
+          {
+            "type": "p",
+            "children": "output = W_down · h + b₂    — compress: 3072 → 768"
+          },
+          {
+            "type": "p",
+            "children": "Now here's the insight that makes this a memory system. Consider what each component is doing:"
+          },
           {
             "type": "DeepDive",
-            "props": { "title": "Keys: The Rows of W_up" },
+            "props": {
+              "title": "Keys: The Rows of W_up"
+            },
             "children": [
-              { "type": "p", "children": "W_up is a 3072 × 768 matrix (for BERT-base dimensions). Each ROW is a 768-dimensional vector — the same dimensionality as the input x." },
-              { "type": "p", "children": "When you compute W_up · x, you're taking the dot product of each row with the input. Row i produces h_i (before the ReLU). What does a dot product measure? Similarity. Alignment. Pattern matching." },
-              { "type": "p", "children": "Each row of W_up is a KEY — a pattern that the neuron is 'looking for.' When the input x aligns with row i (high dot product), neuron i activates strongly. When the input doesn't match (low or negative dot product), the neuron stays quiet (especially after ReLU zeros out negatives)." },
-              { "type": "p", "children": "So W_up has 3072 keys — 3072 pattern detectors. Each one fires when it 'recognizes' something in the input." }
+              {
+                "type": "p",
+                "children": "W_up is a 3072 × 768 matrix (for BERT-base dimensions). Each ROW is a 768-dimensional vector — the same dimensionality as the input x."
+              },
+              {
+                "type": "p",
+                "children": "When you compute W_up · x, you're taking the dot product of each row with the input. Row i produces h_i (before the ReLU). What does a dot product measure? Similarity. Alignment. Pattern matching."
+              },
+              {
+                "type": "p",
+                "children": "Each row of W_up is a KEY — a pattern that the neuron is 'looking for.' When the input x aligns with row i (high dot product), neuron i activates strongly. When the input doesn't match (low or negative dot product), the neuron stays quiet (especially after ReLU zeros out negatives)."
+              },
+              {
+                "type": "p",
+                "children": "So W_up has 3072 keys — 3072 pattern detectors. Each one fires when it 'recognizes' something in the input."
+              }
             ]
           },
           {
             "type": "DeepDive",
-            "props": { "title": "Values: The Columns of W_down" },
+            "props": {
+              "title": "Values: The Columns of W_down"
+            },
             "children": [
-              { "type": "p", "children": "W_down is a 768 × 3072 matrix. Each COLUMN is a 768-dimensional vector — the same dimensionality as the output (and the residual stream)." },
-              { "type": "p", "children": "When you compute W_down · h, you're taking a weighted sum of the columns, where the weights are the activation values h_i. Column i contributes h_i × (column i) to the output." },
-              { "type": "p", "children": "Each column of W_down is a VALUE — what gets 'retrieved' and added to the residual stream when the corresponding key fires. If neuron i has a strong activation h_i, then column i contributes strongly to the output." },
-              { "type": "p", "children": "So W_down has 3072 values — 3072 pieces of 'knowledge' that can be retrieved and added to the computation." }
+              {
+                "type": "p",
+                "children": "W_down is a 768 × 3072 matrix. Each COLUMN is a 768-dimensional vector — the same dimensionality as the output (and the residual stream)."
+              },
+              {
+                "type": "p",
+                "children": "When you compute W_down · h, you're taking a weighted sum of the columns, where the weights are the activation values h_i. Column i contributes h_i × (column i) to the output."
+              },
+              {
+                "type": "p",
+                "children": "Each column of W_down is a VALUE — what gets 'retrieved' and added to the residual stream when the corresponding key fires. If neuron i has a strong activation h_i, then column i contributes strongly to the output."
+              },
+              {
+                "type": "p",
+                "children": "So W_down has 3072 values — 3072 pieces of 'knowledge' that can be retrieved and added to the computation."
+              }
             ]
           },
-          { "type": "p", "children": "Put it together: The MLP is a memory with 3072 slots. For each slot, the key (row of W_up) determines WHEN it activates. The value (column of W_down) determines WHAT it contributes when activated. The output is a weighted combination of all retrieved values, where the weights are determined by how well each key matched the input." },
+          {
+            "type": "p",
+            "children": "Put it together: The MLP is a memory with 3072 slots. For each slot, the key (row of W_up) determines WHEN it activates. The value (column of W_down) determines WHAT it contributes when activated. The output is a weighted combination of all retrieved values, where the weights are determined by how well each key matched the input."
+          },
           {
             "type": "Analogy",
-            "props": { "title": "The Library Card Catalog" },
+            "props": {
+              "title": "The Library Card Catalog"
+            },
             "children": [
-              { "type": "p", "children": "Imagine a library with 3072 books. Each book has an index card (the key) describing its topic. When you walk in with a question (the input), a librarian checks your question against every index card and gives you a 'relevance score' for each book." },
-              { "type": "p", "children": "But instead of handing you whole books, the librarian extracts a summary (the value) from each relevant book and blends them together, weighted by relevance. The books about Paris contribute strongly when you ask about French capitals. The books about rivers stay on the shelf." },
-              { "type": "p", "children": "The ReLU is like a relevance threshold — books with negative relevance scores (anti-matches) contribute nothing. You only get information from books that are at least somewhat relevant." },
-              { "type": "p", "children": "This is exactly what the MLP does: pattern-match against 3072 keys, retrieve the corresponding values weighted by match strength, and blend them into a single output." }
+              {
+                "type": "p",
+                "children": "Imagine a library with 3072 books. Each book has an index card (the key) describing its topic. When you walk in with a question (the input), a librarian checks your question against every index card and gives you a 'relevance score' for each book."
+              },
+              {
+                "type": "p",
+                "children": "But instead of handing you whole books, the librarian extracts a summary (the value) from each relevant book and blends them together, weighted by relevance. The books about Paris contribute strongly when you ask about French capitals. The books about rivers stay on the shelf."
+              },
+              {
+                "type": "p",
+                "children": "The ReLU is like a relevance threshold — books with negative relevance scores (anti-matches) contribute nothing. You only get information from books that are at least somewhat relevant."
+              },
+              {
+                "type": "p",
+                "children": "This is exactly what the MLP does: pattern-match against 3072 keys, retrieve the corresponding values weighted by match strength, and blend them into a single output."
+              }
             ]
           }
         ]
       },
       {
         "type": "Section",
-        "props": { "title": "What the Keys Detect" },
+        "props": {
+          "title": "What the Keys Detect"
+        },
         "children": [
-          { "type": "p", "children": "If keys are pattern detectors, what patterns do they detect? Geva et al. answered this by analyzing which inputs make each key fire strongest. The results reveal a beautiful hierarchy: lower layers detect shallow textual patterns; upper layers detect semantic concepts." },
+          {
+            "type": "p",
+            "children": "If keys are pattern detectors, what patterns do they detect? Geva et al. answered this by analyzing which inputs make each key fire strongest. The results reveal a beautiful hierarchy: lower layers detect shallow textual patterns; upper layers detect semantic concepts."
+          },
           {
             "type": "Example",
-            "props": { "title": "Lower Layer Keys: Surface Patterns" },
+            "props": {
+              "title": "Lower Layer Keys: Surface Patterns"
+            },
             "children": [
-              { "type": "p", "children": "In layers 1-4, the keys detect patterns that a regular expression could match:" },
-              { "type": "ul", "children": [
-                { "type": "li", "children": "Key 847: Fires on words starting with 'un-' (unhappy, unusual, unexpected)" },
-                { "type": "li", "children": "Key 1203: Fires on two-digit numbers (42, 87, 15)" },
-                { "type": "li", "children": "Key 2156: Fires on words ending in '-tion' (nation, action, creation)" },
-                { "type": "li", "children": "Key 391: Fires on capitalized words at sentence start" },
-                { "type": "li", "children": "Key 1789: Fires on words in quotation marks" }
-              ]},
-              { "type": "p", "children": "These are morphological and orthographic patterns — the building blocks that higher layers will compose into meaning." }
+              {
+                "type": "p",
+                "children": [
+                  "In layers 1-4, the keys detect patterns that a regular expression could match",
+                  {
+                    "type": "FootnoteRef",
+                    "props": {
+                      "id": "source-ann-1771158778759-cr80gm",
+                      "targetId": "ann-1771158778759-cr80gm",
+                      "type": "ask"
+                    }
+                  },
+                  ":"
+                ]
+              },
+              {
+                "type": "ul",
+                "children": [
+                  {
+                    "type": "li",
+                    "children": "Key 847: Fires on words starting with 'un-' (unhappy, unusual, unexpected)"
+                  },
+                  {
+                    "type": "li",
+                    "children": "Key 1203: Fires on two-digit numbers (42, 87, 15)"
+                  },
+                  {
+                    "type": "li",
+                    "children": "Key 2156: Fires on words ending in '-tion' (nation, action, creation)"
+                  },
+                  {
+                    "type": "li",
+                    "children": "Key 391: Fires on capitalized words at sentence start"
+                  },
+                  {
+                    "type": "li",
+                    "children": "Key 1789: Fires on words in quotation marks"
+                  }
+                ]
+              },
+              {
+                "type": "p",
+                "children": "These are morphological and orthographic patterns — the building blocks that higher layers will compose into meaning."
+              }
+            ]
+          },
+          {
+            "type": "Sidebar",
+            "props": {
+              "type": "note",
+              "title": "Q: This is a great observation! Would it be possible to bypass these layers by actually using regular expressions? Would there be any value in it?",
+              "expanded": true,
+              "id": "ann-1771158778759-cr80gm",
+              "sourceId": "source-ann-1771158778759-cr80gm"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "That's a brilliant question! In principle, you could replace some early layers with regular expressions since they're detecting similar patterns. However, there are important limitations that make the neural approach more powerful."
+              },
+              {
+                "type": "p",
+                "children": "Regular expressions are rigid - they match exact patterns you specify. But neural networks learn flexible, fuzzy matching. For example, while a regex might look for the exact pattern \"the [noun]\", a neural key might learn to detect \"articles followed by nouns\" and generalize to variations like \"a dog\", \"an elephant\", or even handle typos and unusual spacing. The network learns these patterns from data rather than requiring hand-coded rules."
+              },
+              {
+                "type": "p",
+                "children": "More importantly, neural keys can detect abstract or semantic patterns that would be nearly impossible to express as regular expressions. While early layers might handle simple syntactic patterns that resemble regex capabilities, deeper layers identify complex linguistic relationships, contextual meanings, and subtle semantic associations that no regex could capture."
+              },
+              {
+                "type": "p",
+                "children": "So while you might get some efficiency gains by replacing very early pattern-detection layers with regex preprocessing, you'd lose the flexibility and generalization that makes these models so powerful. The real magic happens when simple pattern detectors combine to build increasingly sophisticated representations."
+              },
+              {
+                "type": "p",
+                "props": {
+                  "className": "text-xs text-gray-400 mt-2"
+                },
+                "children": "Asked about \"that a regular expression coul...\" — 2/15/2026, 7:32:44 AM"
+              }
             ]
           },
           {
             "type": "Example",
-            "props": { "title": "Upper Layer Keys: Semantic Concepts" },
+            "props": {
+              "title": "Upper Layer Keys: Semantic Concepts"
+            },
             "children": [
-              { "type": "p", "children": "In layers 9-12, the keys detect semantic categories that require understanding context:" },
-              { "type": "ul", "children": [
-                { "type": "li", "children": "Key 512: Fires on names of countries (France, Japan, Brazil)" },
-                { "type": "li", "children": "Key 2891: Fires on cooking-related words (sauté, simmer, dice)" },
-                { "type": "li", "children": "Key 1456: Fires on words expressing temporal relations (before, after, during)" },
-                { "type": "li", "children": "Key 3001: Fires on scientific terminology in biology contexts" },
-                { "type": "li", "children": "Key 728: Fires on emotional states (angry, delighted, anxious)" }
-              ]},
-              { "type": "p", "children": "These keys can't be written as regex — they require understanding what a word MEANS, not just how it's spelled. A 'country name' key must distinguish 'Paris' (city) from 'France' (country) from 'French' (adjective)." }
+              {
+                "type": "p",
+                "children": "In layers 9-12, the keys detect semantic categories that require understanding context:"
+              },
+              {
+                "type": "ul",
+                "children": [
+                  {
+                    "type": "li",
+                    "children": "Key 512: Fires on names of countries (France, Japan, Brazil)"
+                  },
+                  {
+                    "type": "li",
+                    "children": "Key 2891: Fires on cooking-related words (sauté, simmer, dice)"
+                  },
+                  {
+                    "type": "li",
+                    "children": "Key 1456: Fires on words expressing temporal relations (before, after, during)"
+                  },
+                  {
+                    "type": "li",
+                    "children": "Key 3001: Fires on scientific terminology in biology contexts"
+                  },
+                  {
+                    "type": "li",
+                    "children": "Key 728: Fires on emotional states (angry, delighted, anxious)"
+                  }
+                ]
+              },
+              {
+                "type": "p",
+                "children": "These keys can't be written as regex — they require understanding what a word MEANS, not just how it's spelled. A 'country name' key must distinguish 'Paris' (city) from 'France' (country) from 'French' (adjective)."
+              }
             ]
           },
-          { "type": "p", "children": "This hierarchy isn't surprising once you see it — it mirrors how humans process language, moving from surface features to deep semantics. But it's remarkable that it emerges naturally from training on next-token prediction. No one told the model 'learn country names in layer 10.' The key-value structure organized itself to maximize prediction accuracy." },
+          {
+            "type": "p",
+            "children": "This hierarchy isn't surprising once you see it — it mirrors how humans process language, moving from surface features to deep semantics. But it's remarkable that it emerges naturally from training on next-token prediction. No one told the model 'learn country names in layer 10.' The key-value structure organized itself to maximize prediction accuracy."
+          },
           {
             "type": "InteractiveDemo",
             "props": {
@@ -114,63 +316,151 @@
               "description": "See how different keys activate for the same word in different contexts. The key that fires reveals what pattern the MLP 'detected.'"
             },
             "children": [
-              { "type": "p", "children": "Input: 'The bank was steep and covered with wildflowers.'" },
-              { "type": "p", "children": "Keys activated for 'bank': Key 2341 (geographic/terrain features, 0.89) · Key 891 (natural landscape elements, 0.72) · Key 1567 (outdoor locations, 0.54)" },
-              { "type": "p", "children": "— The MLP detected 'riverbank' semantics from context." },
-              { "type": "p", "children": "Input: 'The bank approved the loan application yesterday.'" },
-              { "type": "p", "children": "Keys activated for 'bank': Key 1823 (financial institutions, 0.94) · Key 567 (corporate entities, 0.71) · Key 2901 (business transactions, 0.48)" },
-              { "type": "p", "children": "— The MLP detected 'financial institution' semantics from context." },
-              { "type": "p", "children": "Same word, completely different keys. The surrounding context changes which patterns match, which changes which memories get retrieved." }
+              {
+                "type": "p",
+                "children": "Input: 'The bank was steep and covered with wildflowers.'"
+              },
+              {
+                "type": "p",
+                "children": "Keys activated for 'bank': Key 2341 (geographic/terrain features, 0.89) · Key 891 (natural landscape elements, 0.72) · Key 1567 (outdoor locations, 0.54)"
+              },
+              {
+                "type": "p",
+                "children": "— The MLP detected 'riverbank' semantics from context."
+              },
+              {
+                "type": "p",
+                "children": "Input: 'The bank approved the loan application yesterday.'"
+              },
+              {
+                "type": "p",
+                "children": "Keys activated for 'bank': Key 1823 (financial institutions, 0.94) · Key 567 (corporate entities, 0.71) · Key 2901 (business transactions, 0.48)"
+              },
+              {
+                "type": "p",
+                "children": "— The MLP detected 'financial institution' semantics from context."
+              },
+              {
+                "type": "p",
+                "children": "Same word, completely different keys. The surrounding context changes which patterns match, which changes which memories get retrieved."
+              }
             ]
           }
         ]
       },
       {
         "type": "Section",
-        "props": { "title": "What the Values Store" },
+        "props": {
+          "title": "What the Values Store"
+        },
         "children": [
-          { "type": "p", "children": "Keys tell us WHEN a neuron fires. Values tell us WHAT happens when it fires. Geva et al.'s most striking finding: each value, when passed through the output embedding matrix, produces a probability distribution over the vocabulary that concentrates on tokens likely to follow the key's pattern." },
-          { "type": "p", "children": "In other words: keys store patterns, values store predictions. When the key fires, the value contributes its prediction to the output." },
+          {
+            "type": "p",
+            "children": "Keys tell us WHEN a neuron fires. Values tell us WHAT happens when it fires. Geva et al.'s most striking finding: each value, when passed through the output embedding matrix, produces a probability distribution over the vocabulary that concentrates on tokens likely to follow the key's pattern."
+          },
+          {
+            "type": "p",
+            "children": "In other words: keys store patterns, values store predictions. When the key fires, the value contributes its prediction to the output."
+          },
           {
             "type": "Example",
-            "props": { "title": "The Capital of France Example" },
+            "props": {
+              "title": "The Capital of France Example"
+            },
             "children": [
-              { "type": "p", "children": "Consider a key that detects the pattern 'The capital of [COUNTRY] is'. When you pass its corresponding value through the unembedding matrix and look at the top predictions:" },
-              { "type": "ul", "children": [
-                { "type": "li", "children": "Value predicts: 'Paris' (for France), 'Tokyo' (for Japan), 'Berlin' (for Germany)..." }
-              ]},
-              { "type": "p", "children": "Wait — one value predicts MULTIPLE capitals? Yes! The value doesn't store 'Paris' specifically. It stores a direction in vocabulary space that points toward capital-city-type words. When combined with the actual country context from the residual stream, the right capital emerges." },
-              { "type": "p", "children": "Think of it like this: the value says 'the answer is a capital city.' The residual stream says 'we're talking about France.' Together, they converge on 'Paris.'" }
+              {
+                "type": "p",
+                "children": "Consider a key that detects the pattern 'The capital of [COUNTRY] is'. When you pass its corresponding value through the unembedding matrix and look at the top predictions:"
+              },
+              {
+                "type": "ul",
+                "children": [
+                  {
+                    "type": "li",
+                    "children": "Value predicts: 'Paris' (for France), 'Tokyo' (for Japan), 'Berlin' (for Germany)..."
+                  }
+                ]
+              },
+              {
+                "type": "p",
+                "children": "Wait — one value predicts MULTIPLE capitals? Yes! The value doesn't store 'Paris' specifically. It stores a direction in vocabulary space that points toward capital-city-type words. When combined with the actual country context from the residual stream, the right capital emerges."
+              },
+              {
+                "type": "p",
+                "children": "Think of it like this: the value says 'the answer is a capital city.' The residual stream says 'we're talking about France.' Together, they converge on 'Paris.'"
+              }
             ]
           },
-          { "type": "p", "children": "This explains a key mystery about language models: how can they store so much factual knowledge in a fixed number of parameters? The answer is that they DON'T store facts as raw lookups ('France → Paris'). They store PATTERNS and PREDICTIONS that compose together. The same value can participate in thousands of different factual retrievals." },
+          {
+            "type": "p",
+            "children": "This explains a key mystery about language models: how can they store so much factual knowledge in a fixed number of parameters? The answer is that they DON'T store facts as raw lookups ('France → Paris'). They store PATTERNS and PREDICTIONS that compose together. The same value can participate in thousands of different factual retrievals."
+          },
           {
             "type": "DeepDive",
-            "props": { "title": "Values as Vocabulary Distributions" },
+            "props": {
+              "title": "Values as Vocabulary Distributions"
+            },
             "children": [
-              { "type": "p", "children": "Each value is a 768-dimensional vector — the same dimension as token embeddings. When you multiply it by the unembedding matrix W_E^T (768 × 50,257 for GPT-2), you get a 50,257-dimensional vector of logits over the vocabulary." },
-              { "type": "p", "children": "Softmax these logits and you have a probability distribution. Geva et al. found these distributions are remarkably peaked — a value might put 40% probability on just 3-5 tokens, with the rest spread thinly." },
-              { "type": "p", "children": "This is how the MLP 'votes' for next tokens. Each active neuron contributes its value, pushing probability toward its favored tokens. The values combine (weighted by activation strength), and the result is a composite prediction reflecting all the patterns that matched." },
-              { "type": "p", "children": "Compare to attention: attention moves information BETWEEN positions. MLPs transform the information AT each position into predictions about what comes next. Attention is about 'where to look.' MLPs are about 'what to predict based on what you see.'" }
+              {
+                "type": "p",
+                "children": "Each value is a 768-dimensional vector — the same dimension as token embeddings. When you multiply it by the unembedding matrix W_E^T (768 × 50,257 for GPT-2), you get a 50,257-dimensional vector of logits over the vocabulary."
+              },
+              {
+                "type": "p",
+                "children": "Softmax these logits and you have a probability distribution. Geva et al. found these distributions are remarkably peaked — a value might put 40% probability on just 3-5 tokens, with the rest spread thinly."
+              },
+              {
+                "type": "p",
+                "children": "This is how the MLP 'votes' for next tokens. Each active neuron contributes its value, pushing probability toward its favored tokens. The values combine (weighted by activation strength), and the result is a composite prediction reflecting all the patterns that matched."
+              },
+              {
+                "type": "p",
+                "children": "Compare to attention: attention moves information BETWEEN positions. MLPs transform the information AT each position into predictions about what comes next. Attention is about 'where to look.' MLPs are about 'what to predict based on what you see.'"
+              }
             ]
           }
         ]
       },
       {
         "type": "Section",
-        "props": { "title": "Composition of Memories" },
+        "props": {
+          "title": "Composition of Memories"
+        },
         "children": [
-          { "type": "p", "children": "Here's where it gets beautiful. The MLP output isn't a single retrieved memory — it's a weighted sum of ALL retrieved memories:" },
-          { "type": "p", "children": "output = Σᵢ (hᵢ × valueᵢ)" },
-          { "type": "p", "children": "Where hᵢ is the activation of neuron i (how strongly key i matched), and valueᵢ is column i of W_down. This formula should look familiar — it's EXACTLY the structure of SAE decomposition:" },
-          { "type": "p", "children": "SAE reconstruction = Σᵢ (activationᵢ × featureᵢ)" },
+          {
+            "type": "p",
+            "children": "Here's where it gets beautiful. The MLP output isn't a single retrieved memory — it's a weighted sum of ALL retrieved memories:"
+          },
+          {
+            "type": "p",
+            "children": "output = Σᵢ (hᵢ × valueᵢ)"
+          },
+          {
+            "type": "p",
+            "children": "Where hᵢ is the activation of neuron i (how strongly key i matched), and valueᵢ is column i of W_down. This formula should look familiar — it's EXACTLY the structure of SAE decomposition:"
+          },
+          {
+            "type": "p",
+            "children": "SAE reconstruction = Σᵢ (activationᵢ × featureᵢ)"
+          },
           {
             "type": "Analogy",
-            "props": { "title": "Mixing Paint Colors" },
+            "props": {
+              "title": "Mixing Paint Colors"
+            },
             "children": [
-              { "type": "p", "children": "Imagine each value as a color of paint. Key activation determines how much of each color to add to the mixture. If key 1 fires strongly (activation 0.9) and keys 2-3 fire weakly (activations 0.1), the output is mostly color 1 with hints of colors 2-3." },
-              { "type": "p", "children": "The ReLU ensures you can only ADD paint, never subtract. Negative activations become zero — you can't contribute 'anti-red.' This is the same sparsity-inducing constraint that makes SAEs work." },
-              { "type": "p", "children": "The final color (the MLP output) emerges from blending many paint sources, each contributing proportionally to how 'relevant' its key found the input. Complex outputs emerge from simple weighted combinations." }
+              {
+                "type": "p",
+                "children": "Imagine each value as a color of paint. Key activation determines how much of each color to add to the mixture. If key 1 fires strongly (activation 0.9) and keys 2-3 fire weakly (activations 0.1), the output is mostly color 1 with hints of colors 2-3."
+              },
+              {
+                "type": "p",
+                "children": "The ReLU ensures you can only ADD paint, never subtract. Negative activations become zero — you can't contribute 'anti-red.' This is the same sparsity-inducing constraint that makes SAEs work."
+              },
+              {
+                "type": "p",
+                "children": "The final color (the MLP output) emerges from blending many paint sources, each contributing proportionally to how 'relevant' its key found the input. Complex outputs emerge from simple weighted combinations."
+              }
             ]
           },
           {
@@ -180,35 +470,94 @@
               "description": "Watch how multiple key-value pairs combine to produce the MLP output for a single token."
             },
             "children": [
-              { "type": "p", "children": "Input: 'The chef carefully diced the'" },
-              { "type": "p", "children": "Active key-value pairs (top 5 of 3072):" },
-              { "type": "ul", "children": [
-                { "type": "li", "children": "Key 2156 (cooking verbs) → Value predicts: onions, carrots, potatoes (activation: 0.87)" },
-                { "type": "li", "children": "Key 891 (food preparation) → Value predicts: vegetables, ingredients, meat (activation: 0.72)" },
-                { "type": "li", "children": "Key 1345 (countable nouns) → Value predicts: tomatoes, peppers, mushrooms (activation: 0.58)" },
-                { "type": "li", "children": "Key 2901 (kitchen context) → Value predicts: garlic, herbs, butter (activation: 0.41)" },
-                { "type": "li", "children": "Key 567 (article 'the' completion) → Value predicts: common nouns (activation: 0.35)" }
-              ]},
-              { "type": "p", "children": "Combined output: Probability mass concentrates on diceable food items. 'Onions' gets the highest combined score because it's strongly supported by multiple values." },
-              { "type": "p", "children": "This is ensemble voting: each memory casts a weighted vote for its preferred tokens, and the consensus determines the prediction." }
+              {
+                "type": "p",
+                "children": "Input: 'The chef carefully diced the'"
+              },
+              {
+                "type": "p",
+                "children": "Active key-value pairs (top 5 of 3072):"
+              },
+              {
+                "type": "ul",
+                "children": [
+                  {
+                    "type": "li",
+                    "children": "Key 2156 (cooking verbs) → Value predicts: onions, carrots, potatoes (activation: 0.87)"
+                  },
+                  {
+                    "type": "li",
+                    "children": "Key 891 (food preparation) → Value predicts: vegetables, ingredients, meat (activation: 0.72)"
+                  },
+                  {
+                    "type": "li",
+                    "children": "Key 1345 (countable nouns) → Value predicts: tomatoes, peppers, mushrooms (activation: 0.58)"
+                  },
+                  {
+                    "type": "li",
+                    "children": "Key 2901 (kitchen context) → Value predicts: garlic, herbs, butter (activation: 0.41)"
+                  },
+                  {
+                    "type": "li",
+                    "children": "Key 567 (article 'the' completion) → Value predicts: common nouns (activation: 0.35)"
+                  }
+                ]
+              },
+              {
+                "type": "p",
+                "children": "Combined output: Probability mass concentrates on diceable food items. 'Onions' gets the highest combined score because it's strongly supported by multiple values."
+              },
+              {
+                "type": "p",
+                "children": "This is ensemble voting: each memory casts a weighted vote for its preferred tokens, and the consensus determines the prediction."
+              }
             ]
           },
-          { "type": "p", "children": "The composition principle has a profound implication: the MLP doesn't need to store every fact separately. It stores PATTERNS and PREDICTIONS that combine compositionally. 'Capital of France' + 'European country' + 'major city' all point toward 'Paris,' even if no single neuron knows 'France → Paris' directly." }
+          {
+            "type": "p",
+            "children": "The composition principle has a profound implication: the MLP doesn't need to store every fact separately. It stores PATTERNS and PREDICTIONS that combine compositionally. 'Capital of France' + 'European country' + 'major city' all point toward 'Paris,' even if no single neuron knows 'France → Paris' directly."
+          }
         ]
       },
       {
         "type": "Section",
-        "props": { "title": "Layer-by-Layer Refinement" },
+        "props": {
+          "title": "Layer-by-Layer Refinement"
+        },
         "children": [
-          { "type": "p", "children": "A transformer has many MLP layers, not just one. How do they divide the labor? Geva et al. found a clear pattern: lower layers store FREQUENT patterns, upper layers store RARE and SPECIFIC knowledge." },
-          { "type": "p", "children": "This makes computational sense. Frequent patterns (word prefixes, common syntactic structures) need to be recognized early so their information is available for later processing. Rare knowledge (specific facts, unusual word senses) can wait until the model has gathered enough context to disambiguate." },
-          { "type": "ul", "children": [
-            { "type": "li", "children": "Layers 1-3: Orthographic patterns ('ing' endings, capitalization), very common words" },
-            { "type": "li", "children": "Layers 4-6: Syntactic patterns (verb phrases, noun phrases), moderately common constructions" },
-            { "type": "li", "children": "Layers 7-9: Semantic categories (animals, professions, emotions), domain patterns" },
-            { "type": "li", "children": "Layers 10-12: Specific facts (capitals, dates, named entities), rare knowledge" }
-          ]},
-          { "type": "p", "children": "Each layer's MLP output gets ADDED to the residual stream (not replaced). So the final representation is an accumulation of all the memories retrieved at every layer. Early layers contribute broad patterns; later layers contribute specific refinements." },
+          {
+            "type": "p",
+            "children": "A transformer has many MLP layers, not just one. How do they divide the labor? Geva et al. found a clear pattern: lower layers store FREQUENT patterns, upper layers store RARE and SPECIFIC knowledge."
+          },
+          {
+            "type": "p",
+            "children": "This makes computational sense. Frequent patterns (word prefixes, common syntactic structures) need to be recognized early so their information is available for later processing. Rare knowledge (specific facts, unusual word senses) can wait until the model has gathered enough context to disambiguate."
+          },
+          {
+            "type": "ul",
+            "children": [
+              {
+                "type": "li",
+                "children": "Layers 1-3: Orthographic patterns ('ing' endings, capitalization), very common words"
+              },
+              {
+                "type": "li",
+                "children": "Layers 4-6: Syntactic patterns (verb phrases, noun phrases), moderately common constructions"
+              },
+              {
+                "type": "li",
+                "children": "Layers 7-9: Semantic categories (animals, professions, emotions), domain patterns"
+              },
+              {
+                "type": "li",
+                "children": "Layers 10-12: Specific facts (capitals, dates, named entities), rare knowledge"
+              }
+            ]
+          },
+          {
+            "type": "p",
+            "children": "Each layer's MLP output gets ADDED to the residual stream (not replaced). So the final representation is an accumulation of all the memories retrieved at every layer. Early layers contribute broad patterns; later layers contribute specific refinements."
+          },
           {
             "type": "Quiz",
             "props": {
@@ -227,19 +576,51 @@
       },
       {
         "type": "Section",
-        "props": { "title": "The SAE Connection" },
+        "props": {
+          "title": "The SAE Connection"
+        },
         "children": [
-          { "type": "p", "children": "This paper is the intellectual foundation for understanding WHY Sparse Autoencoders work so well on MLP layers. The connection is direct and profound:" },
-          { "type": "p", "children": "The MLP hidden layer (3072 dimensions for BERT-base) is ALREADY a sparse representation. Most neurons have zero or near-zero activation for any given input. The non-zero activations identify which 'memories' are being retrieved." },
-          { "type": "p", "children": "SAEs just find a CLEANER decomposition. Instead of the 3072 neurons (which mix multiple patterns due to superposition), SAEs expand to many more features (16K, 65K, even millions) where each feature captures ONE coherent pattern." },
-          { "type": "ul", "children": [
-            { "type": "li", "children": "MLP neurons: Noisy key-value pairs, some polysemantic (multiple patterns per neuron)" },
-            { "type": "li", "children": "SAE features: Clean key-value pairs, monosemantic (one pattern per feature)" }
-          ]},
-          { "type": "p", "children": "The math is identical:" },
-          { "type": "p", "children": "MLP output = W_down · ReLU(W_up · x) = Σᵢ activationᵢ × valueᵢ" },
-          { "type": "p", "children": "SAE reconstruction = Decoder · ReLU(Encoder · x) = Σᵢ activationᵢ × featureᵢ" },
-          { "type": "p", "children": "Same structure! The difference is that SAE features are trained to be interpretable and monosemantic, while MLP neurons emerge from next-token prediction and end up polysemantic due to capacity constraints." },
+          {
+            "type": "p",
+            "children": "This paper is the intellectual foundation for understanding WHY Sparse Autoencoders work so well on MLP layers. The connection is direct and profound:"
+          },
+          {
+            "type": "p",
+            "children": "The MLP hidden layer (3072 dimensions for BERT-base) is ALREADY a sparse representation. Most neurons have zero or near-zero activation for any given input. The non-zero activations identify which 'memories' are being retrieved."
+          },
+          {
+            "type": "p",
+            "children": "SAEs just find a CLEANER decomposition. Instead of the 3072 neurons (which mix multiple patterns due to superposition), SAEs expand to many more features (16K, 65K, even millions) where each feature captures ONE coherent pattern."
+          },
+          {
+            "type": "ul",
+            "children": [
+              {
+                "type": "li",
+                "children": "MLP neurons: Noisy key-value pairs, some polysemantic (multiple patterns per neuron)"
+              },
+              {
+                "type": "li",
+                "children": "SAE features: Clean key-value pairs, monosemantic (one pattern per feature)"
+              }
+            ]
+          },
+          {
+            "type": "p",
+            "children": "The math is identical:"
+          },
+          {
+            "type": "p",
+            "children": "MLP output = W_down · ReLU(W_up · x) = Σᵢ activationᵢ × valueᵢ"
+          },
+          {
+            "type": "p",
+            "children": "SAE reconstruction = Decoder · ReLU(Encoder · x) = Σᵢ activationᵢ × featureᵢ"
+          },
+          {
+            "type": "p",
+            "children": "Same structure! The difference is that SAE features are trained to be interpretable and monosemantic, while MLP neurons emerge from next-token prediction and end up polysemantic due to capacity constraints."
+          },
           {
             "type": "Quiz",
             "props": {
@@ -254,26 +635,79 @@
               "explanation": "MLP neurons are already key-value memories, but they're polysemantic — each neuron may respond to multiple unrelated patterns due to superposition. SAE features decompose the same MLP activations into a larger set of monosemantic features, where each feature corresponds to ONE interpretable pattern. SAEs don't replace MLPs; they provide a more interpretable BASIS for understanding what MLPs compute."
             }
           },
-          { "type": "p", "children": "This paper explains what SAE features ARE: they're individual memory retrievals. Each SAE feature that fires means 'this key matched, so this value is being retrieved.' SAE interpretability work is, at its core, cataloging the key-value memories that transformers have learned." }
+          {
+            "type": "p",
+            "children": "This paper explains what SAE features ARE: they're individual memory retrievals. Each SAE feature that fires means 'this key matched, so this value is being retrieved.' SAE interpretability work is, at its core, cataloging the key-value memories that transformers have learned."
+          }
         ]
       },
       {
         "type": "Section",
-        "props": { "title": "Implications" },
+        "props": {
+          "title": "Implications"
+        },
         "children": [
-          { "type": "p", "children": "The key-value memory framework opens up powerful research directions:" },
+          {
+            "type": "p",
+            "children": "The key-value memory framework opens up powerful research directions:"
+          },
           {
             "type": "ul",
             "children": [
-              { "type": "li", "children": [{ "type": "strong", "children": "Knowledge Editing:" }, " If facts are stored as key-value pairs, you can CHANGE what a model knows by modifying specific values. ROME (Rank-One Model Editing) and MEMIT build directly on this insight. Want to make the model think the Eiffel Tower is in Berlin? Find the relevant key-value pair and edit the value."] },
-              { "type": "li", "children": [{ "type": "strong", "children": "Knowledge Localization:" }, " We can now ASK 'where does the model store its knowledge about X?' and get a concrete answer: it's in the values of keys that match X-related patterns, concentrated in upper layers."] },
-              { "type": "li", "children": [{ "type": "strong", "children": "Retrieval Shortcuts:" }, " If MLP computation is memory retrieval, could we speed up inference by pre-indexing the memories? Instead of computing all 3072 key matches, could we hash the input to find the relevant keys directly? This is the 'shortcut' intuition."] },
-              { "type": "li", "children": [{ "type": "strong", "children": "Schankian Operators:" }, " Our operator work fits perfectly. Operators ARE key-value memories: 'when you see a HARM pattern (key), transform entity states THIS way (value).' MLP neurons learning 'names of countries' is the same as learning 'things that can be ATRANSed (transferred).' The key-value structure IS the operator structure."] }
+              {
+                "type": "li",
+                "children": [
+                  {
+                    "type": "strong",
+                    "children": "Knowledge Editing:"
+                  },
+                  " If facts are stored as key-value pairs, you can CHANGE what a model knows by modifying specific values. ROME (Rank-One Model Editing) and MEMIT build directly on this insight. Want to make the model think the Eiffel Tower is in Berlin? Find the relevant key-value pair and edit the value."
+                ]
+              },
+              {
+                "type": "li",
+                "children": [
+                  {
+                    "type": "strong",
+                    "children": "Knowledge Localization:"
+                  },
+                  " We can now ASK 'where does the model store its knowledge about X?' and get a concrete answer: it's in the values of keys that match X-related patterns, concentrated in upper layers."
+                ]
+              },
+              {
+                "type": "li",
+                "children": [
+                  {
+                    "type": "strong",
+                    "children": "Retrieval Shortcuts:"
+                  },
+                  " If MLP computation is memory retrieval, could we speed up inference by pre-indexing the memories? Instead of computing all 3072 key matches, could we hash the input to find the relevant keys directly? This is the 'shortcut' intuition."
+                ]
+              },
+              {
+                "type": "li",
+                "children": [
+                  {
+                    "type": "strong",
+                    "children": "Schankian Operators:"
+                  },
+                  " Our operator work fits perfectly. Operators ARE key-value memories: 'when you see a HARM pattern (key), transform entity states THIS way (value).' MLP neurons learning 'names of countries' is the same as learning 'things that can be ATRANSed (transferred).' The key-value structure IS the operator structure."
+                ]
+              }
             ]
           },
-          { "type": "p", "children": "The deepest implication: transformers are retrieval systems with learned indexes. Attention decides WHERE to look. MLPs decide WHAT knowledge to retrieve given what you're looking at. Pre-training builds the index (keys) and fills the database (values). Inference is just query processing." },
-          { "type": "p", "children": "This reframes the entire field of AI. We're not training 'reasoning engines' — we're building very sophisticated, very large, very well-indexed retrieval systems. The intelligence emerges from having the right things indexed in the right way, so that the retrieval process LOOKS like reasoning even though it's 'just' pattern matching and memory lookup." },
-          { "type": "p", "children": "That 'just' is doing a lot of work. The sophistication of the keys (what patterns to recognize) and values (what to retrieve for each pattern) is what separates GPT-4 from a hash table. But the STRUCTURE is the same: pattern → retrieval → composition. This paper gave us that insight." }
+          {
+            "type": "p",
+            "children": "The deepest implication: transformers are retrieval systems with learned indexes. Attention decides WHERE to look. MLPs decide WHAT knowledge to retrieve given what you're looking at. Pre-training builds the index (keys) and fills the database (values). Inference is just query processing."
+          },
+          {
+            "type": "p",
+            "children": "This reframes the entire field of AI. We're not training 'reasoning engines' — we're building very sophisticated, very large, very well-indexed retrieval systems. The intelligence emerges from having the right things indexed in the right way, so that the retrieval process LOOKS like reasoning even though it's 'just' pattern matching and memory lookup."
+          },
+          {
+            "type": "p",
+            "children": "That 'just' is doing a lot of work. The sophistication of the keys (what patterns to recognize) and values (what to retrieve for each pattern) is what separates GPT-4 from a hash table. But the STRUCTURE is the same: pattern → retrieval → composition. This paper gave us that insight."
+          }
         ]
       }
     ]
