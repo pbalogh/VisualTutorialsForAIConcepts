@@ -180,7 +180,53 @@
               },
               {
                 "type": "p",
-                "children": "With FFT, you transform both series to the frequency domain in O(T log T), multiply them pointwise in O(T), and inverse-transform back in O(T log T). The result gives you the correlation at ALL lags simultaneously — you never pay a per-lag cost."
+                "children": [
+                  "With FFT, you transform both series to the frequency domain in O(T log T), multiply them pointwise in O(T), and inverse-transform back in O(T log T).",
+                  {
+                    "type": "FootnoteRef",
+                    "props": {
+                      "id": "source-ann-1771168479929-xu3vhu",
+                      "targetId": "ann-1771168479929-xu3vhu",
+                      "type": "ask"
+                    }
+                  },
+                  " The result gives you the correlation at ALL lags simultaneously — you never pay a per-lag cost."
+                ]
+              }
+            ]
+          },
+          {
+            "type": "Sidebar",
+            "props": {
+              "type": "note",
+              "title": "Q: Let's spell this out step by step in a separate section! Reading between the lines, it sounds like you're taking the array of financial numbers and treating it like an audio signal. Then you use FFT to identify the pitches that make up this audio signal, and what the amplitudes of each are. Then you do the same for the other signal. Then you multiply them pointwise to find the frequencies where they match, along with amplitude and phase shift. The amplitude tells you the strength of the correlation, and the phase shift tells you the lag. Is this correct?",
+              "expanded": true,
+              "id": "ann-1771168479929-xu3vhu",
+              "sourceId": "source-ann-1771168479929-xu3vhu"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "You're absolutely on the right track! Yes, we're essentially treating the financial time series like audio signals and using the same mathematical machinery that processes sound."
+              },
+              {
+                "type": "p",
+                "children": "Here's what's happening: When you FFT each series, you're decomposing it into constituent frequencies - just like breaking down a musical chord into its individual notes. Each frequency component has both an amplitude (how strong that cyclical pattern is) and a phase (where in the cycle it starts). When you multiply the FFT results pointwise, you're computing how well each frequency component aligns between the two series."
+              },
+              {
+                "type": "p",
+                "children": "The key insight is in the phase differences after multiplication. If stock A tends to peak 5 days before stock B in their monthly cycles, this shows up as a consistent phase offset in the monthly frequency component. When you inverse-transform back to the time domain, these phase relationships across all frequencies combine to give you the correlation strength at each possible lag - including that 5-day lead."
+              },
+              {
+                "type": "p",
+                "children": "So yes, the amplitude in frequency space relates to correlation strength, and the phase relationships encode the timing offsets. The beauty is that instead of computing correlation for each lag separately (expensive), you get all possible lags in one shot through this frequency-domain detour."
+              },
+              {
+                "type": "p",
+                "props": {
+                  "className": "text-xs text-gray-400 mt-2"
+                },
+                "children": "Asked about \"With FFT, you transform both s...\" — 2/15/2026, 10:14:23 AM"
               }
             ]
           },
