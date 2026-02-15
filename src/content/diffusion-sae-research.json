@@ -15,19 +15,39 @@
             "type": "p",
             "children": [
               "This is a ",
-              { "type": "strong", "children": ["living research document"] },
+              {
+                "type": "strong",
+                "children": [
+                  "living research document"
+                ]
+              },
               " tracking our investigation into combining two powerful ideas: ",
-              { "type": "strong", "children": ["sparse autoencoders (SAEs)"] },
+              {
+                "type": "strong",
+                "children": [
+                  "sparse autoencoders (SAEs)"
+                ]
+              },
               " for interpretable feature extraction, and ",
-              { "type": "strong", "children": ["diffusion models"] },
+              {
+                "type": "strong",
+                "children": [
+                  "diffusion models"
+                ]
+              },
               " for text generation. We're exploring whether SAE features can serve as a structured, interpretable latent space for diffusion-based text generation."
             ]
           },
           {
             "type": "p",
             "children": [
-              "The field of text diffusion is moving fast. As of early 2026, models like LLaDA2.0 (100B parameters with MoE), Dream 7B, and Gemini Diffusion (1,479 tok/sec) have proven that discrete diffusion scales to frontier quality. Meanwhile, SAE-based steering of language models is maturing rapidly, with DLM-Scope (Feb 2026) showing that SAEs work BETTER on diffusion LMs than AR LLMs — SAE insertion can actually REDUCE loss in DLMs. The question we're asking: ",
-              { "type": "em", "children": ["can these two threads be woven together?"] }
+              "The field of text diffusion is moving fast. As of early 2026, models like LLaDA2.0 (100B parameters with MoE), Dream 7B, and Gemini Diffusion (1,479 tok/sec) have proven that discrete diffusion scales to frontier quality. Meanwhile, SAE-based steering of language models is maturing rapidly, with DLM-Scope (Feb 2026) showing that SAEs work BETTER on diffusion LMs than AR LLMs \u2014 SAE insertion can actually REDUCE loss in DLMs. The question we're asking: ",
+              {
+                "type": "em",
+                "children": [
+                  "can these two threads be woven together?"
+                ]
+              }
             ]
           },
           {
@@ -37,7 +57,7 @@
               {
                 "type": "p",
                 "children": [
-                  "Imagine you're a sculptor. An autoregressive model carves left-to-right, one chip at a time, never going back. A diffusion model starts with a rough block and refines the whole piece simultaneously. SAE features are like a catalog of known shapes—'nose', 'hand', 'flowing fabric'—that the sculptor can reference. Our question: can we make the diffusion sculptor work by composing from this catalog instead of raw marble?"
+                  "Imagine you're a sculptor. An autoregressive model carves left-to-right, one chip at a time, never going back. A diffusion model starts with a rough block and refines the whole piece simultaneously. SAE features are like a catalog of known shapes\u2014'nose', 'hand', 'flowing fabric'\u2014that the sculptor can reference. Our question: can we make the diffusion sculptor work by composing from this catalog instead of raw marble?"
                 ]
               }
             ]
@@ -51,7 +71,12 @@
           {
             "type": "p",
             "children": [
-              { "type": "strong", "children": ["Core hypothesis:"] },
+              {
+                "type": "strong",
+                "children": [
+                  "Core hypothesis:"
+                ]
+              },
               " Use SAE feature activations as the diffusion latent space. Instead of diffusing over token embeddings or discrete tokens, diffuse over sparse, interpretable SAE feature vectors. Each dimension has a known meaning."
             ]
           },
@@ -62,28 +87,48 @@
               {
                 "type": "p",
                 "children": [
-                  { "type": "strong", "children": ["Paper:"] },
+                  {
+                    "type": "strong",
+                    "children": [
+                      "Paper:"
+                    ]
+                  },
                   " Yu et al., 'Latent Diffusion Energy-Based Model for Interpretable Text Modeling' (ICML 2022, arXiv:2206.05895)"
                 ]
               },
               {
                 "type": "p",
                 "children": [
-                  { "type": "strong", "children": ["Key insight:"] },
+                  {
+                    "type": "strong",
+                    "children": [
+                      "Key insight:"
+                    ]
+                  },
                   " They combine diffusion with energy-based models in a variational framework for text, using geometric clustering-based regularization + information bottleneck to create interpretable latent spaces. This is the closest existing work to our Idea 1."
                 ]
               },
               {
                 "type": "p",
                 "children": [
-                  { "type": "strong", "children": ["Relevance:"] },
-                  " ⭐⭐⭐ DIRECT SUPPORT. They prove that structured latent spaces improve both generation quality AND interpretability in text diffusion. Their geometric clustering is analogous to what SAE features naturally provide (sparse, grouped representations). The key difference: they learn their structured space; we'd use pre-trained SAE features as the structure."
+                  {
+                    "type": "strong",
+                    "children": [
+                      "Relevance:"
+                    ]
+                  },
+                  " \u2b50\u2b50\u2b50 DIRECT SUPPORT. They prove that structured latent spaces improve both generation quality AND interpretability in text diffusion. Their geometric clustering is analogous to what SAE features naturally provide (sparse, grouped representations). The key difference: they learn their structured space; we'd use pre-trained SAE features as the structure."
                 ]
               },
               {
                 "type": "p",
                 "children": [
-                  { "type": "strong", "children": ["Open question:"] },
+                  {
+                    "type": "strong",
+                    "children": [
+                      "Open question:"
+                    ]
+                  },
                   " Their latent space is continuous and relatively low-dimensional. SAE feature spaces are very high-dimensional (16K-128K features) but sparse. Is high-dimensional-but-sparse better or worse for diffusion?"
                 ]
               }
@@ -96,62 +141,102 @@
               {
                 "type": "p",
                 "children": [
-                  { "type": "strong", "children": ["Paper:"] },
+                  {
+                    "type": "strong",
+                    "children": [
+                      "Paper:"
+                    ]
+                  },
                   " Gong et al., 'Scaling Diffusion Language Models via Adaptation from Autoregressive Models' (arXiv:2410.17891)"
                 ]
               },
               {
                 "type": "p",
                 "children": [
-                  { "type": "strong", "children": ["Key insight:"] },
+                  {
+                    "type": "strong",
+                    "children": [
+                      "Key insight:"
+                    ]
+                  },
                   " You can convert pretrained AR models (GPT-2, LLaMA) into diffusion models via continual pre-training with <200B tokens. They create DiffuGPT (127M-355M) and DiffuLLaMA (7B), showing competitive performance. Critical detail: they unify AR and diffusion objectives, showing they're more similar than assumed."
                 ]
               },
               {
                 "type": "p",
                 "children": [
-                  { "type": "strong", "children": ["Relevance:"] },
-                  " ⭐⭐ PRACTICAL ENABLER. If we can convert an AR model to a diffusion model, and we already have SAEs trained on that AR model's activations, we might be able to reuse those SAEs in the diffusion setting. The feature space from GPT-2 SAEs could potentially serve as the structured latent space for DiffuGPT."
+                  {
+                    "type": "strong",
+                    "children": [
+                      "Relevance:"
+                    ]
+                  },
+                  " \u2b50\u2b50 PRACTICAL ENABLER. If we can convert an AR model to a diffusion model, and we already have SAEs trained on that AR model's activations, we might be able to reuse those SAEs in the diffusion setting. The feature space from GPT-2 SAEs could potentially serve as the structured latent space for DiffuGPT."
                 ]
               }
             ]
           },
           {
             "type": "DeepDive",
-            "title": "[Feb 14] 🔥🔥🔥 DLM-Scope: First SAE Framework for Diffusion LMs (Feb 2026)",
+            "title": "[Feb 14] \ud83d\udd25\ud83d\udd25\ud83d\udd25 DLM-Scope: First SAE Framework for Diffusion LMs (Feb 2026)",
             "children": [
               {
                 "type": "p",
                 "children": [
-                  { "type": "strong", "children": ["Paper:"] },
+                  {
+                    "type": "strong",
+                    "children": [
+                      "Paper:"
+                    ]
+                  },
                   " Wang et al., 'DLM-Scope: Mechanistic Interpretability of Diffusion Language Models via Sparse Autoencoders' (arXiv:2602.05859, Feb 5, 2026, HKU/Alibaba)"
                 ]
               },
               {
                 "type": "p",
                 "children": [
-                  { "type": "strong", "children": ["Key insight:"] },
-                  " First SAE-based interpretability framework specifically for diffusion language models. Trains Top-K SAEs on Dream-7B and LLaDA-8B. CRITICAL FINDING: SAE insertion affects DLMs DIFFERENTLY than LLMs — while SAE insertion in LLMs typically incurs a loss penalty, in DLMs it can REDUCE cross-entropy loss when applied to early layers!"
+                  {
+                    "type": "strong",
+                    "children": [
+                      "Key insight:"
+                    ]
+                  },
+                  " First SAE-based interpretability framework specifically for diffusion language models. Trains Top-K SAEs on Dream-7B and LLaDA-8B. CRITICAL FINDING: SAE insertion affects DLMs DIFFERENTLY than LLMs \u2014 while SAE insertion in LLMs typically incurs a loss penalty, in DLMs it can REDUCE cross-entropy loss when applied to early layers!"
                 ]
               },
               {
                 "type": "p",
                 "children": [
-                  { "type": "strong", "children": ["Other findings:"] },
+                  {
+                    "type": "strong",
+                    "children": [
+                      "Other findings:"
+                    ]
+                  },
                   " (1) SAE features in DLMs enable MORE effective diffusion-time interventions, often outperforming LLM steering. (2) SAEs can provide useful signals for DLM decoding order. (3) SAE features are stable during post-training (SFT) phase of DLMs."
                 ]
               },
               {
                 "type": "p",
                 "children": [
-                  { "type": "strong", "children": ["Relevance:"] },
-                  " ⭐⭐⭐ GAME-CHANGER for our project. This is direct validation that SAEs work on diffusion LMs AND work BETTER than on AR LLMs for steering. The early-layer loss reduction suggests DLMs have a natural affinity for SAE-structured representations. Our Idea 1 (structured latent spaces) gets strong support — if SAEs reduce loss when inserted, the SAE feature space may be a MORE natural space for DLM computation than raw activations."
+                  {
+                    "type": "strong",
+                    "children": [
+                      "Relevance:"
+                    ]
+                  },
+                  " \u2b50\u2b50\u2b50 GAME-CHANGER for our project. This is direct validation that SAEs work on diffusion LMs AND work BETTER than on AR LLMs for steering. The early-layer loss reduction suggests DLMs have a natural affinity for SAE-structured representations. Our Idea 1 (structured latent spaces) gets strong support \u2014 if SAEs reduce loss when inserted, the SAE feature space may be a MORE natural space for DLM computation than raw activations."
                 ]
               },
               {
                 "type": "p",
                 "children": [
-                  { "type": "strong", "children": ["New research question:"] },
+                  {
+                    "type": "strong",
+                    "children": [
+                      "New research question:"
+                    ]
+                  },
                   " Why does SAE insertion reduce loss in DLMs but increase it in LLMs? Is this because diffusion's iterative refinement naturally benefits from sparse, disentangled representations?"
                 ]
               }
@@ -164,35 +249,60 @@
               {
                 "type": "p",
                 "children": [
-                  { "type": "strong", "children": ["Paper:"] },
+                  {
+                    "type": "strong",
+                    "children": [
+                      "Paper:"
+                    ]
+                  },
                   " Luo, Feng, Darrell, Radford, Steinhardt (UC Berkeley). 'Learning a Generative Meta-Model of LLM Activations' (arXiv:2602.06964, Feb 6, 2026)"
                 ]
               },
               {
                 "type": "p",
                 "children": [
-                  { "type": "strong", "children": ["Key insight:"] },
+                  {
+                    "type": "strong",
+                    "children": [
+                      "Key insight:"
+                    ]
+                  },
                   " Trains diffusion models on ONE BILLION residual stream activations to create 'meta-models' that learn the distribution of a network's internal states. Critical finding: applying the meta-model's learned prior to steering interventions IMPROVES FLUENCY by projecting off-manifold activations back onto the natural activation manifold."
                 ]
               },
               {
                 "type": "p",
                 "children": [
-                  { "type": "strong", "children": ["Scaling behavior:"] },
+                  {
+                    "type": "strong",
+                    "children": [
+                      "Scaling behavior:"
+                    ]
+                  },
                   " Diffusion loss decreases smoothly with compute and reliably predicts downstream utility. Meta-model neurons increasingly isolate concepts into individual units (like SAEs do)."
                 ]
               },
               {
                 "type": "p",
                 "children": [
-                  { "type": "strong", "children": ["Relevance:"] },
-                  " ⭐⭐⭐ ALTERNATIVE APPROACH to our work. While we propose using SAE feature space for diffusion, GLP proposes using diffusion TO MODEL activation space. These are complementary: GLP shows that diffusion naturally learns to represent the structure of activations; we propose using that structure (via SAEs) as the diffusion target. Key implication: GLP's on-manifold projection could be combined with SAE steering for better fluency."
+                  {
+                    "type": "strong",
+                    "children": [
+                      "Relevance:"
+                    ]
+                  },
+                  " \u2b50\u2b50\u2b50 ALTERNATIVE APPROACH to our work. While we propose using SAE feature space for diffusion, GLP proposes using diffusion TO MODEL activation space. These are complementary: GLP shows that diffusion naturally learns to represent the structure of activations; we propose using that structure (via SAEs) as the diffusion target. Key implication: GLP's on-manifold projection could be combined with SAE steering for better fluency."
                 ]
               },
               {
                 "type": "p",
                 "children": [
-                  { "type": "strong", "children": ["New research question:"] },
+                  {
+                    "type": "strong",
+                    "children": [
+                      "New research question:"
+                    ]
+                  },
                   " Could we train a diffusion model in SAE feature space (our Idea 1) and use GLP-style manifold projection to ensure generated features stay on the valid SAE manifold?"
                 ]
               }
@@ -205,29 +315,49 @@
               {
                 "type": "p",
                 "children": [
-                  { "type": "strong", "children": ["Paper:"] },
+                  {
+                    "type": "strong",
+                    "children": [
+                      "Paper:"
+                    ]
+                  },
                   " Jong Chul Ye et al. (KAIST/KRAFTON), 'Unifying Masked Diffusion Models with Various Generation Orders and Beyond' (arXiv:2602.02112, Feb 3, 2026)"
                 ]
               },
               {
                 "type": "p",
                 "children": [
-                  { "type": "strong", "children": ["Key insight:"] },
+                  {
+                    "type": "strong",
+                    "children": [
+                      "Key insight:"
+                    ]
+                  },
                   " Introduces 'learnable-order masked diffusion model' (LoMDM) that JOINTLY learns generation ordering and diffusion backbone through a single objective from scratch. This enables context-dependent ordering where different inputs can have different optimal generation orders."
                 ]
               },
               {
                 "type": "p",
                 "children": [
-                  { "type": "strong", "children": ["Framework:"] },
+                  {
+                    "type": "strong",
+                    "children": [
+                      "Framework:"
+                    ]
+                  },
                   " OeMDM (order-expressive MDM) provides a unified framework interpreting MDM, ARM, and block diffusion in a single formulation."
                 ]
               },
               {
                 "type": "p",
                 "children": [
-                  { "type": "strong", "children": ["Relevance:"] },
-                  " ⭐⭐⭐ DIRECT SUPPORT for Idea 3. If generation order can be learned, we could learn an SAE-feature-aware ordering: denoise high-level semantic features first, low-level syntactic features last. LoMDM proves the ordering is learnable; we'd add the constraint that ordering should follow semantic hierarchy."
+                  {
+                    "type": "strong",
+                    "children": [
+                      "Relevance:"
+                    ]
+                  },
+                  " \u2b50\u2b50\u2b50 DIRECT SUPPORT for Idea 3. If generation order can be learned, we could learn an SAE-feature-aware ordering: denoise high-level semantic features first, low-level syntactic features last. LoMDM proves the ordering is learnable; we'd add the constraint that ordering should follow semantic hierarchy."
                 ]
               }
             ]
@@ -239,29 +369,115 @@
               {
                 "type": "p",
                 "children": [
-                  { "type": "strong", "children": ["Paper:"] },
+                  {
+                    "type": "strong",
+                    "children": [
+                      "Paper:"
+                    ]
+                  },
                   " Shi, Li, Liang, Wan, Ma, Wang, He (USTC/Douyin). 'Route Sparse Autoencoder to Interpret Large Language Models' (arXiv:2503.08200, EMNLP 2025)"
                 ]
               },
               {
                 "type": "p",
                 "children": [
-                  { "type": "strong", "children": ["Key insight:"] },
+                  {
+                    "type": "strong",
+                    "children": [
+                      "Key insight:"
+                    ]
+                  },
                   " Introduces a routing mechanism with a shared SAE to extract features across MULTIPLE layers simultaneously, rather than one layer at a time. Dynamically assigns weights to activations from different layers with minimal parameter overhead. Under sparsity constraint of 64, extracts 22.5% more features than baseline SAEs with 22.3% higher interpretability."
                 ]
               },
               {
                 "type": "p",
                 "children": [
-                  { "type": "strong", "children": ["Critical finding for our work:"] },
+                  {
+                    "type": "strong",
+                    "children": [
+                      "Critical finding for our work:"
+                    ]
+                  },
                   " Low-level features (word-level polysemy disambiguation like 'crushed things', 'Europe') peak in EARLY layers and decline in deeper layers. High-level features (sentence structure like 'more [X] than [Y]', 'enumeration') show INCREASING activation with depth. This multi-layer activation pattern means single-layer SAEs miss features that span the hierarchy."
                 ]
               },
               {
                 "type": "p",
                 "children": [
-                  { "type": "strong", "children": ["Relevance:"] },
-                  " ⭐⭐⭐ DIRECT SUPPORT for Ideas 1 & 3. For Idea 1 (structured latent space): RouteSAE proves that multi-layer routing captures a RICHER feature set than single-layer SAEs — exactly what we'd want for a diffusion latent space. For Idea 3 (semantic noise schedules): the low-level-early/high-level-late pattern is quantified across layers, giving us a concrete blueprint for which features to noise at which schedule stages. Also relevant to polysemy: if SAE features can disambiguate word senses across layers, the structured latent space naturally handles lexical ambiguity during generation."
+                  {
+                    "type": "strong",
+                    "children": [
+                      "Relevance:"
+                    ]
+                  },
+                  " \u2b50\u2b50\u2b50 DIRECT SUPPORT for Ideas 1 & 3. For Idea 1 (structured latent space): RouteSAE proves that multi-layer routing captures a RICHER feature set than single-layer SAEs \u2014 exactly what we'd want for a diffusion latent space. For Idea 3 (semantic noise schedules): the low-level-early/high-level-late pattern is quantified across layers, giving us a concrete blueprint for which features to noise at which schedule stages. Also relevant to polysemy: if SAE features can disambiguate word senses across layers, the structured latent space naturally handles lexical ambiguity during generation."
+                ]
+              }
+            ]
+          },
+          {
+            "type": "DeepDive",
+            "title": "[Feb 15] SAEs + ITDA on Flux 1: Dictionary Learning Scales to Large Diffusion Models (CVPR 2025)",
+            "children": [
+              {
+                "type": "p",
+                "children": [
+                  {
+                    "type": "strong",
+                    "children": [
+                      "Paper: "
+                    ]
+                  },
+                  "'Interpreting Large Text-to-Image Diffusion Models with Dictionary Learning' \u2014 applies SAEs and Inference-Time Decomposition of Activations (ITDA) to Flux 1."
+                ]
+              },
+              {
+                "type": "p",
+                "children": [
+                  {
+                    "type": "strong",
+                    "children": [
+                      "Key insight: "
+                    ]
+                  },
+                  "SAEs accurately reconstruct residual stream embeddings in large DiTs and beat MLP neurons on interpretability. ITDA (using data points as dictionary elements, reconstructed via gradient pursuit) achieves comparable interpretability without training."
+                ]
+              },
+              {
+                "type": "p",
+                "children": [
+                  {
+                    "type": "strong",
+                    "children": [
+                      "Steering works: "
+                    ]
+                  },
+                  "SAE features can steer image generation through activation addition \u2014 confirming that sparse dictionary features are causally meaningful in large diffusion models."
+                ]
+              },
+              {
+                "type": "p",
+                "children": [
+                  {
+                    "type": "strong",
+                    "children": [
+                      "Relevance: "
+                    ]
+                  },
+                  "Strengthens Idea 1: if SAE features form a good structured space for image diffusion, the same should hold for text diffusion latent spaces. The ITDA finding is interesting \u2014 could we use ITDA instead of trained SAEs for dictionary-guided denoising (Idea 4)?"
+                ]
+              },
+              {
+                "type": "p",
+                "children": [
+                  {
+                    "type": "strong",
+                    "children": [
+                      "Source: "
+                    ]
+                  },
+                  "arXiv:2505.24360, CVPR 2025 Workshop on Mechanistic Interpretability for Vision"
                 ]
               }
             ]
@@ -275,40 +491,65 @@
           {
             "type": "p",
             "children": [
-              { "type": "strong", "children": ["Core hypothesis:"] },
+              {
+                "type": "strong",
+                "children": [
+                  "Core hypothesis:"
+                ]
+              },
               " Activate specific SAE features to seed or steer diffusion-based generation. Instead of text prompts, specify desired features (e.g., 'formal tone' + 'scientific topic' + 'persuasive structure') and let the diffusion model generate text that exhibits those features."
             ]
           },
           {
             "type": "DeepDive",
-            "title": "[Feb 13] SAEs Are Good for Steering — If You Select the Right Features (May 2025)",
+            "title": "[Feb 13] SAEs Are Good for Steering \u2014 If You Select the Right Features (May 2025)",
             "children": [
               {
                 "type": "p",
                 "children": [
-                  { "type": "strong", "children": ["Paper:"] },
+                  {
+                    "type": "strong",
+                    "children": [
+                      "Paper:"
+                    ]
+                  },
                   " Arad, Mueller, Belinkov (Technion/Northeastern), arXiv:2505.20063"
                 ]
               },
               {
                 "type": "p",
                 "children": [
-                  { "type": "strong", "children": ["Key insight:"] },
+                  {
+                    "type": "strong",
+                    "children": [
+                      "Key insight:"
+                    ]
+                  },
                   " SAE features split into 'input features' (detect patterns in input) vs 'output features' (actually change model output when amplified). These rarely co-occur in the same features! Using output features for steering gives 2-3x improvement, making unsupervised SAE steering competitive with supervised methods like LoRA."
                 ]
               },
               {
                 "type": "p",
                 "children": [
-                  { "type": "strong", "children": ["Critical finding:"] },
+                  {
+                    "type": "strong",
+                    "children": [
+                      "Critical finding:"
+                    ]
+                  },
                   " Early layers have more input features (syntactic detectors), later layers have more output features (semantic drivers). This has direct implications for our noise schedule idea too (Idea 3)."
                 ]
               },
               {
                 "type": "p",
                 "children": [
-                  { "type": "strong", "children": ["Relevance:"] },
-                  " ⭐⭐⭐ DIRECT SUPPORT with IMPORTANT CAVEAT. SAE steering works well, but only if you pick output features. For our diffusion+SAE approach, we'd need to use output features as the conditioning signal, not input features. The input/output distinction may also inform which features to include in the latent space."
+                  {
+                    "type": "strong",
+                    "children": [
+                      "Relevance:"
+                    ]
+                  },
+                  " \u2b50\u2b50\u2b50 DIRECT SUPPORT with IMPORTANT CAVEAT. SAE steering works well, but only if you pick output features. For our diffusion+SAE approach, we'd need to use output features as the conditioning signal, not input features. The input/output distinction may also inform which features to include in the latent space."
                 ]
               }
             ]
@@ -320,22 +561,37 @@
               {
                 "type": "p",
                 "children": [
-                  { "type": "strong", "children": ["Paper:"] },
+                  {
+                    "type": "strong",
+                    "children": [
+                      "Paper:"
+                    ]
+                  },
                   " Cho et al., 'Control Reinforcement Learning' (arXiv:2602.10437, just published!)"
                 ]
               },
               {
                 "type": "p",
                 "children": [
-                  { "type": "strong", "children": ["Key insight:"] },
-                  " Trains an RL policy to select which SAE features to amplify at each token position. Produces interpretable intervention logs. Key discovery: 'branch points' — specific tokens where the feature choice determines output correctness."
+                  {
+                    "type": "strong",
+                    "children": [
+                      "Key insight:"
+                    ]
+                  },
+                  " Trains an RL policy to select which SAE features to amplify at each token position. Produces interpretable intervention logs. Key discovery: 'branch points' \u2014 specific tokens where the feature choice determines output correctness."
                 ]
               },
               {
                 "type": "p",
                 "children": [
-                  { "type": "strong", "children": ["Relevance:"] },
-                  " ⭐⭐⭐ STRONG SUPPORT. This is per-token SAE feature selection — essentially learned conditional generation through SAE features. The RL policy learns WHEN and WHERE to apply features, which is analogous to what a diffusion denoiser would need to learn: which features to 'solidify' at each denoising step."
+                  {
+                    "type": "strong",
+                    "children": [
+                      "Relevance:"
+                    ]
+                  },
+                  " \u2b50\u2b50\u2b50 STRONG SUPPORT. This is per-token SAE feature selection \u2014 essentially learned conditional generation through SAE features. The RL policy learns WHEN and WHERE to apply features, which is analogous to what a diffusion denoiser would need to learn: which features to 'solidify' at each denoising step."
                 ]
               }
             ]
@@ -347,90 +603,145 @@
               {
                 "type": "p",
                 "children": [
-                  { "type": "strong", "children": ["Paper:"] },
+                  {
+                    "type": "strong",
+                    "children": [
+                      "Paper:"
+                    ]
+                  },
                   " Cho et al., CorrSteer (arXiv:2508.12535)"
                 ]
               },
               {
                 "type": "p",
                 "children": [
-                  { "type": "strong", "children": ["Key insight:"] },
+                  {
+                    "type": "strong",
+                    "children": [
+                      "Key insight:"
+                    ]
+                  },
                   " Selects steering features by correlating sample correctness with SAE activations at inference time. No contrastive datasets needed. Automates the entire steering pipeline. +3.3% MMLU with only 4000 samples, +27.2% HarmBench with 108 samples."
                 ]
               },
               {
                 "type": "p",
                 "children": [
-                  { "type": "strong", "children": ["Relevance:"] },
-                  " ⭐⭐ METHODOLOGY SUPPORT. The correlation-based feature selection approach could be adapted for selecting which features to include in our diffusion latent space. Instead of using ALL SAE features, we'd pick the ones that correlate with generation quality."
+                  {
+                    "type": "strong",
+                    "children": [
+                      "Relevance:"
+                    ]
+                  },
+                  " \u2b50\u2b50 METHODOLOGY SUPPORT. The correlation-based feature selection approach could be adapted for selecting which features to include in our diffusion latent space. Instead of using ALL SAE features, we'd pick the ones that correlate with generation quality."
                 ]
               }
             ]
           },
           {
             "type": "DeepDive",
-            "title": "[Feb 13 1pm] 🔥 Concept Steerers: k-SAE for Image Diffusion Control (Jan 2025)",
+            "title": "[Feb 13 1pm] \ud83d\udd25 Concept Steerers: k-SAE for Image Diffusion Control (Jan 2025)",
             "children": [
               {
                 "type": "p",
                 "children": [
-                  { "type": "strong", "children": ["Paper:"] },
+                  {
+                    "type": "strong",
+                    "children": [
+                      "Paper:"
+                    ]
+                  },
                   " Kim et al., 'Concept Steerers: Leveraging K-Sparse Autoencoders for Test-Time Controllable Generations' (arXiv:2501.19066)"
                 ]
               },
               {
                 "type": "p",
                 "children": [
-                  { "type": "strong", "children": ["Key insight:"] },
+                  {
+                    "type": "strong",
+                    "children": [
+                      "Key insight:"
+                    ]
+                  },
                   " Uses k-sparse autoencoders to steer IMAGE diffusion models at test time. They train k-SAEs on text embeddings from prompts, identify monosemantic concepts, then steer generation toward or away from concepts (e.g., remove 'nudity', add 'photographic style'). No retraining, no LoRA, no quality loss."
                 ]
               },
               {
                 "type": "p",
                 "children": [
-                  { "type": "strong", "children": ["Results:"] },
+                  {
+                    "type": "strong",
+                    "children": [
+                      "Results:"
+                    ]
+                  },
                   " 20% improvement in unsafe concept removal, 5x faster than SOTA. Code available."
                 ]
               },
               {
                 "type": "p",
                 "children": [
-                  { "type": "strong", "children": ["Relevance:"] },
-                  " ⭐⭐⭐ DIRECT PRIOR ART! This is exactly our Idea 2 applied to image diffusion. They prove SAE-based steering of diffusion models works. The key question: can we adapt this from image (steering text embeddings → CLIP space) to text diffusion (steering over token space)? Their approach works at the embedding level, which is analogous to what we'd do with text embeddings."
+                  {
+                    "type": "strong",
+                    "children": [
+                      "Relevance:"
+                    ]
+                  },
+                  " \u2b50\u2b50\u2b50 DIRECT PRIOR ART! This is exactly our Idea 2 applied to image diffusion. They prove SAE-based steering of diffusion models works. The key question: can we adapt this from image (steering text embeddings \u2192 CLIP space) to text diffusion (steering over token space)? Their approach works at the embedding level, which is analogous to what we'd do with text embeddings."
                 ]
               }
             ]
           },
           {
             "type": "DeepDive",
-            "title": "[Feb 13 3pm] 🔥🔥 Activation Steering for Masked Diffusion Language Models (Dec 2025)",
+            "title": "[Feb 13 3pm] \ud83d\udd25\ud83d\udd25 Activation Steering for Masked Diffusion Language Models (Dec 2025)",
             "children": [
               {
                 "type": "p",
                 "children": [
-                  { "type": "strong", "children": ["Paper:"] },
+                  {
+                    "type": "strong",
+                    "children": [
+                      "Paper:"
+                    ]
+                  },
                   " Shnaidman, Feiglin, Yaari, Mentel, Levi, Lapid. 'Activation Steering for Masked Diffusion Language Models' (arXiv:2512.24143, Dec 2025)"
                 ]
               },
               {
                 "type": "p",
                 "children": [
-                  { "type": "strong", "children": ["Key insight:"] },
-                  " Applies activation steering DIRECTLY to LLaDA-8B-Instruct — a masked diffusion language model. Computes layer-wise steering vectors from a single forward pass using contrastive examples, without simulating the denoising trajectory. These steering directions are applied at EVERY reverse-diffusion step, yielding efficient inference-time control of high-level attributes."
+                  {
+                    "type": "strong",
+                    "children": [
+                      "Key insight:"
+                    ]
+                  },
+                  " Applies activation steering DIRECTLY to LLaDA-8B-Instruct \u2014 a masked diffusion language model. Computes layer-wise steering vectors from a single forward pass using contrastive examples, without simulating the denoising trajectory. These steering directions are applied at EVERY reverse-diffusion step, yielding efficient inference-time control of high-level attributes."
                 ]
               },
               {
                 "type": "p",
                 "children": [
-                  { "type": "strong", "children": ["Why this is huge:"] },
-                  " This paper proves that activation steering transfers from AR LLMs to masked diffusion LMs. The steering vectors work across transformer sub-modules and can target prompt vs. response tokens separately. The fact that contrastive steering vectors computed from a single forward pass work across ALL denoising steps is remarkable — it means the internal representations of diffusion LMs are stable enough for this kind of intervention."
+                  {
+                    "type": "strong",
+                    "children": [
+                      "Why this is huge:"
+                    ]
+                  },
+                  " This paper proves that activation steering transfers from AR LLMs to masked diffusion LMs. The steering vectors work across transformer sub-modules and can target prompt vs. response tokens separately. The fact that contrastive steering vectors computed from a single forward pass work across ALL denoising steps is remarkable \u2014 it means the internal representations of diffusion LMs are stable enough for this kind of intervention."
                 ]
               },
               {
                 "type": "p",
                 "children": [
-                  { "type": "strong", "children": ["Relevance:"] },
-                  " ⭐⭐⭐ THIS IS OUR IDEA 2 IMPLEMENTED! Someone has already done activation steering on text diffusion models. Our SAE-based approach would be the natural next step: instead of manually-designed contrastive steering vectors, use SAE features as the steering basis. This paper provides the proof-of-concept that steering diffusion LMs at inference time is viable."
+                  {
+                    "type": "strong",
+                    "children": [
+                      "Relevance:"
+                    ]
+                  },
+                  " \u2b50\u2b50\u2b50 THIS IS OUR IDEA 2 IMPLEMENTED! Someone has already done activation steering on text diffusion models. Our SAE-based approach would be the natural next step: instead of manually-designed contrastive steering vectors, use SAE features as the steering basis. This paper provides the proof-of-concept that steering diffusion LMs at inference time is viable."
                 ]
               }
             ]
@@ -442,22 +753,37 @@
               {
                 "type": "p",
                 "children": [
-                  { "type": "strong", "children": ["Paper:"] },
+                  {
+                    "type": "strong",
+                    "children": [
+                      "Paper:"
+                    ]
+                  },
                   " He et al., 'SAE-SSV: Supervised Steering in Sparse Representation Spaces for Reliable Control of Language Models' (arXiv:2505.16188, NJIT/Rutgers/Cisco)"
                 ]
               },
               {
                 "type": "p",
                 "children": [
-                  { "type": "strong", "children": ["Key insight:"] },
+                  {
+                    "type": "strong",
+                    "children": [
+                      "Key insight:"
+                    ]
+                  },
                   " Uses SAEs to obtain sparse latent representations, then trains linear classifiers to identify a SMALL SUBSPACE of task-relevant dimensions. Learns supervised steering vectors constrained to this subspace. Critical finding: a notably small subspace is sufficient for effective steering in open-ended generation (sentiment, truthfulness, politics)."
                 ]
               },
               {
                 "type": "p",
                 "children": [
-                  { "type": "strong", "children": ["Relevance:"] },
-                  " ⭐⭐⭐ DIRECT METHODOLOGY for our work. The 'small subspace' finding is crucial — we don't need the full 16K-128K SAE feature space for effective diffusion steering. We can identify a compact, task-relevant subset. Their supervised approach outperforms unsupervised methods in open-ended generation, which is exactly our use case. Code available on GitHub."
+                  {
+                    "type": "strong",
+                    "children": [
+                      "Relevance:"
+                    ]
+                  },
+                  " \u2b50\u2b50\u2b50 DIRECT METHODOLOGY for our work. The 'small subspace' finding is crucial \u2014 we don't need the full 16K-128K SAE feature space for effective diffusion steering. We can identify a compact, task-relevant subset. Their supervised approach outperforms unsupervised methods in open-ended generation, which is exactly our use case. Code available on GitHub."
                 ]
               }
             ]
@@ -469,117 +795,253 @@
               {
                 "type": "p",
                 "children": [
-                  { "type": "strong", "children": ["Paper:"] },
-                  " Suau, Gonzàlez, Rodríguez (Apple). 'Dynamically Scaled Activation Steering' (arXiv:2512.03661, Dec 2025)"
+                  {
+                    "type": "strong",
+                    "children": [
+                      "Paper:"
+                    ]
+                  },
+                  " Suau, Gonz\u00e0lez, Rodr\u00edguez (Apple). 'Dynamically Scaled Activation Steering' (arXiv:2512.03661, Dec 2025)"
                 ]
               },
               {
                 "type": "p",
                 "children": [
-                  { "type": "strong", "children": ["Key insight:"] },
+                  {
+                    "type": "strong",
+                    "children": [
+                      "Key insight:"
+                    ]
+                  },
                   " A steering-agnostic framework that decouples WHEN to steer from HOW to steer. Computes context-dependent per-token scaling factors that selectively adjust steering strength. Works on BOTH LLMs AND text-to-image diffusion models without modification. Learns to intervene strongly only when undesired behavior is detected."
                 ]
               },
               {
                 "type": "p",
                 "children": [
-                  { "type": "strong", "children": ["Relevance:"] },
-                  " ⭐⭐⭐ CROSS-MODAL FRAMEWORK. Apple proves that activation steering methods generalize from LLMs to T2I diffusion with zero modification. The dynamic per-token scaling is exactly what we'd want for SAE-guided diffusion: stronger SAE feature enforcement where needed, lighter touch where the model is already on track. Combined with SAE-SSV's subspace selection, this gives us a complete per-step, per-token adaptive steering framework."
+                  {
+                    "type": "strong",
+                    "children": [
+                      "Relevance:"
+                    ]
+                  },
+                  " \u2b50\u2b50\u2b50 CROSS-MODAL FRAMEWORK. Apple proves that activation steering methods generalize from LLMs to T2I diffusion with zero modification. The dynamic per-token scaling is exactly what we'd want for SAE-guided diffusion: stronger SAE feature enforcement where needed, lighter touch where the model is already on track. Combined with SAE-SSV's subspace selection, this gives us a complete per-step, per-token adaptive steering framework."
                 ]
               }
             ]
           },
           {
             "type": "DeepDive",
-            "title": "[Feb 13 3pm] ⚠️ Endogenous Resistance to SAE-Based Steering (Feb 2026)",
+            "title": "[Feb 13 3pm] \u26a0\ufe0f Endogenous Resistance to SAE-Based Steering (Feb 2026)",
             "children": [
               {
                 "type": "p",
                 "children": [
-                  { "type": "strong", "children": ["Paper:"] },
+                  {
+                    "type": "strong",
+                    "children": [
+                      "Paper:"
+                    ]
+                  },
                   " Pepper et al., 'Endogenous Resistance to Activation Steering in Language Models' (arXiv:2602.06941, Feb 2026)"
                 ]
               },
               {
                 "type": "p",
                 "children": [
-                  { "type": "strong", "children": ["Key insight:"] },
+                  {
+                    "type": "strong",
+                    "children": [
+                      "Key insight:"
+                    ]
+                  },
                   " Large LLMs (Llama-3.3-70B) can RESIST SAE-based steering mid-generation, self-correcting back to the original task even when steering is active throughout. They identify 26 SAE latents linked to this 'Endogenous Steering Resistance' (ESR). Zero-ablating these reduces resistance by 25%. Smaller models show much less resistance."
                 ]
               },
               {
                 "type": "p",
                 "children": [
-                  { "type": "strong", "children": ["Relevance:"] },
-                  " ⭐⭐ IMPORTANT CAVEAT for our approach. If we steer diffusion LMs via SAE features, larger models may develop internal resistance to misaligned steering. This is good for safety (models resist adversarial feature injection) but could limit our steering effectiveness. The diffusion setting may be different though — at each denoising step the model starts from noisy input, so it may have less 'context' to detect steering than in AR generation."
+                  {
+                    "type": "strong",
+                    "children": [
+                      "Relevance:"
+                    ]
+                  },
+                  " \u2b50\u2b50 IMPORTANT CAVEAT for our approach. If we steer diffusion LMs via SAE features, larger models may develop internal resistance to misaligned steering. This is good for safety (models resist adversarial feature injection) but could limit our steering effectiveness. The diffusion setting may be different though \u2014 at each denoising step the model starts from noisy input, so it may have less 'context' to detect steering than in AR generation."
                 ]
               }
             ]
           },
           {
             "type": "DeepDive",
-            "title": "[Feb 14 11am] 🔥 ILRR: Learning-Free Activation Alignment for Diffusion Steering (Jan 2026)",
+            "title": "[Feb 14 11am] \ud83d\udd25 ILRR: Learning-Free Activation Alignment for Diffusion Steering (Jan 2026)",
             "children": [
               {
                 "type": "p",
                 "children": [
-                  { "type": "strong", "children": ["Paper:"] },
+                  {
+                    "type": "strong",
+                    "children": [
+                      "Paper:"
+                    ]
+                  },
                   " Avrahami & Nachmani, 'ILRR: Inference-Time Steering Method for Masked Diffusion Language Models' (arXiv:2601.21647, Jan 29, 2026)"
                 ]
               },
               {
                 "type": "p",
                 "children": [
-                  { "type": "strong", "children": ["Key insight:"] },
-                  " Introduces Iterative Latent Representation Refinement — a learning-free framework for steering DLMs by dynamically aligning the internal activations of the generated sequence with those of a reference sequence throughout denoising. No training, no reward model — just activation alignment at each step. Works on both LLaDA and MDLM."
+                  {
+                    "type": "strong",
+                    "children": [
+                      "Key insight:"
+                    ]
+                  },
+                  " Introduces Iterative Latent Representation Refinement \u2014 a learning-free framework for steering DLMs by dynamically aligning the internal activations of the generated sequence with those of a reference sequence throughout denoising. No training, no reward model \u2014 just activation alignment at each step. Works on both LLaDA and MDLM."
                 ]
               },
               {
                 "type": "p",
                 "children": [
-                  { "type": "strong", "children": ["Key results:"] },
+                  {
+                    "type": "strong",
+                    "children": [
+                      "Key results:"
+                    ]
+                  },
                   " 10-60% improvement in attribute accuracy over comparable baselines. Introduces 'Spatially Modulated Steering' that enables steering long texts using shorter references by regulating guidance intensity across the sequence. Only one additional forward pass per denoising step."
                 ]
               },
               {
                 "type": "p",
                 "children": [
-                  { "type": "strong", "children": ["Relevance:"] },
-                  " ⭐⭐⭐ DIRECT BRIDGE TO OUR WORK. ILRR aligns generated activations with reference activations at each denoising step — our Idea 4 (dictionary-guided denoising) would replace 'reference activations' with 'target SAE feature activations'. The framework is already built for DLMs, learning-free, and demonstrates that per-step activation guidance works. Their spatially modulated steering (varying guidance intensity across positions) maps directly to our per-feature semantic weighting concept. This is essentially our Idea 4 minus the SAE component."
+                  {
+                    "type": "strong",
+                    "children": [
+                      "Relevance:"
+                    ]
+                  },
+                  " \u2b50\u2b50\u2b50 DIRECT BRIDGE TO OUR WORK. ILRR aligns generated activations with reference activations at each denoising step \u2014 our Idea 4 (dictionary-guided denoising) would replace 'reference activations' with 'target SAE feature activations'. The framework is already built for DLMs, learning-free, and demonstrates that per-step activation guidance works. Their spatially modulated steering (varying guidance intensity across positions) maps directly to our per-feature semantic weighting concept. This is essentially our Idea 4 minus the SAE component."
                 ]
               }
             ]
           },
           {
             "type": "DeepDive",
-            "title": "[Feb 13 7pm] 🧪 Our Experiment: Delta-Guided Attention Validates SAE Features as Attractors",
+            "title": "[Feb 13 7pm] \ud83e\uddea Our Experiment: Delta-Guided Attention Validates SAE Features as Attractors",
             "children": [
               {
                 "type": "p",
                 "children": [
-                  { "type": "strong", "children": ["Source:"] },
-                  " Our own experimental work (Feb 13, 2025) — delta-guided attention experiment on SAE feature activations across transformer layers."
+                  {
+                    "type": "strong",
+                    "children": [
+                      "Source:"
+                    ]
+                  },
+                  " Our own experimental work (Feb 13, 2025) \u2014 delta-guided attention experiment on SAE feature activations across transformer layers."
                 ]
               },
               {
                 "type": "p",
                 "children": [
-                  { "type": "strong", "children": ["Results:"] },
-                  " Overall correlation r=0.80, with PEAK correlation r=0.91 at layer 2. This demonstrates that SAE features function as meaningful attractors in the model's residual stream — when you guide attention using deltas between SAE feature activations, the model's behavior is highly predictable."
+                  {
+                    "type": "strong",
+                    "children": [
+                      "Results:"
+                    ]
+                  },
+                  " Overall correlation r=0.80, with PEAK correlation r=0.91 at layer 2. This demonstrates that SAE features function as meaningful attractors in the model's residual stream \u2014 when you guide attention using deltas between SAE feature activations, the model's behavior is highly predictable."
                 ]
               },
               {
                 "type": "p",
                 "children": [
-                  { "type": "strong", "children": ["Why this matters for diffusion+SAE:"] },
-                  " This is direct experimental evidence supporting Ideas 1 and 2. If SAE features are meaningful attractors (r=0.80-0.91), then: (1) diffusing in SAE feature space should produce coherent trajectories because the features are real structure, not noise; (2) steering generation toward specific SAE feature activations should reliably shift model output because the features have genuine causal influence. The layer 2 peak (r=0.91) is especially interesting — it suggests early layers may be where SAE features have the strongest attractor dynamics, potentially informing noise schedule design (Idea 3)."
+                  {
+                    "type": "strong",
+                    "children": [
+                      "Why this matters for diffusion+SAE:"
+                    ]
+                  },
+                  " This is direct experimental evidence supporting Ideas 1 and 2. If SAE features are meaningful attractors (r=0.80-0.91), then: (1) diffusing in SAE feature space should produce coherent trajectories because the features are real structure, not noise; (2) steering generation toward specific SAE feature activations should reliably shift model output because the features have genuine causal influence. The layer 2 peak (r=0.91) is especially interesting \u2014 it suggests early layers may be where SAE features have the strongest attractor dynamics, potentially informing noise schedule design (Idea 3)."
                 ]
               },
               {
                 "type": "p",
                 "children": [
-                  { "type": "strong", "children": ["Relevance:"] },
-                  " ⭐⭐⭐ OUR OWN VALIDATION. This bridges our theoretical ideas with experimental evidence. Combined with RouteSAE's multi-layer feature distribution findings, we now have both external and internal evidence that SAE features are real, layer-structured, and causally meaningful — the three properties needed for SAE-guided diffusion to work."
+                  {
+                    "type": "strong",
+                    "children": [
+                      "Relevance:"
+                    ]
+                  },
+                  " \u2b50\u2b50\u2b50 OUR OWN VALIDATION. This bridges our theoretical ideas with experimental evidence. Combined with RouteSAE's multi-layer feature distribution findings, we now have both external and internal evidence that SAE features are real, layer-structured, and causally meaningful \u2014 the three properties needed for SAE-guided diffusion to work."
+                ]
+              }
+            ]
+          },
+          {
+            "type": "DeepDive",
+            "title": "[Feb 15] \ud83d\udd25 Steering Diffusion Transformers with SAEs: Multi-Layer Method (Oct 2025)",
+            "children": [
+              {
+                "type": "p",
+                "children": [
+                  {
+                    "type": "strong",
+                    "children": [
+                      "Paper: "
+                    ]
+                  },
+                  "First systematic study of SAE steering on Diffusion Transformers (DiTs) \u2014 Flux and SD3, not U-Nets."
+                ]
+              },
+              {
+                "type": "p",
+                "children": [
+                  {
+                    "type": "strong",
+                    "children": [
+                      "Key insight: "
+                    ]
+                  },
+                  "Multi-layer steering (injecting SAE features across multiple transformer layers simultaneously) dramatically improves causal effectiveness and reduces artifacts compared to single-layer injection."
+                ]
+              },
+              {
+                "type": "p",
+                "children": [
+                  {
+                    "type": "strong",
+                    "children": [
+                      "Feature detection: "
+                    ]
+                  },
+                  "Simple similarity-based criterion identifies which layers a concept 'lives in' \u2014 guiding where to steer. SAEs trained on both block updates and residual streams reveal which DiT components have strongest causal effects."
+                ]
+              },
+              {
+                "type": "p",
+                "children": [
+                  {
+                    "type": "strong",
+                    "children": [
+                      "Relevance: "
+                    ]
+                  },
+                  "Directly validates Idea 2 for image diffusion. The multi-layer finding is crucial \u2014 suggests that for text diffusion LMs, steering should also target multiple layers. The layer-selection criterion could transfer to identifying which layers' SAE features are most effective for conditional text generation."
+                ]
+              },
+              {
+                "type": "p",
+                "children": [
+                  {
+                    "type": "strong",
+                    "children": [
+                      "Source: "
+                    ]
+                  },
+                  "OpenReview submission 22251, 'Steering Diffusion Transformers with Sparse Autoencoders'"
                 ]
               }
             ]
@@ -593,8 +1055,13 @@
           {
             "type": "p",
             "children": [
-              { "type": "strong", "children": ["Core hypothesis:"] },
-              " Design noise schedules that destroy high-level semantic features last and low-level syntactic features first. During generation (reverse process), coarse semantics (topic, sentiment) emerge first, then fine details (word choice, syntax) fill in — mirroring human writing."
+              {
+                "type": "strong",
+                "children": [
+                  "Core hypothesis:"
+                ]
+              },
+              " Design noise schedules that destroy high-level semantic features last and low-level syntactic features first. During generation (reverse process), coarse semantics (topic, sentiment) emerge first, then fine details (word choice, syntax) fill in \u2014 mirroring human writing."
             ]
           },
           {
@@ -604,28 +1071,48 @@
               {
                 "type": "p",
                 "children": [
-                  { "type": "strong", "children": ["Paper:"] },
+                  {
+                    "type": "strong",
+                    "children": [
+                      "Paper:"
+                    ]
+                  },
                   " Jin et al., 'On the Role of Discreteness in Diffusion LLMs' (arXiv:2512.22630, Dec 27, 2025)"
                 ]
               },
               {
                 "type": "p",
                 "children": [
-                  { "type": "strong", "children": ["Key insight:"] },
-                  " Identifies TWO core structural limitations in current diffusion LMs: (1) Uniform corruption does not respect how information is distributed across positions — treating all tokens equally ignores positional importance. (2) Token-wise marginal training cannot capture multi-token dependencies during parallel decoding."
+                  {
+                    "type": "strong",
+                    "children": [
+                      "Key insight:"
+                    ]
+                  },
+                  " Identifies TWO core structural limitations in current diffusion LMs: (1) Uniform corruption does not respect how information is distributed across positions \u2014 treating all tokens equally ignores positional importance. (2) Token-wise marginal training cannot capture multi-token dependencies during parallel decoding."
                 ]
               },
               {
                 "type": "p",
                 "children": [
-                  { "type": "strong", "children": ["Relevance:"] },
-                  " ⭐⭐⭐ VALIDATES OUR CORE INTUITION for Idea 3! The 'uniform corruption ignores information distribution' critique is exactly why we propose SEMANTIC-aware noise schedules. If different features encode different amounts of information (high-level semantics vs. low-level syntax), uniform noising is suboptimal. SAE features provide a natural basis for NON-uniform corruption based on semantic importance."
+                  {
+                    "type": "strong",
+                    "children": [
+                      "Relevance:"
+                    ]
+                  },
+                  " \u2b50\u2b50\u2b50 VALIDATES OUR CORE INTUITION for Idea 3! The 'uniform corruption ignores information distribution' critique is exactly why we propose SEMANTIC-aware noise schedules. If different features encode different amounts of information (high-level semantics vs. low-level syntax), uniform noising is suboptimal. SAE features provide a natural basis for NON-uniform corruption based on semantic importance."
                 ]
               },
               {
                 "type": "p",
                 "children": [
-                  { "type": "strong", "children": ["New research question:"] },
+                  {
+                    "type": "strong",
+                    "children": [
+                      "New research question:"
+                    ]
+                  },
                   " Can SAE feature importance scores define a corruption schedule that addresses their critique? Features with higher causal influence on generation should be noised last."
                 ]
               }
@@ -638,22 +1125,42 @@
               {
                 "type": "p",
                 "children": [
-                  { "type": "strong", "children": ["Source:"] },
+                  {
+                    "type": "strong",
+                    "children": [
+                      "Source:"
+                    ]
+                  },
                   " Multiple papers (Arad et al. 2025, Cho et al. 2026) confirm the layer-wise pattern:"
                 ]
               },
               {
                 "type": "ul",
                 "children": [
-                  { "type": "li", "children": ["Early layers → syntactic/input features (word patterns, local context)"] },
-                  { "type": "li", "children": ["Later layers → semantic/output features (topic, style, meaning)"] }
+                  {
+                    "type": "li",
+                    "children": [
+                      "Early layers \u2192 syntactic/input features (word patterns, local context)"
+                    ]
+                  },
+                  {
+                    "type": "li",
+                    "children": [
+                      "Later layers \u2192 semantic/output features (topic, style, meaning)"
+                    ]
+                  }
                 ]
               },
               {
                 "type": "p",
                 "children": [
-                  { "type": "strong", "children": ["Relevance:"] },
-                  " ⭐⭐ INDIRECT SUPPORT. The natural layer hierarchy in transformers aligns with our proposed noise schedule. If SAE features from different layers capture different semantic levels, we could design noise that corrupts early-layer features first (add syntactic noise) while preserving late-layer features (keep semantic structure). The reverse process would then naturally reconstruct semantics-first, syntax-last."
+                  {
+                    "type": "strong",
+                    "children": [
+                      "Relevance:"
+                    ]
+                  },
+                  " \u2b50\u2b50 INDIRECT SUPPORT. The natural layer hierarchy in transformers aligns with our proposed noise schedule. If SAE features from different layers capture different semantic levels, we could design noise that corrupts early-layer features first (add syntactic noise) while preserving late-layer features (keep semantic structure). The reverse process would then naturally reconstruct semantics-first, syntax-last."
                 ]
               }
             ]
@@ -665,22 +1172,37 @@
               {
                 "type": "p",
                 "children": [
-                  { "type": "strong", "children": ["Paper:"] },
+                  {
+                    "type": "strong",
+                    "children": [
+                      "Paper:"
+                    ]
+                  },
                   " Li et al., 'Causal Autoregressive Diffusion Language Model' (arXiv:2601.22031)"
                 ]
               },
               {
                 "type": "p",
                 "children": [
-                  { "type": "strong", "children": ["Key insight:"] },
+                  {
+                    "type": "strong",
+                    "children": [
+                      "Key insight:"
+                    ]
+                  },
                   " Unifies causal (left-to-right) structure with diffusion via a 'soft-tailed masking schema' to preserve local context and a 'context-aware reweighting mechanism' derived from signal-to-noise principles. Outperforms MDLM and BD3LM while being 3x more training-efficient."
                 ]
               },
               {
                 "type": "p",
                 "children": [
-                  { "type": "strong", "children": ["Relevance:"] },
-                  " ⭐⭐ NOISE SCHEDULE INSIGHT. Their 'context-aware reweighting' based on signal-to-noise ratio is exactly the kind of adaptive noise scheduling we envision, just applied to positional context rather than semantic level. Could we combine their SNR-based approach with semantic feature levels?"
+                  {
+                    "type": "strong",
+                    "children": [
+                      "Relevance:"
+                    ]
+                  },
+                  " \u2b50\u2b50 NOISE SCHEDULE INSIGHT. Their 'context-aware reweighting' based on signal-to-noise ratio is exactly the kind of adaptive noise scheduling we envision, just applied to positional context rather than semantic level. Could we combine their SNR-based approach with semantic feature levels?"
                 ]
               }
             ]
@@ -692,63 +1214,103 @@
               {
                 "type": "p",
                 "children": [
-                  { "type": "strong", "children": ["Paper:"] },
+                  {
+                    "type": "strong",
+                    "children": [
+                      "Paper:"
+                    ]
+                  },
                   " Rojas et al., 'Theory-Informed Improvements to Classifier-Free Guidance for Discrete Diffusion Models' (arXiv:2507.08965)"
                 ]
               },
               {
                 "type": "p",
                 "children": [
-                  { "type": "strong", "children": ["Key insight:"] },
+                  {
+                    "type": "strong",
+                    "children": [
+                      "Key insight:"
+                    ]
+                  },
                   " Theoretical analysis of CFG in masked discrete diffusion reveals: HIGH GUIDANCE EARLY IN SAMPLING (when inputs are heavily masked) HARMS quality, while LATE-STAGE guidance has larger effect. Also identifies how current CFG can cause 'imbalanced transitions' like unmasking too rapidly early on."
                 ]
               },
               {
                 "type": "p",
                 "children": [
-                  { "type": "strong", "children": ["Solution:"] },
+                  {
+                    "type": "strong",
+                    "children": [
+                      "Solution:"
+                    ]
+                  },
                   " A 'smoothened transport' mechanism achievable via one-line code change. Tested on ImageNet (masked diffusion) and QM9 (uniform diffusion)."
                 ]
               },
               {
                 "type": "p",
                 "children": [
-                  { "type": "strong", "children": ["Relevance:"] },
-                  " ⭐⭐⭐ DIRECT VALIDATION OF IDEA 3! This is theoretical proof that WHEN you apply guidance during diffusion matters enormously. For semantic noise schedules, this suggests: apply coarse semantic steering late (when it matters most), syntactic/fine-grained steering can be earlier. The 'semantic features last' intuition is validated — late-stage guidance (when structure is mostly formed) is where steering has the most impact."
+                  {
+                    "type": "strong",
+                    "children": [
+                      "Relevance:"
+                    ]
+                  },
+                  " \u2b50\u2b50\u2b50 DIRECT VALIDATION OF IDEA 3! This is theoretical proof that WHEN you apply guidance during diffusion matters enormously. For semantic noise schedules, this suggests: apply coarse semantic steering late (when it matters most), syntactic/fine-grained steering can be earlier. The 'semantic features last' intuition is validated \u2014 late-stage guidance (when structure is mostly formed) is where steering has the most impact."
                 ]
               }
             ]
           },
           {
             "type": "DeepDive",
-            "title": "[Feb 13 3pm] 🔥 SAEs Reveal Concept Emergence Timeline in Diffusion (NeurIPS 2025)",
+            "title": "[Feb 13 3pm] \ud83d\udd25 SAEs Reveal Concept Emergence Timeline in Diffusion (NeurIPS 2025)",
             "children": [
               {
                 "type": "p",
                 "children": [
-                  { "type": "strong", "children": ["Paper:"] },
+                  {
+                    "type": "strong",
+                    "children": [
+                      "Paper:"
+                    ]
+                  },
                   " Tinaz et al., 'Emergence and Evolution of Interpretable Concepts in Diffusion Models' (arXiv:2504.15473, NeurIPS 2025)"
                 ]
               },
               {
                 "type": "p",
                 "children": [
-                  { "type": "strong", "children": ["Key insight:"] },
+                  {
+                    "type": "strong",
+                    "children": [
+                      "Key insight:"
+                    ]
+                  },
                   " Applies SAEs to probe a text-to-image diffusion model's activations. Discovers human-interpretable concepts and tracks how they emerge during generation. CRITICAL FINDING: even before the first reverse diffusion step completes, scene composition can be predicted from spatial distribution of activated SAE concepts."
                 ]
               },
               {
                 "type": "p",
                 "children": [
-                  { "type": "strong", "children": ["Temporal hierarchy discovered:"] },
-                  " (1) Early stages: image COMPOSITION can be effectively controlled via SAE feature intervention. (2) Middle stages: composition finalizes, but STYLE interventions are still effective. (3) Final stages: only minor TEXTURAL details subject to change. This is a coarse→fine semantic hierarchy emerging naturally!"
+                  {
+                    "type": "strong",
+                    "children": [
+                      "Temporal hierarchy discovered:"
+                    ]
+                  },
+                  " (1) Early stages: image COMPOSITION can be effectively controlled via SAE feature intervention. (2) Middle stages: composition finalizes, but STYLE interventions are still effective. (3) Final stages: only minor TEXTURAL details subject to change. This is a coarse\u2192fine semantic hierarchy emerging naturally!"
                 ]
               },
               {
                 "type": "p",
                 "children": [
-                  { "type": "strong", "children": ["Relevance:"] },
-                  " ⭐⭐⭐ STRONGEST VALIDATION OF IDEA 3 YET! This is empirical proof that diffusion models naturally develop a semantic hierarchy across denoising steps — exactly what we want to exploit with semantic noise schedules. Composition → Style → Texture maps directly to our proposed coarse-semantics-first, fine-details-last scheme. AND they use SAEs to discover and control this hierarchy! The key question: does this composition→style→texture hierarchy also hold in TEXT diffusion (topic → tone → word choice)?"
+                  {
+                    "type": "strong",
+                    "children": [
+                      "Relevance:"
+                    ]
+                  },
+                  " \u2b50\u2b50\u2b50 STRONGEST VALIDATION OF IDEA 3 YET! This is empirical proof that diffusion models naturally develop a semantic hierarchy across denoising steps \u2014 exactly what we want to exploit with semantic noise schedules. Composition \u2192 Style \u2192 Texture maps directly to our proposed coarse-semantics-first, fine-details-last scheme. AND they use SAEs to discover and control this hierarchy! The key question: does this composition\u2192style\u2192texture hierarchy also hold in TEXT diffusion (topic \u2192 tone \u2192 word choice)?"
                 ]
               }
             ]
@@ -760,29 +1322,49 @@
               {
                 "type": "p",
                 "children": [
-                  { "type": "strong", "children": ["Paper:"] },
+                  {
+                    "type": "strong",
+                    "children": [
+                      "Paper:"
+                    ]
+                  },
                   " Asano et al., 'Where-to-Unmask: Ground-Truth-Guided Unmasking Order Learning for Masked Diffusion Language Models' (arXiv:2602.09501, Feb 10, 2026)"
                 ]
               },
               {
                 "type": "p",
                 "children": [
-                  { "type": "strong", "children": ["Key insight:"] },
-                  " Introduces Gt-Margin — a position-wise score based on the probability margin between the correct token and its strongest alternative. This yields an oracle unmasking order that prioritizes 'easier' positions first. A supervised planner trained via learning-to-rank imitates this oracle ordering from masked contexts, improving reasoning accuracy without modifying the token prediction model."
+                  {
+                    "type": "strong",
+                    "children": [
+                      "Key insight:"
+                    ]
+                  },
+                  " Introduces Gt-Margin \u2014 a position-wise score based on the probability margin between the correct token and its strongest alternative. This yields an oracle unmasking order that prioritizes 'easier' positions first. A supervised planner trained via learning-to-rank imitates this oracle ordering from masked contexts, improving reasoning accuracy without modifying the token prediction model."
                 ]
               },
               {
                 "type": "p",
                 "children": [
-                  { "type": "strong", "children": ["Why this matters:"] },
-                  " Decouples WHERE-to-unmask from WHAT-to-unmask. The unmasking planner is a separate, lightweight module that plugs into standard MDLM sampling. Shows that heuristic confidence-based orderings (like Margin score) can yield incorrect outputs — learned orderings are better."
+                  {
+                    "type": "strong",
+                    "children": [
+                      "Why this matters:"
+                    ]
+                  },
+                  " Decouples WHERE-to-unmask from WHAT-to-unmask. The unmasking planner is a separate, lightweight module that plugs into standard MDLM sampling. Shows that heuristic confidence-based orderings (like Margin score) can yield incorrect outputs \u2014 learned orderings are better."
                 ]
               },
               {
                 "type": "p",
                 "children": [
-                  { "type": "strong", "children": ["Relevance:"] },
-                  " ⭐⭐⭐ COMPLEMENTS LoMDM for Idea 3. While LoMDM jointly learns ordering + prediction, Where-to-Unmask trains a separate ordering planner. For our SAE-aware noise schedule, this modular approach is very attractive: we could train an SAE-feature-aware unmasking planner that decides generation order based on which SAE features are active/confident, without modifying the base diffusion model. The 'easy positions first' principle maps to 'high-confidence SAE features first'."
+                  {
+                    "type": "strong",
+                    "children": [
+                      "Relevance:"
+                    ]
+                  },
+                  " \u2b50\u2b50\u2b50 COMPLEMENTS LoMDM for Idea 3. While LoMDM jointly learns ordering + prediction, Where-to-Unmask trains a separate ordering planner. For our SAE-aware noise schedule, this modular approach is very attractive: we could train an SAE-feature-aware unmasking planner that decides generation order based on which SAE features are active/confident, without modifying the base diffusion model. The 'easy positions first' principle maps to 'high-confidence SAE features first'."
                 ]
               }
             ]
@@ -794,29 +1376,49 @@
               {
                 "type": "p",
                 "children": [
-                  { "type": "strong", "children": ["Paper:"] },
+                  {
+                    "type": "strong",
+                    "children": [
+                      "Paper:"
+                    ]
+                  },
                   " Zhong et al., 'Parallelism and Generation Order in Masked Diffusion Language Models: Limits Today, Potential Tomorrow' (arXiv:2601.15593, Jan 22, 2026)"
                 ]
               },
               {
                 "type": "p",
                 "children": [
-                  { "type": "strong", "children": ["Key insight:"] },
+                  {
+                    "type": "strong",
+                    "children": [
+                      "Key insight:"
+                    ]
+                  },
                   " Comprehensive evaluation of 8 MDLMs (up to 100B parameters) on 58 benchmarks. MDLMs exhibit ADAPTIVE decoding behavior: parallelism and generation order vary significantly with task domain, reasoning stage, and whether output is correct. On tasks requiring 'backward information' (e.g., Sudoku), MDLMs naturally adopt solution orders that fill easier positions first."
                 ]
               },
               {
                 "type": "p",
                 "children": [
-                  { "type": "strong", "children": ["Generate-then-Edit paradigm:"] },
+                  {
+                    "type": "strong",
+                    "children": [
+                      "Generate-then-Edit paradigm:"
+                    ]
+                  },
                   " Proposes theoretical motivation for a two-phase approach: parallel generation followed by editing, which mitigates inter-token dependency loss while retaining parallel decoding efficiency."
                 ]
               },
               {
                 "type": "p",
                 "children": [
-                  { "type": "strong", "children": ["Relevance:"] },
-                  " ⭐⭐ EMPIRICAL GROUNDING for Idea 3. The finding that MDLMs already adapt their generation order per-task validates our intuition that non-uniform ordering matters. The Generate-then-Edit paradigm could work with our approach: generate with SAE-guided semantic ordering, then edit with SAE feature constraints. The 'dependency loss from parallelism' finding is an important caveat — our semantic noise schedule should preserve key inter-token dependencies."
+                  {
+                    "type": "strong",
+                    "children": [
+                      "Relevance:"
+                    ]
+                  },
+                  " \u2b50\u2b50 EMPIRICAL GROUNDING for Idea 3. The finding that MDLMs already adapt their generation order per-task validates our intuition that non-uniform ordering matters. The Generate-then-Edit paradigm could work with our approach: generate with SAE-guided semantic ordering, then edit with SAE feature constraints. The 'dependency loss from parallelism' finding is an important caveat \u2014 our semantic noise schedule should preserve key inter-token dependencies."
                 ]
               }
             ]
@@ -830,7 +1432,12 @@
           {
             "type": "p",
             "children": [
-              { "type": "strong", "children": ["Core hypothesis:"] },
+              {
+                "type": "strong",
+                "children": [
+                  "Core hypothesis:"
+                ]
+              },
               " At each denoising step, project the intermediate representation onto the nearest sparse combination of known SAE features. The SAE dictionary acts as a 'parts list' that constrains the denoising trajectory to pass through interpretable states."
             ]
           },
@@ -841,22 +1448,37 @@
               {
                 "type": "p",
                 "children": [
-                  { "type": "strong", "children": ["Paper:"] },
+                  {
+                    "type": "strong",
+                    "children": [
+                      "Paper:"
+                    ]
+                  },
                   " Schiff et al., 'Simple Guidance Mechanisms for Discrete Diffusion Models' (arXiv:2412.10193), from the Kuleshov group (same team as MDLM)"
                 ]
               },
               {
                 "type": "p",
                 "children": [
-                  { "type": "strong", "children": ["Key insight:"] },
+                  {
+                    "type": "strong",
+                    "children": [
+                      "Key insight:"
+                    ]
+                  },
                   " Implements classifier-free guidance (D-CFG) and classifier-based guidance (D-CBG) for discrete diffusion models (MDLM and their new UDLM). The classifier-based approach trains a classifier on noisy intermediate states and uses gradients to guide denoising."
                 ]
               },
               {
                 "type": "p",
                 "children": [
-                  { "type": "strong", "children": ["Relevance:"] },
-                  " ⭐⭐⭐ DIRECT INFRASTRUCTURE. Their D-CBG framework is exactly the architecture we'd plug into! Instead of training a task-specific classifier for guidance, we'd use SAE feature detection as the guide. At each denoising step, measure which SAE features are active, compare to target features, and bias the denoising toward the desired feature profile."
+                  {
+                    "type": "strong",
+                    "children": [
+                      "Relevance:"
+                    ]
+                  },
+                  " \u2b50\u2b50\u2b50 DIRECT INFRASTRUCTURE. Their D-CBG framework is exactly the architecture we'd plug into! Instead of training a task-specific classifier for guidance, we'd use SAE feature detection as the guide. At each denoising step, measure which SAE features are active, compare to target features, and bias the denoising toward the desired feature profile."
                 ]
               },
               {
@@ -874,22 +1496,37 @@
               {
                 "type": "p",
                 "children": [
-                  { "type": "strong", "children": ["Paper:"] },
+                  {
+                    "type": "strong",
+                    "children": [
+                      "Paper:"
+                    ]
+                  },
                   " Xu et al., 'Energy-Based Diffusion Language Models for Text Generation' (arXiv:2410.21357, ICLR 2025)"
                 ]
               },
               {
                 "type": "p",
                 "children": [
-                  { "type": "strong", "children": ["Key insight:"] },
+                  {
+                    "type": "strong",
+                    "children": [
+                      "Key insight:"
+                    ]
+                  },
                   " Introduces an energy-based model operating at the full sequence level for each diffusion step, in residual form. The EBM corrects the standard diffusion approximation, achieving state-of-the-art among diffusion LMs and approaching AR perplexity. Can leverage pretrained AR models."
                 ]
               },
               {
                 "type": "p",
                 "children": [
-                  { "type": "strong", "children": ["Relevance:"] },
-                  " ⭐⭐ ARCHITECTURE INSIGHT. The residual EBM at each step is philosophically similar to our 'project onto SAE features' idea. Both add a correction/constraint at each denoising step. We could potentially formulate SAE projection as an energy function: lower energy when the representation is close to a sparse SAE reconstruction."
+                  {
+                    "type": "strong",
+                    "children": [
+                      "Relevance:"
+                    ]
+                  },
+                  " \u2b50\u2b50 ARCHITECTURE INSIGHT. The residual EBM at each step is philosophically similar to our 'project onto SAE features' idea. Both add a correction/constraint at each denoising step. We could potentially formulate SAE projection as an energy function: lower energy when the representation is close to a sparse SAE reconstruction."
                 ]
               }
             ]
@@ -901,29 +1538,49 @@
               {
                 "type": "p",
                 "children": [
-                  { "type": "strong", "children": ["Paper:"] },
+                  {
+                    "type": "strong",
+                    "children": [
+                      "Paper:"
+                    ]
+                  },
                   " Oertell et al., 'Efficient Controllable Diffusion via Optimal Classifier Guidance' (arXiv:2505.21666)"
                 ]
               },
               {
                 "type": "p",
                 "children": [
-                  { "type": "strong", "children": ["Key insight:"] },
+                  {
+                    "type": "strong",
+                    "children": [
+                      "Key insight:"
+                    ]
+                  },
                   " Frames controllable generation as KL-regularized optimization. Iteratively generates online data, trains a SMALL CLASSIFIER to guide diffusion. The classifier is trained on-the-fly to guide toward desired objectives. Provably converges to optimal solution."
                 ]
               },
               {
                 "type": "p",
                 "children": [
-                  { "type": "strong", "children": ["Results:"] },
+                  {
+                    "type": "strong",
+                    "children": [
+                      "Results:"
+                    ]
+                  },
                   " Works on both continuous (image) AND discrete (biological sequence) diffusion. Same inference time as base model. Code available."
                 ]
               },
               {
                 "type": "p",
                 "children": [
-                  { "type": "strong", "children": ["Relevance:"] },
-                  " ⭐⭐⭐ METHODOLOGY FOR IDEA 4! Instead of a task-specific classifier, we could use SAE feature detection as the 'classifier'. The SLCD framework shows how to efficiently train a small model to guide diffusion toward objectives — our 'objective' would be matching target SAE feature activations. Their theoretical framework (KL-regularized + no-regret learning) could provide guarantees for SAE-guided denoising."
+                  {
+                    "type": "strong",
+                    "children": [
+                      "Relevance:"
+                    ]
+                  },
+                  " \u2b50\u2b50\u2b50 METHODOLOGY FOR IDEA 4! Instead of a task-specific classifier, we could use SAE feature detection as the 'classifier'. The SLCD framework shows how to efficiently train a small model to guide diffusion toward objectives \u2014 our 'objective' would be matching target SAE feature activations. Their theoretical framework (KL-regularized + no-regret learning) could provide guarantees for SAE-guided denoising."
                 ]
               }
             ]
@@ -935,29 +1592,49 @@
               {
                 "type": "p",
                 "children": [
-                  { "type": "strong", "children": ["Paper:"] },
+                  {
+                    "type": "strong",
+                    "children": [
+                      "Paper:"
+                    ]
+                  },
                   " Li et al., 'Dissecting and Mitigating Diffusion Bias via Mechanistic Interpretability' (arXiv:2503.20483, CVPR 2025)"
                 ]
               },
               {
                 "type": "p",
                 "children": [
-                  { "type": "strong", "children": ["Key insight:"] },
-                  " Identifies specific 'bias features' — internal decision-making mechanisms — within diffusion model architectures via mechanistic interpretability. By directly manipulating these features, they achieve granular control over generation attributes (gender, race in images) while preserving output quality. Works on both unconditional AND conditional diffusion models."
+                  {
+                    "type": "strong",
+                    "children": [
+                      "Key insight:"
+                    ]
+                  },
+                  " Identifies specific 'bias features' \u2014 internal decision-making mechanisms \u2014 within diffusion model architectures via mechanistic interpretability. By directly manipulating these features, they achieve granular control over generation attributes (gender, race in images) while preserving output quality. Works on both unconditional AND conditional diffusion models."
                 ]
               },
               {
                 "type": "p",
                 "children": [
-                  { "type": "strong", "children": ["Critical detail:"] },
-                  " They discover that different intrinsic features control different fine-grained aspects of generation — some control composition, others control attributes. This internal factorization is exactly the kind of 'parts list' our dictionary-guided denoising idea proposes."
+                  {
+                    "type": "strong",
+                    "children": [
+                      "Critical detail:"
+                    ]
+                  },
+                  " They discover that different intrinsic features control different fine-grained aspects of generation \u2014 some control composition, others control attributes. This internal factorization is exactly the kind of 'parts list' our dictionary-guided denoising idea proposes."
                 ]
               },
               {
                 "type": "p",
                 "children": [
-                  { "type": "strong", "children": ["Relevance:"] },
-                  " ⭐⭐⭐ DIRECT SUPPORT for Idea 4. This proves that diffusion models have identifiable, manipulable internal features that map to interpretable generation attributes. Our SAE dictionary would serve the same role as their 'bias features' but in a more systematic, complete way — the SAE dictionary gives us ALL the features, not just bias-related ones. Their manipulation technique (direct feature intervention at each step) is exactly our dictionary-guided denoising."
+                  {
+                    "type": "strong",
+                    "children": [
+                      "Relevance:"
+                    ]
+                  },
+                  " \u2b50\u2b50\u2b50 DIRECT SUPPORT for Idea 4. This proves that diffusion models have identifiable, manipulable internal features that map to interpretable generation attributes. Our SAE dictionary would serve the same role as their 'bias features' but in a more systematic, complete way \u2014 the SAE dictionary gives us ALL the features, not just bias-related ones. Their manipulation technique (direct feature intervention at each step) is exactly our dictionary-guided denoising."
                 ]
               }
             ]
@@ -969,29 +1646,49 @@
               {
                 "type": "p",
                 "children": [
-                  { "type": "strong", "children": ["Paper:"] },
+                  {
+                    "type": "strong",
+                    "children": [
+                      "Paper:"
+                    ]
+                  },
                   " Tejaswi et al., 'EntRGi: Entropy Aware Reward Guidance for Diffusion Language Models' (arXiv:2602.05000, Feb 4, 2026)"
                 ]
               },
               {
                 "type": "p",
                 "children": [
-                  { "type": "strong", "children": ["Key insight:"] },
+                  {
+                    "type": "strong",
+                    "children": [
+                      "Key insight:"
+                    ]
+                  },
                   " Addresses the fundamental challenge of reward guidance in DISCRETE diffusion: you can't differentiate through discrete tokens. Existing approaches either use continuous relaxations (degrading gradient quality since reward models were never trained on continuous inputs) or straight-through estimators (incorrect optimization). EntRGi dynamically modulates the continuous relaxation using the model's confidence/entropy, getting the best of both worlds."
                 ]
               },
               {
                 "type": "p",
                 "children": [
-                  { "type": "strong", "children": ["Results:"] },
+                  {
+                    "type": "strong",
+                    "children": [
+                      "Results:"
+                    ]
+                  },
                   " Tested on 7B-parameter diffusion LM across 3 reward models and 3 multi-skill benchmarks. Consistent improvements over state-of-the-art reward guidance methods."
                 ]
               },
               {
                 "type": "p",
                 "children": [
-                  { "type": "strong", "children": ["Relevance:"] },
-                  " ⭐⭐⭐ SOLVES A KEY TECHNICAL CHALLENGE for Idea 4. If we want to guide discrete diffusion toward target SAE features, we face the same discrete/continuous gradient mismatch. EntRGi's entropy-aware relaxation provides a principled way to compute guidance gradients: when the model is confident (low entropy), use discrete tokens for accurate reward/feature signals; when uncertain (high entropy), use continuous relaxation for smooth gradients. This is exactly the adaptive guidance mechanism our dictionary-guided denoising needs."
+                  {
+                    "type": "strong",
+                    "children": [
+                      "Relevance:"
+                    ]
+                  },
+                  " \u2b50\u2b50\u2b50 SOLVES A KEY TECHNICAL CHALLENGE for Idea 4. If we want to guide discrete diffusion toward target SAE features, we face the same discrete/continuous gradient mismatch. EntRGi's entropy-aware relaxation provides a principled way to compute guidance gradients: when the model is confident (low entropy), use discrete tokens for accurate reward/feature signals; when uncertain (high entropy), use continuous relaxation for smooth gradients. This is exactly the adaptive guidance mechanism our dictionary-guided denoising needs."
                 ]
               }
             ]
@@ -1005,22 +1702,37 @@
               {
                 "type": "p",
                 "children": [
-                  { "type": "strong", "children": ["Paper:"] },
+                  {
+                    "type": "strong",
+                    "children": [
+                      "Paper:"
+                    ]
+                  },
                   " Hu et al., 'Residual Context Diffusion Language Models' (arXiv:2601.22954, Jan 30, 2026, UC Berkeley/Apple)"
                 ]
               },
               {
                 "type": "p",
                 "children": [
-                  { "type": "strong", "children": ["Key insight:"] },
+                  {
+                    "type": "strong",
+                    "children": [
+                      "Key insight:"
+                    ]
+                  },
                   " In block-wise dLLMs using remasking, tokens that don't pass the confidence threshold still carry useful contextual information. RCD converts these discarded representations into 'contextual residuals' and injects them into the next denoising step. Result: 5-10 point accuracy gains, nearly doubles AIME accuracy, 4-5x fewer denoising steps."
                 ]
               },
               {
                 "type": "p",
                 "children": [
-                  { "type": "strong", "children": ["Connection to Idea 4:"] },
-                  " ⭐⭐ The 'residual' concept directly parallels SAE residuals. In SAE-guided denoising, projecting onto sparse SAE features inherently creates a residual (the part of the activation not captured by any dictionary feature). RCD shows that these residuals contain valuable contextual information that improves generation when recycled. Implication: our dictionary-guided denoising should NOT discard the SAE residual — it should be passed forward as context, exactly as RCD does with discarded token representations."
+                  {
+                    "type": "strong",
+                    "children": [
+                      "Connection to Idea 4:"
+                    ]
+                  },
+                  " \u2b50\u2b50 The 'residual' concept directly parallels SAE residuals. In SAE-guided denoising, projecting onto sparse SAE features inherently creates a residual (the part of the activation not captured by any dictionary feature). RCD shows that these residuals contain valuable contextual information that improves generation when recycled. Implication: our dictionary-guided denoising should NOT discard the SAE residual \u2014 it should be passed forward as context, exactly as RCD does with discarded token representations."
                 ]
               }
             ]
@@ -1034,22 +1746,37 @@
               {
                 "type": "p",
                 "children": [
-                  { "type": "strong", "children": ["Paper:"] },
+                  {
+                    "type": "strong",
+                    "children": [
+                      "Paper:"
+                    ]
+                  },
                   " Zhang et al., 'Corrective Diffusion Language Models' (arXiv:2512.15596, Dec 2025/Jan 2026)"
                 ]
               },
               {
                 "type": "p",
                 "children": [
-                  { "type": "strong", "children": ["Key insight:"] },
-                  " Standard MDLM training only teaches unmasking — models cannot distinguish correct from incorrect visible tokens and thus cannot reliably refine. CDLM post-training explicitly supervises visible incorrect tokens, enabling discriminative confidence and targeted correction."
+                  {
+                    "type": "strong",
+                    "children": [
+                      "Key insight:"
+                    ]
+                  },
+                  " Standard MDLM training only teaches unmasking \u2014 models cannot distinguish correct from incorrect visible tokens and thus cannot reliably refine. CDLM post-training explicitly supervises visible incorrect tokens, enabling discriminative confidence and targeted correction."
                 ]
               },
               {
                 "type": "p",
                 "children": [
-                  { "type": "strong", "children": ["Connection to Idea 4:"] },
-                  " ⭐⭐ This addresses a fundamental issue for dictionary-guided denoising: if the model can't tell which tokens need refinement, per-step SAE feature guidance won't help — the model won't know where to apply it. CDLM's corrective training could serve as a prerequisite or co-training objective: first teach the model to identify errors (CDLM), then use SAE features to guide the corrections (our Idea 4). The finding that uniform corruption ignores positional information distribution also aligns with our semantic noise schedule hypothesis (Idea 3)."
+                  {
+                    "type": "strong",
+                    "children": [
+                      "Connection to Idea 4:"
+                    ]
+                  },
+                  " \u2b50\u2b50 This addresses a fundamental issue for dictionary-guided denoising: if the model can't tell which tokens need refinement, per-step SAE feature guidance won't help \u2014 the model won't know where to apply it. CDLM's corrective training could serve as a prerequisite or co-training objective: first teach the model to identify errors (CDLM), then use SAE features to guide the corrections (our Idea 4). The finding that uniform corruption ignores positional information distribution also aligns with our semantic noise schedule hypothesis (Idea 3)."
                 ]
               }
             ]
@@ -1073,19 +1800,162 @@
               {
                 "type": "ul",
                 "children": [
-                  { "type": "li", "children": [{ "type": "strong", "children": ["SEDD"] }, " (Lou et al., ICML 2024 Best Paper 🏆) — Score entropy for discrete diffusion. First principled score-matching in discrete space."] },
-                  { "type": "li", "children": [{ "type": "strong", "children": ["MDLM"] }, " (Sahoo et al., NeurIPS 2024) — Simplified masked diffusion = mixture of MLM losses. Outperforms SEDD. The foundation most new work builds on."] },
-                  { "type": "li", "children": [{ "type": "strong", "children": ["LLaDA"] }, " (Nie et al., Feb 2025) — 8B-parameter diffusion LM trained from scratch. Rivals LLaMA3 8B. Beats GPT-4o on reversal tasks. Proves diffusion scales."] },
-                  { "type": "li", "children": [{ "type": "strong", "children": ["Mercury"] }, " (Inception Labs, Feb 2025) — 1,109 tokens/sec on H100s. ~19x faster than GPT-4o Mini at comparable quality. Commercial model."] },
-                  { "type": "li", "children": [{ "type": "strong", "children": ["DiffuLLaMA"] }, " (Gong et al., 2024) — Converted LLaMA2 7B to diffusion. Shows AR→diffusion adaptation works."] },
-                  { "type": "li", "children": [{ "type": "strong", "children": ["CARD"] }, " (Li et al., Jan 2025) — Causal diffusion with KV-cache support. 1.7-4x inference speedup. Bridges AR efficiency with diffusion parallelism."] },
-                  { "type": "li", "children": [{ "type": "strong", "children": ["EDLM"] }, " (Xu et al., ICLR 2025) — Energy-based correction at each step. SOTA diffusion LM perplexity."] },
-                  { "type": "li", "children": [{ "type": "strong", "children": ["Gemini Diffusion"] }, " (Google, May 2025) — Google's entry into text diffusion. 1,479 tokens/sec. State-of-the-art."] },
-                  { "type": "li", "children": [{ "type": "strong", "children": ["Dream 7B"] }, " (HKU/Huawei, Aug 2025) — Most powerful open diffusion LM. Matches Qwen2.5-7B on general/math/code. Any-order generation."] },
-                  { "type": "li", "children": [{ "type": "strong", "children": ["LLaDA2.0"] }, " (Ant Group, Dec 2025) — First 100B diffusion LM using MoE. Proves frontier-scale text diffusion is viable. Matches Qwen3-30B."] },
-                  { "type": "li", "children": [{ "type": "strong", "children": ["FS-DFM"] }, " (Apple, ICLR 2026, arXiv:2509.20624) — Few-Step Discrete Flow-Matching. 8 steps matches 1024-step baseline perplexity. 128x faster sampling. Makes text diffusion practical for real deployment."] },
-                  { "type": "li", "children": [{ "type": "strong", "children": ["RCD"] }, " (Hu et al., Jan 2026, arXiv:2601.22954) — Residual Context Diffusion. Recycles computation from discarded tokens as contextual residuals. 5-10 point accuracy gains, nearly doubles AIME accuracy, 4-5x fewer steps."] },
-                  { "type": "li", "children": [{ "type": "strong", "children": ["CDLM"] }, " (Zhang et al., Dec 2025/Jan 2026, arXiv:2512.15596) — Corrective Diffusion Language Models. Post-training for corrective behavior: models learn to assign lower confidence to incorrect tokens and iteratively refine them. Key finding: standard MDLM training fails to teach correction."] }
+                  {
+                    "type": "li",
+                    "children": [
+                      {
+                        "type": "strong",
+                        "children": [
+                          "SEDD"
+                        ]
+                      },
+                      " (Lou et al., ICML 2024 Best Paper \ud83c\udfc6) \u2014 Score entropy for discrete diffusion. First principled score-matching in discrete space."
+                    ]
+                  },
+                  {
+                    "type": "li",
+                    "children": [
+                      {
+                        "type": "strong",
+                        "children": [
+                          "MDLM"
+                        ]
+                      },
+                      " (Sahoo et al., NeurIPS 2024) \u2014 Simplified masked diffusion = mixture of MLM losses. Outperforms SEDD. The foundation most new work builds on."
+                    ]
+                  },
+                  {
+                    "type": "li",
+                    "children": [
+                      {
+                        "type": "strong",
+                        "children": [
+                          "LLaDA"
+                        ]
+                      },
+                      " (Nie et al., Feb 2025) \u2014 8B-parameter diffusion LM trained from scratch. Rivals LLaMA3 8B. Beats GPT-4o on reversal tasks. Proves diffusion scales."
+                    ]
+                  },
+                  {
+                    "type": "li",
+                    "children": [
+                      {
+                        "type": "strong",
+                        "children": [
+                          "Mercury"
+                        ]
+                      },
+                      " (Inception Labs, Feb 2025) \u2014 1,109 tokens/sec on H100s. ~19x faster than GPT-4o Mini at comparable quality. Commercial model."
+                    ]
+                  },
+                  {
+                    "type": "li",
+                    "children": [
+                      {
+                        "type": "strong",
+                        "children": [
+                          "DiffuLLaMA"
+                        ]
+                      },
+                      " (Gong et al., 2024) \u2014 Converted LLaMA2 7B to diffusion. Shows AR\u2192diffusion adaptation works."
+                    ]
+                  },
+                  {
+                    "type": "li",
+                    "children": [
+                      {
+                        "type": "strong",
+                        "children": [
+                          "CARD"
+                        ]
+                      },
+                      " (Li et al., Jan 2025) \u2014 Causal diffusion with KV-cache support. 1.7-4x inference speedup. Bridges AR efficiency with diffusion parallelism."
+                    ]
+                  },
+                  {
+                    "type": "li",
+                    "children": [
+                      {
+                        "type": "strong",
+                        "children": [
+                          "EDLM"
+                        ]
+                      },
+                      " (Xu et al., ICLR 2025) \u2014 Energy-based correction at each step. SOTA diffusion LM perplexity."
+                    ]
+                  },
+                  {
+                    "type": "li",
+                    "children": [
+                      {
+                        "type": "strong",
+                        "children": [
+                          "Gemini Diffusion"
+                        ]
+                      },
+                      " (Google, May 2025) \u2014 Google's entry into text diffusion. 1,479 tokens/sec. State-of-the-art."
+                    ]
+                  },
+                  {
+                    "type": "li",
+                    "children": [
+                      {
+                        "type": "strong",
+                        "children": [
+                          "Dream 7B"
+                        ]
+                      },
+                      " (HKU/Huawei, Aug 2025) \u2014 Most powerful open diffusion LM. Matches Qwen2.5-7B on general/math/code. Any-order generation."
+                    ]
+                  },
+                  {
+                    "type": "li",
+                    "children": [
+                      {
+                        "type": "strong",
+                        "children": [
+                          "LLaDA2.0"
+                        ]
+                      },
+                      " (Ant Group, Dec 2025) \u2014 First 100B diffusion LM using MoE. Proves frontier-scale text diffusion is viable. Matches Qwen3-30B."
+                    ]
+                  },
+                  {
+                    "type": "li",
+                    "children": [
+                      {
+                        "type": "strong",
+                        "children": [
+                          "FS-DFM"
+                        ]
+                      },
+                      " (Apple, ICLR 2026, arXiv:2509.20624) \u2014 Few-Step Discrete Flow-Matching. 8 steps matches 1024-step baseline perplexity. 128x faster sampling. Makes text diffusion practical for real deployment."
+                    ]
+                  },
+                  {
+                    "type": "li",
+                    "children": [
+                      {
+                        "type": "strong",
+                        "children": [
+                          "RCD"
+                        ]
+                      },
+                      " (Hu et al., Jan 2026, arXiv:2601.22954) \u2014 Residual Context Diffusion. Recycles computation from discarded tokens as contextual residuals. 5-10 point accuracy gains, nearly doubles AIME accuracy, 4-5x fewer steps."
+                    ]
+                  },
+                  {
+                    "type": "li",
+                    "children": [
+                      {
+                        "type": "strong",
+                        "children": [
+                          "CDLM"
+                        ]
+                      },
+                      " (Zhang et al., Dec 2025/Jan 2026, arXiv:2512.15596) \u2014 Corrective Diffusion Language Models. Post-training for corrective behavior: models learn to assign lower confidence to incorrect tokens and iteratively refine them. Key finding: standard MDLM training fails to teach correction."
+                    ]
+                  }
                 ]
               }
             ]
@@ -1093,8 +1963,79 @@
           {
             "type": "p",
             "children": [
-              { "type": "strong", "children": ["Key takeaway:"] },
-              " Text diffusion is no longer a niche curiosity. It's scaling to frontier-model quality. The infrastructure for our SAE experiments is ready — MDLM and its variants provide solid open-source foundations."
+              {
+                "type": "strong",
+                "children": [
+                  "Key takeaway:"
+                ]
+              },
+              " Text diffusion is no longer a niche curiosity. It's scaling to frontier-model quality. The infrastructure for our SAE experiments is ready \u2014 MDLM and its variants provide solid open-source foundations."
+            ]
+          },
+          {
+            "type": "DeepDive",
+            "title": "[Feb 15] Test-Time Scaling for Block Diffusion LMs (Feb 2026)",
+            "children": [
+              {
+                "type": "p",
+                "children": [
+                  {
+                    "type": "strong",
+                    "children": [
+                      "Paper: "
+                    ]
+                  },
+                  "'Advancing Block Diffusion Language Models for Test-Time Scaling' \u2014 unified framework for test-time compute scaling in BDLMs."
+                ]
+              },
+              {
+                "type": "p",
+                "children": [
+                  {
+                    "type": "strong",
+                    "children": [
+                      "Key innovations: "
+                    ]
+                  },
+                  "BACD (Bounded Adaptive Confidence Decoding) dynamically adjusts denoising steps based on model confidence. 'Think Coarse, Critic Fine' (TCCF) uses large blocks for exploration, small blocks for refinement. Progressive Block Size Extension mitigates quality loss when scaling up block size."
+                ]
+              },
+              {
+                "type": "p",
+                "children": [
+                  {
+                    "type": "strong",
+                    "children": [
+                      "Results: "
+                    ]
+                  },
+                  "2.26x speedup and +11.2 points on reasoning benchmarks over TraDo-8B. Shows diffusion LMs can benefit from test-time compute scaling like AR models."
+                ]
+              },
+              {
+                "type": "p",
+                "children": [
+                  {
+                    "type": "strong",
+                    "children": [
+                      "Relevance: "
+                    ]
+                  },
+                  "The adaptive confidence-based denoising connects to Idea 3 (semantically-aware schedules) \u2014 the model learns where it needs more refinement. TCCF's coarse\u2192fine paradigm mirrors our intuition that high-level features should be resolved first."
+                ]
+              },
+              {
+                "type": "p",
+                "children": [
+                  {
+                    "type": "strong",
+                    "children": [
+                      "Source: "
+                    ]
+                  },
+                  "arXiv:2602.09555 (Feb 2026)"
+                ]
+              }
             ]
           }
         ]
@@ -1106,12 +2047,78 @@
           {
             "type": "ol",
             "children": [
-              { "type": "li", "children": [{ "type": "strong", "children": ["Invertibility:"] }, " Is the SAE encoder → decoder mapping good enough that diffusing in SAE space and decoding back produces coherent text? SAEs are trained for reconstruction, but small errors compound."] },
-              { "type": "li", "children": [{ "type": "strong", "children": ["Analysis vs. Generation features:"] }, " SAEs are trained to analyze existing text activations. Are those same features useful for generation? The input/output feature distinction (Arad et al.) suggests we need output features specifically."] },
-              { "type": "li", "children": [{ "type": "strong", "children": ["Which diffusion framework?"] }, " MDLM (discrete, mask-based) vs. continuous latent diffusion vs. CARD (causal). For SAE integration, continuous latent diffusion might be most natural since SAE activations are continuous."] },
-              { "type": "li", "children": [{ "type": "strong", "children": ["Sparsity during diffusion:"] }, " SAE activations are sparse. During the noisy intermediate steps of diffusion, will sparsity be maintained or destroyed? If destroyed, the interpretability benefit disappears."] },
-              { "type": "li", "children": [{ "type": "strong", "children": ["Computational cost:"] }, " Running SAE encode/decode at each diffusion step could be expensive. EDLM's residual approach might offer a lighter alternative."] },
-              { "type": "li", "children": [{ "type": "strong", "children": ["Scale mismatch:"] }, " Current SAEs are trained on models up to ~7B. Text diffusion models are also at ~7-8B. But SAE dictionaries have 16K-128K features. Is this the right dimensionality for a diffusion latent space?"] }
+              {
+                "type": "li",
+                "children": [
+                  {
+                    "type": "strong",
+                    "children": [
+                      "Invertibility:"
+                    ]
+                  },
+                  " Is the SAE encoder \u2192 decoder mapping good enough that diffusing in SAE space and decoding back produces coherent text? SAEs are trained for reconstruction, but small errors compound."
+                ]
+              },
+              {
+                "type": "li",
+                "children": [
+                  {
+                    "type": "strong",
+                    "children": [
+                      "Analysis vs. Generation features:"
+                    ]
+                  },
+                  " SAEs are trained to analyze existing text activations. Are those same features useful for generation? The input/output feature distinction (Arad et al.) suggests we need output features specifically."
+                ]
+              },
+              {
+                "type": "li",
+                "children": [
+                  {
+                    "type": "strong",
+                    "children": [
+                      "Which diffusion framework?"
+                    ]
+                  },
+                  " MDLM (discrete, mask-based) vs. continuous latent diffusion vs. CARD (causal). For SAE integration, continuous latent diffusion might be most natural since SAE activations are continuous."
+                ]
+              },
+              {
+                "type": "li",
+                "children": [
+                  {
+                    "type": "strong",
+                    "children": [
+                      "Sparsity during diffusion:"
+                    ]
+                  },
+                  " SAE activations are sparse. During the noisy intermediate steps of diffusion, will sparsity be maintained or destroyed? If destroyed, the interpretability benefit disappears."
+                ]
+              },
+              {
+                "type": "li",
+                "children": [
+                  {
+                    "type": "strong",
+                    "children": [
+                      "Computational cost:"
+                    ]
+                  },
+                  " Running SAE encode/decode at each diffusion step could be expensive. EDLM's residual approach might offer a lighter alternative."
+                ]
+              },
+              {
+                "type": "li",
+                "children": [
+                  {
+                    "type": "strong",
+                    "children": [
+                      "Scale mismatch:"
+                    ]
+                  },
+                  " Current SAEs are trained on models up to ~7B. Text diffusion models are also at ~7-8B. But SAE dictionaries have 16K-128K features. Is this the right dimensionality for a diffusion latent space?"
+                ]
+              }
             ]
           }
         ]
@@ -1123,12 +2130,42 @@
           {
             "type": "ul",
             "children": [
-              { "type": "li", "children": ["🔥 PRIORITY: Study DLM-Scope codebase — they already have SAEs trained on LLaDA/Dream. This is our starting point."] },
-              { "type": "li", "children": ["🧪 Replicate DLM-Scope's finding that SAE insertion reduces loss in early layers of DLMs. Understand WHY."] },
-              { "type": "li", "children": ["📐 Experiment: Compare SAE-based steering in DLMs (DLM-Scope approach) vs. LLMs. Quantify the improvement."] },
-              { "type": "li", "children": ["🔍 Investigate GLP as complementary approach: can GLP's manifold projection improve SAE-guided generation?"] },
-              { "type": "li", "children": ["📊 Design SAE-feature-aware noise schedule using LoMDM's learnable ordering framework."] },
-              { "type": "li", "children": ["📅 Prototype review: Feb 20, 2025 — update based on DLM-Scope findings"] }
+              {
+                "type": "li",
+                "children": [
+                  "\ud83d\udd25 PRIORITY: Study DLM-Scope codebase \u2014 they already have SAEs trained on LLaDA/Dream. This is our starting point."
+                ]
+              },
+              {
+                "type": "li",
+                "children": [
+                  "\ud83e\uddea Replicate DLM-Scope's finding that SAE insertion reduces loss in early layers of DLMs. Understand WHY."
+                ]
+              },
+              {
+                "type": "li",
+                "children": [
+                  "\ud83d\udcd0 Experiment: Compare SAE-based steering in DLMs (DLM-Scope approach) vs. LLMs. Quantify the improvement."
+                ]
+              },
+              {
+                "type": "li",
+                "children": [
+                  "\ud83d\udd0d Investigate GLP as complementary approach: can GLP's manifold projection improve SAE-guided generation?"
+                ]
+              },
+              {
+                "type": "li",
+                "children": [
+                  "\ud83d\udcca Design SAE-feature-aware noise schedule using LoMDM's learnable ordering framework."
+                ]
+              },
+              {
+                "type": "li",
+                "children": [
+                  "\ud83d\udcc5 Prototype review: Feb 20, 2025 \u2014 update based on DLM-Scope findings"
+                ]
+              }
             ]
           }
         ]
