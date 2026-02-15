@@ -1155,6 +1155,24 @@ async function commitAndPush(filePath, message) {
 }
 
 /**
+ * Git pull before handling mutating requests to ensure local files are in sync.
+ * Debounced to avoid pulling on every rapid request.
+ */
+let lastGitPull = 0
+const GIT_PULL_DEBOUNCE_MS = 5000 // Don't pull more than once per 5 seconds
+
+async function ensureGitSync() {
+  const now = Date.now()
+  if (now - lastGitPull < GIT_PULL_DEBOUNCE_MS) return
+  lastGitPull = now
+  try {
+    execSync('git pull --ff-only 2>&1', { cwd: TUTORIALS_REPO, timeout: 10000 })
+  } catch (e) {
+    console.log(`⚠️ Git pull failed (continuing anyway): ${e.message}`)
+  }
+}
+
+/**
  * Handle requests
  */
 const server = http.createServer(async (req, res) => {
@@ -1200,6 +1218,11 @@ const server = http.createServer(async (req, res) => {
     }
   }
   
+  // Sync with remote before any mutating request
+  if (req.method === 'POST') {
+    await ensureGitSync()
+  }
+
   if (url.pathname === '/annotate' && req.method === 'POST') {
     try {
       const body = await parseBody(req)
