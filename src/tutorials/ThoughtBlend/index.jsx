@@ -11,8 +11,7 @@ import ColorWheel, { getOppositePosition } from './ColorWheel'
 import SourcePanel from './SourcePanel'
 import MixturePanel from './MixturePanel'
 import SourceUploader from './SourceUploader'
-
-const API_BASE = 'http://localhost:5190'
+import { API_BASE } from '../../config.js'
 
 // Initial state with no sources
 const createEmptyWheel = () => ({

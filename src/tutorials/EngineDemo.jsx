@@ -2,8 +2,7 @@ import React, { useState } from 'react'
 import { TutorialContent } from '../components/TutorialEngine'
 import { Container } from '../components/SharedUI'
 import tutorialData from '../content/engine-demo.json'
-
-const ANNOTATION_SERVER = 'http://localhost:5190'
+import { API_BASE } from '../config.js'
 
 export default function EngineDemo() {
   const [data, setData] = useState(tutorialData)

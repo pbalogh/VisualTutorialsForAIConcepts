@@ -12,6 +12,7 @@ import { AnnotatableContent } from '../components/AnnotationSystem.jsx'
 import { TutorialEngine } from '../components/TutorialEngine/ElementRenderer.jsx'
 import { useMockVisualize } from '../components/visualizations/templates/useVisualize.js'
 import { VisualizationRenderer } from '../components/visualizations/templates/VisualizationRenderer.jsx'
+import { API_BASE } from '../config.js'
 
 // Preview Modal Component for Regroup changes
 function RegroupPreviewModal({ preview, onApply, onCancel }) {
@@ -614,7 +615,7 @@ export default function TutorialWrapper({ tutorial: propTutorial }) {
     
     // Call the annotation server for all actions
     try {
-      const response = await fetch('http://localhost:5190/annotate', {
+      const response = await fetch(`${API_BASE}/annotate`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ action, selectedText, context, tutorialId, question })
@@ -647,7 +648,7 @@ export default function TutorialWrapper({ tutorial: propTutorial }) {
     
     try {
       // First call: get preview (apply=false)
-      const response = await fetch('http://localhost:5190/regroup', {
+      const response = await fetch(`${API_BASE}/regroup`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ tutorialId, aggressive, apply: false })
@@ -693,7 +694,7 @@ export default function TutorialWrapper({ tutorial: propTutorial }) {
     setRegroupStatus('loading')
     
     try {
-      const response = await fetch('http://localhost:5190/regroup', {
+      const response = await fetch(`${API_BASE}/regroup`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ tutorialId, aggressive: previewData.aggressive, apply: true })
@@ -721,7 +722,7 @@ export default function TutorialWrapper({ tutorial: propTutorial }) {
   
   const handleUndo = async () => {
     try {
-      const response = await fetch('http://localhost:5190/undo', {
+      const response = await fetch(`${API_BASE}/undo`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ tutorialId })

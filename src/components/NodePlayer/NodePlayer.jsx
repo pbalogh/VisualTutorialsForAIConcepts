@@ -7,6 +7,7 @@
 
 import React, { useState, useEffect, useRef, useCallback } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
+import { API_BASE } from '../../config.js'
 
 // Audio playback hook - uses Polly audio URL if available, falls back to browser TTS
 function useAudio() {
@@ -376,7 +377,7 @@ export default function NodePlayer({
 
 // Helper to generate script from AI
 export async function generatePresentationScript(nodeContent, nodeTitle) {
-  const response = await fetch('http://localhost:5190/generate-presentation', {
+  const response = await fetch(`${API_BASE}/generate-presentation`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ nodeContent, nodeTitle })

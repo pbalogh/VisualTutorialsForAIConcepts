@@ -4,8 +4,7 @@
 
 import React, { useState, useRef } from 'react'
 import { getPositionColor, getOppositePosition } from './ColorWheel'
-
-const API_BASE = 'http://localhost:5190'
+import { API_BASE } from '../../config.js'
 
 export default function SourceUploader({ 
   position, 

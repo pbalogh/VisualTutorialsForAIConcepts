@@ -4,6 +4,7 @@ import D3Tree from '../components/SummaryTree/D3Tree.jsx'
 import { Container } from '../components/SharedUI.jsx'
 import { TutorialEngine } from '../components/TutorialEngine/ElementRenderer.jsx'
 import VersionDropdown from '../components/VersionDropdown.jsx'
+import { API_BASE } from '../config.js'
 
 // JSON-based tutorials that can have tree views
 const jsonTutorials = ['vector-projection', 'engine-demo', 'matrix-from-vectors-engine', 'matrix-discovery-engine', 'lead-lag-correlation-engine', 'least-squares-engine', 'schankian-paper-draft', 'rotate-paper', 'neural-oscillations']
@@ -324,7 +325,7 @@ export default function TreeWrapper() {
   // Handler for annotation requests (sends to annotation server)
   const handleAnnotationRequest = async ({ action, selectedText, context, question }) => {
     try {
-      const response = await fetch('http://localhost:5190/annotate', {
+      const response = await fetch(`${API_BASE}/annotate`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -355,7 +356,7 @@ export default function TreeWrapper() {
     try {
       const filename = jsonFilenames[tutorialId] || tutorialId
       // Use fetch instead of import to avoid caching issues
-      const res = await fetch(`http://localhost:5190/api/tutorial/${filename}`)
+      const res = await fetch(`${API_BASE}/api/tutorial/${filename}`)
       if (res.ok) {
         const data = await res.json()
         setTutorial(data)
@@ -389,7 +390,7 @@ export default function TreeWrapper() {
     const loadSemanticTree = async () => {
       setLoadingSemanticTree(true)
       try {
-        const response = await fetch('http://localhost:5190/generate-semantic-tree', {
+        const response = await fetch(`${API_BASE}/generate-semantic-tree`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ tutorialId })
@@ -456,7 +457,7 @@ export default function TreeWrapper() {
     
     // Try server-side delete first (persists to file)
     try {
-      const response = await fetch('http://localhost:5190/delete-nodes', {
+      const response = await fetch(`${API_BASE}/delete-nodes`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ tutorialId, nodeIds })
@@ -491,7 +492,7 @@ export default function TreeWrapper() {
   const handleCombineNodes = async (nodeIds, editorNote) => {
     console.log('Combining nodes:', nodeIds, 'with note:', editorNote)
     
-    const response = await fetch('http://localhost:5190/combine', {
+    const response = await fetch(`${API_BASE}/combine`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -520,7 +521,7 @@ export default function TreeWrapper() {
   const handleExpandNode = async (node) => {
     console.log('Expanding node:', node, 'mode:', expansionMode)
     
-    const response = await fetch('http://localhost:5190/expand-semantic-node', {
+    const response = await fetch(`${API_BASE}/expand-semantic-node`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -545,7 +546,7 @@ export default function TreeWrapper() {
     }
     
     // Reload semantic tree to show new children
-    const treeResponse = await fetch('http://localhost:5190/generate-semantic-tree', {
+    const treeResponse = await fetch(`${API_BASE}/generate-semantic-tree`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ tutorialId })
@@ -563,7 +564,7 @@ export default function TreeWrapper() {
   const handleExplainSelection = async (parentNode, selectedText, question) => {
     console.log('Explain selection:', selectedText, 'in node:', parentNode.title, 'mode:', expansionMode)
     
-    const response = await fetch('http://localhost:5190/explain-selection', {
+    const response = await fetch(`${API_BASE}/explain-selection`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -589,7 +590,7 @@ export default function TreeWrapper() {
     const result = await response.json()
     
     // Reload semantic tree to show new children
-    const treeResponse = await fetch('http://localhost:5190/generate-semantic-tree', {
+    const treeResponse = await fetch(`${API_BASE}/generate-semantic-tree`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ tutorialId })

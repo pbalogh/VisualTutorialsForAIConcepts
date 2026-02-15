@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { Container } from '../components/SharedUI.jsx'
+import { API_BASE } from '../config.js'
 
 // Modal for creating a new tutorial
 function CreateTutorialModal({ isOpen, onClose }) {
@@ -17,7 +18,7 @@ function CreateTutorialModal({ isOpen, onClose }) {
     setError(null)
     
     try {
-      const response = await fetch('http://localhost:5190/generate', {
+      const response = await fetch(`${API_BASE}/generate`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ topic: topic.trim() })

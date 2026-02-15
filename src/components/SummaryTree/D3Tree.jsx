@@ -2,6 +2,7 @@ import React, { useRef, useEffect, useState, useCallback } from 'react'
 import * as d3 from 'd3'
 import { AnnotatableContent } from '../AnnotationSystem.jsx'
 import NodePlayer, { generatePresentationScript } from '../NodePlayer/NodePlayer.jsx'
+import { API_BASE } from '../../config.js'
 
 /**
  * D3Tree - Polished hierarchical tree visualization
@@ -302,7 +303,7 @@ export default function D3Tree({
       const allNodes = collectAllNodes(data)
       
       // Call AI to interpret the command
-      const response = await fetch('http://localhost:5190/nl-tree-command', {
+      const response = await fetch(`${API_BASE}/nl-tree-command`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -343,7 +344,7 @@ export default function D3Tree({
         
         if (confirm(confirmMsg)) {
           // Execute the structural change
-          const execResponse = await fetch('http://localhost:5190/structure-change', {
+          const execResponse = await fetch(`${API_BASE}/structure-change`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -365,7 +366,7 @@ export default function D3Tree({
       } else if (result.action === 'lint') {
         // Structure lint - analyze and optionally auto-fix
         if (confirm(`Run structure lint with auto-fix?\n\n${result.reasoning}`)) {
-          const lintResponse = await fetch('http://localhost:5190/structure-lint', {
+          const lintResponse = await fetch(`${API_BASE}/structure-lint`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({

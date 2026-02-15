@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react'
+import { API_BASE } from '../config.js'
 
 /**
  * Version History Dropdown Component
@@ -34,7 +35,7 @@ export default function VersionDropdown({ tutorialId, onVersionChange }) {
   const loadVersions = async () => {
     setLoading(true)
     try {
-      const res = await fetch(`http://localhost:5190/api/versions?tutorialId=${tutorialId}`)
+      const res = await fetch(`${API_BASE}/api/versions?tutorialId=${tutorialId}`)
       if (res.ok) {
         const data = await res.json()
         setVersions(data.versions || [])
@@ -49,7 +50,7 @@ export default function VersionDropdown({ tutorialId, onVersionChange }) {
   const createSnapshot = async () => {
     setCreating(true)
     try {
-      const res = await fetch('http://localhost:5190/api/versions/create', {
+      const res = await fetch(`${API_BASE}/api/versions/create`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ tutorialId, message: 'Manual snapshot' })
@@ -68,7 +69,7 @@ export default function VersionDropdown({ tutorialId, onVersionChange }) {
     if (!confirm(`Restore to this version? Current state will be saved first.`)) return
     
     try {
-      const res = await fetch('http://localhost:5190/api/versions/restore', {
+      const res = await fetch(`${API_BASE}/api/versions/restore`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ tutorialId, index })
