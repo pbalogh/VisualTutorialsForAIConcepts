@@ -563,6 +563,8 @@ export default function LeadLagCorrelation() {
   const [trueCorrelation, setTrueCorrelation] = useState(0.6);
   const [selectedLag, setSelectedLag] = useState(0);
   const [showAnswer, setShowAnswer] = useState(false);
+  const [fftExpanded, setFftExpanded] = useState({ why: true, steps: false, when: false });
+  const [flowExpanded, setFlowExpanded] = useState({ sector: true, geo: false, size: false, supply: false, future: false });
   
   // Generate synthetic data
   const { leader, follower, leaderReturns, followerReturns, lagCorrelations, sampleX, sampleY } = useMemo(() => {
@@ -701,6 +703,319 @@ export default function LeadLagCorrelation() {
         </div>
       </div>
       
+      {/* ================================================================ */}
+      {/* SECTION: FFT Optimization Deep Dive */}
+      {/* ================================================================ */}
+      <div style={{ background: '#fff', border: '2px solid #7c3aed', borderRadius: '12px', padding: '24px', marginBottom: '24px' }}>
+        <h2 style={{ fontSize: '22px', fontWeight: 'bold', color: '#1a1a2e', marginBottom: '8px' }}>
+          ⚡ FFT Optimization Deep Dive
+        </h2>
+        <p style={{ color: '#4a5568', marginBottom: '20px', lineHeight: '1.7' }}>
+          Section 7 of the step-by-step introduced FFT briefly. Here we unpack exactly <em>why</em> it works 
+          and <em>why</em> it matters so much for practical lead-lag analysis.
+        </p>
+
+        {/* Deep Dive: Why frequency domain helps */}
+        <div style={{ background: '#f5f3ff', borderLeft: '4px solid #7c3aed', borderRadius: '0 8px 8px 0', marginBottom: '16px', overflow: 'hidden' }}>
+          <button
+            onClick={() => setFftExpanded(prev => ({ ...prev, why: !prev.why }))}
+            style={{ width: '100%', padding: '14px 16px', background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', textAlign: 'left' }}
+          >
+            <span style={{ color: '#7c3aed', fontSize: '16px' }}>{fftExpanded.why ? '▼' : '▶'}</span>
+            <span style={{ color: '#1a1a2e', fontWeight: '600', fontSize: '15px' }}>Why does computing in the frequency domain help at all?</span>
+          </button>
+          {fftExpanded.why && (
+            <div style={{ padding: '0 16px 16px 16px' }}>
+              <p style={{ color: '#374151', lineHeight: '1.7', marginBottom: '12px' }}>
+                The key insight is the <strong>Convolution Theorem</strong>: convolution in the time domain equals 
+                pointwise multiplication in the frequency domain. Cross-correlation is just convolution with one 
+                signal reversed, so the same theorem applies.
+              </p>
+              <p style={{ color: '#374151', lineHeight: '1.7', marginBottom: '12px' }}>
+                In the <strong>naive approach</strong>, computing correlation at lag <em>k</em> means aligning the 
+                two series with an offset of k, multiplying element-wise, and summing. You repeat this for every 
+                lag you want to test. With K lags and T time steps, that's <code style={{ background: '#e5e7eb', padding: '2px 6px', borderRadius: '3px' }}>O(K × T)</code> work per pair.
+              </p>
+              <p style={{ color: '#374151', lineHeight: '1.7' }}>
+                With <strong>FFT</strong>, you transform both series to the frequency domain in O(T log T), multiply 
+                them pointwise in O(T), and inverse-transform back in O(T log T). The result gives you the 
+                correlation at <strong>ALL lags simultaneously</strong> — you never pay a per-lag cost.
+              </p>
+            </div>
+          )}
+        </div>
+
+        {/* Info callout */}
+        <div style={{ background: '#eff6ff', border: '1px solid #bfdbfe', borderRadius: '8px', padding: '14px 16px', marginBottom: '16px' }}>
+          <p style={{ color: '#1e40af', fontSize: '14px', lineHeight: '1.6', margin: 0 }}>
+            💡 The complexity drops from <strong>O(N² × K × T)</strong> to <strong>O(N² × T log T)</strong>. 
+            For N=200 securities, K=20 lags, T=4000: naive ≈ 32B ops; FFT ≈ 9.6B ops. That's 3× speedup 
+            even with modest K. At K=100, you're looking at 15× or more.
+          </p>
+        </div>
+
+        {/* Deep Dive: Step-by-step recipe */}
+        <div style={{ background: '#f5f3ff', borderLeft: '4px solid #7c3aed', borderRadius: '0 8px 8px 0', marginBottom: '16px', overflow: 'hidden' }}>
+          <button
+            onClick={() => setFftExpanded(prev => ({ ...prev, steps: !prev.steps }))}
+            style={{ width: '100%', padding: '14px 16px', background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', textAlign: 'left' }}
+          >
+            <span style={{ color: '#7c3aed', fontSize: '16px' }}>{fftExpanded.steps ? '▼' : '▶'}</span>
+            <span style={{ color: '#1a1a2e', fontWeight: '600', fontSize: '15px' }}>Step-by-step: How does the FFT cross-correlation recipe work?</span>
+          </button>
+          {fftExpanded.steps && (
+            <div style={{ padding: '0 16px 16px 16px' }}>
+              {[
+                { step: '1', text: 'Zero-pad both series to length 2T (prevents circular wrap-around artifacts from the discrete Fourier transform).' },
+                { step: '2', text: 'Compute FFT(X) and FFT(Y) for each series. Each transform takes O(T log T).' },
+                { step: '3', text: 'Multiply FFT(X) by the complex conjugate of FFT(Y) element-wise. The conjugate flips Y in time, turning convolution into cross-correlation.' },
+                { step: '4', text: 'Inverse FFT the product. The result is the raw cross-correlation at every lag from -(T-1) to +(T-1).' },
+                { step: '5', text: 'Normalize by the standard deviations and overlap counts to convert raw cross-correlation into Pearson correlation coefficients.' }
+              ].map((item) => (
+                <div key={item.step} style={{ display: 'flex', gap: '12px', marginBottom: '10px' }}>
+                  <span style={{ background: '#7c3aed', color: '#fff', width: '28px', height: '28px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '13px', fontWeight: 'bold', flexShrink: 0 }}>{item.step}</span>
+                  <p style={{ color: '#374151', lineHeight: '1.6', margin: 0 }}>{item.text}</p>
+                </div>
+              ))}
+              {/* Formula */}
+              <div style={{ background: '#0d0d1a', padding: '12px 16px', borderRadius: '6px', fontFamily: 'monospace', color: '#22c55e', fontSize: '14px', marginTop: '12px', textAlign: 'center' }}>
+                Corr_k(X, Y) = IFFT(FFT(X) · conj(FFT(Y)))[k] / (σₓ · σᵧ · overlap(k))
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Deep Dive: When NOT to use FFT */}
+        <div style={{ background: '#f5f3ff', borderLeft: '4px solid #7c3aed', borderRadius: '0 8px 8px 0', marginBottom: '16px', overflow: 'hidden' }}>
+          <button
+            onClick={() => setFftExpanded(prev => ({ ...prev, when: !prev.when }))}
+            style={{ width: '100%', padding: '14px 16px', background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', textAlign: 'left' }}
+          >
+            <span style={{ color: '#7c3aed', fontSize: '16px' }}>{fftExpanded.when ? '▼' : '▶'}</span>
+            <span style={{ color: '#1a1a2e', fontWeight: '600', fontSize: '15px' }}>When should you NOT use FFT?</span>
+          </button>
+          {fftExpanded.when && (
+            <div style={{ padding: '0 16px 16px 16px' }}>
+              <p style={{ color: '#374151', lineHeight: '1.7', marginBottom: '12px' }}>
+                FFT is overkill when you only need a handful of specific lags (say, just lag 1 and lag 5). The 
+                overhead of padding, transforming, and inverse-transforming isn't worth it for K &lt; 5 or so.
+              </p>
+              <p style={{ color: '#374151', lineHeight: '1.7', marginBottom: '12px' }}>
+                FFT also assumes stationary statistics across the full window. If your correlation structure 
+                changes over time (regime shifts, earnings seasons), you may prefer rolling-window naive correlation 
+                at specific lags, where you can control the window size more naturally.
+              </p>
+              <p style={{ color: '#374151', lineHeight: '1.7' }}>
+                In practice, most production systems use FFT for the initial broad scan (<em>which lags matter?</em>) 
+                and then switch to targeted rolling-window methods for monitoring those specific lags in real time.
+              </p>
+            </div>
+          )}
+        </div>
+
+        {/* Analogy */}
+        <div style={{ background: '#fefce8', border: '1px solid #fde68a', borderRadius: '8px', padding: '14px 16px' }}>
+          <p style={{ color: '#92400e', fontSize: '14px', lineHeight: '1.6', margin: 0 }}>
+            🔭 <strong>Analogy:</strong> Think of FFT like a panoramic camera vs. a telephoto lens. The panoramic 
+            shot (FFT) captures the entire correlation landscape at once — every lag in one exposure. The telephoto 
+            (naive method) zooms in on one specific lag at a time with more control. Use the panoramic to find 
+            where to look, then the telephoto to watch it closely.
+          </p>
+        </div>
+
+        {/* Interactive complexity comparison */}
+        <div style={{ marginTop: '20px' }}>
+          <ComplexityCalculator />
+        </div>
+      </div>
+
+      {/* ================================================================ */}
+      {/* SECTION: Information Flow & Market Dynamics */}
+      {/* ================================================================ */}
+      <div style={{ background: '#fff', border: '2px solid #0891b2', borderRadius: '12px', padding: '24px', marginBottom: '24px' }}>
+        <h2 style={{ fontSize: '22px', fontWeight: 'bold', color: '#1a1a2e', marginBottom: '8px' }}>
+          🌊 Information Flow &amp; Market Dynamics
+        </h2>
+        <p style={{ color: '#4a5568', marginBottom: '20px', lineHeight: '1.7' }}>
+          Lead-lag correlations don't appear randomly — they emerge from how information propagates through 
+          economic systems. Understanding these transmission mechanisms is what separates exploitable patterns 
+          from statistical noise.
+        </p>
+
+        {/* Sector Rotation */}
+        <div style={{ background: '#ecfeff', borderLeft: '4px solid #0891b2', borderRadius: '0 8px 8px 0', marginBottom: '16px', overflow: 'hidden' }}>
+          <button
+            onClick={() => setFlowExpanded(prev => ({ ...prev, sector: !prev.sector }))}
+            style={{ width: '100%', padding: '14px 16px', background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', textAlign: 'left' }}
+          >
+            <span style={{ color: '#0891b2', fontSize: '16px' }}>{flowExpanded.sector ? '▼' : '▶'}</span>
+            <span style={{ color: '#1a1a2e', fontWeight: '600', fontSize: '15px' }}>Sector Rotation Patterns</span>
+          </button>
+          {flowExpanded.sector && (
+            <div style={{ padding: '0 16px 16px 16px' }}>
+              <p style={{ color: '#374151', lineHeight: '1.7', marginBottom: '12px' }}>
+                Economic cycles create predictable sequences of sector leadership. During uncertainty, capital 
+                flows to <strong>defensive stocks</strong> (utilities, healthcare, consumer staples) first. As 
+                confidence returns, <strong>cyclical sectors</strong> (industrials, materials, consumer 
+                discretionary) follow with a measurable lag.
+              </p>
+              <div style={{ background: '#0d0d1a', borderRadius: '6px', padding: '14px 16px', marginBottom: '12px' }}>
+                <p style={{ color: '#06b6d4', fontFamily: 'monospace', fontSize: '13px', margin: 0, textAlign: 'center' }}>
+                  Bond Yields → Utilities → Financials → Industrials → Consumer Discretionary → Technology
+                </p>
+              </div>
+              <p style={{ color: '#374151', lineHeight: '1.7', marginBottom: '12px' }}>
+                The lags between these transitions can range from days to weeks, making them detectable 
+                with cross-correlation analysis.
+              </p>
+              <p style={{ color: '#6b7280', lineHeight: '1.7', fontStyle: 'italic', fontSize: '13px' }}>
+                Historical example: in the 2020 recovery, defensive healthcare stocks peaked and rolled over 
+                about 2-3 weeks before cyclical travel and leisure stocks began their surge — a textbook 
+                sector rotation lead-lag.
+              </p>
+            </div>
+          )}
+        </div>
+
+        {/* Geographic & Time-Zone Effects */}
+        <div style={{ background: '#ecfeff', borderLeft: '4px solid #0891b2', borderRadius: '0 8px 8px 0', marginBottom: '16px', overflow: 'hidden' }}>
+          <button
+            onClick={() => setFlowExpanded(prev => ({ ...prev, geo: !prev.geo }))}
+            style={{ width: '100%', padding: '14px 16px', background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', textAlign: 'left' }}
+          >
+            <span style={{ color: '#0891b2', fontSize: '16px' }}>{flowExpanded.geo ? '▼' : '▶'}</span>
+            <span style={{ color: '#1a1a2e', fontWeight: '600', fontSize: '15px' }}>Geographic &amp; Time-Zone Effects</span>
+          </button>
+          {flowExpanded.geo && (
+            <div style={{ padding: '0 16px 16px 16px' }}>
+              <p style={{ color: '#374151', lineHeight: '1.7', marginBottom: '12px' }}>
+                Markets operate in overlapping time zones, creating natural information lags. Overnight 
+                news in Asia affects European opens, which in turn influence US pre-market pricing. 
+                Commodities priced in one region propagate to downstream industries in another.
+              </p>
+              <p style={{ color: '#374151', lineHeight: '1.7', marginBottom: '12px' }}>
+                A classic pattern: when the <strong>Nikkei drops sharply</strong>, correlated European 
+                indices (particularly those with heavy Asian trade exposure, like the DAX) often gap 
+                down at their open 6-8 hours later. US futures then react before the NYSE bell.
+              </p>
+              <p style={{ color: '#374151', lineHeight: '1.7' }}>
+                These geographic lags are <em>shrinking</em> as algorithmic trading speeds up information 
+                propagation — but they haven't disappeared, especially for less liquid assets and 
+                emerging markets.
+              </p>
+            </div>
+          )}
+        </div>
+
+        {/* Size & Liquidity Effects */}
+        <div style={{ background: '#ecfeff', borderLeft: '4px solid #0891b2', borderRadius: '0 8px 8px 0', marginBottom: '16px', overflow: 'hidden' }}>
+          <button
+            onClick={() => setFlowExpanded(prev => ({ ...prev, size: !prev.size }))}
+            style={{ width: '100%', padding: '14px 16px', background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', textAlign: 'left' }}
+          >
+            <span style={{ color: '#0891b2', fontSize: '16px' }}>{flowExpanded.size ? '▼' : '▶'}</span>
+            <span style={{ color: '#1a1a2e', fontWeight: '600', fontSize: '15px' }}>Size &amp; Liquidity Effects</span>
+          </button>
+          {flowExpanded.size && (
+            <div style={{ padding: '0 16px 16px 16px' }}>
+              <p style={{ color: '#374151', lineHeight: '1.7', marginBottom: '12px' }}>
+                Large-cap stocks tend to lead small-caps because institutional investors react faster 
+                (better information, more analysts, algorithmic execution). When a macro event hits, 
+                large-caps reprice within minutes while small-caps may take hours or days.
+              </p>
+              <p style={{ color: '#374151', lineHeight: '1.7', marginBottom: '12px' }}>
+                During <strong>risk-off periods</strong>, the pattern can reverse: small-caps sell off 
+                first as liquidity dries up, with large-caps following as contagion spreads. This 
+                reversal itself is a detectable regime signal.
+              </p>
+              <p style={{ color: '#374151', lineHeight: '1.7' }}>
+                <strong>Liquidity is the key driver</strong> — assets that trade more frequently 
+                incorporate new information faster and thus lead their less liquid counterparts.
+              </p>
+            </div>
+          )}
+        </div>
+
+        {/* Supply Chain Transmission */}
+        <div style={{ background: '#ecfeff', borderLeft: '4px solid #0891b2', borderRadius: '0 8px 8px 0', marginBottom: '16px', overflow: 'hidden' }}>
+          <button
+            onClick={() => setFlowExpanded(prev => ({ ...prev, supply: !prev.supply }))}
+            style={{ width: '100%', padding: '14px 16px', background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', textAlign: 'left' }}
+          >
+            <span style={{ color: '#0891b2', fontSize: '16px' }}>{flowExpanded.supply ? '▼' : '▶'}</span>
+            <span style={{ color: '#1a1a2e', fontWeight: '600', fontSize: '15px' }}>Supply Chain Transmission</span>
+          </button>
+          {flowExpanded.supply && (
+            <div style={{ padding: '0 16px 16px 16px' }}>
+              <p style={{ color: '#374151', lineHeight: '1.7', marginBottom: '12px' }}>
+                Economic shocks propagate along supply chains with measurable delays. A spike in copper 
+                prices leads mining stocks first, then flows downstream: electrical component manufacturers 
+                react in days, construction companies in weeks, and homebuilders in months.
+              </p>
+              <div style={{ background: '#0d0d1a', borderRadius: '6px', padding: '14px 16px', marginBottom: '12px' }}>
+                <p style={{ color: '#06b6d4', fontFamily: 'monospace', fontSize: '13px', margin: 0, textAlign: 'center' }}>
+                  Crude Producers → Refiners → Airlines &amp; Shipping → Consumer Goods
+                </p>
+              </div>
+              <p style={{ color: '#374151', lineHeight: '1.7' }}>
+                These supply-chain lead-lag patterns are among the <strong>most robust</strong> because 
+                they're grounded in physical reality — goods literally take time to move through the system.
+              </p>
+            </div>
+          )}
+        </div>
+
+        {/* Warning callout */}
+        <div style={{ background: '#fef2f2', border: '1px solid #fecaca', borderRadius: '8px', padding: '14px 16px', marginBottom: '16px' }}>
+          <p style={{ color: '#991b1b', fontSize: '14px', lineHeight: '1.6', margin: 0 }}>
+            ⚠️ <strong>Correlation ≠ Causation, but Information Flow ≈ Causation.</strong> When you find a 
+            lead-lag relationship, always ask: "Is there a plausible information transmission mechanism?" 
+            If yes, the pattern is more likely to persist. If not, it may be spurious.
+          </p>
+        </div>
+
+        {/* Spotting Future Opportunities */}
+        <div style={{ background: '#ecfeff', borderLeft: '4px solid #0891b2', borderRadius: '0 8px 8px 0', marginBottom: '16px', overflow: 'hidden' }}>
+          <button
+            onClick={() => setFlowExpanded(prev => ({ ...prev, future: !prev.future }))}
+            style={{ width: '100%', padding: '14px 16px', background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', textAlign: 'left' }}
+          >
+            <span style={{ color: '#0891b2', fontSize: '16px' }}>{flowExpanded.future ? '▼' : '▶'}</span>
+            <span style={{ color: '#1a1a2e', fontWeight: '600', fontSize: '15px' }}>Spotting Future Lead-Lag Opportunities</span>
+          </button>
+          {flowExpanded.future && (
+            <div style={{ padding: '0 16px 16px 16px' }}>
+              <p style={{ color: '#374151', lineHeight: '1.7', marginBottom: '12px' }}>
+                New lead-lag patterns emerge when information flow pathways change. Watch for:
+              </p>
+              <ul style={{ color: '#374151', lineHeight: '1.8', paddingLeft: '20px', marginBottom: '12px' }}>
+                <li><strong>Regulatory changes</strong> — new reporting requirements can accelerate or delay information propagation (e.g., real-time trade reporting rules)</li>
+                <li><strong>Market microstructure shifts</strong> — new exchanges, dark pools, or settlement systems alter how quickly prices update</li>
+                <li><strong>Technology adoption</strong> — when an industry sector gets heavy algorithmic coverage, its lags to other sectors typically shrink</li>
+                <li><strong>Geopolitical restructuring</strong> — trade wars, sanctions, and alliance shifts create new supply chain dependencies (and thus new lead-lag patterns)</li>
+                <li><strong>Emerging asset classes</strong> — crypto, carbon credits, and other new markets create fresh cross-asset lead-lag relationships before they get arbitraged away</li>
+              </ul>
+              <p style={{ color: '#374151', lineHeight: '1.7' }}>
+                <strong>The meta-principle:</strong> lead-lag relationships are created by <em>information 
+                asymmetry</em> (someone knows first) and destroyed by <em>arbitrage</em> (everyone figures 
+                it out). Your edge is in understanding the transmission mechanisms before they become obvious.
+              </p>
+            </div>
+          )}
+        </div>
+
+        {/* Analogy */}
+        <div style={{ background: '#fefce8', border: '1px solid #fde68a', borderRadius: '8px', padding: '14px 16px' }}>
+          <p style={{ color: '#92400e', fontSize: '14px', lineHeight: '1.6', margin: 0 }}>
+            🌊 <strong>Analogy:</strong> Think of information flow in markets like ripples in a pond. The 
+            stone (an event) hits the water (the market) and waves propagate outward. The closest lily pads 
+            (most directly affected assets) move first; distant ones (indirectly connected assets) move later. 
+            Understanding the pond's geography — where the channels are, where the barriers are — lets you 
+            predict which lily pads will move next.
+          </p>
+        </div>
+      </div>
+
       {/* Key Formulas Reference */}
       <div style={{ background: '#fff', border: '2px solid #e2e8f0', borderRadius: '12px', padding: '24px', marginBottom: '24px' }}>
         <h2 style={{ fontSize: '20px', fontWeight: 'bold', color: '#1a1a2e', marginBottom: '16px' }}>📐 Formula Reference</h2>
@@ -733,8 +1048,10 @@ export default function LeadLagCorrelation() {
             { title: 'Use Returns', text: 'Not prices — removes trend bias' },
             { title: 'Exclude Lag 0', text: 'Same-time correlation isn\'t predictive' },
             { title: 'Threshold ≥ 20%', text: 'Need enough edge to beat fees' },
-            { title: 'FFT Optimization', text: 'Computes all lags efficiently' },
-            { title: 'Multiple Testing', text: 'Many pairs = false positives; correct for it' }
+            { title: 'FFT Optimization', text: 'Computes ALL lags simultaneously via frequency domain' },
+            { title: 'Multiple Testing', text: 'Many pairs = false positives; correct for it' },
+            { title: 'Information Flow', text: 'Patterns rooted in economic transmission mechanisms persist' },
+            { title: 'Watch for Change', text: 'Regulatory shifts & new markets create new opportunities' }
           ].map((item, i) => (
             <div key={i} style={{ background: 'rgba(255,255,255,0.1)', padding: '12px', borderRadius: '6px' }}>
               <div style={{ color: '#f59e0b', fontWeight: '600', fontSize: '13px' }}>{item.title}</div>

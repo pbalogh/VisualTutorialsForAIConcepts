@@ -159,9 +159,9 @@ const tutorialMeta = {
     icon: '📈',
     gradient: 'from-blue-500 to-cyan-500',
     glowColor: 'rgba(59, 130, 246, 0.4)',
-    readTime: '10 min',
+    readTime: '18 min',
     exercises: 2,
-    sections: ['Introduction', 'Cross-Correlation', 'Time Lags', 'Applications']
+    sections: ['Introduction', 'Cross-Correlation', 'Time Lags', 'FFT Deep Dive', 'Information Flow', 'Applications']
   },
   'engine-demo': {
     title: 'Tutorial Engine Demo',
