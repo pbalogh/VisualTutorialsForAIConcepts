@@ -3,7 +3,7 @@
   "title": "Lead-Lag Correlation",
   "subtitle": "Find predictive relationships in time series data using cross-correlation analysis",
   "difficulty": 3,
-  "readTime": "10 min",
+  "readTime": "18 min",
   "tags": [
     "statistics",
     "time series",
@@ -156,7 +156,251 @@
       {
         "type": "Section",
         "props": {
-          "title": "7. Key Takeaways"
+          "title": "7. FFT Optimization Deep Dive"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "Section 6 introduced the FFT trick for cross-correlation. Here we unpack exactly why it works and why it matters so much for practical lead-lag analysis."
+          },
+          {
+            "type": "DeepDive",
+            "props": {
+              "title": "Why does computing in the frequency domain help at all?",
+              "defaultOpen": true
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "The key insight is the Convolution Theorem: convolution in the time domain equals pointwise multiplication in the frequency domain. Cross-correlation is just convolution with one signal reversed, so the same theorem applies."
+              },
+              {
+                "type": "p",
+                "children": "In the naive approach, computing correlation at lag k means aligning the two series with an offset of k, multiplying element-wise, and summing. You repeat this for every lag you want to test. With K lags and T time steps, that's O(K × T) work per pair of securities."
+              },
+              {
+                "type": "p",
+                "children": "With FFT, you transform both series to the frequency domain in O(T log T), multiply them pointwise in O(T), and inverse-transform back in O(T log T). The result gives you the correlation at ALL lags simultaneously — you never pay a per-lag cost."
+              }
+            ]
+          },
+          {
+            "type": "Callout",
+            "props": {
+              "type": "info"
+            },
+            "children": "The complexity drops from O(N² × K × T) to O(N² × T log T). For N=200 securities, K=20 lags, and T=4000 time steps: naive = ~32 billion ops; FFT = ~9.6 billion ops. That's a 3× speedup even with modest K. At K=100, you're looking at 15× or more."
+          },
+          {
+            "type": "DeepDive",
+            "props": {
+              "title": "Step-by-step: How does the FFT cross-correlation recipe work?"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "Step 1 — Zero-pad both series to length 2T (prevents circular wrap-around artifacts from the discrete Fourier transform)."
+              },
+              {
+                "type": "p",
+                "children": "Step 2 — Compute FFT(X) and FFT(Y) for each series. Each transform takes O(T log T)."
+              },
+              {
+                "type": "p",
+                "children": "Step 3 — Multiply FFT(X) by the complex conjugate of FFT(Y) element-wise. The conjugate flips Y in time, turning convolution into cross-correlation."
+              },
+              {
+                "type": "p",
+                "children": "Step 4 — Inverse FFT the product. The result is the raw cross-correlation at every lag from -(T-1) to +(T-1)."
+              },
+              {
+                "type": "p",
+                "children": "Step 5 — Normalize by the standard deviations and overlap counts to convert raw cross-correlation into Pearson correlation coefficients."
+              }
+            ]
+          },
+          {
+            "type": "Formula",
+            "props": {
+              "label": "FFT Cross-Correlation (expanded)"
+            },
+            "children": "Corr_k(X, Y) = IFFT(FFT(X) · conj(FFT(Y)))[k] / (σₓ · σᵧ · overlap(k))"
+          },
+          {
+            "type": "DeepDive",
+            "props": {
+              "title": "When should you NOT use FFT?"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "FFT is overkill when you only need a handful of specific lags (say, just lag 1 and lag 5). The overhead of padding, transforming, and inverse-transforming isn't worth it for K < 5 or so."
+              },
+              {
+                "type": "p",
+                "children": "FFT also assumes stationary statistics across the full window. If your correlation structure changes over time (regime shifts, earnings seasons), you may prefer rolling-window naive correlation at specific lags, where you can control the window size more naturally."
+              },
+              {
+                "type": "p",
+                "children": "In practice, most production systems use FFT for the initial broad scan (which lags matter?) and then switch to targeted rolling-window methods for monitoring those specific lags in real time."
+              }
+            ]
+          },
+          {
+            "type": "Analogy",
+            "children": "Think of FFT like a panoramic camera vs. a telephoto lens. The panoramic shot (FFT) captures the entire correlation landscape at once — every lag in one exposure. The telephoto (naive method) zooms in on one specific lag at a time with more control. Use the panoramic to find where to look, then the telephoto to watch it closely."
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "8. Information Flow & Market Dynamics"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "Lead-lag correlations don't appear randomly — they emerge from how information propagates through economic systems. Understanding these transmission mechanisms is what separates exploitable patterns from statistical noise."
+          },
+          {
+            "type": "DeepDive",
+            "props": {
+              "title": "Sector Rotation Patterns",
+              "defaultOpen": true
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "Economic cycles create predictable sequences of sector leadership. During uncertainty, capital flows to defensive stocks (utilities, healthcare, consumer staples) first. As confidence returns, cyclical sectors (industrials, materials, consumer discretionary) follow with a measurable lag."
+              },
+              {
+                "type": "p",
+                "children": "This creates a lead-lag chain: bond yields → utilities → financials → industrials → consumer discretionary → technology. The lags between these transitions can range from days to weeks, making them detectable with cross-correlation analysis."
+              },
+              {
+                "type": "p",
+                "children": "Historical example: in the 2020 recovery, defensive healthcare stocks peaked and rolled over about 2-3 weeks before cyclical travel and leisure stocks began their surge — a textbook sector rotation lead-lag."
+              }
+            ]
+          },
+          {
+            "type": "DeepDive",
+            "props": {
+              "title": "Geographic & Time-Zone Effects"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "Markets operate in overlapping time zones, creating natural information lags. Overnight news in Asia affects European opens, which in turn influence US pre-market pricing. Commodities priced in one region propagate to downstream industries in another."
+              },
+              {
+                "type": "p",
+                "children": "A classic pattern: when the Nikkei drops sharply, correlated European indices (particularly those with heavy Asian trade exposure, like the DAX) often gap down at their open 6-8 hours later. US futures then react before the NYSE bell."
+              },
+              {
+                "type": "p",
+                "children": "These geographic lags are shrinking as algorithmic trading speeds up information propagation — but they haven't disappeared, especially for less liquid assets and emerging markets."
+              }
+            ]
+          },
+          {
+            "type": "DeepDive",
+            "props": {
+              "title": "Size & Liquidity Effects"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "Large-cap stocks tend to lead small-caps because institutional investors react faster (better information, more analysts, algorithmic execution). When a macro event hits, large-caps reprice within minutes while small-caps may take hours or days."
+              },
+              {
+                "type": "p",
+                "children": "During risk-off periods, the pattern can reverse: small-caps sell off first as liquidity dries up, with large-caps following as contagion spreads. This reversal itself is a detectable regime signal."
+              },
+              {
+                "type": "p",
+                "children": "Liquidity is the key driver — assets that trade more frequently incorporate new information faster and thus lead their less liquid counterparts."
+              }
+            ]
+          },
+          {
+            "type": "DeepDive",
+            "props": {
+              "title": "Supply Chain Transmission"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "Economic shocks propagate along supply chains with measurable delays. A spike in copper prices leads mining stocks first, then flows downstream: electrical component manufacturers react in days, construction companies in weeks, and homebuilders in months."
+              },
+              {
+                "type": "p",
+                "children": "Oil price changes follow a similar chain: crude producers → refiners → airlines and shipping → consumer goods companies. Each link in the chain introduces a lag as contracts reprice, inventories deplete, and costs pass through."
+              },
+              {
+                "type": "p",
+                "children": "These supply-chain lead-lag patterns are among the most robust because they're grounded in physical reality — goods literally take time to move through the system."
+              }
+            ]
+          },
+          {
+            "type": "Callout",
+            "props": {
+              "type": "warning"
+            },
+            "children": "Correlation ≠ Causation, but Information Flow ≈ Causation. When you find a lead-lag relationship, always ask: 'Is there a plausible information transmission mechanism?' If yes, the pattern is more likely to persist. If not, it may be spurious."
+          },
+          {
+            "type": "DeepDive",
+            "props": {
+              "title": "Spotting Future Lead-Lag Opportunities"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "New lead-lag patterns emerge when information flow pathways change. Watch for:"
+              },
+              {
+                "type": "ul",
+                "children": [
+                  {
+                    "type": "li",
+                    "children": "Regulatory changes — new reporting requirements can accelerate or delay information propagation (e.g., real-time trade reporting rules)"
+                  },
+                  {
+                    "type": "li",
+                    "children": "Market microstructure shifts — new exchanges, dark pools, or settlement systems alter how quickly prices update"
+                  },
+                  {
+                    "type": "li",
+                    "children": "Technology adoption — when an industry sector gets heavy algorithmic coverage, its lags to other sectors typically shrink"
+                  },
+                  {
+                    "type": "li",
+                    "children": "Geopolitical restructuring — trade wars, sanctions, and alliance shifts create new supply chain dependencies (and thus new lead-lag patterns)"
+                  },
+                  {
+                    "type": "li",
+                    "children": "Emerging asset classes — crypto, carbon credits, and other new markets create fresh cross-asset lead-lag relationships before they get arbitraged away"
+                  }
+                ]
+              },
+              {
+                "type": "p",
+                "children": "The meta-principle: lead-lag relationships are created by information asymmetry (someone knows first) and destroyed by arbitrage (everyone figures it out). Your edge is in understanding the transmission mechanisms before they become obvious."
+              }
+            ]
+          },
+          {
+            "type": "Analogy",
+            "children": "Think of information flow in markets like ripples in a pond. The stone (an event) hits the water (the market) and waves propagate outward. The closest lily pads (most directly affected assets) move first; distant ones (indirectly connected assets) move later. Understanding the pond's geography — where the channels are, where the barriers are — lets you predict which lily pads will move next."
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "9. Key Takeaways"
         },
         "children": [
           {
@@ -183,11 +427,19 @@
               },
               {
                 "type": "li",
-                "children": "FFT optimization — computes all lags efficiently"
+                "children": "FFT optimization — computes all lags simultaneously via frequency domain multiplication"
               },
               {
                 "type": "li",
                 "children": "Multiple testing correction — testing many pairs creates false positives"
+              },
+              {
+                "type": "li",
+                "children": "Information flow matters — lead-lag patterns rooted in economic transmission mechanisms are more persistent"
+              },
+              {
+                "type": "li",
+                "children": "Watch for structural changes — regulatory shifts, new markets, and technology adoption create new lead-lag opportunities"
               }
             ]
           }
@@ -239,42 +491,6 @@
                   "className": "text-gray-400 text-xs block mt-4"
                 },
                 "children": "(2/7/2026, 6:38:12 AM)"
-              }
-            ]
-          }
-        ]
-      },
-      {
-        "type": "Section",
-        "children": [
-          {
-            "type": "Sidebar",
-            "props": {
-              "type": "note",
-              "title": "Q: We need to add an entire major section to the end of this tutorial explaining this! It's difficult but seems so important that its absence is painful. Also, it would be good to have a conceptual section (that we can keep building onto) with the ideas *behind* significant movements in returns. What events, trends, and processes have been identified in hindsight (short of catastrophes)? How can future ones be spotted or predicted?",
-              "expanded": true,
-              "id": "ann-1771092410725-ubm82f",
-              "sourceId": "source-ann-1771092410725-ubm82f"
-            },
-            "children": [
-              {
-                "type": "p",
-                "children": "You're absolutely right - FFT optimization deserves a dedicated section because it transforms lead-lag analysis from computationally prohibitive to practically feasible. Instead of testing each lag sequentially (lag 1, then lag 2, then lag 3...), FFT leverages the mathematical equivalence between cross-correlation and convolution. It computes the correlation at ALL possible lags simultaneously through frequency domain multiplication, then transforms back to get your lag results. This is why complexity drops from O(N² × K × T) to O(N² × T log T) - you're no longer paying the K penalty for each lag tested."
-              },
-              {
-                "type": "p",
-                "children": "For the conceptual section you're envisioning, lead-lag relationships often emerge from information flow patterns in markets. Sector rotations create predictable sequences where defensive stocks lead during uncertainty, then cyclicals follow during recovery. Geographic relationships appear when overnight news in one market affects correlated assets in the next trading session. Size effects manifest as large-cap stocks leading small-caps during risk-on periods, or vice versa during flights to safety. Supply chain relationships create industrial lead-lag patterns where commodity producers lead manufacturers, who then lead retailers."
-              },
-              {
-                "type": "p",
-                "children": "The key to spotting future patterns lies in understanding these underlying economic transmission mechanisms rather than just the statistical correlations. Market microstructure changes, regulatory shifts, and evolving information technologies constantly reshape how quickly information propagates between assets, creating new lead-lag opportunities for those who understand the fundamental drivers behind the correlations."
-              },
-              {
-                "type": "p",
-                "props": {
-                  "className": "text-xs text-gray-400 mt-2"
-                },
-                "children": "Asked about \"FFT optimization computes ALL ...\" — 2/14/2026, 1:06:37 PM"
               }
             ]
           }
