@@ -11,7 +11,7 @@
 
 export const AI_CONFIG = {
   // Provider: 'bedrock' | 'anthropic'
-  provider: 'bedrock',
+  provider: 'anthropic',
   
   // Model settings per provider
   bedrock: {
