@@ -41,7 +41,7 @@
           {
             "type": "p",
             "children": [
-              "The field of text diffusion is moving fast. As of early 2026, models like LLaDA2.0 (100B parameters with MoE), Dream 7B, and Gemini Diffusion (1,479 tok/sec) have proven that discrete diffusion scales to frontier quality. Meanwhile, SAE-based steering of language models is maturing rapidly, with DLM-Scope (Feb 2026) showing that SAEs work BETTER on diffusion LMs than AR LLMs \u2014 SAE insertion can actually REDUCE loss in DLMs. The question we're asking: ",
+              "The field of text diffusion is moving fast. As of early 2026, models like LLaDA2.1 (100B with T2T editing, 892 TPS), Dream 7B, and Gemini Diffusion (1,479 tok/sec) have proven that discrete diffusion scales to frontier quality. Meanwhile, SAE-based steering of language models is maturing rapidly, with DLM-Scope (Feb 2026) showing that SAEs work BETTER on diffusion LMs than AR LLMs \u2014 SAE insertion can actually REDUCE loss in DLMs. The question we're asking: ",
               {
                 "type": "em",
                 "children": [
@@ -1045,6 +1045,60 @@
                 ]
               }
             ]
+          },
+          {
+            "type": "DeepDive",
+            "title": "[Feb 16] CC-Delta: SAE Sparse Space Outperforms Dense Space for Steering (Feb 2026)",
+            "children": [
+              {
+                "type": "p",
+                "children": [
+                  {
+                    "type": "strong",
+                    "children": [
+                      "Paper:"
+                    ]
+                  },
+                  " Assogba et al., 'Sparse Autoencoders are Capable LLM Jailbreak Mitigators' (arXiv:2602.12418, Feb 12, 2026)"
+                ]
+              },
+              {
+                "type": "p",
+                "children": [
+                  {
+                    "type": "strong",
+                    "children": [
+                      "Key insight:"
+                    ]
+                  },
+                  " Introduces Context-Conditioned Delta Steering (CC-Delta) \u2014 identifies SAE features whose activations change when a harmful request is embedded in jailbreak context, then applies inference-time mean-shift steering in SAE latent space. CRITICAL FINDING: steering in sparse SAE feature space CLEARLY OUTPERFORMS dense mean-shift steering on all four models tested, especially against out-of-distribution attacks."
+                ]
+              },
+              {
+                "type": "p",
+                "children": [
+                  {
+                    "type": "strong",
+                    "children": [
+                      "Why this matters for us:"
+                    ]
+                  },
+                  " The finding that SAE sparse space outperforms dense activation space for steering is strong evidence for our approach. If SAE feature space provides better steering than raw activations for safety, the same advantage likely holds for generation control. Off-the-shelf SAEs trained for interpretability can be repurposed for practical steering without task-specific training."
+                ]
+              },
+              {
+                "type": "p",
+                "children": [
+                  {
+                    "type": "strong",
+                    "children": [
+                      "Relevance:"
+                    ]
+                  },
+                  " \u2b50\u2b50 ADDITIONAL VALIDATION for Idea 2. The 'sparse > dense for steering' result strengthens the case for SAE-guided diffusion over raw activation-guided diffusion. The CC-Delta feature selection method (statistical testing on activation deltas) could be adapted for selecting which SAE features to use for generation control."
+                ]
+              }
+            ]
           }
         ]
       },
@@ -1419,6 +1473,72 @@
                     ]
                   },
                   " \u2b50\u2b50 EMPIRICAL GROUNDING for Idea 3. The finding that MDLMs already adapt their generation order per-task validates our intuition that non-uniform ordering matters. The Generate-then-Edit paradigm could work with our approach: generate with SAE-guided semantic ordering, then edit with SAE feature constraints. The 'dependency loss from parallelism' finding is an important caveat \u2014 our semantic noise schedule should preserve key inter-token dependencies."
+                ]
+              }
+            ]
+          },
+          {
+            "type": "DeepDive",
+            "title": "[Feb 16] \ud83d\udd25\ud83d\udd25\ud83d\udd25 HDLM: Hierarchical Diffusion Language Models \u2014 Our Idea 3 Formalized! (NeurIPS 2025)",
+            "children": [
+              {
+                "type": "p",
+                "children": [
+                  {
+                    "type": "strong",
+                    "children": [
+                      "Paper:"
+                    ]
+                  },
+                  " Zhou et al., 'Next Semantic Scale Prediction via Hierarchical Diffusion Language Models' (arXiv:2510.08632, NeurIPS 2025)"
+                ]
+              },
+              {
+                "type": "p",
+                "children": [
+                  {
+                    "type": "strong",
+                    "children": [
+                      "Key insight:"
+                    ]
+                  },
+                  " Introduces a HIERARCHICAL VOCABULARY where low-level tokens (detailed semantics) are surjectively mapped to high-level tokens (coarse-grained meanings). In the forward process, each token is independently perturbed to its higher-level semantic ancestor according to a scheduler. In the reverse process, the model progressively predicts the next, more detailed semantic scale. This is literally 'next semantic scale prediction' \u2014 generating from coarse meaning to fine-grained tokens."
+                ]
+              },
+              {
+                "type": "p",
+                "children": [
+                  {
+                    "type": "strong",
+                    "children": [
+                      "Technical details:"
+                    ]
+                  },
+                  " They derive closed-form ELBO expressions and show HDLM generalizes MDLM (which is a special case). Achieves consistently lower validation AND generative perplexity than baselines. The hierarchical vocabulary provides a principled way to define what 'semantic levels' mean \u2014 not hand-wavy, but grounded in vocabulary structure."
+                ]
+              },
+              {
+                "type": "p",
+                "children": [
+                  {
+                    "type": "strong",
+                    "children": [
+                      "Relevance:"
+                    ]
+                  },
+                  " \u2b50\u2b50\u2b50 THIS IS OUR IDEA 3 IMPLEMENTED! The key difference: HDLM uses vocabulary hierarchy (e.g., WordNet hypernyms or BPE tree) to define semantic levels, while we propose using SAE feature importance/abstraction level. The two approaches are complementary: HDLM's vocabulary hierarchy operates at the token level, while SAE features capture representation-level semantics (topic, style, sentiment). A combined approach \u2014 HDLM's coarse\u2192fine token generation PLUS SAE feature-guided noise schedules for representation-level semantics \u2014 could be very powerful."
+                ]
+              },
+              {
+                "type": "p",
+                "children": [
+                  {
+                    "type": "strong",
+                    "children": [
+                      "New research question:"
+                    ]
+                  },
+                  " Can SAE features define a LEARNED semantic hierarchy that's richer than vocabulary-based hierarchy? HDLM's hierarchy is fixed by vocabulary structure; SAE features could provide a data-driven, context-dependent hierarchy."
                 ]
               }
             ]
@@ -1955,6 +2075,30 @@
                       },
                       " (Zhang et al., Dec 2025/Jan 2026, arXiv:2512.15596) \u2014 Corrective Diffusion Language Models. Post-training for corrective behavior: models learn to assign lower confidence to incorrect tokens and iteratively refine them. Key finding: standard MDLM training fails to teach correction."
                     ]
+                  },
+                  {
+                    "type": "li",
+                    "children": [
+                      {
+                        "type": "strong",
+                        "children": [
+                          "LLaDA2.1"
+                        ]
+                      },
+                      " (Ant Group, Feb 2026, arXiv:2602.08676) \u2014 Token-to-Token editing + Mask-to-Token decoding. 892 TPS on HumanEval+. First large-scale RL for dLLMs. Speedy and Quality modes."
+                    ]
+                  },
+                  {
+                    "type": "li",
+                    "children": [
+                      {
+                        "type": "strong",
+                        "children": [
+                          "DiDi-Instruct"
+                        ]
+                      },
+                      " (Zheng et al., Oct 2025, arXiv:2509.25035) \u2014 64x acceleration of dLLMs via KL-divergence distillation. Ppl 18.4 at 128 NFEs."
+                    ]
                   }
                 ]
               }
@@ -2034,6 +2178,102 @@
                     ]
                   },
                   "arXiv:2602.09555 (Feb 2026)"
+                ]
+              }
+            ]
+          },
+          {
+            "type": "DeepDive",
+            "title": "[Feb 16] LLaDA2.1: Token Editing + First Large-Scale RL for dLLMs (Feb 2026)",
+            "children": [
+              {
+                "type": "p",
+                "children": [
+                  {
+                    "type": "strong",
+                    "children": [
+                      "Paper:"
+                    ]
+                  },
+                  " Bie et al. (50 authors), 'LLaDA2.1: Speeding Up Text Diffusion via Token Editing' (arXiv:2602.08676, Feb 9, 2026)"
+                ]
+              },
+              {
+                "type": "p",
+                "children": [
+                  {
+                    "type": "strong",
+                    "children": [
+                      "Key innovations:"
+                    ]
+                  },
+                  " (1) Joint Token-to-Token (T2T) editing + Mask-to-Token (M2T) decoding scheme. Speedy Mode aggressively lowers M2T threshold then refines via T2T; Quality Mode uses conservative thresholds. (2) First large-scale RL framework for dLLMs with specialized stable gradient estimation. (3) Released LLaDA2.1-Mini (16B) and LLaDA2.1-Flash (100B)."
+                ]
+              },
+              {
+                "type": "p",
+                "children": [
+                  {
+                    "type": "strong",
+                    "children": [
+                      "Performance:"
+                    ]
+                  },
+                  " 892 TPS on HumanEval+, 801 TPS on BigCodeBench, 663 TPS on LiveCodeBench \u2014 at 100B scale. Evaluated on 33 benchmarks."
+                ]
+              },
+              {
+                "type": "p",
+                "children": [
+                  {
+                    "type": "strong",
+                    "children": [
+                      "Relevance:"
+                    ]
+                  },
+                  " \u2b50\u2b50 INFRASTRUCTURE. The T2T editing scheme is interesting for our work \u2014 it means dLLMs can now EDIT existing tokens, not just unmask. For SAE-guided denoising (Idea 4), T2T editing could be the mechanism by which SAE feature constraints are enforced: detect tokens that don't match target SAE features, then edit them. The RL framework for dLLMs could also be used to train SAE-feature-aware generation policies."
+                ]
+              }
+            ]
+          },
+          {
+            "type": "DeepDive",
+            "title": "[Feb 16] Prism: Hierarchical Search + Self-Verification for dLLM Scaling (Feb 2026)",
+            "children": [
+              {
+                "type": "p",
+                "children": [
+                  {
+                    "type": "strong",
+                    "children": [
+                      "Paper:"
+                    ]
+                  },
+                  " Bai et al., 'Prism: Efficient Test-Time Scaling via Hierarchical Search and Self-Verification for Discrete Diffusion Language Models' (arXiv:2602.01842, Feb 2, 2026)"
+                ]
+              },
+              {
+                "type": "p",
+                "children": [
+                  {
+                    "type": "strong",
+                    "children": [
+                      "Key insight:"
+                    ]
+                  },
+                  " Hierarchical Trajectory Search (HTS) dynamically prunes and reallocates compute in early-to-mid denoising. Local branching with partial remasking explores diverse outputs while preserving high-confidence tokens. Self-Verified Feedback (SVF) replaces external verifiers. Tested on LLaDA 8B, Dream 7B, LLaDA 2.0-mini."
+                ]
+              },
+              {
+                "type": "p",
+                "children": [
+                  {
+                    "type": "strong",
+                    "children": [
+                      "Relevance:"
+                    ]
+                  },
+                  " \u2b50\u2b50 The hierarchical trajectory search is relevant to Idea 3 \u2014 it dynamically allocates compute based on what stage of denoising needs it most. The partial remasking could be combined with SAE feature analysis: remask tokens whose SAE features don't match the target profile."
                 ]
               }
             ]
