@@ -750,7 +750,7 @@ const tagColors = {
 
 // Difficulty display
 const difficultyLabels = ['Beginner', 'Intermediate', 'Advanced']
-const difficultyStars = (level) => '★'.repeat(level) + '☆'.repeat(3 - level)
+const difficultyStars = (level) => { const l = Math.max(0, Math.min(3, level || 0)); return '★'.repeat(l) + '☆'.repeat(3 - l) }
 
 function TutorialCard({ tutorial, featured = false }) {
   // Apps have their own routes, tutorials use /tutorial/:id
