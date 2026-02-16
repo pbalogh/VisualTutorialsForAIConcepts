@@ -526,6 +526,18 @@ const tutorials = [
     difficulty: 3,
   },
   {
+    id: 'brainstorm-59-modal-operators-tom',
+    title: 'Differentiable Modal Operators & Theory of Mind',
+    description: 'How Schank\'s mental primitives (MBUILD, MTRANS) are modal operators in disguise — Kripke semantics, BDI architecture, and learnable belief tracking',
+    tags: ['schankian', 'modal-logic', 'theory-of-mind', 'mental-primitives'],
+    icon: '🧠',
+    gradient: 'from-purple-500 to-pink-600',
+    shadowColor: 'shadow-purple-500/30',
+    glowColor: 'rgba(168, 85, 247, 0.4)',
+    readTime: '25 min',
+    difficulty: 4,
+  },
+  {
     id: 'thoughtblend',
     title: 'ThoughtBlend',
     description: 'Synthesize perspectives through dialectical color mixing — add sources as color swatches and blend them into structured text or dialogue',

@@ -1,0 +1,674 @@
+{
+  "id": "brainstorm-59-modal-operators-tom",
+  "title": "Differentiable Modal Operators & Theory of Mind",
+  "subtitle": "How Schank's mental primitives are modal operators in disguise — and how to learn them",
+  "readTime": "25 min",
+  "difficulty": 4,
+  "tags": ["schankian", "modal-logic", "theory-of-mind", "mental-primitives", "BDI"],
+  "state": {
+    "selectedWorld": 0,
+    "beliefStrength": 0.8,
+    "desireStrength": 0.6,
+    "agentPerspective": "alice"
+  },
+  "content": {
+    "type": "Fragment",
+    "children": [
+      {
+        "type": "Section",
+        "props": { "title": "The Hidden Connection" },
+        "children": [
+          {
+            "type": "p",
+            "children": "Schank proposed mental primitives like MBUILD (construct a thought) and MTRANS (transfer information between minds). These sound psychological, but they have a rigorous mathematical formalization: modal logic."
+          },
+          {
+            "type": "Callout",
+            "props": {
+              "type": "key-insight",
+              "title": "The Core Realization"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "MBUILD(agent, φ) is equivalent to □_agent(φ) in modal logic — 'agent knows/believes φ'. Schank's mental primitives ARE modal operators. This means 60 years of modal logic research can inform our operator learning."
+              }
+            ]
+          },
+          {
+            "type": "p",
+            "children": "This tutorial explores how Kripke semantics (possible worlds), Dynamic Epistemic Logic (belief updates), and the BDI architecture (Belief-Desire-Intention) provide the mathematical machinery to implement Schankian mental primitives as learnable geometric transformations."
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "Modal Logic Primer: Possible Worlds" },
+        "children": [
+          {
+            "type": "h3",
+            "children": "What is Modal Logic?"
+          },
+          {
+            "type": "p",
+            "children": "Classical logic deals with truth: 'The cat is on the mat' is true or false. Modal logic adds operators for MODES of truth: necessity (□), possibility (◇), knowledge, belief, obligation, time."
+          },
+          {
+            "type": "DefinitionList",
+            "props": {
+              "items": [
+                {
+                  "term": "□φ (Box phi)",
+                  "definition": "Necessarily φ — φ is true in ALL accessible worlds. In epistemic logic: 'The agent KNOWS φ.'"
+                },
+                {
+                  "term": "◇φ (Diamond phi)",
+                  "definition": "Possibly φ — φ is true in SOME accessible world. In epistemic logic: 'The agent considers φ POSSIBLE.'"
+                },
+                {
+                  "term": "K_a φ",
+                  "definition": "Agent a KNOWS φ. Stronger than belief — requires truth and justification."
+                },
+                {
+                  "term": "B_a φ",
+                  "definition": "Agent a BELIEVES φ. Can be false — agents can have incorrect beliefs."
+                }
+              ]
+            }
+          },
+          {
+            "type": "DeepDive",
+            "props": {
+              "title": "Why 'Possible Worlds'?",
+              "id": "dd-possible-worlds"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "Kripke's genius was giving modal operators a concrete semantics. Instead of treating □ and ◇ as primitive symbols, he defined them in terms of possible worlds connected by accessibility relations."
+              },
+              {
+                "type": "p",
+                "children": "Think of it this way: when you say 'Alice believes it might rain,' you're saying that in Alice's mental model, there exist possible futures where it rains. The accessibility relation captures which worlds Alice considers epistemically possible from her current state."
+              },
+              {
+                "type": "p", 
+                "children": "This isn't just philosophy — it's computationally tractable. We can represent possible worlds as vectors and accessibility relations as learned transformations."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "Kripke Frames as Geometric Structures" },
+        "children": [
+          {
+            "type": "p",
+            "children": "A Kripke frame is a tuple (W, R) where W is a set of possible worlds and R is an accessibility relation. For agent a, R_a(w, w') means 'from world w, agent a considers w' possible.'"
+          },
+          {
+            "type": "Analogy",
+            "props": {
+              "source": "Kripke Accessibility Relation",
+              "target": "Graph Edges in Embedding Space",
+              "title": "Worlds as Vectors, Relations as Operators"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "In a Kripke frame, worlds are nodes and accessibility is edges. In our geometric framework, worlds are VECTORS and accessibility relations are OPERATORS (matrices) that transform one world-state to another. If R_a(w, w'), then w' = M_a · w for some learned matrix M_a."
+              }
+            ]
+          },
+          {
+            "type": "InteractiveDemo",
+            "props": {
+              "id": "kripke-geometry-demo",
+              "title": "Kripke Frame as Vector Space",
+              "description": "Explore how possible worlds map to points in embedding space, with belief operators as transformations",
+              "component": "KripkeGeometryDemo",
+              "height": 400
+            }
+          },
+          {
+            "type": "Callout",
+            "props": {
+              "type": "technical"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "The KD45 axiom system for belief translates to geometric constraints: K (distribution over conjunction), D (consistency — no contradictory beliefs), 4 (positive introspection — if you believe, you believe you believe), 5 (negative introspection — if you don't believe, you believe you don't believe). Each axiom constrains the operator's eigenstructure."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section", 
+        "props": { "title": "Schank's Mental Primitives as Modal Operators" },
+        "children": [
+          {
+            "type": "p",
+            "children": "Schank identified several mental primitives. Here's how they map to modal logic:"
+          },
+          {
+            "type": "DefinitionList",
+            "props": {
+              "items": [
+                {
+                  "term": "MBUILD (Mental Build)",
+                  "definition": "Constructing a thought from existing knowledge. Modal: □_a φ becomes true — the agent comes to know/believe φ. This is a BELIEF UPDATE operator."
+                },
+                {
+                  "term": "MTRANS (Mental Transfer)",
+                  "definition": "Transferring information between minds. Modal: Communication where □_a φ causes □_b φ. Agent a telling agent b makes b believe what a believes."
+                },
+                {
+                  "term": "ATTEND",
+                  "definition": "Focusing mental attention. Modal: Strengthening accessibility — making certain worlds more 'reachable' in the agent's model. Geometrically: attention sharpens the belief distribution."
+                }
+              ]
+            }
+          },
+          {
+            "type": "Example",
+            "props": {
+              "title": "MTRANS in Action",
+              "language": "text"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "Sentence: 'John told Mary that it was raining.'"
+              },
+              {
+                "type": "pre",
+                "children": "Schankian:   MTRANS(John, Mary, 'raining')\nModal Logic: B_john(raining) ∧ TELL(john, mary) → B_mary(raining)\nGeometric:   M_mary_belief = UPDATE(M_mary_belief, M_john_belief, 'raining')"
+              },
+              {
+                "type": "p",
+                "children": "The geometric view: Mary's belief-state vector is TRANSFORMED by the MTRANS operator, incorporating the 'raining' information from John's belief state."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "Dynamic Epistemic Logic: Beliefs That Change" },
+        "children": [
+          {
+            "type": "p",
+            "children": "Static modal logic describes what agents believe. Dynamic Epistemic Logic (DEL) describes how beliefs CHANGE when events occur. This is exactly what Schankian operators model."
+          },
+          {
+            "type": "h3",
+            "children": "The Baltag-Moss-Solecki Framework"
+          },
+          {
+            "type": "p",
+            "children": "DEL introduces action models — structures that describe how announcements, observations, and communications transform belief states. Sound familiar? These ARE our operators."
+          },
+          {
+            "type": "DefinitionList",
+            "props": {
+              "items": [
+                {
+                  "term": "Public Announcement [!φ]",
+                  "definition": "Everyone learns φ is true. Deletes worlds where φ is false. Geometric: projection onto φ-satisfying subspace."
+                },
+                {
+                  "term": "Private Communication",
+                  "definition": "Agent a tells agent b secretly. Updates b's beliefs without updating others. Geometric: transforms only b's belief vector."
+                },
+                {
+                  "term": "Observation",
+                  "definition": "Agent sees evidence for φ. Soft update — increases probability of φ-worlds. Geometric: rotation toward φ-direction."
+                }
+              ]
+            }
+          },
+          {
+            "type": "DeepDive",
+            "props": {
+              "title": "Product Update: The Math of Belief Change",
+              "id": "dd-product-update"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "The product update rule from DEL says: the new epistemic model after action A is the product of the old model M with the action model A. Each (world, action-point) pair becomes a new possible world."
+              },
+              {
+                "type": "p",
+                "children": "In our geometric framework, this becomes matrix multiplication: if belief state is vector b and action is operator A, new belief is b' = A · b. The operator A encodes the preconditions (which actions are applicable in which worlds) and postconditions (how worlds transform)."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "The BDI Architecture: Three Modal Dimensions" },
+        "children": [
+          {
+            "type": "p",
+            "children": "The BDI (Belief-Desire-Intention) architecture from AI planning provides a three-modality framework for mental states. Each modality has its own learned accessibility geometry."
+          },
+          {
+            "type": "DefinitionList",
+            "props": {
+              "items": [
+                {
+                  "term": "Beliefs (B_a)",
+                  "definition": "What the agent thinks is true about the world. KD45 axioms. Accessible worlds = epistemically possible worlds."
+                },
+                {
+                  "term": "Desires (D_a)",
+                  "definition": "What the agent wants to be true. Accessible worlds = desirable outcomes. Not required to be consistent (you can desire incompatible things)."
+                },
+                {
+                  "term": "Intentions (I_a)",
+                  "definition": "What the agent is committed to achieving. Subset of desires, must be internally consistent. Accessible worlds = planned futures."
+                }
+              ]
+            }
+          },
+          {
+            "type": "Callout",
+            "props": {
+              "type": "key-insight",
+              "title": "Three Operator Families"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "BDI suggests we need THREE families of mental operators, each with different geometric constraints: Belief operators (must satisfy introspection axioms), Desire operators (can be inconsistent, preference-weighted), Intention operators (commitment + consistency). The interaction BETWEEN these families (how beliefs inform desires, how desires become intentions) is where Theory of Mind emerges."
+              }
+            ]
+          },
+          {
+            "type": "InteractiveDemo",
+            "props": {
+              "id": "bdi-space-demo",
+              "title": "BDI Mental State Space",
+              "description": "Visualize how beliefs, desires, and intentions form separate but interacting subspaces",
+              "component": "BDISpaceDemo",
+              "height": 450
+            }
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "Theory of Mind Failures in LLMs" },
+        "children": [
+          {
+            "type": "p",
+            "children": "Recent research reveals that GPT-4 and similar models DECOUPLE action prediction from mental-state inference. They can predict what someone will do without correctly modeling WHY — a failure of operator composition."
+          },
+          {
+            "type": "Example",
+            "props": {
+              "title": "The Sally-Anne Test Failure Mode",
+              "language": "text"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "Sally puts a marble in basket A. Sally leaves. Anne moves the marble to basket B. Where will Sally look for the marble?"
+              },
+              {
+                "type": "pre",
+                "children": "Correct answer: Basket A (Sally doesn't know Anne moved it)\nLLM failure: Basket B (confusing own knowledge with Sally's)\n\nThe failure: No operator distinguishing B_sally from B_model\nOperator fix: MTRANS(Anne→marble→B) updates World but NOT B_sally"
+              },
+              {
+                "type": "p",
+                "children": "The model fails to maintain separate belief operators for different agents. A proper modal operator architecture would track B_sally separately from the world state, updating only when MTRANS explicitly targets Sally."
+              }
+            ]
+          },
+          {
+            "type": "DeepDive",
+            "props": {
+              "title": "The Yale ToM Study: Decoupling Action and Mental State",
+              "id": "dd-yale-tom"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "A 2024 Yale study showed GPT-4o achieves high accuracy on action prediction ('what will X do?') but much lower on mental state questions ('what does X believe?'). The model can correlate actions with outcomes without building explicit agent models."
+              },
+              {
+                "type": "p",
+                "children": "This is exactly the failure our framework addresses: without explicit modal operators, the model relies on surface-level pattern matching rather than compositional belief tracking. MTRANS should compose with MBUILD, but instead they're learned as separate, disconnected patterns."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "Modal Logical Neural Networks" },
+        "children": [
+          {
+            "type": "p",
+            "children": "Sulc et al.'s Modal Logical Neural Networks (MLNNs) provide exactly the machinery we need: differentiable modal operators with learnable accessibility relations."
+          },
+          {
+            "type": "h3",
+            "children": "Key Architecture Ideas"
+          },
+          {
+            "type": "DefinitionList",
+            "props": {
+              "items": [
+                {
+                  "term": "Soft Kripke Semantics",
+                  "definition": "Instead of hard accessibility (world w' is accessible from w or not), use soft accessibility: a learned weight between 0 and 1 indicating degree of accessibility."
+                },
+                {
+                  "term": "Differentiable □ and ◇",
+                  "definition": "□φ = weighted average of φ over accessible worlds. ◇φ = max (or soft-max) of φ over accessible worlds. Both are differentiable w.r.t. accessibility weights."
+                },
+                {
+                  "term": "Learned Accessibility",
+                  "definition": "The accessibility relation R_a is parameterized by a neural network. Given world embedding w, it outputs accessibility weights to all other world embeddings."
+                }
+              ]
+            }
+          },
+          {
+            "type": "Example",
+            "props": {
+              "title": "Implementing MBUILD as a Differentiable Operator",
+              "language": "python"
+            },
+            "children": [
+              {
+                "type": "pre",
+                "children": "class MBUILDOperator(nn.Module):\n    \"\"\"MBUILD: Agent constructs a new belief\"\"\"\n    def __init__(self, dim):\n        super().__init__()\n        # Accessibility relation as learned linear map\n        self.accessibility = nn.Linear(dim, dim)\n        # Belief integration gate\n        self.gate = nn.Linear(dim * 2, dim)\n        \n    def forward(self, agent_state, new_info):\n        # Compute which 'worlds' are accessible from current state\n        accessible = torch.sigmoid(self.accessibility(agent_state))\n        # Integrate new information into belief\n        combined = torch.cat([agent_state * accessible, new_info], dim=-1)\n        # Gated update (some info might be rejected)\n        return agent_state + torch.tanh(self.gate(combined))"
+              }
+            ]
+          },
+          {
+            "type": "Callout",
+            "props": {
+              "type": "technical"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "The key insight: accessibility relations ARE attention patterns. When MBUILD activates, it's attending to epistemically relevant information. When MTRANS operates, it's transferring attention-weighted information between agent representations. Modal operators and attention mechanisms are deeply connected."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "Geometric Interpretation of Mental Operators" },
+        "children": [
+          {
+            "type": "p",
+            "children": "Each mental operator has a distinctive geometric signature:"
+          },
+          {
+            "type": "DefinitionList",
+            "props": {
+              "items": [
+                {
+                  "term": "OBSERVE (perception)",
+                  "definition": "Rotates belief vector TOWARD certainty about observed facts. Reduces uncertainty (contracts belief space along observed dimensions)."
+                },
+                {
+                  "term": "DOUBT (uncertainty)",
+                  "definition": "Projects belief onto uncertainty subspace. Expands the set of accessible worlds (widens the cone of possibility)."
+                },
+                {
+                  "term": "DECIDE (intention formation)",
+                  "definition": "Collapses desire-space to intention-space. Selects ONE trajectory from many possible desired outcomes."
+                },
+                {
+                  "term": "FORGET (belief decay)",
+                  "definition": "Diffusion toward prior — belief vector drifts back toward default/uninformative state."
+                }
+              ]
+            }
+          },
+          {
+            "type": "InteractiveDemo",
+            "props": {
+              "id": "mental-operator-geometry-demo",
+              "title": "Mental Operator Geometry",
+              "description": "See how OBSERVE, DOUBT, DECIDE, and FORGET transform belief state vectors",
+              "component": "MentalOperatorGeometryDemo",
+              "height": 400
+            }
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "Training Mental Operators" },
+        "children": [
+          {
+            "type": "p",
+            "children": "How do we learn these operators from data? Several complementary approaches:"
+          },
+          {
+            "type": "h3",
+            "children": "Data Sources"
+          },
+          {
+            "type": "DefinitionList",
+            "props": {
+              "items": [
+                {
+                  "term": "Theory of Mind Benchmarks",
+                  "definition": "Sally-Anne tests, false belief tasks, perspective-taking datasets. Train operators to correctly track separate agent beliefs."
+                },
+                {
+                  "term": "Narrative Understanding",
+                  "definition": "Stories with embedded mental states: 'Mary thought John knew about the party.' Parse into operator chains: MBUILD(Mary, MBUILD(John, party))."
+                },
+                {
+                  "term": "Dialogue Modeling",
+                  "definition": "Multi-turn conversations where beliefs update. Each utterance is an MTRANS. Track belief divergence between speakers."
+                }
+              ]
+            }
+          },
+          {
+            "type": "h3",
+            "children": "Training Objectives"
+          },
+          {
+            "type": "DefinitionList",
+            "props": {
+              "items": [
+                {
+                  "term": "Belief Prediction",
+                  "definition": "Given narrative + question about agent's belief, predict correct answer. Requires correct operator application."
+                },
+                {
+                  "term": "Modal Axiom Regularization",
+                  "definition": "Add loss terms enforcing KD45 axioms: introspection (B_a(B_a(φ)) ↔ B_a(φ)), consistency (¬B_a(φ ∧ ¬φ))."
+                },
+                {
+                  "term": "Contrastive: Agent vs World",
+                  "definition": "Hard negatives that confuse agent belief with world state. Force model to distinguish B_alice(raining) from raining."
+                }
+              ]
+            }
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "Connections to Schankian Entity Operators" },
+        "children": [
+          {
+            "type": "p",
+            "children": "Mental operators aren't separate from physical operators — they INTERACT. Understanding 'John gave Mary the book' requires tracking both physical and mental state changes."
+          },
+          {
+            "type": "Example",
+            "props": {
+              "title": "Physical + Mental Operator Chain",
+              "language": "text"
+            },
+            "children": [
+              {
+                "type": "pre",
+                "children": "Sentence: 'John secretly gave Mary the book.'\n\nOperator chain:\n1. ATRANS(John, book, Mary)     — physical: book changes possession\n2. MBUILD(John, has(Mary,book)) — John knows Mary has it\n3. MBUILD(Mary, has(Mary,book)) — Mary knows she has it\n4. ¬MBUILD(others, has(Mary,book)) — others don't know ('secretly')\n\nThe adverb 'secretly' modifies the MENTAL operators, not the physical one."
+              }
+            ]
+          },
+          {
+            "type": "Callout",
+            "props": {
+              "type": "key-insight",
+              "title": "Adverbs as Operator Modifiers"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "Many adverbs (secretly, openly, knowingly, accidentally) modify the MENTAL state operators rather than the physical operators. 'Accidentally dropped' uses the same PROPEL operator as 'deliberately dropped' — the difference is in the accompanying MBUILD chain (was there prior intention?)."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "Quiz: Test Your Understanding" },
+        "children": [
+          {
+            "type": "Quiz",
+            "props": {
+              "id": "modal-operators-quiz",
+              "questions": [
+                {
+                  "id": "q1",
+                  "question": "What is the modal logic equivalent of Schank's MBUILD primitive?",
+                  "options": [
+                    "◇φ (possibly phi)",
+                    "□_a φ (agent a believes/knows phi)",
+                    "φ → ψ (phi implies psi)",
+                    "¬φ (not phi)"
+                  ],
+                  "correct": 1,
+                  "explanation": "MBUILD constructs a belief in an agent's mind, which is exactly what the epistemic modal operator □_a (or B_a for belief, K_a for knowledge) represents."
+                },
+                {
+                  "id": "q2",
+                  "question": "In the BDI architecture, what distinguishes Intentions from Desires?",
+                  "options": [
+                    "Intentions are always achievable, desires might not be",
+                    "Intentions must be internally consistent and involve commitment",
+                    "Desires are about the future, intentions about the present",
+                    "There is no difference; they're synonyms"
+                  ],
+                  "correct": 1,
+                  "explanation": "Desires can be inconsistent (you can want incompatible things), but Intentions require commitment and internal consistency. You can desire to both eat cake and lose weight, but you can't intend both simultaneously."
+                },
+                {
+                  "id": "q3",
+                  "question": "Why do LLMs fail at Theory of Mind tasks according to the tutorial?",
+                  "options": [
+                    "They don't have enough parameters",
+                    "They decouple action prediction from mental state inference",
+                    "They can't process long contexts",
+                    "They aren't trained on ToM data"
+                  ],
+                  "correct": 1,
+                  "explanation": "LLMs can predict actions via pattern matching without building explicit agent models. They learn to correlate 'Sally leaves, Anne moves marble' with 'Sally looks in wrong place' without tracking separate belief operators for each agent."
+                },
+                {
+                  "id": "q4",
+                  "question": "What is the geometric interpretation of the DOUBT operator?",
+                  "options": [
+                    "Rotation toward certainty",
+                    "Projection onto uncertainty subspace, expanding accessible worlds",
+                    "Collapse from desires to intentions",
+                    "Translation in embedding space"
+                  ],
+                  "correct": 1,
+                  "explanation": "DOUBT expands uncertainty — it projects the belief state onto a subspace of greater uncertainty, widening the 'cone' of worlds the agent considers possible."
+                },
+                {
+                  "id": "q5",
+                  "question": "How does the adverb 'secretly' modify operator chains?",
+                  "options": [
+                    "It changes the physical operator (ATRANS becomes SECRET-ATRANS)",
+                    "It blocks mental operators for non-participants (others don't form beliefs)",
+                    "It reverses the order of operators",
+                    "It has no effect on operators"
+                  ],
+                  "correct": 1,
+                  "explanation": "'Secretly' modifies the mental operators, not the physical ones. The physical ATRANS is the same whether secret or public — what changes is which agents' MBUILD operators fire (only the direct participants, not observers)."
+                }
+              ]
+            }
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "Summary & Connections" },
+        "children": [
+          {
+            "type": "Callout",
+            "props": {
+              "type": "summary",
+              "title": "Key Takeaways"
+            },
+            "children": [
+              {
+                "type": "ul",
+                "children": [
+                  { "type": "li", "children": "Schank's mental primitives (MBUILD, MTRANS) are modal operators in Kripke semantics" },
+                  { "type": "li", "children": "Modal operators have geometric interpretations: accessibility = transformation, belief = vector in world-space" },
+                  { "type": "li", "children": "BDI architecture suggests THREE operator families: Belief, Desire, Intention — each with different constraints" },
+                  { "type": "li", "children": "LLM ToM failures stem from not explicitly tracking per-agent belief operators" },
+                  { "type": "li", "children": "Modal Logical Neural Networks provide differentiable implementations with learnable accessibility" },
+                  { "type": "li", "children": "Mental and physical operators interact — adverbs often modify mental operators, not physical ones" }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "h3",
+            "children": "Connections to Other Brainstorms"
+          },
+          {
+            "type": "DefinitionList",
+            "props": {
+              "items": [
+                {
+                  "term": "#50: Epistemic State Operators",
+                  "definition": "The precursor to this entry — introduced epistemic operators for modeling belief, doubt, and wise refusal."
+                },
+                {
+                  "term": "#37: Lie Algebra Structure",
+                  "definition": "Operator non-commutativity (BELIEVE then OBSERVE ≠ OBSERVE then BELIEVE) has Lie algebra structure."
+                },
+                {
+                  "term": "#22: Causal Interventions",
+                  "definition": "Mental operators ARE causal interventions on belief states — connects to Pearl's do-calculus."
+                },
+                {
+                  "term": "#38: Category Theory Semantics",
+                  "definition": "Modal operators as morphisms in the category of mental states — products for multi-agent scenarios."
+                }
+              ]
+            }
+          }
+        ]
+      }
+    ]
+  }
+}
