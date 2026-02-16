@@ -526,6 +526,18 @@ const tutorials = [
     difficulty: 3,
   },
   {
+    id: 'brainstorm-52-pearls-ladder',
+    title: "Pearl's Ladder as an Operator Hierarchy",
+    description: "Why confusing correlation with causation is literally a type error — three classes of operators formalize the Causal Hierarchy Theorem",
+    tags: ['schankian', 'causality', 'pearl', 'type-theory', 'category-theory'],
+    icon: '🪜',
+    gradient: 'from-amber-500 to-red-600',
+    shadowColor: 'shadow-amber-500/30',
+    glowColor: 'rgba(245, 158, 11, 0.4)',
+    readTime: '20 min',
+    difficulty: 3,
+  },
+  {
     id: 'brainstorm-59-modal-operators-tom',
     title: 'Differentiable Modal Operators & Theory of Mind',
     description: 'How Schank\'s mental primitives (MBUILD, MTRANS) are modal operators in disguise — Kripke semantics, BDI architecture, and learnable belief tracking',
