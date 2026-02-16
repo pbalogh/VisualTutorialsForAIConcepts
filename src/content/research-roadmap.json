@@ -4,7 +4,7 @@
     "title": "Schankian Operators \u2014 Research Roadmap",
     "description": "The 8-phase research program from discovery to deployment",
     "author": "Clawd & Peter",
-    "lastUpdated": "2025-07-26"
+    "lastUpdated": "2026-02-16"
   },
   "content": {
     "type": "Fragment",
@@ -12,7 +12,7 @@
       {
         "type": "Section",
         "props": {
-          "title": "\ud83d\uddfa\ufe0f Research Roadmap: 8 Phases"
+          "title": "\ud83d\uddfa\ufe0f Research Roadmap: 9 Phases"
         },
         "children": [
           {
@@ -480,12 +480,91 @@
       {
         "type": "Section",
         "props": {
+          "title": "Phase 9 \u2014 Mechanistic Interpretability: The Literary Titles"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "A parallel track that emerged from asking: if operators exist as structure in neural networks (Phase 1), can we find the specific circuits that implement them? This phase applies mechanistic interpretability to trace how transformers detect, classify, and exploit semantic primitives \u2014 using literary-themed papers that each isolate one aspect of the pipeline."
+          },
+          {
+            "type": "Callout",
+            "props": {
+              "type": "success"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "Key connection: Phase 1 asks 'do operators leave fingerprints?' Phase 9 asks 'what are the circuits that produce those fingerprints?' Together they provide evidence from both directions \u2014 top-down (probing) and bottom-up (circuit tracing)."
+              }
+            ]
+          },
+          {
+            "type": "p",
+            "children": "The papers are ordered as a pipeline: detection \u2192 interpretation \u2192 specialization \u2192 structure mapping \u2192 unification."
+          },
+          {
+            "type": "ul",
+            "children": [
+              {
+                "type": "li",
+                "children": "Paper 1 \u2705 \u2014 \"The Anxiety of Influence: Bloom Filters in Transformer Attention Heads\" \u2014 DRAFT COMPLETE. Identifies 4 heads in GPT-2 that implement Bloom filter membership testing ('have I seen this token before?'). Zero false negatives, characteristic false positives, capacity curve fits theory at R\u00b2=0.99. Cross-validated on 4 models. Ablation confirms functional specificity. Target: arXiv \u2192 NeurIPS 2026."
+              },
+              {
+                "type": "li",
+                "children": "Paper 2 \ud83d\udd2c \u2014 \"The Second Time Around: How Transformers Turn Repetition into Meaning\" \u2014 EXPERIMENTS RUNNING. Traces what happens AFTER Bloom filter detection: the circuit from membership test to semantic interpretation. Key finding so far: representations of 1st and 2nd occurrences maximally diverge at layers 3-6 (the 'gap layers' between Bloom detection and induction head exploitation)."
+              },
+              {
+                "type": "li",
+                "children": "Paper 3 \ud83d\udccb \u2014 \"Too Hip, Gotta Go: Idiom Recognition as an Early Exit Signal\" \u2014 PLANNED. When to stop disambiguating: frozen phrases as processing shortcuts. Connects to Bloom heads (membership check \u2192 early exit)."
+              },
+              {
+                "type": "li",
+                "children": "Paper 4 \ud83d\udccb \u2014 \"Curious Hair: Reference Detection as a Tool for Fostering Context\" \u2014 PLANNED. Coreference and literary allusion as context-building mechanisms (DFW's maximalist reference density). Two-pass architecture: detection \u2192 enriched context."
+              },
+              {
+                "type": "li",
+                "children": "Paper 5 \ud83d\udcc5 \u2014 \"It's Like a Simile: Analogy Recognition and Application\" \u2014 LATER. Structure-mapping (Gentner) via Schankian operators. Same operator transforms A\u2192B and C\u2192D = analogy detected."
+              },
+              {
+                "type": "li",
+                "children": "Paper 6 \ud83c\udfdb\ufe0f \u2014 \"The Best of All Possible Worlds: Stack-Ranking Semantic Contexts as Conjectured World Models\" \u2014 CAPSTONE. Montague/Leibniz: inference as navigating possible worlds. Residual stream states decompose into ranked interpretations. Unifies everything: Bloom filters = world pruning, repetition = world updating, idioms = world collapse, analogy = world mapping."
+              }
+            ]
+          },
+          {
+            "type": "Callout",
+            "props": {
+              "type": "warning"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "Cross-connections: Paper 1's Bloom filter heads relate to Phase 1's attention motifs (#41). Paper 2's repetition-as-meaning connects to Phase 6's hierarchical composition \u2014 repetition detection is a primitive that higher-level circuits compose into coreference, emphasis, and pattern completion. Paper 5 (analogy) directly instantiates Phase 3's operator algebra \u2014 if the same operator transforms two different input pairs, that IS analogy. Paper 6 (possible worlds) provides the theoretical umbrella that connects Phases 3-8 to mechanistic evidence."
+              }
+            ]
+          },
+          {
+            "type": "D3Canvas",
+            "props": {
+              "id": "literary-titles-pipeline",
+              "width": 700,
+              "height": 160,
+              "caption": "The Literary Titles pipeline: from detection to unification",
+              "drawFunction": "const papers = [{n:'Anxiety of\\nInfluence',s:'done',sub:'Detection'},{n:'Second Time\\nAround',s:'active',sub:'Interpretation'},{n:'Too Hip\\nGotta Go',s:'planned',sub:'Specialization'},{n:'Curious\\nHair',s:'planned',sub:'Context'},{n:'Like a\\nSimile',s:'planned',sub:'Structure'},{n:'Best of All\\nWorlds',s:'planned',sub:'Unification'}]; const colors = {done:'#22c55e',active:'#f59e0b',planned:'#94a3b8'}; const w=95, h=55, gap=12, y=45; papers.forEach((p,i)=>{ const x=8+i*(w+gap); ctx.fillStyle=colors[p.s]; ctx.globalAlpha=p.s==='planned'?0.4:1; ctx.beginPath(); ctx.roundRect(x,y,w,h,8); ctx.fill(); ctx.globalAlpha=1; ctx.fillStyle='#fff'; ctx.font='bold 9px sans-serif'; ctx.textAlign='center'; const lines=p.n.split('\\n'); ctx.fillText(lines[0],x+w/2,y+h/2-4); if(lines[1]) ctx.fillText(lines[1],x+w/2,y+h/2+8); ctx.fillStyle=colors[p.s]; ctx.globalAlpha=p.s==='planned'?0.5:0.8; ctx.font='italic 9px sans-serif'; ctx.fillText(p.sub,x+w/2,y+h+14); ctx.globalAlpha=1; if(i<papers.length-1){ctx.fillStyle='#64748b';ctx.beginPath();ctx.moveTo(x+w+2,y+h/2);ctx.lineTo(x+w+gap-2,y+h/2-4);ctx.lineTo(x+w+gap-2,y+h/2+4);ctx.fill();} }); ctx.font='11px sans-serif'; ctx.fillStyle='#22c55e'; ctx.fillText('\u2705 Draft',120,25); ctx.fillStyle='#f59e0b'; ctx.fillText('\ud83d\udd2c Active',300,25); ctx.fillStyle='#94a3b8'; ctx.fillText('\ud83d\udccb Planned',500,25);"
+            }
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
           "title": "\ud83d\udcca Current Status"
         },
         "children": [
           {
             "type": "p",
-            "children": "Phase 1 (Discovery) has produced validated results \u2014 SAE mining and probing experiments show clear operator-like structure. Phases 2 (Annotation) and 3 (Formalization) are actively in progress, with the category theory tutorial and ATOMIC integration underway. Phases 4\u20138 are planned with detailed brainstorm entries but await results from the current phases."
+            "children": "Phase 1 (Discovery) has produced validated results \u2014 SAE mining and probing experiments show clear operator-like structure. Phases 2 (Annotation) and 3 (Formalization) are actively in progress. Phase 9 (Mechanistic Interpretability) has launched in parallel: Paper 1 ('The Anxiety of Influence') has a complete draft with 6 experiments, statistical hardening, and 7 publication-quality figures. Paper 2 ('The Second Time Around') has initial experiments running. Phases 4\u20138 are planned."
           },
           {
             "type": "D3Canvas",
@@ -494,7 +573,7 @@
               "width": 600,
               "height": 120,
               "caption": "Phase status: \u2705 validated, \ud83d\udd04 active, \ud83d\udccb planned",
-              "drawFunction": "const phases = [{n:'1 Discovery',s:'done'},{n:'2 Annotation',s:'active'},{n:'3 Formalization',s:'active'},{n:'4 Grounding',s:'planned'},{n:'5 Planning',s:'planned'},{n:'6 Composition',s:'planned'},{n:'7 Validation',s:'planned'},{n:'8 Deployment',s:'planned'}]; const colors = {done:'#22c55e',active:'#f59e0b',planned:'#94a3b8'}; const w=65, h=50, gap=6, y=35; phases.forEach((p,i)=>{ const x=8+i*(w+gap); ctx.fillStyle=colors[p.s]; ctx.globalAlpha=p.s==='planned'?0.4:1; ctx.beginPath(); ctx.roundRect(x,y,w,h,6); ctx.fill(); ctx.globalAlpha=1; ctx.fillStyle='#fff'; ctx.font='bold 9px sans-serif'; ctx.textAlign='center'; const lines=p.n.split(' '); ctx.fillText(lines[0],x+w/2,y+h/2-2); if(lines[1]) ctx.fillText(lines[1],x+w/2,y+h/2+10); }); ctx.font='11px sans-serif'; ctx.fillStyle='#22c55e'; ctx.fillText('\u2705 Validated',80,20); ctx.fillStyle='#f59e0b'; ctx.fillText('\ud83d\udd04 Active',220,20); ctx.fillStyle='#94a3b8'; ctx.fillText('\ud83d\udccb Planned',400,20);"
+              "drawFunction": "const phases = [{n:'1 Discovery',s:'done'},{n:'2 Annotation',s:'active'},{n:'3 Formal',s:'active'},{n:'4 Ground',s:'planned'},{n:'5 Planning',s:'planned'},{n:'6 Compose',s:'planned'},{n:'7 Validate',s:'planned'},{n:'8 Deploy',s:'planned'},{n:'9 MechInterp',s:'active'}]; const colors = {done:'#22c55e',active:'#f59e0b',planned:'#94a3b8'}; const w=58, h=50, gap=5, y=35; phases.forEach((p,i)=>{ const x=6+i*(w+gap); ctx.fillStyle=colors[p.s]; ctx.globalAlpha=p.s==='planned'?0.4:1; ctx.beginPath(); ctx.roundRect(x,y,w,h,6); ctx.fill(); ctx.globalAlpha=1; ctx.fillStyle='#fff'; ctx.font='bold 8px sans-serif'; ctx.textAlign='center'; const lines=p.n.split(' '); ctx.fillText(lines[0],x+w/2,y+h/2-2); if(lines[1]) ctx.fillText(lines[1],x+w/2,y+h/2+10); }); ctx.font='11px sans-serif'; ctx.fillStyle='#22c55e'; ctx.fillText('\u2705 Validated',80,20); ctx.fillStyle='#f59e0b'; ctx.fillText('\ud83d\udd04 Active',250,20); ctx.fillStyle='#94a3b8'; ctx.fillText('\ud83d\udccb Planned',430,20);"
             }
           },
           {
@@ -505,7 +584,7 @@
             "children": [
               {
                 "type": "p",
-                "children": "Next milestone: Implement full rotation matrix experiments (Phase 4, updated architecture). The diagonal RotatE approach served as Phase 1 proof of concept; the full matrix architecture on concatenated participant embeddings is the target. Also: publish the multi-entity annotation schema (Phase 2 deliverable \u2014 operators transform ALL participants, not just agent\u2192patient)."
+                "children": "Next milestones: (1) Post 'Anxiety of Influence' to arXiv and submit to NeurIPS 2026. (2) Complete 'Second Time Around' experiments on repetition-to-meaning circuits. (3) Implement full rotation matrix experiments (Phase 4). (4) Publish multi-entity annotation schema (Phase 2)."
               }
             ]
           }
