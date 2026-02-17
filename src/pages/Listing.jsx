@@ -1,7 +1,8 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useRef, useCallback } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { Container } from '../components/SharedUI.jsx'
 import { API_BASE } from '../config.js'
+import { useSearchIndex } from '../hooks/useSearchIndex.js'
 
 // Modal for creating a new tutorial
 function CreateTutorialModal({ isOpen, onClose }) {
@@ -959,11 +960,129 @@ function ViewToggle({ mode, onChange }) {
   )
 }
 
+// Highlight matching text
+function HighlightText({ text, query }) {
+  if (!query) return <>{text}</>
+  const q = query.toLowerCase()
+  const idx = text.toLowerCase().indexOf(q)
+  if (idx < 0) return <>{text}</>
+  return (
+    <>
+      {text.slice(0, idx)}
+      <mark className="bg-yellow-200 text-yellow-900 rounded px-0.5">{text.slice(idx, idx + query.length)}</mark>
+      {text.slice(idx + query.length)}
+    </>
+  )
+}
+
+function SearchBar({ value, onChange, inputRef }) {
+  return (
+    <div className="relative">
+      <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+        <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+        </svg>
+      </div>
+      <input
+        ref={inputRef}
+        type="text"
+        value={value}
+        onChange={e => onChange(e.target.value)}
+        placeholder="Search tutorials… (⌘K or /)"
+        className="w-full pl-12 pr-12 py-3.5 bg-white border border-gray-200 rounded-xl
+          text-gray-800 placeholder-gray-400
+          focus:ring-2 focus:ring-indigo-500 focus:border-transparent
+          shadow-sm hover:shadow-md transition-all duration-200 text-[15px]"
+      />
+      {value && (
+        <button
+          onClick={() => onChange('')}
+          className="absolute inset-y-0 right-0 pr-4 flex items-center text-gray-400 hover:text-gray-600"
+        >
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+      )}
+    </div>
+  )
+}
+
+function SearchResults({ results, query }) {
+  if (results.length === 0) {
+    return (
+      <div className="text-center py-16">
+        <div className="text-4xl mb-3">🔍</div>
+        <p className="text-gray-500 text-lg">No tutorials found for "<span className="font-medium text-gray-700">{query}</span>"</p>
+        <p className="text-gray-400 text-sm mt-1">Try a different search term</p>
+      </div>
+    )
+  }
+
+  return (
+    <div className="flex flex-col gap-3">
+      <p className="text-sm text-gray-500 mb-1">{results.length} result{results.length !== 1 ? 's' : ''}</p>
+      {results.map(({ tutorial, excerpt }) => {
+        const linkPath = tutorial.isApp ? `/${tutorial.id}` : `/tutorial/${tutorial.id}`
+        return (
+          <Link key={tutorial.id} to={linkPath} className="group block no-underline">
+            <div className="p-5 rounded-xl bg-white border border-gray-100 hover:border-indigo-200 hover:shadow-md transition-all duration-200">
+              <div className="flex items-start gap-3">
+                <div className={`w-9 h-9 rounded-lg bg-gradient-to-br ${tutorial.gradient} flex items-center justify-center flex-shrink-0 shadow-sm`}>
+                  <span className="text-lg">{tutorial.icon}</span>
+                </div>
+                <div className="flex-1 min-w-0">
+                  <h3 className="text-base font-semibold text-gray-900 group-hover:text-indigo-600 transition-colors">
+                    <HighlightText text={tutorial.title} query={query} />
+                  </h3>
+                  {excerpt && (
+                    <p className="text-sm text-gray-500 mt-1 leading-relaxed line-clamp-2">
+                      <HighlightText text={excerpt} query={query} />
+                    </p>
+                  )}
+                  <div className="flex flex-wrap gap-1.5 mt-2">
+                    {tutorial.tags.map(tag => (
+                      <span key={tag} className={`px-2 py-0.5 rounded-full text-[10px] font-semibold border ${tagColors[tag] || 'bg-gray-100 text-gray-600 border-gray-200'}`}>
+                        {tag}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </Link>
+        )
+      })}
+    </div>
+  )
+}
+
 export default function Listing() {
   const [showCreateModal, setShowCreateModal] = useState(false)
   const [viewMode, setViewMode] = useState('grid')
   const [allTutorials, setAllTutorials] = useState(tutorials)
-  
+  const [searchQuery, setSearchQuery] = useState('')
+  const searchInputRef = useRef(null)
+  const { search, isBuilding } = useSearchIndex(allTutorials)
+  const searchResults = searchQuery.trim() ? search(searchQuery) : []
+  const isSearchActive = searchQuery.trim().length > 0
+
+  // Keyboard shortcut: Cmd+K or /
+  useEffect(() => {
+    const handler = (e) => {
+      if ((e.metaKey && e.key === 'k') || (e.key === '/' && !['INPUT', 'TEXTAREA'].includes(e.target.tagName))) {
+        e.preventDefault()
+        searchInputRef.current?.focus()
+      }
+      if (e.key === 'Escape' && searchQuery) {
+        setSearchQuery('')
+        searchInputRef.current?.blur()
+      }
+    }
+    document.addEventListener('keydown', handler)
+    return () => document.removeEventListener('keydown', handler)
+  }, [searchQuery])
+
   // Auto-discover JSON tutorials not in the curated list
   useEffect(() => {
     const discoverTutorials = async () => {
@@ -1115,6 +1234,15 @@ export default function Listing() {
       
       {/* Tutorial Grid */}
       <Container size="wide" className="py-12 -mt-12">
+        {/* Search bar */}
+        <div className="mb-6">
+          <SearchBar value={searchQuery} onChange={setSearchQuery} inputRef={searchInputRef} />
+        </div>
+
+        {isSearchActive ? (
+          <SearchResults results={searchResults} query={searchQuery} />
+        ) : (
+        <>
         {/* View toggle */}
         <div className="flex justify-end mb-4">
           <ViewToggle mode={viewMode} onChange={setViewMode} />
@@ -1136,6 +1264,8 @@ export default function Listing() {
               <TutorialListItem key={tutorial.id} tutorial={tutorial} />
             ))}
           </div>
+        )}
+        </>
         )}
         
         {/* "Continue your journey" section - delighter */}
