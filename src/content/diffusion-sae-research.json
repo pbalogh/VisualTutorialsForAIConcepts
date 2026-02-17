@@ -1090,6 +1090,60 @@
           },
           {
             "type": "DeepDive",
+            "title": "[Feb 17] CB-SAE: Concept Bottleneck SAEs for Better Interpretability + Steerability (Dec 2025)",
+            "children": [
+              {
+                "type": "p",
+                "children": [
+                  {
+                    "type": "strong",
+                    "children": [
+                      "Paper:"
+                    ]
+                  },
+                  " Kulkarni et al., 'Interpretable and Steerable Concept Bottleneck Sparse Autoencoders' (arXiv:2512.10805, Dec 11, 2025)"
+                ]
+              },
+              {
+                "type": "p",
+                "children": [
+                  {
+                    "type": "strong",
+                    "children": [
+                      "Key finding:"
+                    ]
+                  },
+                  " Systematic analysis reveals a critical limitation: a MAJORITY of SAE neurons exhibit either low interpretability OR low steerability (or both), rendering them ineffective for downstream use. Additionally, user-desired concepts are often absent in unsupervised SAE dictionaries."
+                ]
+              },
+              {
+                "type": "p",
+                "children": [
+                  {
+                    "type": "strong",
+                    "children": [
+                      "Solution:"
+                    ]
+                  },
+                  " CB-SAE prunes low-utility neurons and augments the latent space with a lightweight concept bottleneck aligned to user-defined concepts. Results: +32.1% interpretability, +14.5% steerability across LVLMs and image generation."
+                ]
+              },
+              {
+                "type": "p",
+                "children": [
+                  {
+                    "type": "strong",
+                    "children": [
+                      "Relevance:"
+                    ]
+                  },
+                  " ⭐⭐ ADDRESSES A PRACTICAL LIMITATION. For Idea 2 (feature steering), not all SAE features are equally useful — CB-SAE's pruning + concept alignment could be essential for selecting which features to use for conditional generation. The concept bottleneck approach also bridges to Idea 4: we could use target concepts as the 'dictionary' to guide denoising toward user-specified semantics."
+                ]
+              }
+            ]
+          },
+          {
+            "type": "DeepDive",
             "title": "[Feb 14 11am] \ud83d\udd25 ILRR: Learning-Free Activation Alignment for Diffusion Steering (Jan 2026)",
             "children": [
               {
@@ -1800,6 +1854,60 @@
                 ]
               }
             ]
+          },
+          {
+            "type": "DeepDive",
+            "title": "[Feb 17] CoM-DAD: Semantic Manifold + Variable-Rate Noise Schedule (Jan 2026)",
+            "children": [
+              {
+                "type": "p",
+                "children": [
+                  {
+                    "type": "strong",
+                    "children": [
+                      "Paper:"
+                    ]
+                  },
+                  " Xu et al., 'Bridging the Discrete-Continuous Gap: Unified Multimodal Generation via Coupled Manifold Discrete Absorbing Diffusion' (arXiv:2601.04056, Jan 7, 2026)"
+                ]
+              },
+              {
+                "type": "p",
+                "children": [
+                  {
+                    "type": "strong",
+                    "children": [
+                      "Key insight:"
+                    ]
+                  },
+                  " Decouples high-level semantic planning from low-level token synthesis via a DUAL-PROCESS architecture: (1) continuous latent diffusion models the semantic manifold, (2) discrete absorbing diffusion generates tokens with a VARIABLE-RATE NOISE SCHEDULE conditioned on evolving semantic priors. The semantic diffusion provides context that guides the token-level noise schedule."
+                ]
+              },
+              {
+                "type": "p",
+                "children": [
+                  {
+                    "type": "strong",
+                    "children": [
+                      "Relevance:"
+                    ]
+                  },
+                  " ⭐⭐⭐ COMBINES IDEAS 1 & 3! CoM-DAD implements BOTH a structured continuous latent space (semantic manifold, like our Idea 1) AND a semantically-conditioned noise schedule (like our Idea 3). The variable-rate noise schedule is exactly what we proposed: noise rates that depend on semantic content rather than being uniform. For SAE integration: replace their 'semantic manifold' with SAE feature space → interpretable semantics guide variable token-level noise rates."
+                ]
+              },
+              {
+                "type": "p",
+                "children": [
+                  {
+                    "type": "strong",
+                    "children": [
+                      "Key advantage:"
+                    ]
+                  },
+                  " Their Stochastic Mixed-Modal Transport aligns modalities without heavy contrastive encoders. This could simplify SAE integration — no need for separate alignment training."
+                ]
+              }
+            ]
           }
         ]
       },
@@ -2428,6 +2536,30 @@
                         ]
                       },
                       " (Huang & Mirzasoleiman, Jan 2026, arXiv:2601.22450) \u2014 Optimized mask probability distribution yields 5.8-8.8% perplexity gains on 8B models. Signal/Noise decomposition of MD objective."
+                    ]
+                  },
+                  {
+                    "type": "li",
+                    "children": [
+                      {
+                        "type": "strong",
+                        "children": [
+                          "CoM-DAD"
+                        ]
+                      },
+                      " (Xu et al., Jan 2026, arXiv:2601.04056) \u2014 Coupled Manifold Discrete Absorbing Diffusion. Dual-process: continuous semantic manifold + discrete tokens with variable-rate noise schedule conditioned on semantics."
+                    ]
+                  },
+                  {
+                    "type": "li",
+                    "children": [
+                      {
+                        "type": "strong",
+                        "children": [
+                          "CB-SAE"
+                        ]
+                      },
+                      " (Kulkarni et al., Dec 2025, arXiv:2512.10805) \u2014 Concept Bottleneck SAEs. Prunes low-utility neurons, adds concept-aligned bottleneck. +32.1% interpretability, +14.5% steerability."
                     ]
                   }
                 ]
