@@ -2463,6 +2463,132 @@
                 ]
               }
             ]
+          },
+          {
+            "type": "DeepDive",
+            "title": "[Feb 17] SearchDiff: Training-Free Constrained Generation for Masked Diffusion (Feb 2026)",
+            "children": [
+              {
+                "type": "p",
+                "children": [
+                  {
+                    "type": "strong",
+                    "children": [
+                      "Paper:"
+                    ]
+                  },
+                  " Ta et al., 'Search-Augmented Masked Diffusion Models for Constrained Generation' (arXiv:2602.02727, Feb 2026)"
+                ]
+              },
+              {
+                "type": "p",
+                "children": [
+                  {
+                    "type": "strong",
+                    "children": [
+                      "Key insight:"
+                    ]
+                  },
+                  " At each denoising step, model predictions define a proposal set that is optimized under user-specified property constraints, yielding modified reverse transitions that steer sampling toward feasible solutions. Training-free — works with any masked diffusion model."
+                ]
+              },
+              {
+                "type": "p",
+                "children": [
+                  {
+                    "type": "strong",
+                    "children": [
+                      "Relevance:"
+                    ]
+                  },
+                  " ⭐⭐⭐ DIRECT FRAMEWORK for Idea 4. SearchDiff's 'property satisfaction function' at each denoising step is exactly where SAE feature detection would plug in. Instead of generic constraints, use SAE feature activations as the optimization target — steer each denoising step toward sparse combinations of desired dictionary features. No retraining needed."
+                ]
+              }
+            ]
+          },
+          {
+            "type": "DeepDive",
+            "title": "[Feb 17] Mechanistic Indicators of SAE Steering Effectiveness (Feb 2026)",
+            "children": [
+              {
+                "type": "p",
+                "children": [
+                  {
+                    "type": "strong",
+                    "children": [
+                      "Paper:"
+                    ]
+                  },
+                  " Jafari et al., 'Mechanistic Indicators of Steering Effectiveness in Large Language Models' (arXiv:2602.01716, Feb 2026)"
+                ]
+              },
+              {
+                "type": "p",
+                "children": [
+                  {
+                    "type": "strong",
+                    "children": [
+                      "Key insight:"
+                    ]
+                  },
+                  " Introduces entropy-based Normalized Branching Factor (NBF) and KL divergence as mechanistic predictors of when SAE-based and CAA steering will succeed or fail. Provides the first diagnostic framework for steering reliability."
+                ]
+              },
+              {
+                "type": "p",
+                "children": [
+                  {
+                    "type": "strong",
+                    "children": [
+                      "Relevance:"
+                    ]
+                  },
+                  " ⭐⭐ Methodology for Idea 2. In SAE-guided diffusion, we'd need to know WHEN during the denoising process steering is most effective. NBF and KL diagnostics could predict which denoising steps benefit most from SAE feature intervention, complementing the 'late-stage guidance is better' finding from Theory-Informed CFG."
+                ]
+              }
+            ]
+          },
+          {
+            "type": "DeepDive",
+            "title": "[Feb 17] Falsifying SAE Reasoning Features — Important Caveat (Jan 2026)",
+            "children": [
+              {
+                "type": "p",
+                "children": [
+                  {
+                    "type": "strong",
+                    "children": [
+                      "Paper:"
+                    ]
+                  },
+                  " Ma et al., 'Falsifying Sparse Autoencoder Reasoning Features in Language Models' (arXiv:2601.05679, Jan 2026)"
+                ]
+              },
+              {
+                "type": "p",
+                "children": [
+                  {
+                    "type": "strong",
+                    "children": [
+                      "Key insight:"
+                    ]
+                  },
+                  " 45-90% of contrastively selected 'reasoning' SAE features activate from just a few associated token injections into non-reasoning text. Many SAE features capture low-dimensional cues co-occurring with reasoning, not reasoning itself. Steering with these features yields minimal benchmark changes."
+                ]
+              },
+              {
+                "type": "p",
+                "children": [
+                  {
+                    "type": "strong",
+                    "children": [
+                      "Relevance:"
+                    ]
+                  },
+                  " ⭐⭐ Important caveat for all ideas. For SAE-guided diffusion, we must ensure features used for steering capture genuine semantic properties, not surface cues. This reinforces the input/output feature distinction from Arad et al. — 'output features' that causally change model behavior are more reliable than 'input features' that merely detect patterns. Falsification testing should be part of our feature selection pipeline."
+                ]
+              }
+            ]
           }
         ]
       },
