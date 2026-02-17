@@ -540,6 +540,18 @@ const tutorials = [
     difficulty: 3,
   },
   {
+    id: 'brainstorm-61-successor-representation',
+    title: 'Operators Generate the Successor Representation',
+    description: 'Scripts as factored predictive maps — how Schankian operators are literally the transition matrix that generates the brain\'s GPS for events',
+    tags: ['schankian', 'neuroscience', 'successor-representation', 'scripts'],
+    icon: '🗺️',
+    gradient: 'from-emerald-500 to-teal-600',
+    shadowColor: 'shadow-emerald-500/30',
+    glowColor: 'rgba(16, 185, 129, 0.4)',
+    readTime: '22 min',
+    difficulty: 2,
+  },
+  {
     id: 'brainstorm-52-pearls-ladder',
     title: "Pearl's Ladder as an Operator Hierarchy",
     description: "Why confusing correlation with causation is literally a type error — three classes of operators formalize the Causal Hierarchy Theorem",

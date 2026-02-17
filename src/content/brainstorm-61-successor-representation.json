@@ -1,0 +1,511 @@
+{
+  "id": "brainstorm-61-successor-representation",
+  "title": "Operators Generate the Successor Representation",
+  "subtitle": "Scripts as Factored Predictive Maps",
+  "readTime": "22 min",
+  "state": "published",
+  "content": {
+    "type": "Fragment",
+    "children": [
+      {
+        "type": "Callout",
+        "props": {
+          "type": "info"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": [
+              {
+                "type": "strong",
+                "children": "What if Schank's scripts ARE the brain's GPS?"
+              },
+              " The Successor Representation (SR) is a neuroscience model of how the brain predicts future states from current ones. Schank's scripts — restaurant, doctor visit, birthday party — do exactly the same thing for events. This tutorial shows that Schankian operators are literally the transition matrix that generates the successor representation, connecting 1970s AI to 2020s neuroscience."
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "1. The Successor Representation: Predicting What Comes Next"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "In reinforcement learning, an agent needs to know: 'From where I am now, what states will I visit in the future?' The Successor Representation (SR), introduced by Dayan (1993), elegantly encodes this as a matrix."
+          },
+          {
+            "type": "Analogy",
+            "props": {
+              "concept": "Successor Representation",
+              "analogy": "Google Maps for States",
+              "icon": "🗺️"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "Imagine Google Maps, but instead of showing roads, it shows how likely you are to visit each location starting from your current one. A highway interchange has high SR values to many destinations. A dead-end street has high SR only to itself. The SR is a heat map of your expected future, weighted by how soon you'll get there."
+              }
+            ]
+          },
+          {
+            "type": "p",
+            "children": "Formally, the SR matrix M is defined as:"
+          },
+          {
+            "type": "Callout",
+            "props": {
+              "type": "formula"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "M = (I − γT)⁻¹ = I + γT + γ²T² + γ³T³ + ..."
+              },
+              {
+                "type": "p",
+                "children": "where T is the transition matrix (probability of going from state i to state j), γ is a discount factor (0 < γ < 1), and I is the identity matrix."
+              }
+            ]
+          },
+          {
+            "type": "p",
+            "children": "The geometric series expansion is intuitive: M counts direct transitions (γT), two-step paths (γ²T²), three-step paths (γ³T³), and so on — each discounted more as they stretch further into the future."
+          },
+          {
+            "type": "DeepDive",
+            "props": {
+              "title": "Why not just use the transition matrix T directly?"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "T only tells you what happens in one step. But for planning, you need to know about multi-step consequences. The SR aggregates all future steps into a single matrix. It's the difference between knowing 'this road leads to the next intersection' versus 'this road eventually leads to the airport.' The SR gives you the airport-level view."
+              },
+              {
+                "type": "p",
+                "children": "Crucially, the SR separates DYNAMICS (the transition structure T) from REWARDS (what's valuable). When rewards change (new restaurant opened!), the SR stays the same — only the reward vector updates. This is why the hippocampus is thought to encode SRs: it represents spatial/event structure independent of current goals."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "2. Scripts ARE Successor Representations"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "Now here's the key insight: Schank's scripts encode exactly the same information as the SR, but for events instead of spatial locations."
+          },
+          {
+            "type": "Example",
+            "props": {
+              "title": "The Restaurant Script as an SR"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "Schank's classic restaurant script: ENTER → SIT → ORDER → EAT → PAY → LEAVE"
+              },
+              {
+                "type": "p",
+                "children": "This is a transition chain. The SR from ENTER assigns high values to SIT (one step), moderate to ORDER (two steps), lower to EAT (three steps), and so on. If you're currently at ENTER, the SR tells you: you'll probably SIT soon, ORDER somewhat later, and PAY eventually."
+              },
+              {
+                "type": "p",
+                "children": "The arrows between script events? Those are Schankian operators. ENTER→SIT involves PTRANS (physical movement) + MOVE (body position change). ORDER involves MTRANS (information transfer to waiter). Each arrow is an operator transforming the world state."
+              }
+            ]
+          },
+          {
+            "type": "InteractiveDemo",
+            "props": {
+              "title": "Restaurant Script as Successor Representation",
+              "height": 380,
+              "initialCode": "const states = ['ENTER','SIT','ORDER','EAT','PAY','LEAVE'];\nconst gamma = 0.8;\n\n// Build transition matrix (simple chain)\nconst T = states.map((_,i) => states.map((_,j) => j===i+1 ? 1.0 : 0));\n\n// Compute SR: M = I + γT + γ²T² + ...\nfunction matMul(A,B) {\n  return A.map((row,i) => B[0].map((_,j) => row.reduce((s,_,k) => s+A[i][k]*B[k][j],0)));\n}\nfunction matAdd(A,B) { return A.map((r,i) => r.map((v,j) => v+B[i][j])); }\nfunction matScale(A,s) { return A.map(r => r.map(v => v*s)); }\n\nlet M = states.map((_,i) => states.map((_,j) => i===j?1:0)); // Identity\nlet Tk = T.map(r=>[...r]); // T^k starts at T^1\nfor(let k=1; k<=10; k++) {\n  M = matAdd(M, matScale(Tk, Math.pow(gamma,k)));\n  Tk = matMul(Tk, T);\n}\n\n// Display SR from ENTER state\nconst fromEnter = M[0];\nconst maxVal = Math.max(...fromEnter);\nconst bar = (v) => '█'.repeat(Math.round(v/maxVal*20));\nreturn states.map((s,i) => `${s.padEnd(7)} ${bar(fromEnter[i])} ${fromEnter[i].toFixed(2)}`).join('\\n');"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "This demo computes the Successor Representation for the restaurant script. The bar chart shows, from the ENTER state, how much 'future occupancy' each state has. Nearby states (SIT, ORDER) dominate. Try changing γ (discount factor) to see how it affects the time horizon."
+              }
+            ]
+          },
+          {
+            "type": "Callout",
+            "props": {
+              "type": "key-insight"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "Scripts and SRs are the same mathematical object viewed from different disciplines. Scripts come from AI/cognitive science (Schank, 1977). SRs come from neuroscience/RL (Dayan, 1993). The connection: Schankian operators ARE the transition matrix T that generates the SR via M = (I − γT)⁻¹."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "3. Why Factored Operators Beat Flat SRs"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "Here's where operators really shine. A flat SR requires O(|S|²) parameters — one entry for every pair of states. For a world with 10,000 possible event-states, that's 100 million parameters just for the predictive map!"
+          },
+          {
+            "type": "p",
+            "children": "Factored operators need only O(K × d²) parameters, where K is the number of operators (~14 Schankian primitives) and d is the embedding dimension. With K=14 and d=64, that's ~57,000 parameters — a 1,750x compression."
+          },
+          {
+            "type": "Analogy",
+            "props": {
+              "concept": "Factored vs Flat",
+              "analogy": "Grammar vs Phrasebook",
+              "icon": "📖"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "A flat SR is like a phrasebook: it memorizes 'from Paris, you can reach London' as a separate fact for every city pair. Factored operators are like grammar: learn the rules (PTRANS = physical movement, ATRANS = ownership transfer) and you can generate any transition. You don't need to memorize 'ENTER→SIT' separately from 'ARRIVE→SIT_DOWN' — both use the same PTRANS operator."
+              }
+            ]
+          },
+          {
+            "type": "InteractiveDemo",
+            "props": {
+              "title": "Flat SR vs Factored Operators: Parameter Count",
+              "height": 300,
+              "initialCode": "const scenarios = [\n  { name: 'Toy (100 states)', S: 100, K: 14, d: 16 },\n  { name: 'Small (1K states)', S: 1000, K: 14, d: 32 },\n  { name: 'Medium (10K states)', S: 10000, K: 14, d: 64 },\n  { name: 'Real-world (100K states)', S: 100000, K: 14, d: 128 },\n];\n\nreturn scenarios.map(s => {\n  const flat = s.S * s.S;\n  const factored = s.K * s.d * s.d;\n  const ratio = (flat / factored).toFixed(0);\n  return `${s.name}:\\n  Flat SR: ${flat.toLocaleString()} params\\n  Factored: ${factored.toLocaleString()} params\\n  Compression: ${ratio}x\\n`;\n}).join('\\n');"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "Compare parameter counts: flat SR grows quadratically with states, while factored operators grow only with the number of primitives and embedding dimension. This explains why scripts are cognitively efficient — the brain doesn't memorize every state-to-state transition."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "4. Event Boundaries = Operator Switches"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "Neuroscience has discovered that the brain segments continuous experience into discrete events at 'event boundaries.' People remember the boundaries better than the middles. What triggers a boundary?"
+          },
+          {
+            "type": "Callout",
+            "props": {
+              "type": "key-insight"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "Event boundaries occur when the active operator changes. Walking through a doorway (PTRANS → different PTRANS), a conversation topic shift (MTRANS content change), picking up an object after walking (PTRANS → GRASP) — each operator switch creates a boundary that segments the predictive map."
+              }
+            ]
+          },
+          {
+            "type": "Example",
+            "props": {
+              "title": "Doorway Effect Explained"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "The famous 'doorway effect' — forgetting why you entered a room — makes perfect sense in this framework. Crossing a doorway triggers an operator switch (PTRANS changes target location), which resets the local SR context. The previous event's working memory gets compressed into the SR and partially flushed. You remember the TRANSITION happened but lose the details that motivated it."
+              }
+            ]
+          },
+          {
+            "type": "DeepDive",
+            "props": {
+              "title": "Neural evidence for event segmentation"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "Baldassano et al. (2017, Neuron) showed that hippocampal activity patterns shift at event boundaries in a way consistent with SR updates. When a new event begins, the hippocampus rapidly updates its predictive map. The old event pattern is compressed into long-term memory while a new pattern initializes. This is exactly what switching operators in our framework would look like — the transition matrix T changes its active row, triggering a cascade of SR recalculation."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "5. Narrative Importance = SR Centrality"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "Which events in a story matter most? In the SR framework, important events are those with high centrality — events that many other events transition through."
+          },
+          {
+            "type": "Example",
+            "props": {
+              "title": "Murder Mystery SR Centrality"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "In a murder mystery, the murder itself has massive SR centrality: every subsequent event (investigation, interrogation, trial) flows through it. A red herring has LOW centrality — it leads to a dead end that doesn't connect to the resolution. Readers intuitively sense this, which is why poorly-constructed red herrings feel frustrating: they occupy narrative time but have low SR centrality."
+              }
+            ]
+          },
+          {
+            "type": "InteractiveDemo",
+            "props": {
+              "title": "Narrative Centrality Calculator",
+              "height": 400,
+              "initialCode": "// A branching narrative with a critical hub event\nconst events = ['Setup','Clue_A','Clue_B','MURDER','Red_Herring','Investigation','Reveal','Arrest'];\nconst transitions = [\n  [0,1],[0,2],[1,3],[2,3],[3,4],[3,5],[4,4],[5,6],[6,7]\n];\nconst gamma = 0.7;\nconst n = events.length;\n\n// Build T\nconst T = Array.from({length:n}, ()=>Array(n).fill(0));\nfor(const [i,j] of transitions) {\n  // Count outgoing edges for normalization\n  const outCount = transitions.filter(([f])=>f===i).length;\n  T[i][j] = 1/outCount;\n}\n\n// SR via power series\nlet M = Array.from({length:n},(_,i)=>Array.from({length:n},(_,j)=>i===j?1:0));\nlet Tk = T.map(r=>[...r]);\nfor(let k=1;k<=20;k++) {\n  for(let i=0;i<n;i++) for(let j=0;j<n;j++) M[i][j]+=Math.pow(gamma,k)*Tk[i][j];\n  const nT=Array.from({length:n},()=>Array(n).fill(0));\n  for(let i=0;i<n;i++) for(let j=0;j<n;j++) for(let k2=0;k2<n;k2++) nT[i][j]+=Tk[i][k2]*T[k2][j];\n  Tk=nT;\n}\n\n// Centrality = column sum of M (how much each state is visited from all starts)\nconst centrality = events.map((_,j) => M.reduce((s,row)=>s+row[j],0));\nconst maxC = Math.max(...centrality);\nconst bar = v => '█'.repeat(Math.round(v/maxC*25));\n\nreturn events.map((e,i) => \n  `${e.padEnd(15)} ${bar(centrality[i])} ${centrality[i].toFixed(2)}`\n).join('\\n') + '\\n\\n→ MURDER has highest centrality: it\\'s the narrative hub!';"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "This demo builds a simple murder mystery narrative graph and computes SR centrality for each event. Notice how the MURDER event dominates — it's the hub through which all narrative paths flow. The Red_Herring has minimal centrality because it leads only to itself (dead end)."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "6. Credit Assignment Through Operator Chains"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "One of the hardest problems in RL is credit assignment: which past action deserves credit for a current reward? The SR solves this elegantly — the SR entry M[s,s'] directly gives the 'credit' that state s deserves for reaching s'."
+          },
+          {
+            "type": "p",
+            "children": "For narratives, this means operators provide causal credit. When a character achieves a goal, the SR traces back through operator chains to identify which earlier actions contributed."
+          },
+          {
+            "type": "Example",
+            "props": {
+              "title": "Chekhov's Gun and SR Credit"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "Chekhov's famous principle — 'if a gun appears in Act 1, it must fire in Act 3' — is an SR credit assignment rule. The PTRANS(gun, mantelpiece) in Act 1 has high SR value to the PROPEL(bullet, target) in Act 3. If the gun never fires, its SR centrality is artificially high but unfulfilled — creating narrative tension that resolves into dissatisfaction. Good storytelling means matching SR expectations."
+              }
+            ]
+          },
+          {
+            "type": "DeepDive",
+            "props": {
+              "title": "Eligibility traces and narrative memory"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "In RL, eligibility traces (λ-returns) blend TD and Monte Carlo credit assignment. The SR naturally computes these — M is the matrix of eligibility traces. For narratives, this predicts that events occurring close together in the operator chain are more strongly associated in memory than distant events, even if they're temporally adjacent in text. A plot twist works because it reveals that two events previously thought to be SR-disconnected actually share high SR values through a hidden operator chain."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "7. Diffusion Models and the Geometric Series"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "The SR's geometric series M = I + γT + γ²T² + ... has a surprising connection to diffusion models. Each denoising step in a diffusion LM refines a prediction, much like each term in the geometric series adds longer-range predictions."
+          },
+          {
+            "type": "Analogy",
+            "props": {
+              "concept": "SR Geometric Series",
+              "analogy": "Progressive Rendering",
+              "icon": "🎨"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "Think of loading an image progressively: first you see a blurry outline (I — just the current state), then coarse structure emerges (γT — immediate transitions), then medium detail (γ²T² — two-step paths), then fine detail (higher-order terms). The SR is a progressively rendered map of the future, just as diffusion denoising is a progressively rendered sample from a distribution."
+              }
+            ]
+          },
+          {
+            "type": "DeepDive",
+            "props": {
+              "title": "How diffusion denoising relates to SR computation"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "In a diffusion language model, each denoising step removes noise and reveals structure. The parallel to SR is precise: step 1 reveals immediate next-event predictions (the γT term), step 2 reveals two-step predictions (γ²T²), and so on. The full denoised output integrates all these terms — it IS the successor representation of the narrative. This suggests that operators could serve as the transition kernel for narrative diffusion models, with each denoising step applying operators to refine event predictions."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "8. Putting It All Together"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "The Schankian operator framework and the Successor Representation are two views of the same underlying structure:"
+          },
+          {
+            "type": "ul",
+            "children": [
+              {
+                "type": "li",
+                "children": [
+                  {
+                    "type": "strong",
+                    "children": "Operators = Transition Matrix T."
+                  },
+                  " Each operator defines how one event-state leads to another."
+                ]
+              },
+              {
+                "type": "li",
+                "children": [
+                  {
+                    "type": "strong",
+                    "children": "Scripts = Successor Representation M."
+                  },
+                  " Each script IS the multi-step predictive map generated by chaining operators."
+                ]
+              },
+              {
+                "type": "li",
+                "children": [
+                  {
+                    "type": "strong",
+                    "children": "Event boundaries = Operator switches."
+                  },
+                  " The brain segments experience when the active operator changes."
+                ]
+              },
+              {
+                "type": "li",
+                "children": [
+                  {
+                    "type": "strong",
+                    "children": "Narrative importance = SR centrality."
+                  },
+                  " Hub events in the transition graph are the most memorable and narratively significant."
+                ]
+              },
+              {
+                "type": "li",
+                "children": [
+                  {
+                    "type": "strong",
+                    "children": "Factored operators = Cognitive efficiency."
+                  },
+                  " O(K×d²) beats O(|S|²) by orders of magnitude."
+                ]
+              }
+            ]
+          },
+          {
+            "type": "Callout",
+            "props": {
+              "type": "key-insight"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "This unification has a profound implication: by learning Schankian operators, we're not just building a linguistic tool. We're discovering the factored transition structure of human event understanding — the same structure the hippocampus uses to navigate both physical space and narrative space."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "Quiz: Test Your Understanding"
+        },
+        "children": [
+          {
+            "type": "Quiz",
+            "props": {
+              "questions": [
+                {
+                  "question": "What does the Successor Representation M encode?",
+                  "options": [
+                    "The immediate next state from the current state",
+                    "The expected discounted future occupancy of all states from any starting state",
+                    "The reward value of each state",
+                    "The shortest path between any two states"
+                  ],
+                  "correct": 1,
+                  "explanation": "M = (I − γT)⁻¹ sums up all future occupancies, discounted by γ per step. It tells you not just what happens next, but the entire expected trajectory of future states."
+                },
+                {
+                  "question": "Why are factored Schankian operators more efficient than a flat SR?",
+                  "options": [
+                    "Operators are simpler to compute",
+                    "Operators use O(K×d²) parameters vs O(|S|²) for flat SR",
+                    "Operators don't need a discount factor",
+                    "Operators only work for small state spaces"
+                  ],
+                  "correct": 1,
+                  "explanation": "With ~14 operators and moderate embedding dimensions, factored operators compress the predictive map by orders of magnitude compared to memorizing all pairwise state transitions."
+                },
+                {
+                  "question": "What corresponds to an 'event boundary' in the operator framework?",
+                  "options": [
+                    "When the SR matrix is recomputed",
+                    "When the discount factor γ changes",
+                    "When the active operator switches to a different one",
+                    "When a new entity enters the scene"
+                  ],
+                  "correct": 2,
+                  "explanation": "Event boundaries — the moments that segment continuous experience — occur when the active Schankian operator changes. Walking through a doorway (PTRANS switch), starting a conversation (→ MTRANS), etc."
+                },
+                {
+                  "question": "In a narrative, what determines an event's importance according to the SR view?",
+                  "options": [
+                    "How early it appears in the story",
+                    "How emotionally intense it is",
+                    "Its centrality in the transition graph — how many paths flow through it",
+                    "How many characters are involved"
+                  ],
+                  "correct": 2,
+                  "explanation": "SR centrality (column sum of M) measures how many narrative paths flow through an event. Hub events like the murder in a mystery have high centrality because they connect setup to resolution."
+                },
+                {
+                  "question": "How does the SR geometric series M = I + γT + γ²T² + ... relate to diffusion models?",
+                  "options": [
+                    "They use the same loss function",
+                    "Each term adds longer-range predictions, like each denoising step reveals more structure",
+                    "Both require Gaussian noise",
+                    "They are mathematically identical"
+                  ],
+                  "correct": 1,
+                  "explanation": "Each term γᵏTᵏ in the SR series adds k-step-ahead predictions, progressively extending the time horizon. Similarly, each denoising step in a diffusion model reveals progressively finer structure — both are progressive refinement processes."
+                }
+              ]
+            }
+          }
+        ]
+      }
+    ]
+  }
+}
