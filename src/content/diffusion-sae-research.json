@@ -2153,6 +2153,30 @@
                       },
                       " (Zheng et al., Oct 2025, arXiv:2509.25035) \u2014 64x acceleration of dLLMs via KL-divergence distillation. Ppl 18.4 at 128 NFEs."
                     ]
+                  },
+                  {
+                    "type": "li",
+                    "children": [
+                      {
+                        "type": "strong",
+                        "children": [
+                          "Scaling Beyond MDLMs"
+                        ]
+                      },
+                      " (Sahoo et al., Feb 16, 2026, arXiv:2602.15014) \u2014 From the MDLM author! First scaling law study across discrete diffusion families. Uniform-state diffusion outperforms AR and masked diffusion on GSM8K despite worse perplexity. Challenges masked diffusion dominance."
+                    ]
+                  },
+                  {
+                    "type": "li",
+                    "children": [
+                      {
+                        "type": "strong",
+                        "children": [
+                          "CCDD"
+                        ]
+                      },
+                      " (Zhou et al., Oct 2025, arXiv:2510.03206) \u2014 Coevolutionary Continuous Discrete Diffusion. Joint diffusion in continuous representation + discrete token space. Continuous latents serve as implicit planning that guides token decoding."
+                    ]
                   }
                 ]
               }
@@ -2328,6 +2352,114 @@
                     ]
                   },
                   " \u2b50\u2b50 The hierarchical trajectory search is relevant to Idea 3 \u2014 it dynamically allocates compute based on what stage of denoising needs it most. The partial remasking could be combined with SAE feature analysis: remask tokens whose SAE features don't match the target profile."
+                ]
+              }
+            ]
+          },
+          {
+            "type": "DeepDive",
+            "title": "[Feb 17] \ud83d\udd25 Scaling Beyond Masked Diffusion: Perplexity Is Misleading Across Families (Feb 16, 2026)",
+            "children": [
+              {
+                "type": "p",
+                "children": [
+                  {
+                    "type": "strong",
+                    "children": [
+                      "Paper:"
+                    ]
+                  },
+                  " Sahoo et al. (MDLM author!), 'Scaling Beyond Masked Diffusion Language Models' (arXiv:2602.15014, Feb 16, 2026)"
+                ]
+              },
+              {
+                "type": "p",
+                "children": [
+                  {
+                    "type": "strong",
+                    "children": [
+                      "Key insight:"
+                    ]
+                  },
+                  " First scaling law study across discrete diffusion families (masked, uniform-state, interpolating). CRITICAL FINDING: perplexity is informative WITHIN a family but MISLEADING ACROSS families. Uniform-state diffusion at 1.7B outperforms both AR and masked diffusion on GSM8K despite worse validation perplexity. The speed-quality Pareto frontier favors different methods than perplexity alone suggests."
+                ]
+              },
+              {
+                "type": "p",
+                "children": [
+                  {
+                    "type": "strong",
+                    "children": [
+                      "Practical finding:"
+                    ]
+                  },
+                  " Masked diffusion can be made ~12% more FLOPs-efficient with a simple cross-entropy objective."
+                ]
+              },
+              {
+                "type": "p",
+                "children": [
+                  {
+                    "type": "strong",
+                    "children": [
+                      "Relevance:"
+                    ]
+                  },
+                  " \u2b50\u2b50\u2b50 IMPORTANT FOR ALL IDEAS. If we build SAE-guided diffusion, we should not default to masked diffusion just because it has best perplexity. Uniform-state diffusion may be a better base for SAE integration \u2014 it operates on all tokens simultaneously (not just masked ones), which aligns better with SAE features that capture whole-sequence properties. The cross-family comparison methodology is also relevant: we'll need to evaluate SAE-guided diffusion on downstream tasks, not just perplexity."
+                ]
+              }
+            ]
+          },
+          {
+            "type": "DeepDive",
+            "title": "[Feb 17] CCDD: Joint Continuous-Discrete Diffusion for Latent Reasoning (Oct 2025)",
+            "children": [
+              {
+                "type": "p",
+                "children": [
+                  {
+                    "type": "strong",
+                    "children": [
+                      "Paper:"
+                    ]
+                  },
+                  " Zhou et al., 'Coevolutionary Continuous Discrete Diffusion: Make Your Diffusion Language Model a Latent Reasoner' (arXiv:2510.03206, Oct 2025)"
+                ]
+              },
+              {
+                "type": "p",
+                "children": [
+                  {
+                    "type": "strong",
+                    "children": [
+                      "Key insight:"
+                    ]
+                  },
+                  " Defines a joint multimodal diffusion process on the union of a continuous representation space and a discrete token space. A single model simultaneously denoises in both spaces. The continuous latents serve as implicit planning/reasoning that guides discrete token decoding \u2014 they generate faster and provide high-level guidance."
+                ]
+              },
+              {
+                "type": "p",
+                "children": [
+                  {
+                    "type": "strong",
+                    "children": [
+                      "Relevance:"
+                    ]
+                  },
+                  " \u2b50\u2b50\u2b50 DIRECT ARCHITECTURE for Idea 1. CCDD already implements the two-space paradigm we envision: continuous representation space (where SAE features live) + discrete token space. Our proposal would replace their generic continuous space with SAE feature space, making the continuous latents interpretable. The 'continuous guides discrete' dynamic is exactly what SAE-structured latent spaces should provide: high-level SAE features guide the token-level denoising."
+                ]
+              },
+              {
+                "type": "p",
+                "children": [
+                  {
+                    "type": "strong",
+                    "children": [
+                      "New research question:"
+                    ]
+                  },
+                  " Can we plug SAE feature space into CCDD's continuous component? The architecture already supports joint continuous-discrete denoising \u2014 we'd just make the continuous space interpretable via SAEs."
                 ]
               }
             ]
