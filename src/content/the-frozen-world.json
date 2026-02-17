@@ -1,0 +1,821 @@
+{
+  "type": "Fragment",
+  "meta": {
+    "title": "The Frozen World: Entity State Tracking, Scoping, and Why Transformers Can't See Movement",
+    "description": "How LLMs experience a form of computational akinetopsia — motion blindness for entity states — and how operator-based state tracking could cure it",
+    "author": "Peter Balogh",
+    "lastUpdated": "2026-02-17",
+    "tags": [
+      "entity tracking",
+      "SAE",
+      "sparse autoencoders",
+      "operators",
+      "akinetopsia",
+      "Oliver Sacks",
+      "anaphora",
+      "state tracking",
+      "transformers",
+      "residual stream"
+    ]
+  },
+  "content": {
+    "type": "Fragment",
+    "children": [
+      {
+        "type": "Section",
+        "props": {
+          "title": "1. The Frozen World — Akinetopsia"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "In 1983, neurologists Josef Zihl, Dagmar von Cramon, and Norbert Mai documented one of the most extraordinary cases in the history of neuroscience. Patient L.M., a 43-year-old woman, had suffered bilateral damage to area V5/MT — the brain region dedicated to motion perception. She could see perfectly well. Colors, shapes, faces, objects — all crisp and clear. But she could not see movement."
+          },
+          {
+            "type": "p",
+            "children": "The condition is called akinetopsia — motion blindness. For L.M., the world was a series of frozen photographs. Pouring coffee was terrifying: the liquid appeared as a static, glacial column suspended above the cup, and then — without transition — the cup was overflowing, coffee pooling across the table. There was no in-between. No flow. No pour."
+          },
+          {
+            "type": "p",
+            "children": "People didn't walk. They teleported. A person was across the room, and then suddenly they were standing next to her. Traffic was a nightmare — cars existed in one position, then another, with no trajectory connecting the two. Crossing the street meant gambling that the frozen car she saw 'over there' wouldn't materialize 'right here' in the next snapshot."
+          },
+          {
+            "type": "Callout",
+            "props": {
+              "type": "info"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "Oliver Sacks explored this phenomenon in 'The Man Who Mistook His Wife for a Hat,' describing what he called 'cinematographic vision' — the idea that our brains don't passively receive the world as a movie, but actively construct the experience of continuity and change through dedicated neural circuitry. Without that circuitry, you don't get a blurry movie. You get disconnected snapshots with no narrative thread."
+              }
+            ]
+          },
+          {
+            "type": "p",
+            "children": "Here is the claim of this tutorial: large language models suffer from a computational form of akinetopsia. They can represent entities — a cop, a marriage, a mood — with extraordinary richness at any given moment. But they are fundamentally impaired at tracking how those entities CHANGE through a narrative. They see the snapshots. They are blind to the movement between them."
+          },
+          {
+            "type": "Analogy",
+            "props": {
+              "title": "The core analogy"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "Patient L.M. had intact object recognition but no motion perception. LLMs have intact entity representation but no state-change tracking. L.M. saw the cup empty, then the cup full, but not the pouring. LLMs represent 'the cop is happy' and 'the cop is devastated' but lose the transition — the event, the cause, the temporal ordering — in the noise of superposition. The brain's solution was area V5/MT: dedicated circuitry for computing change. The LLM solution, we'll argue, is operators: dedicated transformations for computing state deltas."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "2. The Programming Language Analogy — Scopes of Meaning"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "To understand why entity tracking is hard for transformers, it helps to think about how programming languages manage identity and reference. The parallels are surprisingly exact."
+          },
+          {
+            "type": "Section",
+            "props": {
+              "title": "2a. SAE Features as Reserved Keywords"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "Sparse Autoencoder (SAE) dictionary features are the reserved keywords and constants of the transformer's programming language. They're baked in. Fixed. Universal. The feature for 'law enforcement' fires the same way whether you're writing a crime novel or discussing police reform. The feature for 'positive emotional valence' doesn't care about your narrative context — it just reports whether positivity is present."
+              },
+              {
+                "type": "p",
+                "children": "These are like 'true', 'false', 'int', 'string' in a programming language — always available, context-independent, part of the base vocabulary that every program has access to."
+              }
+            ]
+          },
+          {
+            "type": "Section",
+            "props": {
+              "title": "2b. Lexical Scope as Discourse Entities"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "When a narrative introduces 'a cop,' something analogous to variable declaration happens. A new discourse entity is created. It exists within the current scope — the narrative context — and begins accumulating bindings: male, middle-aged, unhappy marriage, works the night shift. Each new sentence adds properties, like assigning fields to a struct."
+              },
+              {
+                "type": "Example",
+                "props": {
+                  "title": "Variable declaration in narrative"
+                },
+                "children": [
+                  {
+                    "type": "p",
+                    "children": "Narrative: 'A cop walked into the bar. He looked tired. His wedding ring was gone.'"
+                  },
+                  {
+                    "type": "CodeBlock",
+                    "props": {
+                      "language": "javascript"
+                    },
+                    "children": "// Equivalent program:\nlet cop = new Entity('cop');     // 'A cop' — declaration\ncop.location = 'bar';            // 'walked into the bar'\ncop.appearance = 'tired';        // 'He looked tired'\ncop.maritalStatus = 'separated'; // 'His wedding ring was gone'"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "Section",
+            "props": {
+              "title": "2c. Anaphora as Variable Reference"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "Every pronoun is a pointer. 'He' in 'He looked tired' is not a word with inherent meaning — it's a reference that must be resolved by searching up the scope chain. Which entity does 'he' point to? The attention mechanism is literally performing this pointer lookup: attention heads learn to route information from the antecedent position ('a cop') to the pronoun position ('he')."
+              },
+              {
+                "type": "Callout",
+                "props": {
+                  "type": "info"
+                },
+                "children": [
+                  {
+                    "type": "p",
+                    "children": "Research on 'induction heads' and 'previous token heads' has shown that specific attention heads specialize in exactly this kind of reference resolution. They're pointer-lookup circuits, hardwired by training to resolve anaphoric chains."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "Section",
+            "props": {
+              "title": "2d. Runtime Scope and In-Context Learning"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "In-context learning creates temporary runtime bindings — like dynamically-scoped variables that exist only during the current execution. When you tell a model 'In this conversation, X means Y,' you're creating a runtime binding. These are fragile, context-dependent, and disappear when the context window ends. They're the let declarations inside a closure: real and powerful within their scope, invisible outside it."
+              }
+            ]
+          },
+          {
+            "type": "InteractiveDemo",
+            "props": {
+              "title": "Scopes in Parallel: Code vs. Narrative"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "Compare the scoping levels side by side:"
+              },
+              {
+                "type": "CodeBlock",
+                "props": {
+                  "language": "text"
+                },
+                "children": "PROGRAMMING LANGUAGE          TRANSFORMER\n─────────────────────         ────────────────────\nReserved keywords             SAE dictionary features\n(true, false, int)            (law_enforcement, positive_valence)\n\nLexical scope / variables     Discourse entities\n(let cop = {...})             ('a cop' → entity with bindings)\n\nPointer / reference           Anaphora resolution\n(cop.name)                    ('he' → attention to 'cop')\n\nRuntime / dynamic scope       In-context learning\n(eval, closures)              (prompt-created bindings)\n\nGarbage collection            Context window limits\n(out of scope → freed)        (out of window → forgotten)"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "3. Where Is the Entity Store?"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "If a transformer is tracking entities, where does it store them? This is one of the most important open questions in mechanistic interpretability. The answer appears to be: everywhere and nowhere, spread across three interlocking mechanisms."
+          },
+          {
+            "type": "Section",
+            "props": {
+              "title": "3a. The Residual Stream as Heap"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "The residual stream — the running vector at each token position that gets modified by each layer — functions as a heap: a shared, mutable memory space. When 'a cop' is introduced at position 7, the vector at position 7 begins accumulating features. After the embedding layer, it's sparse. By layer 12, it encodes 'law enforcement + male + fatigued + location:bar.' By layer 24, it's a rich, high-dimensional binding that represents the full discourse entity."
+              },
+              {
+                "type": "p",
+                "children": "Each token position is a memory address. The entity state lives there, growing richer with every layer, accumulating features like a heap-allocated object gaining new fields."
+              }
+            ]
+          },
+          {
+            "type": "Section",
+            "props": {
+              "title": "3b. Attention Patterns as Pointer Table"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "Attention is the pointer mechanism. When the model processes 'he' at position 15, attention heads point back to position 7 ('cop'), pulling the entity's accumulated state forward. This is exactly a pointer dereference: follow the reference, retrieve the value. The attention matrix is a soft pointer table — each row specifies, for each query position, which key positions to read from."
+              }
+            ]
+          },
+          {
+            "type": "Section",
+            "props": {
+              "title": "3c. MLP Layers as Type Promotion"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "MLP layers perform a different function: they take the raw features assembled by attention and promote them into richer, more contextual representations. The SAE feature for 'law enforcement' is a raw type — like an int. The MLP takes 'law enforcement + tired + missing wedding ring + bar at night' and promotes it into a complex discourse type: 'a cop going through a divorce who's drinking alone.' This is type promotion — converting primitive features into contextual entity types."
+              }
+            ]
+          },
+          {
+            "type": "DeepDive",
+            "props": {
+              "title": "Superposition in the residual stream"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "Here's the crucial detail: the residual stream is modified additively at each layer. Layer 1's output is ADDED to the input. Layer 2's output is ADDED to that sum. And so on. This means the entity state at any position is a superposition — a linear combination — of all updates across all layers."
+              },
+              {
+                "type": "p",
+                "children": "This is elegant and efficient: no separate memory allocation, no garbage collection, no pointer management. But it has a devastating consequence for entity tracking: there is no version history. Each update overwrites by addition, and the prior state is not preserved as a distinct, recoverable representation. The superposition is lossy — you cannot, in general, decompose the final vector to recover what layer 5 contributed versus layer 18."
+              },
+              {
+                "type": "p",
+                "children": "The entity's history is compressed into a single point. Like a photograph that double-exposes every moment of a journey onto a single frame."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "4. The Destructive Write Problem"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "This is the heart of the tutorial, and where the akinetopsia analogy becomes precise. The transformer's entity store suffers from what we'll call the Destructive Write Problem: every state update overwrites the previous state, with no mechanism for preserving history."
+          },
+          {
+            "type": "Section",
+            "props": {
+              "title": "4a. One Vector, No History"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "Consider this narrative: 'The cop was happy. He had just been promoted. Then he came home and found the divorce papers on the kitchen table. He was devastated.'"
+              },
+              {
+                "type": "p",
+                "children": "A human reader maintains a mental timeline: happy (because of promotion) → devastated (because of divorce papers). The transition matters. The CAUSE of the change matters. The contrast between the two states matters. But in the transformer, the entity vector for 'cop' must encode BOTH states simultaneously, in superposition, in a single vector. There's no separate slot for 'cop at time 1' and 'cop at time 2.'"
+              },
+              {
+                "type": "Example",
+                "props": {
+                  "title": "The double-exposure problem"
+                },
+                "children": [
+                  {
+                    "type": "p",
+                    "children": "Imagine photographing a person smiling, then without advancing the film, photographing them crying. The result is a blurry, contradictory image — neither smile nor tears, but a ghostly superposition of both. This is what the entity vector looks like after contradictory state updates. The 'happy' features and the 'devastated' features coexist, and the model must somehow reconstruct the temporal ordering from context alone."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "Section",
+            "props": {
+              "title": "4b. The Akinetopsia Connection"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "This is exactly what Patient L.M. experienced. She could see the cup empty. She could see the cup full. But the transition — the pouring — was invisible. The brain region that computes motion from sequential snapshots was destroyed."
+              },
+              {
+                "type": "p",
+                "children": "The transformer doesn't have the equivalent of area V5/MT. It has no dedicated circuitry for computing state CHANGES. It can represent states — brilliantly, richly, in high-dimensional detail. But it cannot represent transitions as first-class objects. The movement between states is not stored, not computed, not represented. It must be inferred, every time, from the superposition of endpoint states."
+              },
+              {
+                "type": "Analogy",
+                "props": {
+                  "title": "Snapshots without transitions"
+                },
+                "children": [
+                  {
+                    "type": "p",
+                    "children": "L.M. sees: car_at_position_A → car_at_position_B. No trajectory. Transformer sees: cop_happy → cop_devastated. No transition event. Both suffer the same fundamental deficit: they can represent states but not the transformations between states. The motion is invisible."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "Section",
+            "props": {
+              "title": "4c. Entity Bleeding and the Softmax Bottleneck"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "The problem compounds when multiple similar entities exist. 'A cop walked in. Another cop followed him.' Now there are TWO entity vectors that share most features (law enforcement, male, etc.) and must be distinguished by subtle positional and contextual differences."
+              },
+              {
+                "type": "p",
+                "children": "Attention uses softmax to distribute probability mass across positions. When two entities are similar, the softmax distribution becomes nearly uniform between them — the pointer becomes ambiguous. 'He drew his weapon' — which cop? The model's confidence splits, and entity features bleed from one to the other. This is the softmax bottleneck: probabilistic lookup cannot maintain hard entity boundaries."
+              }
+            ]
+          },
+          {
+            "type": "Section",
+            "props": {
+              "title": "4d. Real Failures in the Wild"
+            },
+            "children": [
+              {
+                "type": "Example",
+                "props": {
+                  "title": "LLM entity-tracking failures"
+                },
+                "children": [
+                  {
+                    "type": "p",
+                    "children": "These common LLM failures all trace back to the Destructive Write Problem:"
+                  },
+                  {
+                    "type": "ul",
+                    "children": [
+                      {
+                        "type": "li",
+                        "children": "Character amnesia in long narratives: 'Wait, I thought Sarah was in Paris?' — the model lost track of a location state update buried 3000 tokens ago."
+                      },
+                      {
+                        "type": "li",
+                        "children": "Emotional inconsistency: A character described as grief-stricken suddenly cracks jokes two paragraphs later because the emotional state was overwritten."
+                      },
+                      {
+                        "type": "li",
+                        "children": "Relationship confusion: 'Who is married to whom?' degrades rapidly with more than 3-4 characters, because relationship states are stored in entity-pair superpositions."
+                      },
+                      {
+                        "type": "li",
+                        "children": "Temporal ordering errors: 'Did X happen before or after Y?' fails because the entity store doesn't preserve temporal sequence — just the accumulated endpoint."
+                      },
+                      {
+                        "type": "li",
+                        "children": "Entity merging: Two similar characters (two brothers, two cops) gradually merge into one because their vectors bleed together through the softmax bottleneck."
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "5. SAE Dictionaries: The Fixed Vocabulary"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "Sparse Autoencoders (SAEs) have given us an extraordinary window into what transformers represent. But they also reveal a fundamental limitation: the dictionary is fixed."
+          },
+          {
+            "type": "p",
+            "children": "An SAE is trained to decompose a transformer's internal activations into a sparse set of interpretable features. The encoder maps a dense activation vector into a sparse code — mostly zeros, with a few active features. The decoder reconstructs the activation from those features. After training, both encoder and decoder weights are frozen."
+          },
+          {
+            "type": "p",
+            "children": "This means the SAE dictionary is a fixed basis — a finite vocabulary of detectable features. It can tell you 'law enforcement is active,' 'positive emotional valence is active,' 'married is active.' But it cannot tell you 'was married, now divorced.' The dictionary recognizes nouns but is blind to verbs."
+          },
+          {
+            "type": "Example",
+            "props": {
+              "title": "What the dictionary sees vs. what it misses"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "For 'The cop was happily married':"
+              },
+              {
+                "type": "CodeBlock",
+                "props": {
+                  "language": "text"
+                },
+                "children": "SAE features active:\n  ✓ law_enforcement (0.87)\n  ✓ married (0.91)\n  ✓ positive_valence (0.73)\n  ✓ male_person (0.65)"
+              },
+              {
+                "type": "p",
+                "children": "For 'The cop signed the divorce papers':"
+              },
+              {
+                "type": "CodeBlock",
+                "props": {
+                  "language": "text"
+                },
+                "children": "SAE features active:\n  ✓ law_enforcement (0.87)\n  ✓ divorce (0.89)\n  ✓ legal_document (0.72)\n  ✓ male_person (0.65)"
+              },
+              {
+                "type": "p",
+                "children": "The dictionary captures each snapshot perfectly. But nowhere does it represent the TRANSITION from married → divorced. The delta is invisible. Both states are independently legible; the movement between them is not."
+              }
+            ]
+          },
+          {
+            "type": "DeepDive",
+            "props": {
+              "title": "What SAE features actually look like"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "Tools like Neuronpedia (neuronpedia.org) allow you to browse real SAE features extracted from production language models. Each feature has an activation pattern: the set of inputs that make it fire most strongly. Some features are strikingly interpretable — 'references to the Golden Gate Bridge,' 'first-person expressions of uncertainty,' 'French text.' Others are more abstract."
+              },
+              {
+                "type": "p",
+                "children": "What you won't find on Neuronpedia: features for state transitions. No feature fires for 'entity changed from state A to state B.' The dictionary is a catalogue of what IS, not what HAPPENED. This is not a failure of SAE training — it's a fundamental consequence of decomposing activations at a single point in the forward pass. Activations encode the current state of computation, not its history."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "6. Operators as State-Delta Transforms"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "If the problem is that transformers can see states but not transitions, the solution is to make transitions first-class objects. Instead of destructively overwriting entity state, we propose applying operators — structured, composable, invertible transformations that capture WHAT CHANGED."
+          },
+          {
+            "type": "p",
+            "children": "This connects to Roger Schank's conceptual dependency theory, which proposed that all narrative events could be decomposed into a small set of primitive state-change operators (ATRANS for transfer of possession, PTRANS for physical transfer, MTRANS for mental transfer, etc.). The insight was that stories aren't sequences of states — they're sequences of TRANSFORMATIONS."
+          },
+          {
+            "type": "Section",
+            "props": {
+              "title": "6a. The Operator Framework"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "Instead of:"
+              },
+              {
+                "type": "CodeBlock",
+                "props": {
+                  "language": "text"
+                },
+                "children": "cop_vector += divorce_update   // destructive additive write\n// Previous state is lost in superposition"
+              },
+              {
+                "type": "p",
+                "children": "We propose:"
+              },
+              {
+                "type": "CodeBlock",
+                "props": {
+                  "language": "text"
+                },
+                "children": "cop_state_2 = DIVORCE(cop_state_1)\n// cop_state_1 is preserved\n// DIVORCE is a learned operator that captures the transition\n// cop_state_2 = cop_state_1 × divorce_operator"
+              },
+              {
+                "type": "p",
+                "children": "The operator captures the delta — the structured difference between the before and after states. It's not a scalar or a vector addition. It's a transformation matrix (or more precisely, a learned non-linear map) that encodes the type of change."
+              }
+            ]
+          },
+          {
+            "type": "Section",
+            "props": {
+              "title": "6b. Composability"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "Operators compose. If you MARRY a character and then DIVORCE them, the composition DIVORCE ∘ MARRY should approximately recover the original state — not perfectly (experience changes us), but structurally. The character returns to 'single' but carries traces of the journey."
+              },
+              {
+                "type": "CodeBlock",
+                "props": {
+                  "language": "text"
+                },
+                "children": "cop_married = MARRY(cop_single)\ncop_divorced = DIVORCE(cop_married)\n\n// cop_divorced ≈ cop_single + residual_of_experience\n// The residual captures: 'was married once' — the HISTORY"
+              },
+              {
+                "type": "p",
+                "children": "This is the key advantage: operator composition gives you version history for free. The current state is the product of all applied operators. You can replay, rewind, or branch the entity's history by manipulating the operator chain."
+              }
+            ]
+          },
+          {
+            "type": "Section",
+            "props": {
+              "title": "6c. Invertibility"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "If operators are approximately invertible, you can reconstruct prior states. DIVORCE⁻¹(cop_divorced) ≈ cop_married. This means temporal reasoning becomes possible: 'What was the cop's state BEFORE the divorce?' is answerable by applying the inverse operator. The destructive write problem is solved because writes are no longer destructive — they're invertible transformations."
+              }
+            ]
+          },
+          {
+            "type": "Analogy",
+            "props": {
+              "title": "The brain's solution is the operator solution"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "Area V5/MT — the brain region destroyed in Patient L.M. — computes motion from the difference between consecutive visual frames. It doesn't store positions; it computes deltas. It's an operator: MOTION(frame_1, frame_2) = velocity_vector. The brain's solution to 'how do we perceive change' IS the operator solution: dedicated circuitry that takes two states as input and outputs a structured representation of the transformation between them."
+              },
+              {
+                "type": "p",
+                "children": "L.M. lost her operators. She could still encode frames (states), but she couldn't compute the deltas (transitions). Transformers never had these operators to begin with. We're proposing to build them."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "7. Three Architectures for Better Entity Tracking"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "The Destructive Write Problem has not gone unnoticed. Researchers have proposed several architectural approaches to give transformers better entity tracking. Here are three families of solutions, with their trade-offs."
+          },
+          {
+            "type": "Section",
+            "props": {
+              "title": "7a. Explicit Entity Registers"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "The most direct approach: add dedicated memory slots for entities. Memory-augmented transformers (like the Neural Turing Machine lineage) maintain an external memory bank where entities can be explicitly written, read, and updated. Each entity gets its own register — no superposition, no bleeding."
+              },
+              {
+                "type": "ul",
+                "children": [
+                  {
+                    "type": "li",
+                    "children": "Pros: Clean separation between entities. Explicit read/write operations. Scales to many entities."
+                  },
+                  {
+                    "type": "li",
+                    "children": "Cons: Requires architectural changes. Hard to train end-to-end. Doesn't leverage the existing transformer's learned representations. Entity slot allocation is a hard problem itself."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "Section",
+            "props": {
+              "title": "7b. State-Delta Operators (Our Approach)"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "Instead of separate memory, learn operators that transform entity state in structured, composable, invertible ways. The operators live alongside the existing architecture — they can be implemented as specialized attention heads or MLP circuits that compute and apply state deltas rather than state snapshots."
+              },
+              {
+                "type": "ul",
+                "children": [
+                  {
+                    "type": "li",
+                    "children": "Pros: Composable and invertible — enables temporal reasoning. Can be integrated into existing architectures. Operators are interpretable (MARRY, DIVORCE, PROMOTE have semantic content). Gives version history through operator chains."
+                  },
+                  {
+                    "type": "li",
+                    "children": "Cons: Requires learning a vocabulary of operators (how many? which ones?). Composition may be approximate, with accumulating error. The operator framework adds conceptual complexity."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "Section",
+            "props": {
+              "title": "7c. Versioned KV Cache with Temporal Indexing"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "A more engineering-focused approach: modify the key-value cache to maintain versioned snapshots of entity states, indexed by temporal position. Instead of a single KV entry per position, maintain a stack of states with timestamps. Attention can then query not just 'what is the cop's state?' but 'what was the cop's state at time T?'"
+              },
+              {
+                "type": "ul",
+                "children": [
+                  {
+                    "type": "li",
+                    "children": "Pros: Preserves full history. Compatible with existing attention mechanisms. Temporal queries become natural."
+                  },
+                  {
+                    "type": "li",
+                    "children": "Cons: Memory scales linearly with history length. Doesn't provide structured understanding of WHAT changed — just snapshots. Doesn't compose or generalize the way operators do."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "Callout",
+            "props": {
+              "type": "warning"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "These approaches are not mutually exclusive. The strongest architecture might combine explicit registers for high-salience entities, operators for tracking state changes, and versioned caching for historical queries. The brain itself uses multiple systems for tracking entities and changes — there's no reason to expect a single mechanism will suffice."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "8. Track the Cop — An Entity Through the Pipeline"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "Let's trace a single entity through a short narrative, watching what happens at each level of representation."
+          },
+          {
+            "type": "InteractiveDemo",
+            "props": {
+              "title": "Track the Cop"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "The narrative, sentence by sentence:"
+              },
+              {
+                "type": "p",
+                "children": "Sentence 1: 'Officer Martinez was a proud man.'"
+              },
+              {
+                "type": "CodeBlock",
+                "props": {
+                  "language": "text"
+                },
+                "children": "SAE Features:     [law_enforcement: 0.91, male: 0.78, pride: 0.82, hispanic_name: 0.70]\nEntity Vector:    cop_v1 = embed('Officer') + embed('Martinez') + ... (initial binding)\nOperator Applied: INTRODUCE(null → cop_v1)  — entity creation\nInfo Lost:        Nothing yet — fresh entity"
+              },
+              {
+                "type": "p",
+                "children": "Sentence 2: 'He had been married for twenty years.'"
+              },
+              {
+                "type": "CodeBlock",
+                "props": {
+                  "language": "text"
+                },
+                "children": "SAE Features:     [married: 0.93, long_duration: 0.71, male: 0.78]\nEntity Vector:    cop_v2 = cop_v1 + marriage_update  (additive overwrite)\nOperator Applied: MARRY(cop_v1) → cop_v2  — state transition preserved\nInfo Lost:        In standard transformer: cop_v1 (pre-marriage state) \n                  is merged into cop_v2 via superposition"
+              },
+              {
+                "type": "p",
+                "children": "Sentence 3: 'Last Tuesday, his wife left him.'"
+              },
+              {
+                "type": "CodeBlock",
+                "props": {
+                  "language": "text"
+                },
+                "children": "SAE Features:     [divorce: 0.85, abandonment: 0.77, temporal_marker: 0.60]\nEntity Vector:    cop_v3 = cop_v2 + divorce_update  (additive overwrite)\nOperator Applied: DIVORCE(cop_v2) → cop_v3  — captures married→divorced\nInfo Lost:        In standard transformer: cop_v1 AND cop_v2 are now\n                  compressed into cop_v3. Was he ever happy? Was the\n                  marriage good? The HISTORY is in superposition."
+              },
+              {
+                "type": "p",
+                "children": "Sentence 4: 'He stared at his badge and felt nothing.'"
+              },
+              {
+                "type": "CodeBlock",
+                "props": {
+                  "language": "text"
+                },
+                "children": "SAE Features:     [law_enforcement: 0.88, emotional_numbness: 0.84, \n                   introspection: 0.67]\nEntity Vector:    cop_v4 = cop_v3 + numbness_update\nOperator Applied: EMOTIONAL_SHIFT(cop_v3, pride→numbness) → cop_v4\nInfo Lost:        In standard transformer: the CONTRAST between his\n                  former pride and current numbness is not explicitly\n                  stored. A reader feels it. The model computes through it.\n                  The poignancy — the movement from pride to emptiness —\n                  exists only in the reader's reconstruction."
+              },
+              {
+                "type": "Callout",
+                "props": {
+                  "type": "info"
+                },
+                "children": [
+                  {
+                    "type": "p",
+                    "children": "Notice the pattern: the SAE dictionary captures each snapshot perfectly. The entity vector accumulates but loses history. The operator framework would preserve the full chain: INTRODUCE → MARRY → DIVORCE → EMOTIONAL_SHIFT — a complete, replayable record of the entity's journey through the narrative."
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "9. Quiz"
+        },
+        "children": [
+          {
+            "type": "Quiz",
+            "props": {
+              "questions": [
+                {
+                  "question": "Patient L.M. suffered damage to area V5/MT. What was she unable to perceive?",
+                  "options": [
+                    "Color",
+                    "Faces",
+                    "Motion",
+                    "Depth"
+                  ],
+                  "correctIndex": 2,
+                  "explanation": "Area V5/MT is dedicated to motion perception. L.M. could see objects, colors, and faces normally, but could not perceive movement — a condition called akinetopsia."
+                },
+                {
+                  "question": "In the programming language analogy, what are SAE dictionary features most analogous to?",
+                  "options": [
+                    "Local variables declared in a function",
+                    "Reserved keywords and constants",
+                    "Pointers to heap-allocated objects",
+                    "Runtime-evaluated expressions"
+                  ],
+                  "correctIndex": 1,
+                  "explanation": "SAE features are fixed, universal, and context-independent — like reserved keywords (true, false, int) that are always available regardless of what program you're running."
+                },
+                {
+                  "question": "What is the 'Destructive Write Problem' in transformer entity tracking?",
+                  "options": [
+                    "Entity vectors are deleted when the context window fills up",
+                    "State updates are additive overwrites with no version history",
+                    "Attention heads can only write to one entity at a time",
+                    "MLP layers corrupt entity representations during type promotion"
+                  ],
+                  "correctIndex": 1,
+                  "explanation": "The residual stream is modified additively at each layer. Each state update is superposed onto the existing vector, overwriting without preserving the prior state as a distinct, recoverable representation."
+                },
+                {
+                  "question": "Why do similar entities (e.g., two cops in the same scene) tend to 'bleed' into each other?",
+                  "options": [
+                    "The tokenizer assigns them the same token IDs",
+                    "MLP layers merge similar entity types automatically",
+                    "Softmax attention distributes probability nearly uniformly between similar entities",
+                    "The residual stream has a fixed number of entity slots"
+                  ],
+                  "correctIndex": 2,
+                  "explanation": "When two entities share many features, the softmax distribution over their positions becomes nearly uniform — the attention pointer becomes ambiguous, causing features to bleed between entities. This is the softmax bottleneck."
+                },
+                {
+                  "question": "What key property of operators makes them a solution to the Destructive Write Problem?",
+                  "options": [
+                    "They use less memory than additive updates",
+                    "They are composable and approximately invertible, enabling version history",
+                    "They bypass the attention mechanism entirely",
+                    "They store entity states in an external database"
+                  ],
+                  "correctIndex": 1,
+                  "explanation": "Operators capture state transitions as structured, composable transformations. Because they're approximately invertible, prior states can be reconstructed, and the full chain of operators serves as a version history of the entity."
+                },
+                {
+                  "question": "The brain's area V5/MT solves motion perception by:",
+                  "options": [
+                    "Storing every visual frame in a memory buffer",
+                    "Computing deltas (differences) between consecutive frames",
+                    "Predicting future positions using a world model",
+                    "Averaging all recent frames into a single composite"
+                  ],
+                  "correctIndex": 1,
+                  "explanation": "V5/MT computes motion by calculating the difference between consecutive visual frames — it's a biological delta operator. This is directly analogous to the state-delta operator approach for entity tracking in transformers."
+                }
+              ]
+            },
+            "children": []
+          }
+        ]
+      }
+    ]
+  }
+}
