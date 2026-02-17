@@ -535,6 +535,168 @@
                 ]
               }
             ]
+          },
+          {
+            "type": "DeepDive",
+            "title": "[Feb 17] 🔥🔥 CADD: Continuous Latents Augmenting Discrete Diffusion (Apple/Microsoft, Oct 2025)",
+            "children": [
+              {
+                "type": "p",
+                "children": [
+                  {
+                    "type": "strong",
+                    "children": [
+                      "Paper:"
+                    ]
+                  },
+                  " Zheng et al., 'Continuously Augmented Discrete Diffusion model for Categorical Generative Modeling' (arXiv:2510.01329, Oct 2025, Apple/Microsoft)"
+                ]
+              },
+              {
+                "type": "p",
+                "children": [
+                  {
+                    "type": "strong",
+                    "children": [
+                      "Key insight:"
+                    ]
+                  },
+                  " Standard discrete diffusion maps unobserved tokens to [MASK], creating an 'information void' where semantic context is lost. CADD augments the discrete state space with a PAIRED DIFFUSION in continuous latent space — masked tokens are represented by noisy but informative latent vectors instead of collapsed voids. At each reverse step, the continuous latent serves as a 'semantic hint' to guide discrete denoising."
+                ]
+              },
+              {
+                "type": "p",
+                "children": [
+                  {
+                    "type": "strong",
+                    "children": [
+                      "Critical feature:"
+                    ]
+                  },
+                  " At sampling time, the strength of the continuous latent estimator enables a controlled trade-off between mode-coverage (diverse) and mode-seeking (precise) generation. Improves over mask-based diffusion on text, image, AND code."
+                ]
+              },
+              {
+                "type": "p",
+                "children": [
+                  {
+                    "type": "strong",
+                    "children": [
+                      "Relevance:"
+                    ]
+                  },
+                  " ⭐⭐⭐ DIRECT ARCHITECTURE FOR IDEA 1! CADD's continuous latent space augmenting discrete diffusion is EXACTLY what we'd build with SAE features. Replace CADD's generic continuous latents with SAE feature activations → masked tokens get 'semantic hint' vectors that are INTERPRETABLE. The mode-coverage/mode-seeking trade-off maps to controlling how strongly SAE features constrain generation. Together with CCDD (which jointly diffuses in continuous+discrete), CADD provides a second proven architecture for our continuous-SAE-guides-discrete-tokens approach."
+                ]
+              },
+              {
+                "type": "p",
+                "children": [
+                  {
+                    "type": "strong",
+                    "children": [
+                      "Key advantage over CCDD:"
+                    ]
+                  },
+                  " CADD is compatible with existing discrete diffusion training — minimal architectural change needed. This makes it a more practical starting point for SAE integration experiments."
+                ]
+              }
+            ]
+          },
+          {
+            "type": "DeepDive",
+            "title": "[Feb 17] 🔥🔥 Mechanism Shift: Why DLMs Reorganize Internal Computation (Jan 2026)",
+            "children": [
+              {
+                "type": "p",
+                "children": [
+                  {
+                    "type": "strong",
+                    "children": [
+                      "Paper:"
+                    ]
+                  },
+                  " Kong et al., 'Mechanism Shift During Post-training from Autoregressive to Masked Diffusion Language Models' (arXiv:2601.14758, Jan 21, 2026)"
+                ]
+              },
+              {
+                "type": "p",
+                "children": [
+                  {
+                    "type": "strong",
+                    "children": [
+                      "Key insight:"
+                    ]
+                  },
+                  " Comparative circuit analysis of ARMs vs post-trained MDMs reveals a systematic 'mechanism shift': (1) For tasks with local causal dependencies, MDMs retain autoregressive circuitry. (2) For GLOBAL PLANNING tasks, MDMs completely abandon AR pathways, exhibiting distinct rewiring with INCREASED EARLY-LAYER PROCESSING. (3) Semantically, MDMs transition from sharp localized specialization to DISTRIBUTED INTEGRATION."
+                ]
+              },
+              {
+                "type": "p",
+                "children": [
+                  {
+                    "type": "strong",
+                    "children": [
+                      "Why this matters for SAE+diffusion:"
+                    ]
+                  },
+                  " ⭐⭐⭐ EXPLAINS DLM-SCOPE! The finding that MDMs shift to distributed integration (vs. localized specialization in ARMs) directly explains WHY SAE insertion reduces loss in DLMs but increases it in LLMs. SAEs decompose representations into distributed features — which aligns with MDMs' distributed computation. The increased early-layer processing in MDMs also explains why SAEs are most beneficial in early layers of DLMs (DLM-Scope's finding). This is mechanistic evidence that SAE-structured representations are NATURALLY COMPATIBLE with diffusion LM computation."
+                ]
+              },
+              {
+                "type": "p",
+                "children": [
+                  {
+                    "type": "strong",
+                    "children": [
+                      "Implications for all ideas:"
+                    ]
+                  },
+                  " The distributed integration finding suggests that Idea 1 (SAE feature space as latent space) is especially promising for global planning tasks (reasoning, structured generation). The early-layer emphasis suggests our noise schedule (Idea 3) should prioritize early-layer SAE features."
+                ]
+              }
+            ]
+          },
+          {
+            "type": "DeepDive",
+            "title": "[Feb 17] LASERS: Dictionary-Based Sparse Latent Space for Generative Models (Sep 2024)",
+            "children": [
+              {
+                "type": "p",
+                "children": [
+                  {
+                    "type": "strong",
+                    "children": [
+                      "Paper:"
+                    ]
+                  },
+                  " Li et al., 'LASERS: LAtent Space Encoding for Representations with Sparsity for Generative Modeling' (arXiv:2409.11184, Sep 2024)"
+                ]
+              },
+              {
+                "type": "p",
+                "children": [
+                  {
+                    "type": "strong",
+                    "children": [
+                      "Key insight:"
+                    ]
+                  },
+                  " Proposes replacing Vector Quantization (VQ) in VAEs/GANs with dictionary-based sparse representations under sparsity constraints. The dictionary is learned during training. Shows that sparse dictionary latent spaces are MORE EXPRESSIVE than VQ and produce better reconstructions, while also addressing codebook collapse. Key theoretical insight: the benefit of VQ may not be from discretization but from LOSSY COMPRESSION — and sparse dictionaries provide a better form of it."
+                ]
+              },
+              {
+                "type": "p",
+                "children": [
+                  {
+                    "type": "strong",
+                    "children": [
+                      "Relevance:"
+                    ]
+                  },
+                  " ⭐⭐ CONCEPTUAL PREDECESSOR to Idea 1. LASERS proves that dictionary-based sparse representations work as latent spaces for generative models (images). Our Idea 1 goes further: instead of learning a new dictionary during training, use pre-trained SAE features as the dictionary. The 'sparse > VQ for expressiveness' finding supports our intuition that high-dimensional-but-sparse SAE feature spaces should work well for generation. LASERS is for VAEs/GANs; we'd apply the same principle to diffusion."
+                ]
+              }
+            ]
           }
         ]
       },
@@ -1596,6 +1758,48 @@
                 ]
               }
             ]
+          },
+          {
+            "type": "DeepDive",
+            "title": "[Feb 17] Tuning the Implicit Regularizer: Optimized Mask Schedules for MDLMs (Jan 2026)",
+            "children": [
+              {
+                "type": "p",
+                "children": [
+                  {
+                    "type": "strong",
+                    "children": [
+                      "Paper:"
+                    ]
+                  },
+                  " Huang & Mirzasoleiman, 'Tuning the Implicit Regularizer of Masked Diffusion Language Models: Enhancing Generalization via Insights from k-Parity' (arXiv:2601.22450, Jan 30, 2026, UCLA)"
+                ]
+              },
+              {
+                "type": "p",
+                "children": [
+                  {
+                    "type": "strong",
+                    "children": [
+                      "Key insight:"
+                    ]
+                  },
+                  " Theoretically decomposes the Masked Diffusion objective into a SIGNAL regime (drives feature learning) and a NOISE regime (serves as implicit regularizer). Critically, they show that optimizing the DISTRIBUTION of mask probabilities — not just a fixed schedule — significantly improves perplexity: up to 8.8% gain on 8B-parameter models during pre-training and 5.8% during SFT. The MD objective fundamentally alters the learning landscape vs. AR, enabling rapid generalization without grokking."
+                ]
+              },
+              {
+                "type": "p",
+                "children": [
+                  {
+                    "type": "strong",
+                    "children": [
+                      "Relevance:"
+                    ]
+                  },
+                  " ⭐⭐ THEORETICAL GROUNDING for Idea 3. If optimizing mask probability distribution gives 5-9% gains, then our proposal for SEMANTICALLY-aware mask distributions (noise more for syntactic tokens, preserve semantic tokens) could yield even larger gains by aligning the mask schedule with information content rather than treating all positions equally. Their Signal/Noise regime decomposition provides a theoretical framework: we want SAE-defined semantic features to stay in the Signal regime (learned early, preserved) while low-level details are in the Noise regime (regularized, filled in last)."
+                ]
+              }
+            ]
           }
         ]
       },
@@ -2176,6 +2380,54 @@
                         ]
                       },
                       " (Zhou et al., Oct 2025, arXiv:2510.03206) \u2014 Coevolutionary Continuous Discrete Diffusion. Joint diffusion in continuous representation + discrete token space. Continuous latents serve as implicit planning that guides token decoding."
+                    ]
+                  },
+                  {
+                    "type": "li",
+                    "children": [
+                      {
+                        "type": "strong",
+                        "children": [
+                          "CADD"
+                        ]
+                      },
+                      " (Zheng et al., Oct 2025, arXiv:2510.01329) \u2014 Continuously Augmented Discrete Diffusion. Augments discrete [MASK] space with paired continuous latent diffusion. Masked tokens get informative latent vectors instead of void. Consistent gains on text, image, and code."
+                    ]
+                  },
+                  {
+                    "type": "li",
+                    "children": [
+                      {
+                        "type": "strong",
+                        "children": [
+                          "XDLM"
+                        ]
+                      },
+                      " (Zhao et al., Feb 2026, arXiv:2602.01362) \u2014 Bridges MDLM/UDLM via stationary noise kernel. Unified framework recovering each as special case. Pareto-optimal for understanding + generation."
+                    ]
+                  },
+                  {
+                    "type": "li",
+                    "children": [
+                      {
+                        "type": "strong",
+                        "children": [
+                          "Mechanism Shift"
+                        ]
+                      },
+                      " (Kong et al., Jan 2026, arXiv:2601.14758) \u2014 Post-training from AR to MDM reorganizes computation: distributed integration replaces localized specialization, increased early-layer processing for global planning."
+                    ]
+                  },
+                  {
+                    "type": "li",
+                    "children": [
+                      {
+                        "type": "strong",
+                        "children": [
+                          "Tuning MDL Regularizer"
+                        ]
+                      },
+                      " (Huang & Mirzasoleiman, Jan 2026, arXiv:2601.22450) \u2014 Optimized mask probability distribution yields 5.8-8.8% perplexity gains on 8B models. Signal/Noise decomposition of MD objective."
                     ]
                   }
                 ]
