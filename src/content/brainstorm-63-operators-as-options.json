@@ -1,0 +1,586 @@
+{
+  "id": "brainstorm-63-operators-as-options",
+  "title": "Operators as Options",
+  "subtitle": "Temporal Abstraction as Event Semantics",
+  "readTime": "25 min",
+  "state": "published",
+  "content": {
+    "type": "Fragment",
+    "children": [
+      {
+        "type": "Callout",
+        "props": {
+          "type": "info"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": [
+              {
+                "type": "strong",
+                "children": "What if verbs aren't actions — they're entire policies?"
+              },
+              " The Options framework from reinforcement learning defines temporally extended actions: things like 'go to the door' or 'make coffee' that take multiple steps and know when to start and stop. This tutorial shows that Schankian operators ARE options with semantic initiation and termination conditions — connecting 1999 RL theory to 1970s AI to modern event cognition."
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "1. The Problem: Actions Have Duration"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "Standard reinforcement learning treats actions as instantaneous: move left, pick up, jump. But real actions take time and have internal structure. 'Making coffee' involves grinding beans, boiling water, pouring, waiting. How do we represent actions that span many timesteps?"
+          },
+          {
+            "type": "Analogy",
+            "props": {
+              "concept": "Options vs Primitive Actions",
+              "analogy": "Subroutines vs Machine Instructions",
+              "icon": "📦"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "Primitive actions are like machine instructions: ADD, MOV, JMP. Options are like subroutines: sortList(), sendEmail(), makeCoffee(). You call the subroutine and it handles the details internally, returning control when done. Options are 'chunks' of behavior — the temporal hierarchy that makes complex planning tractable."
+              }
+            ]
+          },
+          {
+            "type": "p",
+            "children": "Sutton, Precup, and Singh (1999) formalized this as the Options Framework. An option is a triple (I, π, β):"
+          },
+          {
+            "type": "DefinitionList",
+            "props": {
+              "items": [
+                {
+                  "term": "I — Initiation Set",
+                  "definition": "The states where this option CAN start. You can't 'open the door' if you're not near a door. You can't 'pour coffee' if you don't have a pot in hand."
+                },
+                {
+                  "term": "π — Internal Policy",
+                  "definition": "How the option behaves once initiated. 'Go to door' has a policy of moving toward the door. 'Stir soup' has a policy of circular motion."
+                },
+                {
+                  "term": "β — Termination Function",
+                  "definition": "The probability of stopping at each state. 'Open door' terminates when the door is open. 'Walk to X' terminates when you reach X."
+                }
+              ]
+            }
+          },
+          {
+            "type": "DeepDive",
+            "props": {
+              "title": "Why do we need all three components?"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "Consider 'answer the phone.' The initiation set I = {states where phone is ringing AND you're near it}. You can't answer a phone that isn't ringing, and you can't answer from another room. The policy π = walk to phone, pick up, say hello. The termination β = 1.0 when conversation ends or caller hangs up, 0.0 otherwise."
+              },
+              {
+                "type": "p",
+                "children": "Without I, you'd try to answer non-ringing phones. Without π, you'd have no idea HOW to answer. Without β, you'd never stop answering — stuck in an infinite loop of saying 'hello?'"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "2. Schankian Operators ARE Options"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "Now here's the key insight: Schank's primitive operators (ATRANS, PTRANS, PROPEL, MTRANS, etc.) have exactly the same structure as options. They have implicit initiation conditions, behavioral signatures, and termination semantics."
+          },
+          {
+            "type": "Example",
+            "props": {
+              "title": "ATRANS as an Option"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "ATRANS = transfer of abstract possession (giving, taking, buying, selling, stealing)"
+              },
+              {
+                "type": "ul",
+                "children": [
+                  {
+                    "type": "li",
+                    "children": [
+                      {
+                        "type": "strong",
+                        "children": "Initiation I:"
+                      },
+                      " States where a transferable object exists AND at least two potential possessors are present. You can't give something you don't have to someone who isn't there."
+                    ]
+                  },
+                  {
+                    "type": "li",
+                    "children": [
+                      {
+                        "type": "strong",
+                        "children": "Policy π:"
+                      },
+                      " Varies by instantiation. 'Give' involves extending object toward recipient. 'Take' involves grasping and retracting. 'Buy' involves exchanging money. The policy handles HOW the transfer happens."
+                    ]
+                  },
+                  {
+                    "type": "li",
+                    "children": [
+                      {
+                        "type": "strong",
+                        "children": "Termination β:"
+                      },
+                      " β = 1.0 when possession has changed. The object now belongs to the new owner. This is the DEFINING condition of ATRANS completion."
+                    ]
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "InteractiveDemo",
+            "props": {
+              "title": "Map Schankian Operators to Option Components",
+              "prompt": "For each Schankian operator, identify what conditions must hold for initiation and what defines termination.",
+              "scenarios": [
+                {
+                  "input": "PTRANS — Physical transfer of location",
+                  "reveal": "**Initiation I:** Agent is mobile AND destination exists AND path is traversable (can't walk through walls).\n\n**Policy π:** Navigate toward destination, avoid obstacles.\n\n**Termination β:** Agent's location = destination. The thing has moved to where it should be."
+                },
+                {
+                  "input": "PROPEL — Apply force to an object",
+                  "reveal": "**Initiation I:** Agent can exert force AND target object exists AND is within reach.\n\n**Policy π:** Generate force vector toward/away from object.\n\n**Termination β:** Contact ends OR target state achieved (ball is in motion, door is open). Instant for 'kick', sustained for 'push'."
+                },
+                {
+                  "input": "MTRANS — Transfer of mental information",
+                  "reveal": "**Initiation I:** Source knows information X AND recipient doesn't know X AND communication channel exists (speech, writing, gesture).\n\n**Policy π:** Encode X into transmissible form, send via channel.\n\n**Termination β:** Recipient now knows X (or believes they do). The information transfer is complete."
+                },
+                {
+                  "input": "MBUILD — Create new mental structure (thinking, deciding)",
+                  "reveal": "**Initiation I:** Agent has inputs sufficient to construct new thought/plan/decision.\n\n**Policy π:** Mental operations: compare, combine, infer, evaluate.\n\n**Termination β:** New mental state exists (belief formed, decision made, plan constructed). Termination can be fuzzy — 'still thinking'."
+                }
+              ]
+            }
+          },
+          {
+            "type": "Callout",
+            "props": {
+              "type": "key-insight"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "Schank's operators were designed to capture 'what happens' in events. Options were designed to capture 'how agents execute temporally extended actions.' They converged on the same structure because events ARE temporally extended actions viewed from the outside. The narrator describes what the agent's option does to the world."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "3. Vendler Classes as Option Properties"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "Vendler's aspectual classes (achievements, accomplishments, activities, states) have puzzled linguists for decades. The Options framework gives a clean mechanistic explanation: they're just different option structures."
+          },
+          {
+            "type": "Analogy",
+            "left": {
+              "title": "Vendler Class",
+              "items": [
+                "Achievement (win, find, notice)",
+                "Accomplishment (build, write, paint)",
+                "Activity (run, swim, push)",
+                "State (know, love, believe)"
+              ]
+            },
+            "right": {
+              "title": "Option Structure",
+              "items": [
+                "Instant termination: β jumps to 1 immediately",
+                "Goal-directed: β = 1 when goal state reached",
+                "No termination condition: β ≈ 0 always",
+                "Identity policy: π = 'do nothing', no dynamics"
+              ]
+            },
+            "bridgeText": "Vendler classes emerge from how β (termination) and π (policy) behave. Achievements are instant options, activities are options that never want to stop, states aren't even options — they're just world configurations."
+          },
+          {
+            "type": "DeepDive",
+            "props": {
+              "title": "Why does 'building a house' have different grammar than 'running'?"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "'I built a house in an hour' is fine. 'I ran in an hour' is weird (means something different). Why?"
+              },
+              {
+                "type": "p",
+                "children": "In Option terms: 'build house' has a clear termination state (house complete), so duration bounds make sense. 'Run' has β ≈ 0 — there's no natural endpoint, so 'in an hour' reinterprets as 'it took an hour to start running' rather than 'running was completed in an hour.' The Option structure PREDICTS the grammatical patterns."
+              }
+            ]
+          },
+          {
+            "type": "InteractiveDemo",
+            "props": {
+              "title": "Classify Events by Option Structure",
+              "prompt": "For each event, identify the Vendler class by analyzing β (termination) behavior:",
+              "scenarios": [
+                {
+                  "input": "She recognized her old teacher",
+                  "reveal": "**Achievement** — β jumps to 1 instantly upon recognition. There's no duration to the recognizing itself; it's a punctual state change. 'She recognized him *in* 5 seconds' means it took 5 seconds for recognition to happen, not that recognition lasted 5 seconds."
+                },
+                {
+                  "input": "He wrote a symphony",
+                  "reveal": "**Accomplishment** — β = 0 until the symphony exists, then β = 1. There's a goal state (complete symphony) and an internal policy (compose notes, arrange movements). 'He wrote a symphony in 3 months' bounds the time to goal completion."
+                },
+                {
+                  "input": "The children played in the garden",
+                  "reveal": "**Activity** — β ≈ 0 throughout. There's no inherent endpoint to playing. 'They played for 2 hours' specifies externally-imposed bounds, not goal completion. They could play indefinitely if nothing stopped them."
+                },
+                {
+                  "input": "She knows the answer",
+                  "reveal": "**State** — Not really an option at all. No initiation condition (you don't 'start' knowing), no policy (knowing doesn't DO anything), no termination (knowing persists until forgotten). States are the backdrop against which options operate."
+                }
+              ]
+            }
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "4. Event Segmentation = Option Boundaries"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "When you watch a video, your brain automatically segments it into discrete events: 'she entered the room', 'she sat down', 'she opened her laptop'. Where do these boundaries come from? Recent neuroscience (Zacks et al., 2007; Baldassano 2017) suggests: event boundaries occur when prediction error spikes."
+          },
+          {
+            "type": "p",
+            "children": "In Option terms: event boundaries are option terminations. When one option ends and another begins, the internal policy changes, predictions from the old policy fail, and error spikes. This is exactly what happens at script transitions in Entry 61's Successor Representation."
+          },
+          {
+            "type": "Callout",
+            "props": {
+              "type": "key-insight"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "Event segmentation research (bioRxiv 2025) finds that hippocampal activity reflects event boundaries, and that boundary detection predicts memory encoding. The Options framework explains why: option transitions are exactly the points where you need to update your predictive model. These are the 'joints' of experience — the Schankian operators marking state transitions."
+              }
+            ]
+          },
+          {
+            "type": "Example",
+            "props": {
+              "title": "Watching Someone Make Coffee"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "You observe: Person walks to kitchen (PTRANS option running). Picks up kettle (PROPEL initiates). Fills with water (sub-option). Places on stove (PTRANS of kettle). Waits (activity option). Pours into cup (PTRANS of water). Adds coffee (ATRANS of coffee to cup)."
+              },
+              {
+                "type": "p",
+                "children": "Each verb phrase corresponds to an option. Boundaries occur at option switches. Your brain's prediction machinery changes policy at each switch, explaining why you remember 'filled the kettle' as a discrete event rather than a blur of continuous motion."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "5. The Three-Level Hierarchy"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "The Options framework naturally suggests a hierarchy, and this maps perfectly to Schankian concepts:"
+          },
+          {
+            "type": "DefinitionList",
+            "props": {
+              "items": [
+                {
+                  "term": "Level 1: Primitive Actions",
+                  "definition": "Single timestep motor commands. Muscle activations, eye movements. The 'assembly language' of behavior. In Schank's terms: the physical substrate below primitives."
+                },
+                {
+                  "term": "Level 2: Options = Operators",
+                  "definition": "Temporally extended actions with semantic meaning. ATRANS, PTRANS, PROPEL, MTRANS. These are the Schankian primitives — options over primitive actions."
+                },
+                {
+                  "term": "Level 3: Tasks = Scripts = Reward Machines",
+                  "definition": "Sequences of options forming complete behaviors. The restaurant script. Making coffee. Going to work. These are compositional structures OVER operators — exactly what Entry 57's Reward Machines formalize."
+                }
+              ]
+            }
+          },
+          {
+            "type": "InteractiveDemo",
+            "props": {
+              "title": "Hierarchy Example: Restaurant Visit",
+              "height": 320,
+              "initialCode": "// Three-level hierarchy for restaurant script\nconst hierarchy = {\n  task: 'RESTAURANT_SCRIPT',\n  options: [\n    {\n      name: 'ENTER',\n      operator: 'PTRANS(self, outside→restaurant)',\n      primitives: ['walk', 'open_door', 'step_through']\n    },\n    {\n      name: 'SIT',\n      operator: 'PTRANS(self, standing→seated)',\n      primitives: ['walk_to_table', 'pull_chair', 'lower_body']\n    },\n    {\n      name: 'ORDER',\n      operator: 'MTRANS(desire, self→waiter)',\n      primitives: ['get_attention', 'speak_words', 'point_menu']\n    },\n    {\n      name: 'EAT',\n      operator: 'INGEST(food, self)',\n      primitives: ['lift_fork', 'cut', 'chew', 'swallow']\n    },\n    {\n      name: 'PAY',\n      operator: 'ATRANS(money, self→restaurant)',\n      primitives: ['get_check', 'count_money', 'hand_over']\n    }\n  ]\n};\n\nreturn `TASK: ${hierarchy.task}\\n\\n` +\n  hierarchy.options.map(opt => \n    `▸ ${opt.name}\\n  Operator: ${opt.operator}\\n  Primitives: [${opt.primitives.join(', ')}]`\n  ).join('\\n\\n');"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "This demo shows how a high-level task (restaurant script) decomposes into options (Schankian operators) which further decompose into primitive motor actions. The operator level is where meaning lives — the bridge between raw behavior and intentional action."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "6. SMDP: Convergence Guarantees for Operator Planning"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "Options satisfy the Semi-Markov Decision Process (SMDP) framework. This matters because SMDPs have convergence guarantees: if you plan with options, you'll find good policies. This gives Schankian operators a formal foundation for planning."
+          },
+          {
+            "type": "DeepDive",
+            "props": {
+              "title": "What's special about SMDPs?"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "Regular MDPs assume each action takes one timestep. SMDPs allow actions to take variable durations. This is crucial for options: 'walk to door' takes longer from far away. 'Make coffee' takes 5 minutes regardless of where you start."
+              },
+              {
+                "type": "p",
+                "children": "The SMDP machinery handles this by tracking expected duration alongside expected reward. The Bellman equation generalizes naturally. Value functions and optimal policies still exist and can be computed. This means planning with Schankian operators inherits decades of RL theory."
+              }
+            ]
+          },
+          {
+            "type": "Callout",
+            "props": {
+              "type": "formula"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "SMDP Value Function with Options:"
+              },
+              {
+                "type": "p",
+                "children": "Q(s,o) = E[r + γ^τ max_o' Q(s',o') | s, o]"
+              },
+              {
+                "type": "p",
+                "children": "where τ is the (stochastic) duration of option o, and s' is the state when o terminates. The discount γ^τ accounts for variable time — longer options are discounted more."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "7. Modern Connections: THICK and LLM-Driven Option Discovery"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "Recent work has revived options for modern deep RL and language models:"
+          },
+          {
+            "type": "DeepDive",
+            "props": {
+              "title": "THICK (ICLR 2024): World Models with Hierarchical Chunking"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "THICK learns world model hierarchies by detecting 'sparse context changes' — moments when the prediction model needs to switch. These are exactly option boundaries! THICK shows that modern world models naturally discover option-like structure when trained to predict."
+              },
+              {
+                "type": "p",
+                "children": "The connection to Schankian operators: THICK's sparse context changes ARE operator applications. When THICK detects a context change, it's detecting that an operator has fired and the world state has transformed in a discrete, meaningful way."
+              }
+            ]
+          },
+          {
+            "type": "DeepDive",
+            "props": {
+              "title": "LDSC (2025): LLMs for Option Discovery"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "Language-Driven Skill Coordination uses LLMs to GENERATE option definitions. Given a task description, the LLM proposes initiation conditions, sub-goals, and termination criteria. This is exactly what Schank did manually in the 1970s — now automated."
+              },
+              {
+                "type": "p",
+                "children": "The promise: combine LLM semantic knowledge (which verbs exist, what they mean) with RL grounding (how to actually execute them). LLMs provide the operator vocabulary; RL provides the learned policies."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "Quiz: Test Your Understanding"
+        },
+        "children": [
+          {
+            "type": "Quiz",
+            "props": {
+              "questions": [
+                {
+                  "question": "What are the three components of an option in the Sutton-Precup-Singh framework?",
+                  "options": [
+                    "Input, Output, Feedback",
+                    "Initiation set, Internal policy, Termination function",
+                    "Start state, Actions, Goal state",
+                    "Precondition, Effect, Duration"
+                  ],
+                  "correct": 1,
+                  "explanation": "An option is defined by (I, π, β): the initiation set I (where can it start?), the internal policy π (how does it behave?), and the termination function β (when does it stop?). Schankian operators have all three implicitly."
+                },
+                {
+                  "question": "Why are 'activities' (like running, swimming) different from 'accomplishments' (like building a house) in Option terms?",
+                  "options": [
+                    "Activities use different primitive actions",
+                    "Activities have β ≈ 0 (no natural termination), accomplishments have β = 1 at goal state",
+                    "Activities are faster than accomplishments",
+                    "Activities don't have internal policies"
+                  ],
+                  "correct": 1,
+                  "explanation": "Activities like 'running' have no inherent endpoint — β stays near 0, so the option never 'wants' to terminate. Accomplishments like 'building a house' have a clear goal state where β = 1. This explains why 'I ran in an hour' sounds odd but 'I built a house in a year' is natural."
+                },
+                {
+                  "question": "What does event segmentation research suggest about how the brain parses experience?",
+                  "options": [
+                    "The brain segments at random intervals",
+                    "Event boundaries occur at option terminations, when prediction error spikes",
+                    "Events are segmented by clock time",
+                    "The brain doesn't segment experience at all"
+                  ],
+                  "correct": 1,
+                  "explanation": "Neuroscience shows event boundaries coincide with prediction error spikes — exactly when one option ends and another begins. The brain's predictive model changes, errors spike, and a new 'event' is marked. This is why Schankian operators feel like natural units of meaning."
+                },
+                {
+                  "question": "In the three-level hierarchy, where do Schankian operators fit?",
+                  "options": [
+                    "Level 1: Primitive actions",
+                    "Level 2: Options (between primitives and scripts)",
+                    "Level 3: Tasks/Scripts",
+                    "They span all three levels"
+                  ],
+                  "correct": 1,
+                  "explanation": "Schankian operators ARE options — Level 2. They're above primitive motor actions (Level 1) but below complete scripts/tasks (Level 3). ATRANS is an option; the restaurant script is a task built from ATRANS, PTRANS, MTRANS options."
+                },
+                {
+                  "question": "Why does the SMDP framework matter for Schankian operators?",
+                  "options": [
+                    "It provides a name for operators",
+                    "It proves operators are linguistically universal",
+                    "It provides convergence guarantees for planning with variable-duration actions",
+                    "It shows operators can be learned from text"
+                  ],
+                  "correct": 2,
+                  "explanation": "SMDPs handle actions that take variable time — exactly what operators do. The SMDP framework guarantees that planning with operators will converge to good policies. This gives Schankian operators a rigorous mathematical foundation borrowed from RL theory."
+                }
+              ]
+            }
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "Connections to Other Entries"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "This entry connects to:"
+          },
+          {
+            "type": "ul",
+            "children": [
+              {
+                "type": "li",
+                "children": [
+                  {
+                    "type": "strong",
+                    "children": "Entry 18 (Vendler Classes):"
+                  },
+                  " Vendler classes ARE option termination structures. Achievements = instant β, activities = β ≈ 0, etc."
+                ]
+              },
+              {
+                "type": "li",
+                "children": [
+                  {
+                    "type": "strong",
+                    "children": "Entry 57 (Reward Machines):"
+                  },
+                  " Scripts are reward machines; operators are the transition labels. This entry shows operators are OPTIONS triggering those transitions."
+                ]
+              },
+              {
+                "type": "li",
+                "children": [
+                  {
+                    "type": "strong",
+                    "children": "Entry 61 (Successor Representation):"
+                  },
+                  " The SR encodes expected future states. Options generate the transition matrix T that defines the SR. Together: operators as options → T → SR → scripts."
+                ]
+              },
+              {
+                "type": "li",
+                "children": [
+                  {
+                    "type": "strong",
+                    "children": "Entry 23 (Differentiable State Machines):"
+                  },
+                  " State machines formalize script structure; options provide the semantics of what those transitions MEAN (initiation, policy, termination)."
+                ]
+              }
+            ]
+          },
+          {
+            "type": "Callout",
+            "props": {
+              "type": "key-insight"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "The Options framework completes the bridge between language and action. Schank gave us semantic operators. Sutton gave us the mathematical machinery. Together: verbs are options — temporally extended, hierarchically composable units of intentional behavior that the brain segments into discrete experiential events. That's what language describes: options in execution."
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}

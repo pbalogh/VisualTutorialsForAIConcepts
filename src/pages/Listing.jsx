@@ -552,6 +552,18 @@ const tutorials = [
     difficulty: 2,
   },
   {
+    id: 'brainstorm-63-operators-as-options',
+    title: 'Operators as Options',
+    description: 'Temporal abstraction as event semantics — how Schankian operators ARE Sutton\'s options, with initiation sets, policies, and termination conditions',
+    tags: ['schankian', 'reinforcement-learning', 'options', 'temporal-abstraction', 'event-segmentation'],
+    icon: '⏱️',
+    gradient: 'from-orange-500 to-amber-600',
+    shadowColor: 'shadow-orange-500/30',
+    glowColor: 'rgba(249, 115, 22, 0.4)',
+    readTime: '25 min',
+    difficulty: 3,
+  },
+  {
     id: 'brainstorm-52-pearls-ladder',
     title: "Pearl's Ladder as an Operator Hierarchy",
     description: "Why confusing correlation with causation is literally a type error — three classes of operators formalize the Causal Hierarchy Theorem",
