@@ -23,40 +23,7 @@
         "children": [
           {
             "type": "p",
-            "children": [
-              "A Bloom filter",
-              {
-                "type": "FootnoteRef",
-                "props": {
-                  "id": "source-ann-1771411851265-h6regm",
-                  "targetId": "ann-1771411851265-h6regm",
-                  "type": "explain"
-                }
-              },
-              " is a probabilistic data structure invented by Burton Bloom in 1970. It answers the question: 'Is this element in my set?' with a crucial asymmetry:"
-            ]
-          },
-          {
-            "type": "Sidebar",
-            "props": {
-              "type": "note",
-              "title": "About \"Bloom filter\"",
-              "id": "ann-1771411851265-h6regm",
-              "sourceId": "source-ann-1771411851265-h6regm"
-            },
-            "children": [
-              {
-                "type": "p",
-                "children": "A Bloom filter isn't a standard concept in transformer attention heads — it's a probabilistic data structure that tells you whether an element is *possibly* in a set or *definitely* not. However, some researchers draw an analogy: attention heads can function like learned Bloom filters, quickly screening which tokens are relevant (worth attending to) and which can be safely ignored, trading perfect precision for efficiency. If this term appeared in your reading, the author is likely using it as a metaphor for how attention heads perform fast, approximate filtering over the input sequence."
-              },
-              {
-                "type": "p",
-                "props": {
-                  "className": "text-xs text-gray-400 mt-2"
-                },
-                "children": "Added 2/18/2026, 5:50:41 AM"
-              }
-            ]
+            "children": "A Bloom filter is a probabilistic data structure invented by Burton Bloom in 1970. It answers the question: 'Is this element in my set?' with a crucial asymmetry:"
           },
           {
             "type": "ul",
@@ -249,160 +216,7 @@
             "children": [
               {
                 "type": "p",
-                "children": [
-                  "The effect sizes are enormous: Cohen's d = 12.3 for hit attention, d = 12.5 for selectivity",
-                  {
-                    "type": "FootnoteRef",
-                    "props": {
-                      "id": "source-ann-1771411893725-fv1tzf",
-                      "targetId": "ann-1771411893725-fv1tzf",
-                      "type": "explain"
-                    }
-                  },
-                  {
-                    "type": "FootnoteRef",
-                    "props": {
-                      "id": "source-ann-1771410433883-1g6nxy",
-                      "targetId": "ann-1771410433883-1g6nxy",
-                      "type": "explain"
-                    }
-                  },
-                  ". For reference, d > 0.8 is typically considered 'large'. These heads are MASSIVELY different from the other 140."
-                ]
-              }
-            ]
-          },
-          {
-            "type": "Sidebar",
-            "props": {
-              "type": "note",
-              "title": "About \"Cohen's d = 12.3 for hit attention, d = 12.5 for selectivity\"",
-              "id": "ann-1771411893725-fv1tzf",
-              "sourceId": "source-ann-1771411893725-fv1tzf"
-            },
-            "children": [
-              {
-                "type": "p",
-                "children": [
-                  "These numbers tell you just how extreme the \"hit\" and \"selectivity\" attention heads",
-                  {
-                    "type": "FootnoteRef",
-                    "props": {
-                      "id": "source-ann-1771412010426-r5yqvm",
-                      "targetId": "ann-1771412010426-r5yqvm",
-                      "type": "ask"
-                    }
-                  },
-                  " are compared to the other 140 heads in the model — a Cohen's d of 12+ means they're roughly 12 standard deviations away from the average head's behavior, which is almost unheard of in practice. In other words, these aren't just \"somewhat specialized\" heads; they're operating in a completely different regime, making them easy to identify and suggesting they play a structurally distinct role in how the model processes information."
-                ]
-              },
-              {
-                "type": "p",
-                "props": {
-                  "className": "text-xs text-gray-400 mt-2"
-                },
-                "children": "Added 2/18/2026, 5:51:27 AM"
-              }
-            ]
-          },
-          {
-            "type": "Sidebar",
-            "props": {
-              "type": "note",
-              "title": "Q: Is this about true positives and true negatives? Please explain these terms as through I'm 5 years old",
-              "expanded": true,
-              "id": "ann-1771412010426-r5yqvm",
-              "sourceId": "source-ann-1771412010426-r5yqvm"
-            },
-            "children": [
-              {
-                "type": "p",
-                "children": "Not exactly true positives and negatives, but you're in the right neighborhood! Let me explain it like you're five."
-              },
-              {
-                "type": "p",
-                "children": "Imagine you have a big classroom of 142 kids, and you ask them all to find red blocks in a toy bin. Most kids grab a mix of blocks, some red, some blue, some green. But two kids are special. The \"hit\" kid ONLY gets excited when she sees a red block — she lights up every single time there's a red one. That's the \"hit\" head: it fires strongly whenever the model encounters something it's looking for, like a specific pattern or token. You could think of it as the \"yes, this is the thing!\" detector."
-              },
-              {
-                "type": "p",
-                "children": "The \"selectivity\" kid is different. She's the picky one who IGNORES everything that isn't a red block. She doesn't just find red blocks — she actively tunes out all the blue and green ones. The \"selectivity\" head is about how sharply the attention is focused: instead of spreading its attention across many tokens, it zeroes in on just the relevant ones and suppresses everything else."
-              },
-              {
-                "type": "p",
-                "children": [
-                  "So the \"hit\" head is about how strongly the model responds when the right thing shows up, and the \"selectivity\" head is about how cleanly the model filters out the wrong things. You're right that this is loosely related to the true positive and true negative idea — \"hit\" is closer to the true positive side (catching what matters) and \"selectivity\" is closer to the true negative side (ignoring what doesn't). What makes them remarkable, as the passage says, is that out of 142 heads",
-                  {
-                    "type": "FootnoteRef",
-                    "props": {
-                      "id": "source-ann-1771412560365-0mwgf1",
-                      "targetId": "ann-1771412560365-0mwgf1",
-                      "type": "ask"
-                    }
-                  },
-                  ", these two are wildly more extreme than all the others, like two kids in that classroom who are so weirdly good at the block-sorting task that the teacher can't help but notice them."
-                ]
-              },
-              {
-                "type": "p",
-                "props": {
-                  "className": "text-xs text-gray-400 mt-2"
-                },
-                "children": "Asked about \"\"hit\" and \"selectivity\" attent...\" — 2/18/2026, 5:53:15 AM"
-              }
-            ]
-          },
-          {
-            "type": "Sidebar",
-            "props": {
-              "type": "note",
-              "title": "Q: Are there 142 attention heads in the GPT-2 architecture?",
-              "expanded": true,
-              "id": "ann-1771412560365-0mwgf1",
-              "sourceId": "source-ann-1771412560365-0mwgf1"
-            },
-            "children": [
-              {
-                "type": "p",
-                "children": "Yes, GPT-2 Small has exactly 142 attention heads. Specifically, it has 12 layers with 12 heads per layer, giving 144 total. But the 142 number you see here likely comes from a specific analysis where 2 heads were excluded or the count reflects a particular subset being studied. The standard architecture is 12 × 12 = 144."
-              },
-              {
-                "type": "p",
-                "children": "The reason this number matters in context is that the tutorial is making a point about how special the \"hit\" and \"selectivity\" heads are. Out of all those heads, each doing its own thing across the network, only these two emerged as clean, interpretable specialists for indirect object identification. Most of the other 140-odd heads are doing work that is either redundant, distributed, or not clearly tied to one function. So when the passage says these two stand out from 142 heads, it is emphasizing just how rare it is for a single head to have a neat, human-understandable role."
-              },
-              {
-                "type": "p",
-                "children": "Think of it like a company with 142 employees. Most of them contribute a little to many projects, and it is hard to say exactly what any one person does. But two of them have such distinctive, clear-cut jobs that you can point to them and say \"that one catches the right answer, and that one filters out the wrong ones.\" That specificity is what makes them remarkable and what makes them useful for understanding how the model works internally."
-              },
-              {
-                "type": "p",
-                "props": {
-                  "className": "text-xs text-gray-400 mt-2"
-                },
-                "children": "Asked about \"142 heads\" — 2/18/2026, 6:02:27 AM"
-              }
-            ]
-          },
-          {
-            "type": "Callout",
-            "props": {
-              "type": "warning",
-              "id": "ann-1771410433883-1g6nxy",
-              "sourceId": "source-ann-1771410433883-1g6nxy"
-            },
-            "children": [
-              {
-                "type": "strong",
-                "children": "⚠️ \"Cohen's d = 12.3 for hit attention, d = 12.5 for selectivity\":"
-              },
-              " ",
-              "AI generation failed: invalid x-api-key. Please try again.",
-              " ",
-              {
-                "type": "em",
-                "props": {
-                  "className": "text-gray-400 text-xs"
-                },
-                "children": "(2/18/2026, 5:27:13 AM)"
+                "children": "The effect sizes are enormous: Cohen's d = 12.3 for hit attention, d = 12.5 for selectivity. For reference, d > 0.8 is typically considered 'large'. These heads are MASSIVELY different from the other 140."
               }
             ]
           },
@@ -420,219 +234,7 @@
         "children": [
           {
             "type": "p",
-            "children": [
-              "A natural question: aren't these just induction heads? Induction heads (Olsson et al. 2022)",
-              {
-                "type": "FootnoteRef",
-                "props": {
-                  "id": "source-ann-1771412649494-u74c38",
-                  "targetId": "ann-1771412649494-u74c38",
-                  "type": "ask"
-                }
-              },
-              " implement the pattern [A][B]...[A] → [B] — they copy what followed a previous occurrence."
-            ]
-          },
-          {
-            "type": "Sidebar",
-            "props": {
-              "type": "note",
-              "title": "Q: ELI5",
-              "expanded": true,
-              "id": "ann-1771412649494-u74c38",
-              "sourceId": "source-ann-1771412649494-u74c38"
-            },
-            "children": [
-              {
-                "type": "p",
-                "children": "Imagine you're reading a story and you see \"The cat sat on the mat.\" Later in the story you see \"The cat sat on the...\" Your brain automatically fills in \"mat\" because you saw that pattern before. That's basically what an induction head does."
-              },
-              {
-                "type": "p",
-                "children": [
-                  "An induction head is a little circuit inside a transformer that learns to play this copycat game. It notices that token A was followed by token B earlier in the text, and then when it sees token A again later, it predicts B will come next. So if the model saw \"Harry Potter\" earlier, and then sees \"Harry\" again, the induction head pipes up and says \"probably Potter comes next.\"",
-                  {
-                    "type": "FootnoteRef",
-                    "props": {
-                      "id": "source-ann-1771412726036-atsavv",
-                      "targetId": "ann-1771412726036-atsavv",
-                      "type": "ask"
-                    }
-                  }
-                ]
-              },
-              {
-                "type": "p",
-                "children": "The reason the tutorial brings this up is to ask whether the pattern-completing behavior being discussed is just this simple copying trick, or something deeper. Induction heads are powerful but mechanical. They are pattern matchers that replay what they already saw. The tutorial is drawing a distinction between that kind of rote repetition and more flexible reasoning that might generalize to new situations."
-              },
-              {
-                "type": "p",
-                "props": {
-                  "className": "text-xs text-gray-400 mt-2"
-                },
-                "children": "Asked about \"Induction heads (Olsson et al....\" — 2/18/2026, 6:04:00 AM"
-              }
-            ]
-          },
-          {
-            "type": "Sidebar",
-            "props": {
-              "type": "note",
-              "title": "Q: Is this kinda Markov Chain behavior?",
-              "expanded": true,
-              "id": "ann-1771412726036-atsavv",
-              "sourceId": "source-ann-1771412726036-atsavv"
-            },
-            "children": [
-              {
-                "type": "p",
-                "children": "Great instinct — there's a real family resemblance, but the difference matters. A Markov chain says \"given the current state, here's the probability of the next state.\" A bigram Markov model trained on Harry Potter text would learn that \"Harry\" is frequently followed by \"Potter\" as a fixed statistical rule. It doesn't care whether \"Harry Potter\" appeared earlier in this specific text or not — it just knows the global frequency."
-              },
-              {
-                "type": "p",
-                "children": "An induction head is doing something subtler. It's not relying on pre-baked statistics about which tokens generally follow which. Instead, it's looking at the current context window and saying \"I notice that earlier in THIS specific text, A was followed by B, so now that I see A again, I'll predict B.\" It's pattern-matching within the document at inference time. If you gave it a text where \"Harry\" was always followed by \"Slamdunk\" for some bizarre reason, the induction head would learn that pattern on the fly and predict \"Slamdunk\" — something a Markov chain trained on normal text would never do."
-              },
-              {
-                "type": "p",
-                "children": [
-                  "So the Markov chain captures static transition probabilities learned during training, while the induction head implements a dynamic copying mechanism that adapts to whatever patterns are present in the current input.",
-                  {
-                    "type": "FootnoteRef",
-                    "props": {
-                      "id": "source-ann-1771412856067-qmwfhe",
-                      "targetId": "ann-1771412856067-qmwfhe",
-                      "type": "ask"
-                    }
-                  },
-                  " This is actually one of the key reasons transformers are so powerful at in-context learning — induction heads let them pick up and exploit new patterns without any weight updates, just by attending to what came before in the sequence."
-                ]
-              },
-              {
-                "type": "p",
-                "props": {
-                  "className": "text-xs text-gray-400 mt-2"
-                },
-                "children": "Asked about \"nduction head pipes up and say...\" — 2/18/2026, 6:05:13 AM"
-              }
-            ]
-          },
-          {
-            "type": "Sidebar",
-            "props": {
-              "type": "note",
-              "title": "Q: Is it crazy to say these sound like the two competing fundamental processes in an LLM? Trained markov chains (if you squint a lot!) vs dynamic ones that learn from the current text?",
-              "expanded": true,
-              "id": "ann-1771412856067-qmwfhe",
-              "sourceId": "source-ann-1771412856067-qmwfhe"
-            },
-            "children": [
-              {
-                "type": "p",
-                "children": [
-                  "Not crazy at all — it's actually a pretty sharp intuition, and serious researchers have framed it similarly. You can think of a transformer as blending two modes of operation: one that acts like a massively sophisticated lookup table built from training data (the \"Markov chain\" side, where the model has memorized that \"the cat sat on the\" is usually followed by \"mat\"), and one that acts like a pattern-matcher running live on the current context (the \"induction head\" side, where the model notices that this particular text keeps using an unusual phrase and predicts it will appear again). The trained weights encode what's generally true about language; the attention mechanism figures out what's specifically true about this text.",
-                  {
-                    "type": "FootnoteRef",
-                    "props": {
-                      "id": "source-ann-1771412993521-wccedd",
-                      "targetId": "ann-1771412993521-wccedd",
-                      "type": "ask"
-                    }
-                  }
-                ]
-              },
-              {
-                "type": "p",
-                "children": "Where it gets interesting is that these aren't really separate systems — they're interleaved across layers. Early layers tend to do more of the statistical, Markov-like work (bigram and trigram patterns baked into the weights), while later layers increasingly rely on attention-based contextual reasoning. An induction head in layer 5 might copy a pattern it spotted, and then a feed-forward layer in layer 6 might refine that prediction using trained knowledge. So it's less \"two competing processes\" and more like a spectrum the model slides along depending on what the input demands. A predictable sentence leans on the trained statistics; a passage full of novel made-up words forces the model to lean hard on dynamic copying."
-              },
-              {
-                "type": "p",
-                "children": "The \"squint a lot\" caveat is fair because real feed-forward layers are doing something richer than Markov chains — they've learned compressed representations, not just transition counts. But as a mental model for the two fundamental impulses at work (what did I learn in training vs. what am I seeing right now), it captures something genuinely important about why transformers can both be fluent in general English and also adapt on the fly to your specific document's weird terminology or style."
-              },
-              {
-                "type": "p",
-                "props": {
-                  "className": "text-xs text-gray-400 mt-2"
-                },
-                "children": "Asked about \"o the Markov chain captures st...\" — 2/18/2026, 6:07:20 AM"
-              }
-            ]
-          },
-          {
-            "type": "Sidebar",
-            "props": {
-              "type": "note",
-              "title": "Q: This framing got me excited. It suggests a very real, but primitive, modal logic: there are two belief systems. But of course a text can, and usually does, contain its own multiple belief and knowledge frames!",
-              "expanded": true,
-              "id": "ann-1771412993521-wccedd",
-              "sourceId": "source-ann-1771412993521-wccedd"
-            },
-            "children": [
-              {
-                "type": "p",
-                "children": "You're absolutely right to push on this, and you've hit on something that makes transformers more interesting than the simple two-mode framing suggests. The weights-vs-attention split is real, but it's not just two flat belief systems — it's more like one system that knows what's generally true and another that can dynamically construct and track multiple, even contradictory, frames within a single passage."
-              },
-              {
-                "type": "p",
-                "children": "Consider a sentence like \"John believes the earth is flat, but Mary told him that satellite photos prove it's round.\" A simple two-mode system would be stuck: the trained weights know the earth is round, and the attention mechanism sees the current text. But the model actually has to track John's belief frame (earth is flat), Mary's belief frame (earth is round), the author's implied frame (Mary is right), and the reader's expected frame — all simultaneously. The attention mechanism does this by dynamically binding information across positions: it can attend to \"John believes\" and use that to modulate how it processes \"the earth is flat,\" essentially tagging that proposition as embedded under John's epistemic context rather than asserting it directly. The multi-head structure is key here — different heads can track different frames in parallel."
-              },
-              {
-                "type": "p",
-                "children": "This is where the \"primitive modal logic\" framing gets genuinely deep. The trained weights give the model priors about how belief embedding works in language generally (words like \"believes,\" \"claims,\" \"pretends\" signal modal shifts), while attention heads learn to perform something like dynamic scope tracking at inference time. Researchers working on mechanistic interpretability have found heads that specialize in exactly this kind of reference tracking. So you don't just have two belief systems — you have a general-knowledge system plus a flexible runtime system that can spin up and maintain arbitrary numbers of nested epistemic frames, limited mainly by the model's depth and the number of attention heads available to do the bookkeeping."
-              },
-              {
-                "type": "p",
-                "children": [
-                  "The exciting implication you're circling is that this architecture may be doing something closer to discourse representation theory or possible-worlds semantics than a simple lookup-plus-pattern-match story suggests. The two-mode framing is a useful entry point, but the real machinery is that attention gives the model a compositional, context-sensitive way to manage exactly the kind of multiple embedded knowledge frames you're describing — which is why transformers handle unreliable narrators, nested quotations, and hypotheticals as well as they do, and why they fail in predictable ways when the nesting gets too deep for their fixed number of layers and heads to track",
-                  {
-                    "type": "FootnoteRef",
-                    "props": {
-                      "id": "source-ann-1771413186882-hx7e59",
-                      "targetId": "ann-1771413186882-hx7e59",
-                      "type": "ask"
-                    }
-                  },
-                  "."
-                ]
-              },
-              {
-                "type": "p",
-                "props": {
-                  "className": "text-xs text-gray-400 mt-2"
-                },
-                "children": "Asked about \"The trained weights encode wha...\" — 2/18/2026, 6:09:33 AM"
-              }
-            ]
-          },
-          {
-            "type": "Sidebar",
-            "props": {
-              "type": "note",
-              "title": "Q: Is it crazy to suggest that transformers would do better if they could somehow know when a new epistemic frame is needed, and could spin up a new attention head dedicated to it on the fly?",
-              "expanded": true,
-              "id": "ann-1771413186882-hx7e59",
-              "sourceId": "source-ann-1771413186882-hx7e59"
-            },
-            "children": [
-              {
-                "type": "p",
-                "children": "Not crazy at all — it's actually a well-aimed intuition that connects to real research directions. The core problem you've identified is genuine: a standard transformer has a fixed number of layers and heads decided at training time, which means it has a hard ceiling on how many nested epistemic frames it can simultaneously track. When a passage requires tracking \"John believes that Mary said that the narrator suspects that the author implies X,\" each layer of embedding ideally needs its own computational workspace to keep the frames from bleeding into each other. Run out of heads or layers, and the model starts collapsing frames together — which is exactly the \"predictable failure\" the passage describes."
-              },
-              {
-                "type": "p",
-                "children": "What you're proposing is essentially dynamic computation allocation, and it has real analogs in the literature. Mixture-of-experts models like Switch Transformer already do something adjacent: they route different tokens to different specialist subnetworks based on learned gating functions. Adaptive computation time (Graves, 2016) lets a network decide how many processing steps to spend on a given input. Your version is more targeted — you want the model to detect \"this is a new epistemic boundary\" and recruit fresh capacity for it. The detection part is actually plausible since transformers already implicitly learn to recognize discourse markers like \"he claimed\" or \"suppose that\" as frame-openers. The harder part is the \"spin up on the fly\" piece, because attention heads aren't modular processors you can instantiate at runtime — they're fixed weight matrices that were trained jointly."
-              },
-              {
-                "type": "p",
-                "children": "The most promising direction toward what you're imagining might be something like a recurrent or scratchpad-augmented transformer, where the model can loop back through its own layers multiple times for harder passages, effectively giving itself more depth when it detects complexity. Chain-of-thought prompting is a crude external version of this: you're giving the model extra sequential steps to unpack nested frames one at a time rather than forcing it to resolve them all in a single forward pass. So your instinct is sound — the fixed architecture is the bottleneck, and the solution probably does involve making computation depth conditional on input complexity. The open question is how to do that without losing the parallelism and training stability that make transformers work so well in the first place."
-              },
-              {
-                "type": "p",
-                "props": {
-                  "className": "text-xs text-gray-400 mt-2"
-                },
-                "children": "Asked about \"why transformers handle unreli...\" — 2/18/2026, 6:12:48 AM"
-              }
-            ]
+            "children": "A natural question: aren't these just induction heads? Induction heads (Olsson et al. 2022) implement the pattern [A][B]...[A] → [B] — they copy what followed a previous occurrence."
           },
           {
             "type": "p",
@@ -984,124 +586,53 @@
         "children": [
           {
             "type": "p",
-            "children": "The revised implications of Bloom filter heads fall into three categories, ordered by confidence and practical impact:"
+            "children": "If attention heads implement Bloom filters, several optimizations become possible:"
           },
           {
-            "type": "Section",
+            "type": "DeepDive",
             "props": {
-              "title": "Hallucination Detection (Strongest)"
+              "title": "Sparse Attention Replacement"
             },
             "children": [
               {
                 "type": "p",
-                "children": "A Bloom head showing high activation toward a context position where the queried token does NOT appear signals a false positive — the model 'remembering' something that isn't there. This is free, real-time, requires no model modification, and works on any model with identifiable Bloom heads. Monitor the gap between Bloom head confidence and actual token presence as a hallucination risk score."
-              }
-            ]
-          },
-          {
-            "type": "Section",
-            "props": {
-              "title": "Computational Primitives (Scientific)"
-            },
-            "children": [
-              {
-                "type": "p",
-                "children": "Gradient descent independently reinvented a classical data structure. The capacity curve of L3H0 matches theoretical Bloom filter predictions with R²=0.9921, using fitted parameters of m=59 bits and k=2.16 hash functions. The similarity sweep further revealed these are distance-sensitive Bloom filters — a variant humans took 36 years to formalize after the original (Kirsch & Mitzenmacher 2006). This raises a deep question: what other classical algorithms has gradient descent discovered that we haven't identified yet?"
-              }
-            ]
-          },
-          {
-            "type": "Section",
-            "props": {
-              "title": "Architecture Design (Forward-Looking)"
-            },
-            "children": [
-              {
-                "type": "p",
-                "children": [
-                  "If models consistently allocate attention budget to membership testing (scaling from 4 heads in GPT-2 Small to 27 in GPT-2 Large), perhaps we should build this capability in explicitly rather than forcing models to rediscover it from scratch. Dedicated membership-testing modules could free up attention heads for higher-order computation",
-                  {
-                    "type": "FootnoteRef",
-                    "props": {
-                      "id": "source-ann-1771411733168-8my1oy",
-                      "targetId": "ann-1771411733168-8my1oy",
-                      "type": "ask"
-                    }
-                  },
-                  "."
-                ]
-              },
-              {
-                "type": "Callout",
-                "props": {
-                  "type": "warning",
-                  "id": "ann-1771411733168-8my1oy",
-                  "sourceId": "source-ann-1771411733168-8my1oy"
-                },
-                "children": [
-                  {
-                    "type": "strong",
-                    "children": "⚠️ \"Dedicated membership-testing modules could free up attention heads for higher-order computation\":"
-                  },
-                  " ",
-                  "AI generation failed: invalid x-api-key. Please try again.",
-                  " ",
-                  {
-                    "type": "em",
-                    "props": {
-                      "className": "text-gray-400 text-xs"
-                    },
-                    "children": "(2/18/2026, 5:48:53 AM)"
-                  }
-                ]
+                "children": "Bloom filter heads perform O(n) attention to answer a question a literal Bloom filter answers in O(1). For long-context inference, replace these heads with hash-based lookups → eliminate their quadratic cost entirely."
               }
             ]
           },
           {
             "type": "DeepDive",
             "props": {
-              "title": "What happened to Sparse Attention Replacement and Head Pruning?"
+              "title": "KV-Cache Compression"
             },
             "children": [
               {
                 "type": "p",
-                "children": "Earlier versions of this work proposed replacing Bloom heads with literal Bloom filters (O(1) vs O(n)) and pruning redundant heads. Both were walked back after the hardened ablation study (Experiment 8): mean ablation revealed Bloom heads contribute MORE to novel-token processing than repeat-token processing, meaning they aren't functionally modular enough to simply remove or replace. They're specialized for membership testing but deeply integrated into the network's broader computation. The honest conclusion: behaviorally specialized, not architecturally separable."
+                "children": "Bloom heads use keys (for membership testing) more than values (for content retrieval). Their KV-cache could be compressed to keys only → 50% memory savings for these heads."
               }
             ]
           },
           {
             "type": "DeepDive",
             "props": {
-              "title": "The Competing Models Test (Pass 19 — Feb 2026)"
+              "title": "Hallucination Detection"
             },
             "children": [
               {
                 "type": "p",
-                "children": "How do we know these heads are really implementing Bloom filters and not just some simpler pattern? We tested three competing models: (1) the Bloom filter FP curve, (2) a logistic saturation curve, and (3) a softmax dilution model. The Bloom filter wins decisively — ΔAIC > 11 over logistic, and softmax dilution is crushed at ΔAIC = 23.5. In model comparison terms, that's not a close call."
+                "children": "A Bloom head showing high activation toward a context position where the queried token does NOT appear = a false positive = the model 'remembering' something that isn't there. Monitor these heads as an early warning system for hallucination."
               }
             ]
           },
           {
             "type": "DeepDive",
             "props": {
-              "title": "The Capacity Paradox: Are the Parameters Real?"
+              "title": "Head Pruning"
             },
             "children": [
               {
                 "type": "p",
-                "children": "An uncomfortable finding: when we control for confounds, L3H0's fitted capacity parameter (m) shifts from 59 bits to 10.4 bits depending on conditions. This suggests the fitted parameters may be curve-fitting artifacts rather than reflecting a fixed internal data structure. The honest interpretation: the Bloom filter behavior is robust (the FP curve shape and zero miss rate hold up), but the head appears to adapt its effective capacity rather than implementing a fixed-size filter. This is arguably more interesting — it's a dynamic Bloom filter, not a static one."
-              }
-            ]
-          },
-          {
-            "type": "DeepDive",
-            "props": {
-              "title": "The Dispensability Paradox: Best Match, Least Needed"
-            },
-            "children": [
-              {
-                "type": "p",
-                "children": "L3H0 — our cleanest theoretical Bloom filter (R²=0.99) — turns out to have near-zero ablation impact. The best match is the most dispensable head. How? The distributed Bloom filter interpretation actually predicts this: with 4 independent hash functions, any single one is expendable because the others provide coverage. Functional specialization ≠ functional necessity. The network has built-in redundancy, which is exactly what you'd want from a fault-tolerant system."
+                "children": "If 4 heads act as independent hash functions, maybe we don't need all 4. If 2 provide sufficient coverage, prune the others for efficiency."
               }
             ]
           }
@@ -1231,7 +762,40 @@
             "children": [
               {
                 "type": "p",
-                "children": "Wang et al. identified duplicate-token heads in the IOI circuit that attend to repeated names. The difference: their heads are part of a larger circuit doing indirect object identification; our heads do membership testing WITHOUT pattern completion. They answer 'is this token here?' — period. No copying, no prediction of what follows."
+                "children": [
+                  "Wang et al. identified duplicate-token heads in the IOI circuit that attend to repeated names. The difference: their heads are part of a larger circuit doing indirect object identification; our heads do membership testing WITHOUT pattern completion",
+                  {
+                    "type": "FootnoteRef",
+                    "props": {
+                      "id": "source-ann-1771431645725-fca6a1",
+                      "targetId": "ann-1771431645725-fca6a1",
+                      "type": "explain"
+                    }
+                  },
+                  ". They answer 'is this token here?' — period. No copying, no prediction of what follows."
+                ]
+              }
+            ]
+          },
+          {
+            "type": "Sidebar",
+            "props": {
+              "type": "note",
+              "title": "About \"their heads are part of a larger circuit doing indirect obje...\"",
+              "id": "ann-1771431645725-fca6a1",
+              "sourceId": "source-ann-1771431645725-fca6a1"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "In Wang et al.'s work, the duplicate-token heads they found don't work in isolation—they're components in a multi-step process where the model first identifies repeated names, then uses that information to figure out which entity should receive the action (like determining \"Mary\" gets the object in \"John gave Mary the book\"). In contrast, the heads described here have a much simpler, standalone function: they just detect whether a specific token appears somewhere in the sequence, without needing to predict what comes next or copy information forward to other parts of the model."
+              },
+              {
+                "type": "p",
+                "props": {
+                  "className": "text-xs text-gray-400 mt-2"
+                },
+                "children": "Added 2/18/2026, 11:20:32 AM"
               }
             ]
           },
@@ -1243,7 +807,7 @@
             "children": [
               {
                 "type": "p",
-                "children": "Acknowledged. Our 100 sentence triplets are synthetic. However: (1) Cross-model validation shows the phenomenon isn't stimulus-specific; (2) The ablation study uses the same patterns; (3) A subsequent similarity sweep (1,284 controlled measurements across 100 target words stratified by POS and frequency, with cosine similarity gradients from 0.9→0.0) confirmed that all 4 Bloom heads show smooth monotonic attention decay with embedding distance — establishing them as distance-sensitive Bloom filters (Kirsch & Mitzenmacher 2006)."
+                "children": "Acknowledged. Our 100 sentence triplets are synthetic. However: (1) Cross-model validation shows the phenomenon isn't stimulus-specific; (2) The ablation study uses the same patterns; (3) Naturalistic corpus studies are planned as follow-up. The current work establishes the phenomenon exists; naturalistic validation extends it."
               }
             ]
           },
