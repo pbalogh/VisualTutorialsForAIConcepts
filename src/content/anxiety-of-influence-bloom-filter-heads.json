@@ -581,7 +581,18 @@
               },
               {
                 "type": "p",
-                "children": "The exciting implication you're circling is that this architecture may be doing something closer to discourse representation theory or possible-worlds semantics than a simple lookup-plus-pattern-match story suggests. The two-mode framing is a useful entry point, but the real machinery is that attention gives the model a compositional, context-sensitive way to manage exactly the kind of multiple embedded knowledge frames you're describing — which is why transformers handle unreliable narrators, nested quotations, and hypotheticals as well as they do, and why they fail in predictable ways when the nesting gets too deep for their fixed number of layers and heads to track."
+                "children": [
+                  "The exciting implication you're circling is that this architecture may be doing something closer to discourse representation theory or possible-worlds semantics than a simple lookup-plus-pattern-match story suggests. The two-mode framing is a useful entry point, but the real machinery is that attention gives the model a compositional, context-sensitive way to manage exactly the kind of multiple embedded knowledge frames you're describing — which is why transformers handle unreliable narrators, nested quotations, and hypotheticals as well as they do, and why they fail in predictable ways when the nesting gets too deep for their fixed number of layers and heads to track",
+                  {
+                    "type": "FootnoteRef",
+                    "props": {
+                      "id": "source-ann-1771413186882-hx7e59",
+                      "targetId": "ann-1771413186882-hx7e59",
+                      "type": "ask"
+                    }
+                  },
+                  "."
+                ]
               },
               {
                 "type": "p",
@@ -589,6 +600,37 @@
                   "className": "text-xs text-gray-400 mt-2"
                 },
                 "children": "Asked about \"The trained weights encode wha...\" — 2/18/2026, 6:09:33 AM"
+              }
+            ]
+          },
+          {
+            "type": "Sidebar",
+            "props": {
+              "type": "note",
+              "title": "Q: Is it crazy to suggest that transformers would do better if they could somehow know when a new epistemic frame is needed, and could spin up a new attention head dedicated to it on the fly?",
+              "expanded": true,
+              "id": "ann-1771413186882-hx7e59",
+              "sourceId": "source-ann-1771413186882-hx7e59"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "Not crazy at all — it's actually a well-aimed intuition that connects to real research directions. The core problem you've identified is genuine: a standard transformer has a fixed number of layers and heads decided at training time, which means it has a hard ceiling on how many nested epistemic frames it can simultaneously track. When a passage requires tracking \"John believes that Mary said that the narrator suspects that the author implies X,\" each layer of embedding ideally needs its own computational workspace to keep the frames from bleeding into each other. Run out of heads or layers, and the model starts collapsing frames together — which is exactly the \"predictable failure\" the passage describes."
+              },
+              {
+                "type": "p",
+                "children": "What you're proposing is essentially dynamic computation allocation, and it has real analogs in the literature. Mixture-of-experts models like Switch Transformer already do something adjacent: they route different tokens to different specialist subnetworks based on learned gating functions. Adaptive computation time (Graves, 2016) lets a network decide how many processing steps to spend on a given input. Your version is more targeted — you want the model to detect \"this is a new epistemic boundary\" and recruit fresh capacity for it. The detection part is actually plausible since transformers already implicitly learn to recognize discourse markers like \"he claimed\" or \"suppose that\" as frame-openers. The harder part is the \"spin up on the fly\" piece, because attention heads aren't modular processors you can instantiate at runtime — they're fixed weight matrices that were trained jointly."
+              },
+              {
+                "type": "p",
+                "children": "The most promising direction toward what you're imagining might be something like a recurrent or scratchpad-augmented transformer, where the model can loop back through its own layers multiple times for harder passages, effectively giving itself more depth when it detects complexity. Chain-of-thought prompting is a crude external version of this: you're giving the model extra sequential steps to unpack nested frames one at a time rather than forcing it to resolve them all in a single forward pass. So your instinct is sound — the fixed architecture is the bottleneck, and the solution probably does involve making computation depth conditional on input complexity. The open question is how to do that without losing the parallelism and training stability that make transformers work so well in the first place."
+              },
+              {
+                "type": "p",
+                "props": {
+                  "className": "text-xs text-gray-400 mt-2"
+                },
+                "children": "Asked about \"why transformers handle unreli...\" — 2/18/2026, 6:12:48 AM"
               }
             ]
           },
