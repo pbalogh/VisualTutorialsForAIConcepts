@@ -189,27 +189,41 @@ async function callOpenClaw(systemPrompt, userPrompt) {
   // Combine system + user prompt into a single message for the agent
   const combinedMessage = `[System instruction — follow this exactly]\n${systemPrompt}\n\n[User request]\n${userPrompt}`
   
+  // Write message to temp file to avoid shell escaping issues with large prompts
+  const tempMsgFile = path.join(__dirname, `.openclaw-msg-${Date.now()}.txt`)
+  
   // Use a dedicated session to avoid polluting other sessions
   const sessionId = `annotation-${Date.now()}`
   
-  const result = execSync(
-    `${nodePath} ${openclawPath} agent --local --json --timeout 120 --session-id ${sessionId} --message ${JSON.stringify(combinedMessage)}`,
-    { 
-      encoding: 'utf-8',
-      maxBuffer: 10 * 1024 * 1024,
-      timeout: 130000,
+  try {
+    await fs.writeFile(tempMsgFile, combinedMessage)
+    
+    // Use execFileSync to avoid shell escaping issues entirely
+    const { execFileSync } = await import('child_process')
+    const msgContent = await fs.readFile(tempMsgFile, 'utf-8')
+    
+    const result = execFileSync(
+      nodePath,
+      [openclawPath, 'agent', '--local', '--json', '--timeout', '180', '--session-id', sessionId, '--message', msgContent],
+      { 
+        encoding: 'utf-8',
+        maxBuffer: 10 * 1024 * 1024,
+        timeout: 190000,
+      }
+    )
+    
+    const parsed = JSON.parse(result)
+    
+    // Extract the reply text from payloads
+    const textPayload = parsed.payloads?.find(p => p.text)
+    if (textPayload?.text) {
+      return textPayload.text
     }
-  )
-  
-  const parsed = JSON.parse(result)
-  
-  // Extract the reply text from payloads
-  const textPayload = parsed.payloads?.find(p => p.text)
-  if (textPayload?.text) {
-    return textPayload.text
+    
+    throw new Error(`No text in OpenClaw response: ${JSON.stringify(parsed).slice(0, 300)}`)
+  } finally {
+    await fs.unlink(tempMsgFile).catch(() => {})
   }
-  
-  throw new Error(`No text in OpenClaw response: ${JSON.stringify(parsed).slice(0, 300)}`)
 }
 
 // ============================================================================
