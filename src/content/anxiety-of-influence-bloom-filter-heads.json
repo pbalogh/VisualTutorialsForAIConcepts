@@ -528,7 +528,17 @@
             "children": [
               {
                 "type": "p",
-                "children": "Not crazy at all — it's actually a pretty sharp intuition, and serious researchers have framed it similarly. You can think of a transformer as blending two modes of operation: one that acts like a massively sophisticated lookup table built from training data (the \"Markov chain\" side, where the model has memorized that \"the cat sat on the\" is usually followed by \"mat\"), and one that acts like a pattern-matcher running live on the current context (the \"induction head\" side, where the model notices that this particular text keeps using an unusual phrase and predicts it will appear again). The trained weights encode what's generally true about language; the attention mechanism figures out what's specifically true about this text."
+                "children": [
+                  "Not crazy at all — it's actually a pretty sharp intuition, and serious researchers have framed it similarly. You can think of a transformer as blending two modes of operation: one that acts like a massively sophisticated lookup table built from training data (the \"Markov chain\" side, where the model has memorized that \"the cat sat on the\" is usually followed by \"mat\"), and one that acts like a pattern-matcher running live on the current context (the \"induction head\" side, where the model notices that this particular text keeps using an unusual phrase and predicts it will appear again). The trained weights encode what's generally true about language; the attention mechanism figures out what's specifically true about this text.",
+                  {
+                    "type": "FootnoteRef",
+                    "props": {
+                      "id": "source-ann-1771412993521-wccedd",
+                      "targetId": "ann-1771412993521-wccedd",
+                      "type": "ask"
+                    }
+                  }
+                ]
               },
               {
                 "type": "p",
@@ -544,6 +554,41 @@
                   "className": "text-xs text-gray-400 mt-2"
                 },
                 "children": "Asked about \"o the Markov chain captures st...\" — 2/18/2026, 6:07:20 AM"
+              }
+            ]
+          },
+          {
+            "type": "Sidebar",
+            "props": {
+              "type": "note",
+              "title": "Q: This framing got me excited. It suggests a very real, but primitive, modal logic: there are two belief systems. But of course a text can, and usually does, contain its own multiple belief and knowledge frames!",
+              "expanded": true,
+              "id": "ann-1771412993521-wccedd",
+              "sourceId": "source-ann-1771412993521-wccedd"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "You're absolutely right to push on this, and you've hit on something that makes transformers more interesting than the simple two-mode framing suggests. The weights-vs-attention split is real, but it's not just two flat belief systems — it's more like one system that knows what's generally true and another that can dynamically construct and track multiple, even contradictory, frames within a single passage."
+              },
+              {
+                "type": "p",
+                "children": "Consider a sentence like \"John believes the earth is flat, but Mary told him that satellite photos prove it's round.\" A simple two-mode system would be stuck: the trained weights know the earth is round, and the attention mechanism sees the current text. But the model actually has to track John's belief frame (earth is flat), Mary's belief frame (earth is round), the author's implied frame (Mary is right), and the reader's expected frame — all simultaneously. The attention mechanism does this by dynamically binding information across positions: it can attend to \"John believes\" and use that to modulate how it processes \"the earth is flat,\" essentially tagging that proposition as embedded under John's epistemic context rather than asserting it directly. The multi-head structure is key here — different heads can track different frames in parallel."
+              },
+              {
+                "type": "p",
+                "children": "This is where the \"primitive modal logic\" framing gets genuinely deep. The trained weights give the model priors about how belief embedding works in language generally (words like \"believes,\" \"claims,\" \"pretends\" signal modal shifts), while attention heads learn to perform something like dynamic scope tracking at inference time. Researchers working on mechanistic interpretability have found heads that specialize in exactly this kind of reference tracking. So you don't just have two belief systems — you have a general-knowledge system plus a flexible runtime system that can spin up and maintain arbitrary numbers of nested epistemic frames, limited mainly by the model's depth and the number of attention heads available to do the bookkeeping."
+              },
+              {
+                "type": "p",
+                "children": "The exciting implication you're circling is that this architecture may be doing something closer to discourse representation theory or possible-worlds semantics than a simple lookup-plus-pattern-match story suggests. The two-mode framing is a useful entry point, but the real machinery is that attention gives the model a compositional, context-sensitive way to manage exactly the kind of multiple embedded knowledge frames you're describing — which is why transformers handle unreliable narrators, nested quotations, and hypotheticals as well as they do, and why they fail in predictable ways when the nesting gets too deep for their fixed number of layers and heads to track."
+              },
+              {
+                "type": "p",
+                "props": {
+                  "className": "text-xs text-gray-400 mt-2"
+                },
+                "children": "Asked about \"The trained weights encode wha...\" — 2/18/2026, 6:09:33 AM"
               }
             ]
           },
