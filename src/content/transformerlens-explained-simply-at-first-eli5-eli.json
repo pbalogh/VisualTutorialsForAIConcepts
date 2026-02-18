@@ -1,0 +1,365 @@
+{
+  "id": "transformerlens-explained-simply-at-first-eli5-eli",
+  "title": "TransformerLens: Your X-Ray Vision into AI Models",
+  "subtitle": "Learn how to peek inside transformer models and understand what they're actually thinking",
+  "readTime": "8 min",
+  "state": {},
+  "content": {
+    "type": "Fragment",
+    "children": [
+      {
+        "type": "Section",
+        "props": {
+          "title": "Why This Matters"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "Imagine you could see exactly what's happening in someone's brain when they solve a math problem or understand a joke. TransformerLens is like that X-ray vision, but for AI models. It lets you peek inside transformer models (like GPT) and see how they process information step by step."
+          },
+          {
+            "type": "Callout",
+            "props": {
+              "type": "tip"
+            },
+            "children": "Think of AI models as black boxes that take text in and spit text out. TransformerLens turns these black boxes into glass boxes - you can see all the gears turning inside!"
+          },
+          {
+            "type": "p",
+            "children": "This matters because understanding how AI thinks helps us make it safer, more reliable, and better at what we want it to do."
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "ELI5: The Simple Version"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "Let's say you're watching a friend solve a puzzle. With your regular eyes, you can only see them thinking hard and then suddenly saying 'Aha! The answer is 42!' But what if you had magic glasses that let you see their thoughts?"
+          },
+          {
+            "type": "p",
+            "children": "TransformerLens is like those magic glasses for AI. When an AI reads a sentence like 'The cat sat on the...', you can see:"
+          },
+          {
+            "type": "ul",
+            "children": [
+              {
+                "type": "li",
+                "children": "How it recognizes each word"
+              },
+              {
+                "type": "li",
+                "children": "When it starts thinking 'this might be about furniture'"
+              },
+              {
+                "type": "li",
+                "children": "How it decides between 'mat', 'chair', or 'couch'"
+              },
+              {
+                "type": "li",
+                "children": "The exact moment it chooses 'mat' as the answer"
+              }
+            ]
+          },
+          {
+            "type": "Example",
+            "props": {
+              "title": "Example: AI Reading Comprehension"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "Input: 'Sarah loves ice cream. She went to the store and bought some vanilla.'"
+              },
+              {
+                "type": "p",
+                "children": "With TransformerLens, you might see the AI thinking:"
+              },
+              {
+                "type": "ol",
+                "children": [
+                  {
+                    "type": "li",
+                    "children": "Layer 1: 'Sarah' connects to 'person'"
+                  },
+                  {
+                    "type": "li",
+                    "children": "Layer 3: 'loves ice cream' creates expectation for dessert words"
+                  },
+                  {
+                    "type": "li",
+                    "children": "Layer 7: 'She' clearly refers back to 'Sarah'"
+                  },
+                  {
+                    "type": "li",
+                    "children": "Layer 12: 'vanilla' connects to the ice cream context from earlier"
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "ELI21: The Technical Picture"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "Now let's get more technical. Transformer models have layers (like a 12-story building), and each layer has components called attention heads and MLPs. TransformerLens lets you examine what each of these components is doing."
+          },
+          {
+            "type": "h3",
+            "children": "Key Components You Can Inspect:"
+          },
+          {
+            "type": "DefinitionList",
+            "props": {
+              "items": [
+                {
+                  "term": "Attention Patterns",
+                  "definition": "Which words the model is 'looking at' when processing each word. Like seeing what catches someone's eye when reading."
+                },
+                {
+                  "term": "Residual Stream",
+                  "definition": "The main 'highway' of information flowing through the model. Think of it as the model's working memory."
+                },
+                {
+                  "term": "Layer Outputs",
+                  "definition": "What each layer adds to the model's understanding. Early layers might detect grammar, later layers might understand meaning."
+                },
+                {
+                  "term": "Logits",
+                  "definition": "The model's 'confidence scores' for what word should come next. Higher score = more likely choice."
+                }
+              ]
+            }
+          },
+          {
+            "type": "Callout",
+            "props": {
+              "type": "info"
+            },
+            "children": "TransformerLens is built on PyTorch and integrates seamlessly with Hugging Face models. It's designed specifically for mechanistic interpretability - understanding the 'how' and 'why' behind model behavior."
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "For Software Engineers: Implementation Details"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "TransformerLens is a Python library that provides clean APIs for transformer interpretability. Here's what it looks like in practice:"
+          },
+          {
+            "type": "Code",
+            "props": {
+              "language": "python"
+            },
+            "children": "import transformer_lens as tl\n\n# Load a model with full access to internals\nmodel = tl.HookedTransformer.from_pretrained('gpt2-small')\n\n# Run with caching to capture intermediate states\nlogits, cache = model.run_with_cache('The cat sat on the')\n\n# Examine attention patterns for layer 6, head 4\nattention_pattern = cache['pattern', 6, 4]\nprint(attention_pattern.shape)  # [batch, seq_len, seq_len]\n\n# Get residual stream at layer 8\nresidual = cache['resid_pre', 8]\nprint(residual.shape)  # [batch, seq_len, d_model]"
+          },
+          {
+            "type": "h3",
+            "children": "Key Features for Engineers:"
+          },
+          {
+            "type": "ul",
+            "children": [
+              {
+                "type": "li",
+                "children": "**Hooks System**: Register callbacks at any point in the forward pass"
+              },
+              {
+                "type": "li",
+                "children": "**Caching**: Automatically store intermediate activations without memory explosions"
+              },
+              {
+                "type": "li",
+                "children": "**Intervention Tools**: Modify activations mid-forward pass to test causal hypotheses"
+              },
+              {
+                "type": "li",
+                "children": "**Visualization Utilities**: Built-in tools for plotting attention patterns and activation flows"
+              },
+              {
+                "type": "li",
+                "children": "**Model Agnostic**: Works with GPT-2, GPT-Neo, OPT, and other transformer architectures"
+              }
+            ]
+          },
+          {
+            "type": "Example",
+            "props": {
+              "title": "Example: Finding Attention Heads that Track Pronouns"
+            },
+            "children": [
+              {
+                "type": "Code",
+                "props": {
+                  "language": "python"
+                },
+                "children": "# Test pronoun resolution\ntext = \"John went to the store. He bought milk.\"\nlogits, cache = model.run_with_cache(text)\n\n# Check which heads attend from \"He\" to \"John\"\nhe_position = 6  # Position of \"He\" in tokenized text\njohn_position = 0  # Position of \"John\"\n\nfor layer in range(model.cfg.n_layers):\n    for head in range(model.cfg.n_heads):\n        attention_score = cache['pattern', layer, head][0, he_position, john_position]\n        if attention_score > 0.5:  # Strong attention\n            print(f\"Layer {layer}, Head {head}: {attention_score:.3f}\")"
+              }
+            ]
+          },
+          {
+            "type": "h3",
+            "children": "Architecture Considerations:"
+          },
+          {
+            "type": "ComparisonTable",
+            "props": {
+              "headers": [
+                "Standard Transformers",
+                "TransformerLens"
+              ],
+              "rows": [
+                [
+                  "Forward pass only",
+                  "Full activation access"
+                ],
+                [
+                  "Black box inference",
+                  "Glass box analysis"
+                ],
+                [
+                  "Production optimized",
+                  "Research/debugging optimized"
+                ],
+                [
+                  "Minimal memory overhead",
+                  "Caching increases memory usage"
+                ],
+                [
+                  "Fast inference",
+                  "Slower due to hook overhead"
+                ]
+              ]
+            }
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "Common Use Cases and Workflows"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "TransformerLens excels in several key research and development scenarios:"
+          },
+          {
+            "type": "h3",
+            "children": "1. Circuit Discovery"
+          },
+          {
+            "type": "p",
+            "children": "Find the specific attention heads and neurons responsible for particular behaviors (like detecting when text is sarcastic or identifying the subject of a sentence)."
+          },
+          {
+            "type": "h3",
+            "children": "2. Failure Analysis"
+          },
+          {
+            "type": "p",
+            "children": "When your model makes mistakes, trace exactly where in the network the error originated. Did it misparse the sentence structure? Confuse entities? Fail to use relevant context?"
+          },
+          {
+            "type": "h3",
+            "children": "3. Safety Research"
+          },
+          {
+            "type": "p",
+            "children": "Understand how models process potentially harmful requests and develop interventions to make them safer."
+          },
+          {
+            "type": "Callout",
+            "props": {
+              "type": "warning"
+            },
+            "children": "Remember: TransformerLens is primarily a research tool. For production applications, you'll typically use insights gained from TransformerLens to improve your regular models, rather than deploying TransformerLens directly."
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "Key Takeaways and Next Steps"
+        },
+        "children": [
+          {
+            "type": "Blockquote",
+            "children": "TransformerLens transforms AI from a mysterious black box into an understandable system you can debug, analyze, and improve."
+          },
+          {
+            "type": "h3",
+            "children": "What You've Learned:"
+          },
+          {
+            "type": "ul",
+            "children": [
+              {
+                "type": "li",
+                "children": "TransformerLens provides X-ray vision into transformer models"
+              },
+              {
+                "type": "li",
+                "children": "You can inspect attention patterns, layer outputs, and information flow"
+              },
+              {
+                "type": "li",
+                "children": "It's a research tool for understanding and improving AI systems"
+              },
+              {
+                "type": "li",
+                "children": "The library offers clean Python APIs for mechanistic interpretability"
+              }
+            ]
+          },
+          {
+            "type": "h3",
+            "children": "Ready to Start?"
+          },
+          {
+            "type": "ol",
+            "children": [
+              {
+                "type": "li",
+                "children": "Install: `pip install transformer-lens`"
+              },
+              {
+                "type": "li",
+                "children": "Try the official tutorials and demos"
+              },
+              {
+                "type": "li",
+                "children": "Start with simple attention visualization experiments"
+              },
+              {
+                "type": "li",
+                "children": "Join the mechanistic interpretability community for support and ideas"
+              }
+            ]
+          },
+          {
+            "type": "Callout",
+            "props": {
+              "type": "tip"
+            },
+            "children": "The best way to learn TransformerLens is by doing. Start with a simple question like 'How does GPT-2 know that she refers to Mary in this sentence?' and use the tools to find the answer."
+          }
+        ]
+      }
+    ]
+  }
+}
