@@ -1068,6 +1068,42 @@
                 "children": "Earlier versions of this work proposed replacing Bloom heads with literal Bloom filters (O(1) vs O(n)) and pruning redundant heads. Both were walked back after the hardened ablation study (Experiment 8): mean ablation revealed Bloom heads contribute MORE to novel-token processing than repeat-token processing, meaning they aren't functionally modular enough to simply remove or replace. They're specialized for membership testing but deeply integrated into the network's broader computation. The honest conclusion: behaviorally specialized, not architecturally separable."
               }
             ]
+          },
+          {
+            "type": "DeepDive",
+            "props": {
+              "title": "The Competing Models Test (Pass 19 — Feb 2026)"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "How do we know these heads are really implementing Bloom filters and not just some simpler pattern? We tested three competing models: (1) the Bloom filter FP curve, (2) a logistic saturation curve, and (3) a softmax dilution model. The Bloom filter wins decisively — ΔAIC > 11 over logistic, and softmax dilution is crushed at ΔAIC = 23.5. In model comparison terms, that's not a close call."
+              }
+            ]
+          },
+          {
+            "type": "DeepDive",
+            "props": {
+              "title": "The Capacity Paradox: Are the Parameters Real?"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "An uncomfortable finding: when we control for confounds, L3H0's fitted capacity parameter (m) shifts from 59 bits to 10.4 bits depending on conditions. This suggests the fitted parameters may be curve-fitting artifacts rather than reflecting a fixed internal data structure. The honest interpretation: the Bloom filter behavior is robust (the FP curve shape and zero miss rate hold up), but the head appears to adapt its effective capacity rather than implementing a fixed-size filter. This is arguably more interesting — it's a dynamic Bloom filter, not a static one."
+              }
+            ]
+          },
+          {
+            "type": "DeepDive",
+            "props": {
+              "title": "The Dispensability Paradox: Best Match, Least Needed"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "L3H0 — our cleanest theoretical Bloom filter (R²=0.99) — turns out to have near-zero ablation impact. The best match is the most dispensable head. How? The distributed Bloom filter interpretation actually predicts this: with 4 independent hash functions, any single one is expendable because the others provide coverage. Functional specialization ≠ functional necessity. The network has built-in redundancy, which is exactly what you'd want from a fault-tolerant system."
+              }
+            ]
           }
         ]
       },
