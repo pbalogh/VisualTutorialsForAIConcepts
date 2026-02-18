@@ -1,0 +1,753 @@
+{
+  "id": "predictive-coding-free-energy",
+  "title": "Predictive Coding Under the Free-Energy Principle",
+  "subtitle": "How the brain (and future AI) might work: Friston & Kiebel (2009)",
+  "difficulty": 3,
+  "readTime": "35 min",
+  "tags": [
+    "neuroscience",
+    "predictive coding",
+    "free energy",
+    "variational inference",
+    "Bayesian brain",
+    "generative models"
+  ],
+  "state": {},
+  "content": {
+    "type": "Fragment",
+    "children": [
+      {
+        "type": "Section",
+        "props": {
+          "title": "1. The Brain as a Prediction Machine"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "What if your brain doesn't passively receive sensory information? What if, instead, it's constantly generating predictions about what it expects to see, hear, and feel — and only bothers to process the surprises?"
+          },
+          {
+            "type": "p",
+            "children": "This is the core idea behind predictive coding, formalized powerfully by Karl Friston and Stefan Kiebel in their 2009 paper. It unifies perception, learning, and action under a single mathematical principle: the minimization of free energy."
+          },
+          {
+            "type": "Analogy",
+            "children": "Imagine you're driving a familiar route to work. You barely notice the road — your brain has already predicted every turn, every stoplight. But if a tree has fallen across the road, you snap to attention. Your brain predicted 'clear road' and got 'obstacle' — that prediction error is what gets processed. Predictive coding says this is how ALL perception works, not just driving."
+          },
+          {
+            "type": "Blockquote",
+            "children": "\"The brain is not a passive filter of sensory information, but an active constructor of predictions that are tested against incoming data.\" — Friston & Kiebel (2009)"
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "2. Hierarchical Generative Models"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "The brain is organized in layers — primary sensory cortex, secondary areas, association cortex, and so on. In predictive coding, each layer maintains a generative model: a set of beliefs about what caused the signals it receives from below."
+          },
+          {
+            "type": "p",
+            "children": "The key insight is that higher layers predict what lower layers should be experiencing. Visual cortex area V2 sends predictions down to V1 about what patterns V1 should be seeing. V1 compares this prediction to actual retinal input and sends back only the error — what the prediction got wrong."
+          },
+          {
+            "type": "Steps",
+            "props": {
+              "steps": [
+                {
+                  "title": "Top-down predictions flow downward",
+                  "description": "Higher cortical areas generate predictions about the expected activity in lower areas. These predictions are carried by backward (feedback) connections."
+                },
+                {
+                  "title": "Bottom-up prediction errors flow upward",
+                  "description": "Lower areas compare predictions to actual input and compute the mismatch. Only this prediction error is sent upward via forward (feedforward) connections."
+                },
+                {
+                  "title": "Each level updates its beliefs",
+                  "description": "When a level receives prediction errors from below, it adjusts its internal states to better explain those errors — reducing future surprise."
+                }
+              ]
+            }
+          },
+          {
+            "type": "Analogy",
+            "children": "Think of a corporate hierarchy. The CEO (high-level cortex) sets strategy and tells middle management what results to expect. Middle management tells the front-line workers what to do. If something unexpected happens on the ground floor, the deviation from expectations gets escalated upward. The CEO doesn't hear about every routine sale — only the surprises."
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "3. Prediction Errors: Only Surprise Flows Upward"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "This is perhaps the most elegant aspect of predictive coding: the brain doesn't transmit raw sensory data up through the hierarchy. It transmits prediction errors — the difference between what was expected and what was observed."
+          },
+          {
+            "type": "Formula",
+            "props": {
+              "label": "Prediction Error"
+            },
+            "children": "ε = sensory input − predicted input"
+          },
+          {
+            "type": "p",
+            "children": "If the prediction is good, the error is small and little information flows upward. If the prediction is bad, the error is large and demands attention. This is incredibly efficient — the brain only processes what it doesn't already know."
+          },
+          {
+            "type": "Example",
+            "props": {
+              "title": "Example: Seeing a Face"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "You're looking at your friend's face. Your brain's face model predicts the shape of their nose, the color of their eyes, the position of their mouth. The prediction error is nearly zero — you 'see' them clearly with minimal processing."
+              },
+              {
+                "type": "p",
+                "children": "Now imagine they've shaved off their eyebrows. Suddenly there's a huge prediction error in the eyebrow region. That error signal surges upward through the hierarchy, demanding that higher areas revise their model. You experience this as a jarring moment of 'something is wrong with their face.'"
+              }
+            ]
+          },
+          {
+            "type": "Callout",
+            "props": {
+              "type": "info"
+            },
+            "children": "This explains why we often fail to notice gradual changes (change blindness) — if the change is slow enough, each frame's prediction error is tiny, and the brain never flags it as surprising."
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "4. The Free Energy Principle"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "Now for the unifying principle that ties everything together. Friston proposes that all brain function can be understood as minimizing a single quantity: free energy."
+          },
+          {
+            "type": "p",
+            "children": "Free energy, in this context, is borrowed from statistical physics and variational inference. It's an upper bound on surprise (or more precisely, on the negative log-evidence for the brain's model of the world)."
+          },
+          {
+            "type": "Formula",
+            "props": {
+              "label": "Free Energy"
+            },
+            "children": "F = −ln p(sensory data | model) + KL[ q(hidden states) ‖ p(hidden states | sensory data) ]"
+          },
+          {
+            "type": "p",
+            "children": "In plain English: free energy = surprise + the gap between what the brain believes and the true posterior. Since the KL divergence is always ≥ 0, free energy is always ≥ surprise. So minimizing free energy guarantees you're also bounding surprise from above."
+          },
+          {
+            "type": "Analogy",
+            "children": "Think of free energy like your credit card bill. The minimum payment (surprise) is what reality demands. The KL divergence is the interest you're paying because your internal model doesn't perfectly match reality. You want to minimize the total bill. You can do this two ways: (1) update your beliefs to better match reality (perception — reduce the KL term), or (2) change the world to match your predictions (action — reduce the surprise term)."
+          },
+          {
+            "type": "DeepDive",
+            "props": {
+              "title": "Deep Dive: Free Energy Decomposition",
+              "defaultOpen": false
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "Let's unpack the math more carefully. We have sensory data s and hidden causes ϑ (the states of the world that generated the data). The brain maintains an approximate posterior q(ϑ) over these hidden causes."
+              },
+              {
+                "type": "Formula",
+                "props": {
+                  "label": "Free Energy (detailed)"
+                },
+                "children": "F = −⟨ln p(s, ϑ)⟩_q + ⟨ln q(ϑ)⟩_q = Energy − Entropy"
+              },
+              {
+                "type": "p",
+                "children": "The first term is the expected energy under q — how well the model explains the data. The second term is the negative entropy of q — a penalty for being too certain. This balance between accuracy and complexity is identical to the objective in variational autoencoders (VAEs) in modern deep learning."
+              },
+              {
+                "type": "p",
+                "children": "Equivalently, we can write:"
+              },
+              {
+                "type": "Formula",
+                "props": {
+                  "label": "Alternative decomposition"
+                },
+                "children": "F = −ln p(s) + KL[ q(ϑ) ‖ p(ϑ|s) ]"
+              },
+              {
+                "type": "p",
+                "children": "This shows that F equals the surprisal −ln p(s) plus the KL divergence between the approximate and true posterior. Since KL ≥ 0, we have F ≥ −ln p(s), confirming free energy is an upper bound on surprise."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "5. Variational Bayes & the Laplace Approximation"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "The brain needs to invert its generative model — given sensory data, infer the hidden causes. But exact Bayesian inference is intractable for complex models. Friston's solution: variational Bayes with a Laplace (Gaussian) approximation."
+          },
+          {
+            "type": "p",
+            "children": "The idea is simple: assume the posterior distribution q(ϑ) is approximately Gaussian, centered on the most likely hidden state. Under this approximation, minimizing free energy reduces to finding the mode of the posterior and tracking curvature around it."
+          },
+          {
+            "type": "Steps",
+            "props": {
+              "steps": [
+                {
+                  "title": "Assume q(ϑ) ≈ N(μ, Σ)",
+                  "description": "The approximate posterior is Gaussian with mean μ (the brain's best guess about hidden states) and covariance Σ (its uncertainty)."
+                },
+                {
+                  "title": "Minimize F with respect to μ",
+                  "description": "This is equivalent to gradient descent on the free energy landscape. The brain adjusts μ to minimize prediction errors, weighted by their precision (inverse variance)."
+                },
+                {
+                  "title": "The covariance Σ comes for free",
+                  "description": "Under the Laplace approximation, Σ is determined by the curvature of the free energy at the mode: Σ = (−∂²F/∂μ²)⁻¹. No separate computation needed."
+                }
+              ]
+            }
+          },
+          {
+            "type": "DeepDive",
+            "props": {
+              "title": "Deep Dive: The Gradient Descent Dynamics",
+              "defaultOpen": false
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "The core dynamical equation is a gradient descent on free energy:"
+              },
+              {
+                "type": "Formula",
+                "props": {
+                  "label": "Recognition dynamics"
+                },
+                "children": "μ̇ = −∂F/∂μ = prediction error × precision"
+              },
+              {
+                "type": "p",
+                "children": "This is a differential equation describing how the brain's beliefs evolve over time. The rate of change of the estimated hidden state μ is proportional to the prediction error, weighted by precision (how reliable the error signal is)."
+              },
+              {
+                "type": "p",
+                "children": "Precision weighting is crucial. A prediction error from a reliable source (high precision, low noise) should be taken seriously. An error from a noisy source (low precision) should be discounted. This is formally equivalent to weighted least squares, and it gives the brain an automatic way to handle uncertainty."
+              },
+              {
+                "type": "p",
+                "children": "In the hierarchical case, each level i has dynamics:"
+              },
+              {
+                "type": "Formula",
+                "props": {
+                  "label": "Hierarchical recognition"
+                },
+                "children": "μ̇ᵢ = Dμᵢ − ∂F/∂μᵢ = Dμᵢ + εᵢ₋₁ · ∂g/∂μᵢ − εᵢ"
+              },
+              {
+                "type": "p",
+                "children": "Here D is a temporal derivative operator (for dynamics), εᵢ is the prediction error at level i, and g is the generative mapping from level i to level i−1. The brain updates its beliefs by combining bottom-up prediction errors (εᵢ₋₁ projected through the generative model) with top-down prediction errors (εᵢ from the level above)."
+              }
+            ]
+          },
+          {
+            "type": "Analogy",
+            "children": "The Laplace approximation is like summarizing an entire mountain range by just describing the tallest peak and how steep it is. You lose detail about the smaller hills (multimodality), but you get a tractable, useful summary. The brain does this constantly — finding the single best explanation and tracking how confident it should be in that explanation."
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "6. Neural Implementation: State Units vs Error Units"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "Perhaps the most striking claim of the paper is that the math maps directly onto known cortical architecture. Friston and Kiebel propose two distinct populations of neurons at each level of the hierarchy:"
+          },
+          {
+            "type": "Steps",
+            "props": {
+              "steps": [
+                {
+                  "title": "State units (μ) — representation neurons",
+                  "description": "These encode the brain's current best estimate of the hidden causes at that level. They correspond to the mean μ of the approximate posterior. Found in deep pyramidal cells that send backward connections."
+                },
+                {
+                  "title": "Error units (ε) — prediction error neurons",
+                  "description": "These compute the mismatch between predictions (from the level above) and actual input (from the level below). They correspond to precision-weighted prediction errors. Found in superficial pyramidal cells that send forward connections."
+                }
+              ]
+            }
+          },
+          {
+            "type": "p",
+            "children": "This two-population architecture has a beautiful property: the state units try to suppress the error units (by generating better predictions), while the error units drive the state units to update (by signaling remaining mismatches). Perception is this dance reaching equilibrium."
+          },
+          {
+            "type": "Callout",
+            "props": {
+              "type": "info"
+            },
+            "children": "This maps onto a well-known anatomical fact: forward connections in cortex (carrying prediction errors) originate from superficial layers and terminate in layer 4. Backward connections (carrying predictions) originate from deep layers and terminate outside layer 4. The two populations and their connection patterns match the predictive coding math remarkably well."
+          },
+          {
+            "type": "Analogy",
+            "children": "Imagine two coworkers at each level of a company. One (the state unit) is the 'spokesperson' who announces what this department believes is happening. The other (the error unit) is the 'auditor' who compares the story from upstairs to what's actually coming in from downstairs and loudly reports any discrepancies. The spokesperson keeps revising their story until the auditor has nothing left to complain about."
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "7. Forward vs Backward Connections"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "The directionality of cortical connections is not just an anatomical detail — it's central to the theory. Forward and backward connections carry fundamentally different types of information."
+          },
+          {
+            "type": "Example",
+            "props": {
+              "title": "The Two Streams"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": [
+                  {
+                    "type": "strong",
+                    "children": "Backward (top-down) connections"
+                  },
+                  " carry predictions. They originate from state units at level i+1 and terminate on error units at level i. Mathematically, they implement the generative model g(μᵢ₊₁): 'given what I believe at this level, here's what the level below should look like.'"
+                ]
+              },
+              {
+                "type": "p",
+                "children": [
+                  {
+                    "type": "strong",
+                    "children": "Forward (bottom-up) connections"
+                  },
+                  " carry prediction errors. They originate from error units at level i and terminate on state units at level i+1. Mathematically, they carry εᵢ = Πᵢ(μᵢ − g(μᵢ₊₁)), the precision-weighted prediction error: 'here's what your prediction got wrong, scaled by how confident I am.'"
+                ]
+              }
+            ]
+          },
+          {
+            "type": "p",
+            "children": "A critical asymmetry: backward connections are modulatory (they set expectations, modulating how errors are computed), while forward connections are driving (they force updates in the units they target). This matches electrophysiological evidence that backward connections tend to be more diffuse and modulatory, while forward connections are more focused and driving."
+          },
+          {
+            "type": "DeepDive",
+            "props": {
+              "title": "Deep Dive: Precision and Attention",
+              "defaultOpen": false
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "There's a third type of connection in the model: those that modulate precision. Precision (Π) determines how much weight a prediction error receives. High precision means 'trust this error signal'; low precision means 'ignore it.'"
+              },
+              {
+                "type": "p",
+                "children": "Friston proposes that precision is controlled by neuromodulatory systems (dopamine, acetylcholine, etc.) and by top-down connections that modulate the gain of error units. This is the neural implementation of attention: attending to something means increasing the precision (gain) of prediction errors from that source."
+              },
+              {
+                "type": "Formula",
+                "props": {
+                  "label": "Precision-weighted prediction error"
+                },
+                "children": "ξᵢ = Πᵢ · εᵢ = Πᵢ · (μᵢ − g(μᵢ₊₁))"
+              },
+              {
+                "type": "p",
+                "children": "When you pay attention to something, you're increasing Πᵢ for the relevant error units. This makes those prediction errors louder, forcing the rest of the hierarchy to take them more seriously. Conversely, ignoring something means turning down its precision — the errors are still computed but get discounted."
+              },
+              {
+                "type": "p",
+                "children": "This elegantly explains phenomena like the cocktail party effect: you can selectively boost the precision of auditory prediction errors from one speaker while suppressing others, effectively filtering a complex signal through top-down precision control."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "8. The Birdsong Example"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "The paper demonstrates predictive coding with a beautiful example: how a synthetic 'bird brain' can learn to recognize and categorize birdsong. This is the paper's key simulation, and it illustrates every concept we've covered."
+          },
+          {
+            "type": "p",
+            "children": "The generative model has a hierarchical structure with three levels:"
+          },
+          {
+            "type": "Steps",
+            "props": {
+              "steps": [
+                {
+                  "title": "Level 1: Acoustic signal",
+                  "description": "The raw sound waveform — the 'sensory data' at the bottom of the hierarchy. This is the actual birdsong arriving at the ear."
+                },
+                {
+                  "title": "Level 2: Sonogram dynamics",
+                  "description": "Hidden states representing the spectral content of the song as it evolves over time. These are governed by a Lorenz attractor — a chaotic dynamical system that produces complex, song-like temporal patterns."
+                },
+                {
+                  "title": "Level 3: Song identity / category",
+                  "description": "The highest level encodes which 'type' of song is being heard. The parameters of the Lorenz attractor (which determine the specific song) are set by this top level."
+                }
+              ]
+            }
+          },
+          {
+            "type": "Example",
+            "props": {
+              "title": "How Recognition Works"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "When a birdsong arrives, the model processes it as follows: Level 3 makes an initial guess about which song category this is, and sends predictions down to Level 2 about what dynamics to expect. Level 2 generates predicted sonogram trajectories and sends them down to Level 1. Level 1 compares the predicted waveform to the actual sound."
+              },
+              {
+                "type": "p",
+                "children": "Prediction errors flow back up: Level 1 reports acoustic mismatches to Level 2, which adjusts its dynamic state estimates. Level 2 reports trajectory mismatches to Level 3, which may revise its song-category hypothesis. After a few hundred milliseconds, the system settles on the correct song identity, with prediction errors minimized throughout the hierarchy."
+              }
+            ]
+          },
+          {
+            "type": "Callout",
+            "props": {
+              "type": "info"
+            },
+            "children": "The Lorenz attractor is a chaotic system that produces complex, non-repeating trajectories — much like real birdsong. Using it as the generative model shows that predictive coding can handle highly complex temporal dynamics, not just static patterns."
+          },
+          {
+            "type": "Analogy",
+            "children": "It's like a music teacher listening to a student. The teacher (Level 3) expects to hear a particular piece. They predict how the melody should unfold (Level 2 dynamics). They compare the predicted notes to what they actually hear (Level 1). If the student plays a wrong note, the teacher notices the error. If the student is playing a completely different piece, the teacher realizes their initial assumption was wrong and re-categorizes — 'Oh, that's not Mozart, that's Bach!'"
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "9. Connection to Modern AI"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "If you've worked with modern deep learning, much of this should feel familiar — and that's not a coincidence. The ideas in Friston & Kiebel (2009) are deeply connected to several major themes in contemporary AI."
+          },
+          {
+            "type": "Example",
+            "props": {
+              "title": "Variational Autoencoders (VAEs)"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "The VAE objective is literally the free energy equation. A VAE has an encoder q(z|x) (the recognition model, mapping data to latent states) and a decoder p(x|z) (the generative model, mapping latent states to data). The ELBO (Evidence Lower Bound) that VAEs maximize is just the negative free energy:"
+              },
+              {
+                "type": "Formula",
+                "props": {
+                  "label": "VAE ELBO = −Free Energy"
+                },
+                "children": "ELBO = ⟨ln p(x|z)⟩_q − KL[ q(z|x) ‖ p(z) ] = −F"
+              },
+              {
+                "type": "p",
+                "children": "Friston's framework is a VAE running in biological hardware, with cortical hierarchies implementing the encoder and decoder, and neural dynamics performing the optimization that backpropagation does in silicon."
+              }
+            ]
+          },
+          {
+            "type": "Example",
+            "props": {
+              "title": "Autoencoders and Residual Learning"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "The idea that only prediction errors (residuals) should flow forward is echoed in residual networks (ResNets). In a ResNet, each layer learns a residual function — the difference between input and output — rather than the full mapping. This is strikingly similar to how only prediction errors propagate upward in predictive coding."
+              },
+              {
+                "type": "p",
+                "children": "Denoising autoencoders also share DNA with predictive coding: they learn to predict clean data from corrupted versions, essentially minimizing a prediction error — the distance between reconstruction and original."
+              }
+            ]
+          },
+          {
+            "type": "Example",
+            "props": {
+              "title": "Transformers and Attention"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "Friston's precision weighting is a form of attention: deciding which prediction errors to amplify and which to suppress. Modern transformer attention mechanisms solve a similar problem — routing information based on relevance. The key difference is that precision in predictive coding is a scalar gain on error units, while transformer attention is a learned, content-dependent routing mechanism."
+              },
+              {
+                "type": "p",
+                "children": "However, both serve the same functional role: controlling which signals matter most during inference."
+              }
+            ]
+          },
+          {
+            "type": "Callout",
+            "props": {
+              "type": "info"
+            },
+            "children": "The key difference between predictive coding and standard deep learning: predictive coding uses local learning rules (each unit only needs information from its neighbors) while backpropagation requires a global error signal propagated backward through the entire network. This makes predictive coding more biologically plausible and potentially more scalable."
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "10. Why This Matters for Next-Gen AI"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "Predictive coding under the free energy principle isn't just a theory about brains — it's a blueprint for a different kind of AI architecture. Here's what it offers that current deep learning lacks:"
+          },
+          {
+            "type": "Steps",
+            "props": {
+              "steps": [
+                {
+                  "title": "Local learning rules",
+                  "description": "Unlike backpropagation, which requires propagating a global error signal through every layer, predictive coding updates are local. Each unit adjusts based only on its own prediction errors and the signals from its immediate neighbors. This could enable truly parallel, hardware-efficient learning."
+                },
+                {
+                  "title": "Dynamic precision / attention gating",
+                  "description": "Precision weighting allows the network to dynamically adjust what it pays attention to, without retraining. Current attention mechanisms are learned and fixed; predictive coding precision can be adjusted on-the-fly based on context and uncertainty."
+                },
+                {
+                  "title": "Online, continuous learning",
+                  "description": "Predictive coding naturally handles streaming data — it's formulated as a dynamical system that continuously updates beliefs as new data arrives. No need for batched training or separate train/inference phases."
+                },
+                {
+                  "title": "Unified perception and action",
+                  "description": "In the full free-energy framework, action is just another way to minimize free energy — by changing the world to match predictions rather than changing predictions to match the world. This naturally unifies perception and control, something reinforcement learning handles separately."
+                },
+                {
+                  "title": "Simulated annealing through precision",
+                  "description": "The paper discusses how precision can be gradually increased during inference, analogous to simulated annealing. Start with low precision (broad, exploratory inference) and increase it (narrow, confident inference). This helps avoid local minima — a persistent problem in deep learning."
+                }
+              ]
+            }
+          },
+          {
+            "type": "DeepDive",
+            "props": {
+              "title": "Deep Dive: The Annealing Schedule",
+              "defaultOpen": false
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "Friston and Kiebel show that during perceptual inference, the brain may use a form of simulated annealing. Early in processing, precision is low — prediction errors are given little weight, allowing the system to explore broadly across possible interpretations."
+              },
+              {
+                "type": "p",
+                "children": "As inference proceeds, precision gradually increases. The system becomes more sensitive to prediction errors, narrowing in on the best explanation. This is formally equivalent to reducing the temperature in simulated annealing or increasing the inverse temperature β in a Boltzmann machine."
+              },
+              {
+                "type": "Formula",
+                "props": {
+                  "label": "Effective temperature"
+                },
+                "children": "T_eff = 1/Π → decreases over time → sharper posterior"
+              },
+              {
+                "type": "p",
+                "children": "This could explain the temporal dynamics of perception: the initial 'gist' of a scene is captured quickly (low precision, broad inference), while fine details emerge later (high precision, narrow inference). It also suggests a mechanism for how the brain avoids perceptual illusions and local minima in ambiguous situations."
+              }
+            ]
+          },
+          {
+            "type": "p",
+            "children": "Several research groups are now building predictive coding networks in silicon, and early results suggest they can match backpropagation performance on standard benchmarks while offering advantages in continual learning, energy efficiency, and biological plausibility."
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "Quiz: Test Your Understanding"
+        },
+        "children": [
+          {
+            "type": "Quiz",
+            "props": {
+              "questions": [
+                {
+                  "question": "In predictive coding, what flows upward through the cortical hierarchy?",
+                  "options": [
+                    "Raw sensory data",
+                    "Predictions about expected input",
+                    "Prediction errors (mismatches between prediction and input)",
+                    "Motor commands"
+                  ],
+                  "answer": 2,
+                  "explanation": "Only prediction errors flow upward. Higher areas send predictions downward, and lower areas send back the mismatch — what the prediction got wrong."
+                },
+                {
+                  "question": "Free energy is an upper bound on which quantity?",
+                  "options": [
+                    "Prediction error magnitude",
+                    "The KL divergence between prior and posterior",
+                    "Surprisal (negative log-evidence)",
+                    "Neural firing rates"
+                  ],
+                  "answer": 2,
+                  "explanation": "F = −ln p(s) + KL[q‖p]. Since KL ≥ 0, free energy F ≥ −ln p(s) = surprisal. Minimizing free energy bounds surprise from above."
+                },
+                {
+                  "question": "What does the Laplace approximation assume about the posterior distribution?",
+                  "options": [
+                    "It's uniform across all states",
+                    "It's approximately Gaussian, centered on the mode",
+                    "It's a mixture of exponentials",
+                    "It matches the prior exactly"
+                  ],
+                  "answer": 1,
+                  "explanation": "The Laplace approximation models the posterior as a Gaussian centered on its mode, with covariance determined by the curvature of the free energy landscape at that point."
+                },
+                {
+                  "question": "In the neural implementation, what do 'error units' correspond to?",
+                  "options": [
+                    "Deep pyramidal cells sending backward connections",
+                    "Superficial pyramidal cells sending forward connections",
+                    "Inhibitory interneurons",
+                    "Thalamic relay cells"
+                  ],
+                  "answer": 1,
+                  "explanation": "Error units are superficial pyramidal cells that compute prediction errors and send them upward via forward connections. State units are deep pyramidal cells that send predictions downward via backward connections."
+                },
+                {
+                  "question": "In the birdsong example, what does Level 3 of the hierarchy encode?",
+                  "options": [
+                    "The raw acoustic waveform",
+                    "Spectral dynamics governed by the Lorenz attractor",
+                    "Song identity / category",
+                    "Motor commands for producing the song"
+                  ],
+                  "answer": 2,
+                  "explanation": "Level 3 encodes which type of song is being heard — the category or identity. It sets the parameters of the Lorenz attractor that generates the dynamics at Level 2."
+                },
+                {
+                  "question": "How does precision weighting relate to attention?",
+                  "options": [
+                    "They are unrelated concepts",
+                    "Attention is a side effect of high prediction errors",
+                    "Increasing precision on specific error units is the neural implementation of attention",
+                    "Attention decreases precision to allow broader inference"
+                  ],
+                  "answer": 2,
+                  "explanation": "Attending to something means increasing the precision (gain) of prediction errors from that source, making those errors louder and forcing the hierarchy to take them more seriously."
+                },
+                {
+                  "question": "Which modern AI architecture most directly shares its objective function with the free energy principle?",
+                  "options": [
+                    "Convolutional Neural Networks (CNNs)",
+                    "Generative Adversarial Networks (GANs)",
+                    "Variational Autoencoders (VAEs)",
+                    "Recurrent Neural Networks (RNNs)"
+                  ],
+                  "answer": 2,
+                  "explanation": "VAEs maximize the ELBO (Evidence Lower Bound), which is exactly the negative free energy. The VAE encoder is the recognition model and the decoder is the generative model — the same decomposition Friston uses."
+                },
+                {
+                  "question": "What advantage does predictive coding have over backpropagation for learning?",
+                  "options": [
+                    "It converges faster on all benchmarks",
+                    "It uses local learning rules — each unit only needs information from its neighbors",
+                    "It requires less training data",
+                    "It doesn't need a loss function"
+                  ],
+                  "answer": 1,
+                  "explanation": "Predictive coding updates are local: each unit adjusts based on its own prediction errors and signals from immediate neighbors. Backpropagation requires propagating a global error signal through the entire network, which is biologically implausible and computationally sequential."
+                }
+              ]
+            }
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "Summary & Key Takeaways"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "Let's recap the key ideas from Friston & Kiebel (2009):"
+          },
+          {
+            "type": "Steps",
+            "props": {
+              "steps": [
+                {
+                  "title": "The brain is a prediction machine",
+                  "description": "Perception isn't passive reception — it's active prediction. The brain constantly generates expectations and only processes the surprises."
+                },
+                {
+                  "title": "Free energy is the master objective",
+                  "description": "All brain function (perception, learning, action) can be cast as minimizing variational free energy — an upper bound on surprise."
+                },
+                {
+                  "title": "Hierarchical message passing implements inference",
+                  "description": "Predictions flow down, prediction errors flow up. State units and error units at each level implement variational Bayes through local dynamics."
+                },
+                {
+                  "title": "Precision is attention",
+                  "description": "The gain on prediction errors controls what gets processed — a natural mechanism for attention and salience."
+                },
+                {
+                  "title": "This is the biological cousin of VAEs",
+                  "description": "The math is the same; the implementation differs. Understanding one illuminates the other."
+                },
+                {
+                  "title": "Next-gen AI may look more like this",
+                  "description": "Local learning rules, dynamic precision, continuous online learning, and unified perception-action loops could overcome key limitations of current deep learning."
+                }
+              ]
+            }
+          }
+        ]
+      }
+    ]
+  }
+}
