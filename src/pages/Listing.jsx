@@ -126,6 +126,18 @@ function CreateTutorialModal({ isOpen, onClose }) {
 
 const tutorials = [
   {
+    id: 'functional-information',
+    title: 'Functional Information: Measuring Complexity That Matters',
+    description: 'From combination locks to neural networks — why the universe keeps getting more interesting. Ladders from ELI5 to graduate-level FI theory.',
+    tags: ['information theory', 'functional information', 'complexity', 'evolution'],
+    icon: '🧬',
+    gradient: 'from-emerald-500 to-cyan-600',
+    shadowColor: 'shadow-emerald-500/30',
+    glowColor: 'rgba(16, 185, 129, 0.4)',
+    readTime: '25 min',
+    difficulty: 3,
+  },
+  {
     id: 'interp-crash-course',
     title: 'Interpretability Crash Course: Hands-On with TransformerLens, SAEs & Circuits',
     description: 'Six-module interactive companion — from loading models to replicating the Bloom filter heads paper. Covers TransformerLens, ablation, SAELens, probing, steering, circuit analysis, and full paper replication.',
