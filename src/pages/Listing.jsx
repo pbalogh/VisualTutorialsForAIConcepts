@@ -126,6 +126,18 @@ function CreateTutorialModal({ isOpen, onClose }) {
 
 const tutorials = [
   {
+    id: 'interp-crash-course',
+    title: 'Interpretability Crash Course: Hands-On with TransformerLens, SAEs & Circuits',
+    description: 'Six-module interactive companion — from loading models to replicating the Bloom filter heads paper. Covers TransformerLens, ablation, SAELens, probing, steering, circuit analysis, and full paper replication.',
+    tags: ['mechanistic interpretability', 'TransformerLens', 'SAEs', 'hands-on'],
+    icon: '🧪',
+    gradient: 'from-amber-500 to-orange-600',
+    shadowColor: 'shadow-amber-500/30',
+    glowColor: 'rgba(245, 158, 11, 0.4)',
+    readTime: '30 min',
+    difficulty: 3,
+  },
+  {
     id: 'ff-key-value-memories',
     title: 'Feed-Forward Layers as Key-Value Memories',
     description: 'The landmark paper revealing that MLP layers are giant lookup tables — each neuron stores a pattern (key) and a prediction (value)',

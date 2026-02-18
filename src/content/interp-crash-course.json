@@ -1,0 +1,773 @@
+{
+  "type": "Fragment",
+  "meta": {
+    "title": "Interpretability Crash Course: Hands-On with TransformerLens, SAEs & Circuits",
+    "description": "Six-module interactive companion covering the full mechanistic interpretability toolkit — from loading models to replicating the Bloom filter heads paper",
+    "author": "Peter Balogh",
+    "lastUpdated": "2026-02-18",
+    "tags": [
+      "mechanistic interpretability",
+      "TransformerLens",
+      "SAEs",
+      "hands-on",
+      "circuits",
+      "bloom filters"
+    ]
+  },
+  "content": {
+    "type": "Fragment",
+    "children": [
+      {
+        "type": "Section",
+        "props": {
+          "title": "Welcome: What This Course Covers"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "This is a hands-on crash course in mechanistic interpretability — the tools, techniques, and intuitions you need to understand what's happening inside transformer models. Each module is a runnable Python script with real code, real outputs, and real insights."
+          },
+          {
+            "type": "Callout",
+            "props": {
+              "type": "info",
+              "title": "The Thread"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "Throughout all six modules, we connect back to the Bloom filter heads paper — attention heads that implement probabilistic set-membership testing. By the end, you'll have replicated the full methodology."
+              }
+            ]
+          },
+          {
+            "type": "p",
+            "children": "The six modules build on each other:"
+          },
+          {
+            "type": "ol",
+            "children": [
+              { "type": "li", "children": "TransformerLens Fundamentals — loading models, hook points, caching activations" },
+              { "type": "li", "children": "Activation Patching & Ablation — causal interventions to test what heads do" },
+              { "type": "li", "children": "SAELens & Sparse Autoencoders — decomposing superposition into interpretable features" },
+              { "type": "li", "children": "Probing & Steering — reading from and writing to internal representations" },
+              { "type": "li", "children": "Circuit Analysis — QK/OV framework, DLA, composition, path patching" },
+              { "type": "li", "children": "Full Bloom Filter Replication — end-to-end paper methodology" }
+            ]
+          }
+        ]
+      },
+
+      {
+        "type": "Section",
+        "props": {
+          "title": "Module 1: TransformerLens Fundamentals"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "TransformerLens (by Neel Nanda) is the standard tool for mechanistic interpretability. It wraps HuggingFace models with 'hook points' at every internal computation, letting you inspect and modify activations mid-forward-pass."
+          },
+          {
+            "type": "Analogy",
+            "props": {
+              "title": "Hook Points as Wiretaps"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "Imagine a telephone exchange where every wire has a tap point. You can listen in on any conversation (read activations) or inject your own signal (modify activations). TransformerLens does this for every computation inside the transformer — queries, keys, values, attention patterns, MLP outputs, residual stream states."
+              }
+            ]
+          },
+          {
+            "type": "p",
+            "children": "Loading a model is one line. The key insight is what comes back:"
+          },
+          {
+            "type": "Code",
+            "props": {
+              "language": "python",
+              "title": "Loading a model and inspecting its structure"
+            },
+            "children": "model = HookedTransformer.from_pretrained(\"gpt2-small\")\n\nprint(f\"Layers: {model.cfg.n_layers}\")           # 12\nprint(f\"Heads per layer: {model.cfg.n_heads}\")    # 12  \nprint(f\"Head dimension: {model.cfg.d_head}\")      # 64\nprint(f\"Model dimension: {model.cfg.d_model}\")    # 768\n\n# Total attention heads: 12 layers × 12 heads = 144 heads\n# Each head has dimension 64; 12 × 64 = 768 = d_model"
+          },
+          {
+            "type": "p",
+            "children": "The workhorse method is run_with_cache — it runs a forward pass AND saves every intermediate activation:"
+          },
+          {
+            "type": "Code",
+            "props": {
+              "language": "python",
+              "title": "run_with_cache: the core TransformerLens operation"
+            },
+            "children": "prompt = \"The doctor examined the patient and the doctor prescribed medicine\"\ntokens = model.to_tokens(prompt)\nlogits, cache = model.run_with_cache(tokens)\n\nprint(f\"Logits shape: {logits.shape}\")  # [batch, seq_len, vocab_size]\nprint(f\"Total cached tensors: {len(cache)}\")  # hundreds of tensors"
+          },
+          {
+            "type": "DeepDive",
+            "props": {
+              "title": "Key Hook Points for Interpretability"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "Every computation has a named hook point. The critical ones:"
+              },
+              {
+                "type": "ul",
+                "children": [
+                  { "type": "li", "children": "blocks.{layer}.attn.hook_pattern — attention patterns [batch, head, dest, src]. WHERE each head attends." },
+                  { "type": "li", "children": "blocks.{layer}.attn.hook_result — attention output [batch, seq, head, d_head]. WHAT each head writes." },
+                  { "type": "li", "children": "blocks.{layer}.attn.hook_q / hook_k / hook_v — query, key, value vectors." },
+                  { "type": "li", "children": "blocks.{layer}.hook_resid_pre / hook_resid_post — residual stream before/after the layer." },
+                  { "type": "li", "children": "blocks.{layer}.mlp.hook_post — MLP layer output." }
+                ]
+              },
+              {
+                "type": "p",
+                "children": "The naming convention is systematic: blocks.{layer}.{component}.hook_{activation}. Once you know the pattern, you can tap into any computation."
+              }
+            ]
+          },
+          {
+            "type": "p",
+            "children": "With the cache in hand, finding Bloom filter head signatures is straightforward — check which heads attend strongly when a token repeats:"
+          },
+          {
+            "type": "Code",
+            "props": {
+              "language": "python",
+              "title": "Finding heads that attend to repeated tokens"
+            },
+            "children": "# Find positions of repeated token\ntoken_strs = [model.to_string(t) for t in tokens[0]]\ndoctor_positions = [i for i, s in enumerate(token_strs) if \"doctor\" in s.lower()]\nfirst_doc, second_doc = doctor_positions[0], doctor_positions[1]\n\n# Check every head in every layer\nfor layer in range(model.cfg.n_layers):\n    attn = cache[f\"blocks.{layer}.attn.hook_pattern\"]\n    for head in range(model.cfg.n_heads):\n        attn_to_first = attn[0, head, second_doc, first_doc].item()\n        if attn_to_first > 0.1:  # Only show heads with significant attention\n            print(f\"  L{layer}H{head}: {attn_to_first:.3f} attention\")"
+          },
+          {
+            "type": "Example",
+            "props": {
+              "title": "Selectivity measurement"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "Running the full selectivity analysis across multiple sentences gives results like:"
+              },
+              {
+                "type": "Code",
+                "props": {
+                  "language": "text",
+                  "title": "Expected output"
+                },
+                "children": "Head       Hit Attn     Baseline     Selectivity \n----------------------------------------------\nL0H1      0.3241       0.0034       95.3x\nL0H5      0.2187       0.0089       24.6x\nL1H11     0.1854       0.0062       29.9x\nL3H0      0.1432       0.0041       34.9x\n\n💡 Heads with selectivity >30x and hit attention >0.1\n   are your Bloom filter head candidates!"
+              }
+            ]
+          }
+        ]
+      },
+
+      {
+        "type": "Section",
+        "props": {
+          "title": "Module 2: Activation Patching & Ablation"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "Ablation is the causal hammer of interpretability. Instead of just observing what a head does, you knock it out and see what breaks. This tells you what the head is for, not just what it correlates with."
+          },
+          {
+            "type": "Analogy",
+            "props": {
+              "title": "Ablation as Neuroscience"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "This is exactly what neuroscientists do with lesion studies. If you damage Broca's area and the patient can't produce speech, you know Broca's area is causally involved in speech production. We're doing the same thing to transformer components — knock it out, see what breaks."
+              }
+            ]
+          },
+          {
+            "type": "Code",
+            "props": {
+              "language": "python",
+              "title": "Zero ablation: zeroing out a head's output"
+            },
+            "children": "def zero_ablation_hook(value, hook, head_idx):\n    \"\"\"Zero out one head's output in the attention result.\"\"\"\n    # value shape: [batch, seq, n_heads, d_head]\n    value[:, :, head_idx, :] = 0.0\n    return value\n\n# Ablate L0H1 and see what changes\nlayer, head = 0, 1\nablated_logits = model.run_with_hooks(\n    clean_tokens,\n    fwd_hooks=[(\n        f\"blocks.{layer}.attn.hook_result\",\n        lambda value, hook: zero_ablation_hook(value, hook, head)\n    )]\n)"
+          },
+          {
+            "type": "DeepDive",
+            "props": {
+              "title": "Zero vs Mean vs Activation Patching"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "There are three levels of sophistication:"
+              },
+              {
+                "type": "p",
+                "children": "Zero ablation sets a head's output to zero. It's simple but has a problem: zero is out-of-distribution for downstream layers — they've never seen exactly-zero input from a head during training."
+              },
+              {
+                "type": "p",
+                "children": "Mean ablation replaces the head's output with its average across many inputs. This is more principled — it asks 'what if this head contributed nothing beyond its average?' Downstream layers see something within their expected distribution."
+              },
+              {
+                "type": "Code",
+                "props": {
+                  "language": "python",
+                  "title": "Mean ablation setup"
+                },
+                "children": "# Collect mean activations across calibration prompts\nmean_activations = {}\nfor layer in range(model.cfg.n_layers):\n    all_acts = []\n    for prompt in calibration_prompts:\n        tokens = model.to_tokens(prompt)\n        _, cache = model.run_with_cache(tokens)\n        acts = cache[f\"blocks.{layer}.attn.hook_result\"]\n        all_acts.append(acts[0].mean(dim=0))\n    mean_activations[layer] = torch.stack(all_acts).mean(dim=0)"
+              },
+              {
+                "type": "p",
+                "children": "Activation patching is the gold standard. You run the model on two inputs (clean vs corrupted) and swap activations from one run into the other at specific points. If patching head H's output from clean→corrupted changes the answer, that head carries the critical information."
+              },
+              {
+                "type": "Code",
+                "props": {
+                  "language": "python",
+                  "title": "Activation patching between clean and corrupted runs"
+                },
+                "children": "clean_prompt = \"The doctor examined the patient and the doctor prescribed\"\ncorrupted_prompt = \"The doctor examined the patient and the nurse prescribed\"\n\n_, clean_cache = model.run_with_cache(model.to_tokens(clean_prompt))\n_, corrupted_cache = model.run_with_cache(model.to_tokens(corrupted_prompt))\n\n# Patch: run corrupted input, but replace this head's output with clean\nfor layer in range(model.cfg.n_layers):\n    for head in range(model.cfg.n_heads):\n        clean_head_output = clean_cache[f\"blocks.{layer}.attn.hook_result\"]\n        \n        def patch_hook(value, hook, h=head, clean_out=clean_head_output):\n            value[:, :, h, :] = clean_out[:, :, h, :]\n            return value\n        \n        patched_logits = model.run_with_hooks(\n            corrupted_tokens,\n            fwd_hooks=[(f\"blocks.{layer}.attn.hook_result\", patch_hook)]\n        )"
+              }
+            ]
+          },
+          {
+            "type": "p",
+            "children": "The Bloom filter ablation experiment is the definitive causal test:"
+          },
+          {
+            "type": "Code",
+            "props": {
+              "language": "python",
+              "title": "Bloom filter head ablation experiment"
+            },
+            "children": "bloom_heads = [(0, 1), (0, 5), (1, 11), (3, 0)]\n\ndef get_perplexity(model, sentences, ablate_heads=None):\n    total_loss = 0\n    for sent in sentences:\n        tokens = model.to_tokens(sent)\n        if ablate_heads:\n            hooks = []\n            for layer, head in ablate_heads:\n                def make_hook(h):\n                    def hook_fn(value, hook):\n                        value[:, :, h, :] = 0.0\n                        return value\n                    return hook_fn\n                hooks.append((f\"blocks.{layer}.attn.hook_result\", make_hook(head)))\n            logits = model.run_with_hooks(tokens, fwd_hooks=hooks)\n        else:\n            logits = model(tokens)\n        # ... compute loss ...\n    return torch.exp(torch.tensor(avg_loss)).item()"
+          },
+          {
+            "type": "Example",
+            "props": {
+              "title": "Expected ablation results"
+            },
+            "children": [
+              {
+                "type": "Code",
+                "props": {
+                  "language": "text",
+                  "title": "Ablation output"
+                },
+                "children": "Condition            Clean PPL    Ablated PPL    Δ%        \n--------------------------------------------------------\nRepeat tokens        23.45        25.73          +9.7%\nNovel tokens         31.22        29.85          -4.4%\n\nInteraction (repeat Δ - novel Δ): +14.1%\n\n💡 Paper results: repeat +9.7%, novel -4.4%, interaction +14.1%\n   Bloom heads specifically help with repeats and HURT novel processing\n   (through false positives — exactly what the Bloom filter model predicts)"
+              }
+            ]
+          }
+        ]
+      },
+
+      {
+        "type": "Section",
+        "props": {
+          "title": "Module 3: SAELens & Sparse Autoencoders"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "Sparse Autoencoders solve the superposition problem — the fact that individual neurons respond to many unrelated concepts. SAEs decompose activations into a much larger set of monosemantic features, each (ideally) corresponding to one interpretable concept."
+          },
+          {
+            "type": "DeepDive",
+            "props": {
+              "title": "Superposition: Why Single Neurons Aren't Interpretable"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "A single neuron in a transformer might activate for the Golden Gate Bridge, the number 7, French cuisine, and something else entirely. This is called superposition: the model stores more concepts than it has neurons by using overlapping, distributed representations."
+              },
+              {
+                "type": "p",
+                "children": "It's efficient for the model but terrible for interpretability. SAEs fix this by learning a much larger dictionary of features, enforcing sparsity so only a handful fire on any given input."
+              },
+              {
+                "type": "p",
+                "children": "Architecture: activations (768d) → encoder → features (65536d, sparse) → decoder → reconstructed (768d). Training minimizes reconstruction error + sparsity penalty."
+              }
+            ]
+          },
+          {
+            "type": "Analogy",
+            "props": {
+              "title": "SAEs as Prisms"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "White light looks like one thing, but a prism decomposes it into a spectrum of pure colors. SAEs are prisms for neural network activations — they decompose a 'white' activation vector into its component 'colors' (monosemantic features). Each feature is a pure concept, and the original activation is a mixture of these concepts."
+              }
+            ]
+          },
+          {
+            "type": "Code",
+            "props": {
+              "language": "python",
+              "title": "Loading and using a pretrained SAE"
+            },
+            "children": "from sae_lens import SAE\n\n# Load pretrained SAE for GPT-2 small, layer 0 residual stream\nsae, cfg_dict, sparsity = SAE.from_pretrained(\n    release=\"gpt2-small-res-jb\",\n    sae_id=\"blocks.0.hook_resid_pre\",\n)\n\nprint(f\"Input dimension (d_model): {sae.cfg.d_in}\")    # 768\nprint(f\"Feature dimension (d_sae): {sae.cfg.d_sae}\")   # 24576\nprint(f\"Expansion factor: {sae.cfg.d_sae / sae.cfg.d_in:.0f}x\")  # 32x\n\n# Run activations through the SAE encoder\n_, cache = model.run_with_cache(tokens)\nactivations = cache[\"blocks.0.hook_resid_pre\"]\nfeature_acts = sae.encode(activations)  # [batch, seq, d_sae]"
+          },
+          {
+            "type": "Example",
+            "props": {
+              "title": "Sparsity in action"
+            },
+            "children": [
+              {
+                "type": "Code",
+                "props": {
+                  "language": "text",
+                  "title": "Feature activation sparsity"
+                },
+                "children": "Non-zero features per token position:\n  0: '<BOS>'  → 47 active features out of 24576\n  1: 'The'    → 62 active features out of 24576\n  2: ' Golden' → 89 active features out of 24576\n  3: ' Gate'  → 71 active features out of 24576\n\nAverage active features per position: 67\nSparsity: 0.27% of features active"
+              }
+            ]
+          },
+          {
+            "type": "p",
+            "children": "For the Bloom filter connection, the key question is: are there SAE features that fire specifically when a token is repeated?"
+          },
+          {
+            "type": "Code",
+            "props": {
+              "language": "python",
+              "title": "Finding repetition-related features"
+            },
+            "children": "repeat_prompts = [\n    (\"The doctor examined the patient and the doctor prescribed medicine\", \"doctor\"),\n    (\"The cat sat on the mat and the cat purred loudly\", \"cat\"),\n    (\"A bird flew over the lake and the bird landed nearby\", \"bird\"),\n]\n\nfirst_occurrence_acts = []\nsecond_occurrence_acts = []\n\nfor prompt, word in repeat_prompts:\n    tokens = model.to_tokens(prompt)\n    _, cache = model.run_with_cache(tokens)\n    features = sae.encode(cache[\"blocks.0.hook_resid_pre\"])\n    \n    token_strs = [model.to_string(t) for t in tokens[0]]\n    word_positions = [i for i, t in enumerate(token_strs) if word.lower() in t.lower()]\n    \n    if len(word_positions) >= 2:\n        first_occurrence_acts.append(features[0, word_positions[0]])\n        second_occurrence_acts.append(features[0, word_positions[1]])\n\n# Features more active on second occurrence = repetition detectors\navg_first = torch.stack(first_occurrence_acts).mean(dim=0)\navg_second = torch.stack(second_occurrence_acts).mean(dim=0)\nrepeat_specific = avg_second - avg_first\ntop_repeat_features = torch.topk(repeat_specific, 10)"
+          },
+          {
+            "type": "Callout",
+            "props": {
+              "type": "tip",
+              "title": "Bridging heads and features"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "The Bloom filter heads we identified at the attention-head level might be implementing the computation that these SAE repetition features detect. This bridges head-level analysis (our paper) with feature-level analysis (Anthropic's Scaling Monosemanticity work)."
+              }
+            ]
+          }
+        ]
+      },
+
+      {
+        "type": "Section",
+        "props": {
+          "title": "Module 4: Probing & Steering"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "Probing asks 'Is information X encoded in the model's activations at layer L?' Steering asks 'Can I change the model's behavior by adding a direction to its activations?' Together they form a read/write interface to internal representations."
+          },
+          {
+            "type": "Analogy",
+            "props": {
+              "title": "Reading and Writing the Model's Mind"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "A linear probe is like a thermometer — it reads a single quantity (temperature / 'has this token been seen before?') from a complex system without disturbing it. A steering vector is like turning up the thermostat — you inject a signal that changes the system's behavior in a targeted way. Together: read, then write."
+              }
+            ]
+          },
+          {
+            "type": "Code",
+            "props": {
+              "language": "python",
+              "title": "Training a linear probe for repetition detection"
+            },
+            "children": "class LinearProbe(nn.Module):\n    def __init__(self, d_model):\n        super().__init__()\n        self.linear = nn.Linear(d_model, 1)\n    \n    def forward(self, x):\n        return self.linear(x).squeeze(-1)\n\n# For each layer, train a probe on (activation, is_repeated) pairs\nprobe = LinearProbe(model.cfg.d_model)\noptimizer = torch.optim.Adam(probe.parameters(), lr=0.01)\ncriterion = nn.BCEWithLogitsLoss()\n\nfor epoch in range(100):\n    optimizer.zero_grad()\n    preds = probe(train_acts)\n    loss = criterion(preds, train_labels)\n    loss.backward()\n    optimizer.step()"
+          },
+          {
+            "type": "Example",
+            "props": {
+              "title": "Probe accuracy by layer"
+            },
+            "children": [
+              {
+                "type": "Code",
+                "props": {
+                  "language": "text",
+                  "title": "Where repetition info becomes available"
+                },
+                "children": "Layer  0: 72% ████████████████████████████\nLayer  3: 89% ███████████████████████████████████\nLayer  6: 91% ████████████████████████████████████\nLayer  9: 93% █████████████████████████████████████\nLayer 11: 94% █████████████████████████████████████\n\n💡 Sharp accuracy jump at layers 0-3 is consistent with\n   Bloom filter heads injecting repetition information"
+              }
+            ]
+          },
+          {
+            "type": "Callout",
+            "props": {
+              "type": "warning",
+              "title": "What probes can't tell you"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "Probes can find information the model DOESN'T USE. Just because repetition info is encoded at layer 3 doesn't mean the model actually uses it. This is why ablation is the gold standard for causal claims — probing is correlational. Always pair probes with ablation experiments."
+              }
+            ]
+          },
+          {
+            "type": "p",
+            "children": "Steering vectors are the write side. Compute a direction in activation space that corresponds to 'repeated token' and add it during inference:"
+          },
+          {
+            "type": "Code",
+            "props": {
+              "language": "python",
+              "title": "Computing and applying a steering vector"
+            },
+            "children": "# Collect activations for repeated vs novel token positions\nmean_repeated = torch.stack(repeated_acts).mean(dim=0)\nmean_novel = torch.stack(novel_acts).mean(dim=0)\n\n# The steering vector: direction from novel → repeated\nsteering_vector = mean_repeated - mean_novel\nsteering_vector = steering_vector / steering_vector.norm()\n\n# Apply during inference\ndef steering_hook(value, hook, sv=steering_vector, alpha=10.0):\n    value[:, -1, :] += alpha * sv\n    return value\n\nsteered_logits = model.run_with_hooks(\n    test_tokens,\n    fwd_hooks=[(f\"blocks.{steering_layer}.hook_resid_post\", steering_hook)]\n)"
+          }
+        ]
+      },
+
+      {
+        "type": "Section",
+        "props": {
+          "title": "Module 5: Circuit Analysis"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "This is the theoretical backbone: the 'Mathematical Framework for Transformer Circuits' (Elhage et al., 2021). The key insight is that each attention head has TWO independent circuits — the QK circuit determines WHERE the head attends, and the OV circuit determines WHAT it copies."
+          },
+          {
+            "type": "DeepDive",
+            "props": {
+              "title": "QK/OV Circuits: The WHERE and WHAT of Attention"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "Every attention head has four weight matrices: W_Q, W_K, W_V, W_O. These combine into two independent circuits:"
+              },
+              {
+                "type": "p",
+                "children": "QK circuit: W_Q^T × W_K (d_model × d_model). Determines the attention pattern — 'Token at position i attends to position j if the QK score is high.' This is WHERE information flows."
+              },
+              {
+                "type": "p",
+                "children": "OV circuit: W_V × W_O (d_model × d_model). Determines what happens when attention fires — 'When head attends from i to j, it reads the residual stream at j, multiplies by OV, and writes to i.' This is WHAT information moves."
+              },
+              {
+                "type": "p",
+                "children": "The beauty: you can analyze these independently. A head that detects repeated tokens (QK) might copy the token identity (OV) or might write a generic 'this was repeated' signal (OV) — same QK, different OV."
+              }
+            ]
+          },
+          {
+            "type": "Code",
+            "props": {
+              "language": "python",
+              "title": "Extracting and testing QK circuits"
+            },
+            "children": "# Extract QK circuit for a candidate Bloom filter head\nW_Q = model.W_Q[layer, head]   # [d_model, d_head]\nW_K = model.W_K[layer, head]   # [d_model, d_head]\nQK_circuit = W_Q @ W_K.T       # [d_model, d_model]\n\n# Test: do same-token pairs get higher QK scores?\nembeds = model.W_E[test_token_ids]  # token embeddings\nqueries = embeds @ W_Q\nkeys = embeds @ W_K\nqk_scores = queries @ keys.T / (model.cfg.d_head ** 0.5)\n\n# Compare diagonal (same token) vs off-diagonal (different token)\ndiag_mean = qk_scores.diag().mean().item()\noffdiag_mean = qk_scores[~torch.eye(len(test_token_ids), dtype=bool)].mean().item()\nselectivity = diag_mean - offdiag_mean"
+          },
+          {
+            "type": "Example",
+            "props": {
+              "title": "QK selectivity of Bloom filter heads"
+            },
+            "children": [
+              {
+                "type": "Code",
+                "props": {
+                  "language": "text",
+                  "title": "QK circuit analysis results"
+                },
+                "children": "L0H1:  same-token QK = +2.34, diff-token QK = -0.18, selectivity = +2.52\nL0H5:  same-token QK = +1.87, diff-token QK = +0.12, selectivity = +1.75\nL1H11: same-token QK = +2.01, diff-token QK = -0.31, selectivity = +2.32\nL3H0:  same-token QK = +1.65, diff-token QK = +0.08, selectivity = +1.57\n\n💡 Heads with high selectivity have QK circuits that specifically\n   detect token repetition — this is the MECHANISM, not just a correlation."
+              }
+            ]
+          },
+          {
+            "type": "DeepDive",
+            "props": {
+              "title": "Path Patching: The Gold Standard for Circuit Discovery"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "Path patching asks: 'If I replace a specific activation on a specific path with its value from a different input, how does the output change?' It's the most precise tool for identifying which components are on the critical path for a behavior."
+              },
+              {
+                "type": "Code",
+                "props": {
+                  "language": "python",
+                  "title": "Path patching implementation"
+                },
+                "children": "clean_prompt = \"The cat sat on the mat and the cat\"\ncorrupted_prompt = \"The cat sat on the mat and the dog\"\n\nclean_logits, clean_cache = model.run_with_cache(clean_tokens)\ncorrupted_logits, corrupted_cache = model.run_with_cache(corrupted_tokens)\n\n# For each head, patch its output and measure effect\nfor layer in range(model.cfg.n_layers):\n    for head in range(model.cfg.n_heads):\n        def patch_hook(value, hook, l=layer, h=head):\n            value[:, :, h, :] = corrupted_cache[hook.name][:, :, h, :]\n            return value\n        \n        patched_logits = model.run_with_hooks(\n            clean_tokens,\n            fwd_hooks=[(f\"blocks.{layer}.attn.hook_result\", patch_hook)]\n        )\n        # Measure KL divergence from clean predictions"
+              },
+              {
+                "type": "p",
+                "children": "Heads with high KL divergence when patched are critical for the model's different behavior between the two inputs — they're on the repetition detection circuit."
+              }
+            ]
+          },
+          {
+            "type": "p",
+            "children": "Composition is how heads in different layers build on each other. Three types:"
+          },
+          {
+            "type": "ul",
+            "children": [
+              { "type": "li", "children": "Q-composition: A's output → B's query ('A tells B what to look for')" },
+              { "type": "li", "children": "K-composition: A's output → B's key ('A tells B what to advertise about this position')" },
+              { "type": "li", "children": "V-composition: A's output → B's value ('A tells B what to copy when attention fires')" }
+            ]
+          },
+          {
+            "type": "Code",
+            "props": {
+              "language": "python",
+              "title": "Measuring composition between heads"
+            },
+            "children": "def composition_score(layer_a, head_a, layer_b, head_b, comp_type=\"Q\"):\n    W_O_a = model.W_O[layer_a, head_a]  # [d_head, d_model]\n    if comp_type == \"Q\":\n        W_in_b = model.W_Q[layer_b, head_b]\n    elif comp_type == \"K\":\n        W_in_b = model.W_K[layer_b, head_b]\n    else:\n        W_in_b = model.W_V[layer_b, head_b]\n    comp_matrix = W_O_a @ W_in_b  # [d_head, d_head]\n    return comp_matrix.norm().item()"
+          },
+          {
+            "type": "p",
+            "children": "Direct Logit Attribution (DLA) measures each head's direct contribution to the model's output prediction — decomposing the final logits into per-component contributions through the unembedding matrix."
+          }
+        ]
+      },
+
+      {
+        "type": "Section",
+        "props": {
+          "title": "Module 6: Full Bloom Filter Replication"
+        },
+        "children": [
+          {
+            "type": "Callout",
+            "props": {
+              "type": "info",
+              "title": "The Elevator Pitch"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "\"I found that transformer attention heads in early layers implement approximate set-membership queries — essentially Bloom filters. When a token appears for the second time, these heads fire with high probability but also show a predictable false-positive rate that follows the classical Bloom filter capacity formula. They operate independently, and ablating them selectively degrades repetition handling while leaving novel-token processing intact.\""
+              }
+            ]
+          },
+          {
+            "type": "p",
+            "children": "The full replication has 7 steps. Here's the complete methodology:"
+          },
+          {
+            "type": "p",
+            "children": "Step 1 — Stimulus Generation: Three conditions to isolate repetition detection from semantic similarity. Exact repeats test the core mechanism, no-repeats give the baseline, and semantic near-misses test whether heads operate at token level vs meaning level."
+          },
+          {
+            "type": "Code",
+            "props": {
+              "language": "python",
+              "title": "Step 1: Three-condition stimulus design"
+            },
+            "children": "# Semantic near-miss pairs (similar meaning, different tokens)\nnear_miss_pairs = [\n    (\"cat\", \"kitten\"), (\"dog\", \"puppy\"), (\"house\", \"home\"),\n    (\"car\", \"vehicle\"), (\"ship\", \"boat\"), (\"stone\", \"rock\"),\n]\n\ntemplates = [\n    \"The {w1} was near the {filler} and the {w2} was far away\",\n    \"I saw a {w1} beside the {filler} but the {w2} had vanished\",\n    \"A {w1} appeared behind the {filler} then the {w2} moved quickly\",\n]"
+          },
+          {
+            "type": "p",
+            "children": "Step 2 — Attention Extraction: For each stimulus, extract the attention weight from the second occurrence of the target to the first. This gives a per-head 'hit score' for repeats and a 'false alarm score' for non-repeats."
+          },
+          {
+            "type": "p",
+            "children": "Step 3 — Per-Head Metrics: Three metrics that map directly onto Bloom filter properties:"
+          },
+          {
+            "type": "ul",
+            "children": [
+              { "type": "li", "children": "Selectivity — signal-to-noise ratio (repeat attention / non-repeat attention)" },
+              { "type": "li", "children": "Miss rate — false negatives (should be ≈ 0 for a Bloom filter)" },
+              { "type": "li", "children": "False positive ratio — non-repeats that trigger above threshold" }
+            ]
+          },
+          {
+            "type": "p",
+            "children": "Step 4 — Head Identification: A head qualifies as a Bloom filter head if it has selectivity >3×, miss rate <10%, and mean hit attention >0.05."
+          },
+          {
+            "type": "p",
+            "children": "Step 5 — Capacity Analysis: The classic Bloom filter formula predicts FP rate as a function of stored items:"
+          },
+          {
+            "type": "DeepDive",
+            "props": {
+              "title": "The Bloom Filter Capacity Formula"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "FP_rate = (1 - e^(-k·n/m))^k where k = number of hash functions (≈ number of Bloom filter heads), n = items stored (≈ context length), m = bits in filter (≈ d_head = 64)."
+              },
+              {
+                "type": "p",
+                "children": "By varying the context size (n) and measuring observed FP rate, we can fit k and m. If the heads are truly Bloom filters, the curve should match the formula. The fitted capacity parameter m turns out to be in the same ballpark as d_head (64) — each head has 64 dimensions to 'store' its hash function."
+              }
+            ]
+          },
+          {
+            "type": "p",
+            "children": "Step 6 — Independence Test: Bloom filters with multiple hash functions require independence. We test with phi coefficients between heads' false-positive decisions. Low phi ≈ 0 confirms independent hash functions, meaning k heads give an effective FP rate of (individual FP)^k."
+          },
+          {
+            "type": "Code",
+            "props": {
+              "language": "python",
+              "title": "Step 6: Phi coefficient computation"
+            },
+            "children": "# For each pair of BF heads, compute phi on false positive decisions\nfor i, key_i in enumerate(bf_keys):\n    for j, key_j in enumerate(bf_keys):\n        d_i = head_decisions[key_i]\n        d_j = head_decisions[key_j]\n        \n        n11 = sum(a and b for a, b in zip(d_i, d_j))\n        n00 = sum(not a and not b for a, b in zip(d_i, d_j))\n        n10 = sum(a and not b for a, b in zip(d_i, d_j))\n        n01 = sum(not a and b for a, b in zip(d_i, d_j))\n        \n        denom = math.sqrt(max(n1x * n0x * nx1 * nx0, 1))\n        phi = (n11 * n00 - n10 * n01) / denom"
+          },
+          {
+            "type": "p",
+            "children": "Step 7 — Ablation: The definitive causal test. Zero-ablate all Bloom filter heads and measure perplexity on repeated vs novel tokens."
+          },
+          {
+            "type": "Example",
+            "props": {
+              "title": "Complete replication results"
+            },
+            "children": [
+              {
+                "type": "Code",
+                "props": {
+                  "language": "text",
+                  "title": "Summary"
+                },
+                "children": "1. STIMULUS GENERATION: 180 sentences across 3 conditions\n\n2. HEAD IDENTIFICATION: ~4-6 heads meeting Bloom filter criteria\n   L0H1:  selectivity=95.3x, miss=0%, FP=8%\n   L0H5:  selectivity=24.6x, miss=0%, FP=12%\n   L1H11: selectivity=29.9x, miss=2%, FP=6%\n   L3H0:  selectivity=34.9x, miss=0%, FP=9%\n\n3. CAPACITY: FP rate increases with context size, fitting formula\n   k ≈ 4 heads, m ≈ 64 (= d_head)\n\n4. INDEPENDENCE: Phi coefficients ≈ 0 between heads\n\n5. ABLATION: Selective impact on repeat vs novel\n   Repeat loss delta:  +0.15 (+9.7%)\n   Novel loss delta:   -0.07 (-4.4%)\n   Interaction:        +14.1%\n\nCONCLUSION: These heads implement a probabilistic set-membership\ndata structure using QK circuits as hash functions."
+              }
+            ]
+          }
+        ]
+      },
+
+      {
+        "type": "Section",
+        "props": {
+          "title": "Interview Cheat Sheet"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "Key questions and how to answer them using what you've learned:"
+          },
+          {
+            "type": "ul",
+            "children": [
+              { "type": "li", "children": "\"Walk me through your paper.\" → Steps 1-7 from Module 6, emphasizing the Bloom filter analogy at each step." },
+              { "type": "li", "children": "\"How do you know it's not just copying?\" → Semantic near-misses don't trigger (token-level matching). FP rate follows capacity formula (it's a hash, not a lookup)." },
+              { "type": "li", "children": "\"What's the causal evidence?\" → Ablation shows selective impact on repeats. Path patching confirms heads are on the critical path." },
+              { "type": "li", "children": "\"Why Bloom filter specifically?\" → No false negatives ✓, yes false positives ✓, FP rate fits the formula ✓, multiple independent hash functions ✓, capacity scales with dimensionality ✓." },
+              { "type": "li", "children": "\"What surprised you?\" → How early (layers 0-3) this computation happens. How clean the independence is between heads. That a discrete CS data structure emerges from gradient descent on continuous weights." }
+            ]
+          }
+        ]
+      },
+
+      {
+        "type": "Section",
+        "props": {
+          "title": "Quiz: Test Your Understanding"
+        },
+        "children": [
+          {
+            "type": "Quiz",
+            "props": {
+              "questions": [
+                {
+                  "question": "What does run_with_cache return that a normal forward pass doesn't?",
+                  "options": [
+                    "Gradient information for all parameters",
+                    "A cache of every intermediate activation at every hook point",
+                    "The tokenized input as a separate tensor",
+                    "A list of attention head names"
+                  ],
+                  "correctIndex": 1,
+                  "explanation": "run_with_cache returns both the logits AND a ActivationCache object containing every intermediate tensor (attention patterns, residual streams, MLP outputs, etc.) at every hook point in the model."
+                },
+                {
+                  "question": "Why is mean ablation generally more principled than zero ablation?",
+                  "options": [
+                    "It's faster to compute",
+                    "Zero is never a valid activation value",
+                    "Replacing with the mean stays closer to the training distribution that downstream layers expect",
+                    "Mean ablation always gives larger effects"
+                  ],
+                  "correctIndex": 2,
+                  "explanation": "Zero is out-of-distribution — downstream layers have never seen exactly-zero output from a head during training. Mean ablation replaces with the average activation, which is within the expected distribution and asks 'what if this head contributed nothing beyond its average?'"
+                },
+                {
+                  "question": "What problem do Sparse Autoencoders (SAEs) solve?",
+                  "options": [
+                    "Making models run faster",
+                    "Superposition — individual neurons are polysemantic, SAEs decompose into monosemantic features",
+                    "Reducing model size for deployment",
+                    "Fixing attention pattern errors"
+                  ],
+                  "correctIndex": 1,
+                  "explanation": "SAEs address superposition: neurons respond to many unrelated concepts because the model packs more concepts than it has neurons. SAEs learn a larger dictionary of sparse, monosemantic features — each ideally corresponding to one interpretable concept."
+                },
+                {
+                  "question": "What is the key limitation of linear probes that ablation experiments address?",
+                  "options": [
+                    "Probes are too slow to train",
+                    "Probes can only find binary information",
+                    "Probes can find information the model doesn't actually use — they're correlational, not causal",
+                    "Probes require labeled data that doesn't exist"
+                  ],
+                  "correctIndex": 2,
+                  "explanation": "A probe finding information encoded at some layer doesn't mean the model uses it. The info could be 'noise' that downstream computation ignores. Ablation provides the causal evidence — if removing a component changes behavior, it was being used."
+                },
+                {
+                  "question": "In the QK/OV framework, what does the QK circuit determine?",
+                  "options": [
+                    "What information is copied when attention fires",
+                    "The learning rate for the head",
+                    "WHERE the head attends — which positions get high attention scores",
+                    "How much the head contributes to the final output"
+                  ],
+                  "correctIndex": 2,
+                  "explanation": "The QK circuit (W_Q^T × W_K) determines the attention pattern — which source positions each destination position attends to. The OV circuit separately determines WHAT information gets copied. This independence is what makes the framework so powerful."
+                },
+                {
+                  "question": "What is the key Bloom filter property that distinguishes it from exact lookup?",
+                  "options": [
+                    "It's always correct",
+                    "No false negatives, but non-zero false positives that follow a predictable capacity formula",
+                    "It works on semantic similarity rather than exact matching",
+                    "It requires multiple passes through the data"
+                  ],
+                  "correctIndex": 1,
+                  "explanation": "A Bloom filter says 'definitely not in set' (no false negatives) or 'probably in set' (occasional false positives). The FP rate follows (1 - e^(-kn/m))^k. This is exactly what the attention heads show — and the near-miss test confirms it's token-level (not semantic) matching."
+                },
+                {
+                  "question": "Why do we test semantic near-misses (cat/kitten) in the Bloom filter replication?",
+                  "options": [
+                    "To increase the training data size",
+                    "To verify the heads operate at the TOKEN level, not the meaning level — ruling out semantic similarity",
+                    "To test if the model understands synonyms",
+                    "To calibrate the false positive threshold"
+                  ],
+                  "correctIndex": 1,
+                  "explanation": "If the heads fired for cat→kitten, they'd be doing semantic similarity matching, not Bloom filtering. The fact that near-misses DON'T trigger confirms these heads match at the token level — exactly like a hash function, which is the core Bloom filter mechanism."
+                }
+              ]
+            }
+          }
+        ]
+      }
+    ]
+  }
+}
