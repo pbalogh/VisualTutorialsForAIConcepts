@@ -1,0 +1,117 @@
+{
+  "id": "transformerlens",
+  "title": "TransformerLens: X-Ray Vision for Language Models",
+  "subtitle": "Learn to inspect, hook, and manipulate the internals of transformer models using Neel Nanda's mechanistic interpretability library",
+  "readTime": "18 min",
+  "state": {},
+  "content": {
+    "type": "Fragment",
+    "children": [
+      {
+        "type": "Section",
+        "props": { "title": "Why TransformerLens Matters" },
+        "children": [
+          { "type": "p", "children": "Transformer models are powerful but opaque. When GPT-2 predicts that 'The Eiffel Tower is in' should be followed by 'Paris', what's actually happening inside? Which layers encode geographic facts? Which attention heads move that information to the right position?" },
+          { "type": "p", "children": "TransformerLens is a Python library built by Neel Nanda specifically for mechanistic interpretability — the practice of reverse-engineering neural networks into human-understandable algorithms. It wraps HuggingFace models in a clean, consistent interface that makes every activation, every residual stream update, and every attention pattern accessible and manipulable." },
+          { "type": "Callout", "props": { "type": "info" }, "children": "TransformerLens is to mechanistic interpretability what a debugger is to programming — it lets you set breakpoints inside a model's forward pass, inspect state, and even change values mid-computation to test causal hypotheses." },
+          { "type": "h3", "children": "The Core Problem It Solves" },
+          { "type": "p", "children": "Standard PyTorch models bury their internals. You can see weights and final outputs, but the intermediate computations — the residual stream after layer 5, the attention pattern of head 3.7, the MLP output at position 12 — require painful manual hooking. TransformerLens exposes all of this with a single function call." },
+          { "type": "ComparisonTable", "props": { "headers": ["Without TransformerLens", "With TransformerLens"], "rows": [["Register manual forward hooks on each module", "Call model.run_with_cache() — done"], ["Different model families have different internal naming", "Uniform naming: blocks.3.attn.hook_pattern"], ["Intervention requires custom hook functions", "Built-in hook_fn interface + activation patching utils"], ["Attention patterns need manual extraction and reshaping", "model.run_with_cache() returns them as clean tensors"]] } }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "The Residual Stream Mental Model" },
+        "children": [
+          { "type": "p", "children": "Before diving into code, you need the right mental model. TransformerLens is designed around the 'residual stream' view of transformers, which differs subtly from how most tutorials teach them." },
+          { "type": "Blockquote", "children": "Think of the residual stream as a shared communication bus. Each layer reads from it, computes something, and adds its result back. The final prediction is just whatever's on the bus at the end." },
+          { "type": "h3", "children": "The Three-Phase View" },
+          { "type": "p", "children": "At each layer, a transformer does three things in sequence:" },
+          { "type": "ol", "children": [
+            { "type": "li", "children": "Attention: Each head reads from the residual stream at every position, computes attention-weighted sums, and writes the result back to the stream" },
+            { "type": "li", "children": "MLP: A feedforward network reads from the (now-updated) residual stream and writes its output back" },
+            { "type": "li", "children": "The residual stream now contains the sum of the original input plus all attention and MLP contributions so far" }
+          ]},
+          { "type": "DefinitionList", "props": { "items": [
+            { "term": "Residual Stream", "definition": "The running sum of all component outputs. Dimension: (batch, position, d_model). This is the 'state' of the computation at any point." },
+            { "term": "Hook Point", "definition": "A named location in the forward pass where TransformerLens lets you read or write activations. Examples: hook_resid_pre, hook_attn_out, hook_mlp_out." },
+            { "term": "Component", "definition": "An individual attention head or MLP layer — anything that reads from and writes to the residual stream." }
+          ]}},
+          { "type": "Callout", "props": { "type": "tip" }, "children": "This residual stream view is why TransformerLens names things like blocks.2.hook_resid_post (the residual stream after layer 2's MLP). Once this naming clicks, you can navigate any model's internals by intuition." }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "Getting Started: Your First Cache" },
+        "children": [
+          { "type": "p", "children": "Let's load a model and run a prompt through it, capturing every intermediate activation. This is the bread and butter of TransformerLens work." },
+          { "type": "Code", "props": { "language": "python" }, "children": "import transformer_lens as tl\n\n# Load GPT-2 Small (12 layers, 12 heads, d_model=768)\nmodel = tl.HookedTransformer.from_pretrained(\"gpt2-small\")\n\n# Run a prompt and cache ALL intermediate activations\nprompt = \"The Eiffel Tower is in\"\nlogits, cache = model.run_with_cache(prompt)\n\n# What did the model predict?\nimport torch\nnext_token = model.tokenizer.decode(logits[0, -1].argmax())\nprint(f\"Predicted next token: '{next_token}'\")  # ' Paris'" },
+          { "type": "p", "children": "That cache object is a dictionary-like container holding every activation in the forward pass. Let's see what's inside:" },
+          { "type": "Code", "props": { "language": "python" }, "children": "# See all cached activation names\nprint(cache.keys())  # Hundreds of entries\n\n# Residual stream after layer 0\nresid = cache[\"blocks.0.hook_resid_post\"]\nprint(resid.shape)  # torch.Size([1, 6, 768])\n#                      batch=1, positions=6, d_model=768\n\n# Attention patterns from layer 0\nattn = cache[\"blocks.0.attn.hook_pattern\"]\nprint(attn.shape)  # torch.Size([1, 12, 6, 6])\n#                     batch=1, heads=12, dest_pos=6, src_pos=6" },
+          { "type": "Example", "props": { "title": "Example: Visualizing Attention Patterns" }, "children": [
+            { "type": "p", "children": "TransformerLens integrates with circuitsvis for attention visualization:" },
+            { "type": "Code", "props": { "language": "python" }, "children": "import circuitsvis as cv\n\ntokens = model.to_str_tokens(prompt)\n\n# Visualize all 12 attention heads in layer 0\ncv.attention.attention_patterns(\n    tokens=tokens,\n    attention=cache[\"blocks.0.attn.hook_pattern\"][0]\n)" },
+            { "type": "p", "children": "This renders an interactive HTML widget showing which tokens attend to which, for each head. You'll often find heads specializing — 'previous token' heads, 'induction' heads, or 'positional' heads — visible at a glance." }
+          ]}
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "Hooks and Interventions: Causal Experiments" },
+        "children": [
+          { "type": "p", "children": "Reading activations tells you what happens. Hooks let you change what happens and observe the downstream effect — this is how you establish causal claims about model behavior." },
+          { "type": "h3", "children": "The Hook Pattern" },
+          { "type": "p", "children": "A hook is a function you attach to a named point in the forward pass. It receives the activation tensor and can modify it in-place or return a replacement." },
+          { "type": "Code", "props": { "language": "python" }, "children": "def zero_out_head_7(activation, hook):\n    \"\"\"Ablate attention head 7 in whatever layer this is attached to.\"\"\"\n    # activation shape: (batch, pos, head, d_head)\n    activation[:, :, 7, :] = 0\n    return activation\n\n# Run with head 7 in layer 9 ablated\nlogits_ablated = model.run_with_hooks(\n    prompt,\n    fwd_hooks=[\n        (\"blocks.9.attn.hook_result\", zero_out_head_7)\n    ]\n)\n\n# Compare predictions\noriginal_prob = logits[0, -1].softmax(-1)[model.to_single_token(\" Paris\")]\nablated_prob = logits_ablated[0, -1].softmax(-1)[model.to_single_token(\" Paris\")]\nprint(f\"P(Paris) original: {original_prob:.4f}\")\nprint(f\"P(Paris) ablated:  {ablated_prob:.4f}\")" },
+          { "type": "Callout", "props": { "type": "warning" }, "children": "Always use model.run_with_hooks() for interventions, not persistent hooks via model.add_hook(). run_with_hooks automatically cleans up after itself, while add_hook can silently corrupt all subsequent runs if you forget to remove them." },
+          { "type": "h3", "children": "Activation Patching" },
+          { "type": "p", "children": "The most powerful technique: run the model on two different prompts, then patch activations from one into the other to see which components carry specific information." },
+          { "type": "Code", "props": { "language": "python" }, "children": "# Which layer's residual stream encodes the 'Paris' fact?\nclean_prompt = \"The Eiffel Tower is in\"\ncorrupt_prompt = \"The Colosseum is in\"\n\n_, clean_cache = model.run_with_cache(clean_prompt)\n_, corrupt_cache = model.run_with_cache(corrupt_prompt)\n\nresults = []\nfor layer in range(model.cfg.n_layers):\n    hook_name = f\"blocks.{layer}.hook_resid_post\"\n    \n    def patch_fn(activation, hook, layer=layer):\n        # Replace corrupt residual stream with clean one\n        return clean_cache[hook_name]\n    \n    patched_logits = model.run_with_hooks(\n        corrupt_prompt,\n        fwd_hooks=[(hook_name, patch_fn)]\n    )\n    paris_prob = patched_logits[0, -1].softmax(-1)[\n        model.to_single_token(\" Paris\")\n    ].item()\n    results.append(paris_prob)\n\n# Plot results — you'll see a sharp jump at the layer\n# where the model \"decides\" the answer is Paris" },
+          { "type": "p", "children": "This technique — activation patching — is the workhorse of mechanistic interpretability. It tells you not just where information exists, but where it causally matters." }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "Practical Patterns and Supported Models" },
+        "children": [
+          { "type": "p", "children": "TransformerLens supports a wide range of models with a unified interface. Here are the patterns you'll use repeatedly." },
+          { "type": "h3", "children": "Supported Model Families" },
+          { "type": "ul", "children": [
+            { "type": "li", "children": "GPT-2 (all sizes) — the most studied, best starting point" },
+            { "type": "li", "children": "GPT-Neo / GPT-J / GPT-NeoX — EleutherAI models" },
+            { "type": "li", "children": "Llama / Llama-2 — Meta's open models" },
+            { "type": "li", "children": "Pythia — EleutherAI's suite of models trained on the same data at different scales, ideal for studying scaling" },
+            { "type": "li", "children": "Mistral, Gemma, Qwen, and others — check tl.loading.get_official_model_name() for the full list" }
+          ]},
+          { "type": "h3", "children": "Useful Shortcuts" },
+          { "type": "Code", "props": { "language": "python" }, "children": "# Tokenization helpers\ntokens = model.to_tokens(\"Hello world\")       # (1, n_tokens)\nstr_tokens = model.to_str_tokens(\"Hello world\") # [' Hello', ' world']\nsingle = model.to_single_token(\" Paris\")         # int\n\n# Direct logit attribution — which components push toward a token?\nanswer_token = model.to_single_token(\" Paris\")\nresid_stack, labels = cache.decompose_resid(\n    layer=-1, return_labels=True\n)\n# resid_stack: (n_components, batch, pos, d_model)\n# Dot each component with the unembedding direction for ' Paris'\nlogit_dirs = resid_stack[:, 0, -1, :] @ model.W_U[:, answer_token]\n# logit_dirs[i] = how much component i contributes to P(Paris)" },
+          { "type": "Callout", "props": { "type": "tip" }, "children": "cache.decompose_resid() breaks the residual stream into individual contributions from the embedding, each attention layer, and each MLP. Combined with the logit lens (projecting intermediate states through the unembedding), this is how you trace a prediction back to specific components." },
+          { "type": "h3", "children": "The Logit Lens" },
+          { "type": "Code", "props": { "language": "python" }, "children": "# What does the model 'think' at each layer?\nfor layer in range(model.cfg.n_layers):\n    resid = cache[f\"blocks.{layer}.hook_resid_post\"][0, -1]  # last pos\n    # Project through layer norm + unembedding\n    logits_at_layer = model.unembed(\n        model.ln_final(resid.unsqueeze(0).unsqueeze(0))\n    )\n    top_token = model.tokenizer.decode(\n        logits_at_layer[0, 0].argmax().item()\n    )\n    print(f\"Layer {layer:2d}: {top_token}\")\n# Watch the prediction evolve from noise → France → Paris" }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "Key Takeaways and Next Steps" },
+        "children": [
+          { "type": "h3", "children": "What You've Learned" },
+          { "type": "ol", "children": [
+            { "type": "li", "children": "TransformerLens provides a uniform, hook-based interface to inspect and manipulate transformer internals across many model families" },
+            { "type": "li", "children": "The residual stream is the central abstraction — a shared bus that all components read from and write to" },
+            { "type": "li", "children": "run_with_cache() captures every intermediate activation; run_with_hooks() lets you intervene causally" },
+            { "type": "li", "children": "Activation patching — swapping activations between a clean and corrupt run — is the key technique for localizing circuits" },
+            { "type": "li", "children": "The logit lens and decompose_resid let you attribute model predictions to specific layers and components" }
+          ]},
+          { "type": "h3", "children": "Where to Go Next" },
+          { "type": "DefinitionList", "props": { "items": [
+            { "term": "Exploratory Analysis Tutorial", "definition": "Neel Nanda's official walkthrough at neelnanda-io/TransformerLens. Covers induction heads end-to-end." },
+            { "term": "200 COP in MI", "definition": "Neel's '200 Concrete Open Problems in Mechanistic Interpretability' — a curated list of research questions you can now tackle with TransformerLens." },
+            { "term": "ARENA 3.0", "definition": "Structured exercises teaching mech interp with TransformerLens, from basics to original research. Free at arena3-chapter1-transformer-interp." },
+            { "term": "Induction Heads Paper", "definition": "Olsson et al. 2022 — the landmark paper that discovered a specific circuit in transformers. Replicate it yourself with TransformerLens to solidify your skills." }
+          ]}},
+          { "type": "Callout", "props": { "type": "info" }, "children": "Install: pip install transformer_lens. The library is actively maintained and the API is stable. Start with GPT-2 Small — it's small enough to run on a laptop, well-studied enough that you can verify your findings against published results." }
+        ]
+      }
+    ]
+  }
+}

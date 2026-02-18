@@ -189,6 +189,18 @@ const tutorials = [
     featured: true,
   },
   {
+    id: 'transformerlens',
+    title: 'TransformerLens: X-Ray Vision for Language Models',
+    description: 'Inspect, hook, and manipulate transformer internals using Neel Nanda\'s mechanistic interpretability library.',
+    tags: ['mechanistic interpretability', 'TransformerLens', 'tools'],
+    icon: '🔬',
+    gradient: 'from-violet-500 to-purple-600',
+    shadowColor: 'shadow-violet-500/30',
+    glowColor: 'rgba(139, 92, 246, 0.4)',
+    readTime: '15 min',
+    difficulty: 2,
+  },
+  {
     id: 'anxiety-of-influence-bloom-filter-heads',
     title: 'The Anxiety of Influence: Bloom Filters in Attention Heads',
     description: 'Interactive companion to the paper — discover how transformer attention heads implement membership testing like classical Bloom filters.',
