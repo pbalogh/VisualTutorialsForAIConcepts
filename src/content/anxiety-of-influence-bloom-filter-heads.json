@@ -449,7 +449,17 @@
               },
               {
                 "type": "p",
-                "children": "An induction head is a little circuit inside a transformer that learns to play this copycat game. It notices that token A was followed by token B earlier in the text, and then when it sees token A again later, it predicts B will come next. So if the model saw \"Harry Potter\" earlier, and then sees \"Harry\" again, the induction head pipes up and says \"probably Potter comes next.\""
+                "children": [
+                  "An induction head is a little circuit inside a transformer that learns to play this copycat game. It notices that token A was followed by token B earlier in the text, and then when it sees token A again later, it predicts B will come next. So if the model saw \"Harry Potter\" earlier, and then sees \"Harry\" again, the induction head pipes up and says \"probably Potter comes next.\"",
+                  {
+                    "type": "FootnoteRef",
+                    "props": {
+                      "id": "source-ann-1771412726036-atsavv",
+                      "targetId": "ann-1771412726036-atsavv",
+                      "type": "ask"
+                    }
+                  }
+                ]
               },
               {
                 "type": "p",
@@ -461,6 +471,37 @@
                   "className": "text-xs text-gray-400 mt-2"
                 },
                 "children": "Asked about \"Induction heads (Olsson et al....\" — 2/18/2026, 6:04:00 AM"
+              }
+            ]
+          },
+          {
+            "type": "Sidebar",
+            "props": {
+              "type": "note",
+              "title": "Q: Is this kinda Markov Chain behavior?",
+              "expanded": true,
+              "id": "ann-1771412726036-atsavv",
+              "sourceId": "source-ann-1771412726036-atsavv"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "Great instinct — there's a real family resemblance, but the difference matters. A Markov chain says \"given the current state, here's the probability of the next state.\" A bigram Markov model trained on Harry Potter text would learn that \"Harry\" is frequently followed by \"Potter\" as a fixed statistical rule. It doesn't care whether \"Harry Potter\" appeared earlier in this specific text or not — it just knows the global frequency."
+              },
+              {
+                "type": "p",
+                "children": "An induction head is doing something subtler. It's not relying on pre-baked statistics about which tokens generally follow which. Instead, it's looking at the current context window and saying \"I notice that earlier in THIS specific text, A was followed by B, so now that I see A again, I'll predict B.\" It's pattern-matching within the document at inference time. If you gave it a text where \"Harry\" was always followed by \"Slamdunk\" for some bizarre reason, the induction head would learn that pattern on the fly and predict \"Slamdunk\" — something a Markov chain trained on normal text would never do."
+              },
+              {
+                "type": "p",
+                "children": "So the Markov chain captures static transition probabilities learned during training, while the induction head implements a dynamic copying mechanism that adapts to whatever patterns are present in the current input. This is actually one of the key reasons transformers are so powerful at in-context learning — induction heads let them pick up and exploit new patterns without any weight updates, just by attending to what came before in the sequence."
+              },
+              {
+                "type": "p",
+                "props": {
+                  "className": "text-xs text-gray-400 mt-2"
+                },
+                "children": "Asked about \"nduction head pipes up and say...\" — 2/18/2026, 6:05:13 AM"
               }
             ]
           },
