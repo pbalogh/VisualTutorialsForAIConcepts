@@ -10,8 +10,8 @@
 // ============================================================================
 
 export const AI_CONFIG = {
-  // Provider: 'bedrock' | 'anthropic'
-  provider: 'anthropic',
+  // Provider: 'bedrock' | 'anthropic' | 'openclaw'
+  provider: 'openclaw',
   
   // Model settings per provider
   bedrock: {
@@ -23,6 +23,12 @@ export const AI_CONFIG = {
   anthropic: {
     model: 'claude-sonnet-4-20250514',
     // API key from environment: ANTHROPIC_API_KEY
+  },
+
+  openclaw: {
+    // Uses OpenClaw's existing auth (OAuth token via CLI)
+    // Requires `openclaw` to be installed and authenticated
+    nodePath: '/opt/homebrew/Cellar/node@24/24.13.1/bin/node',
   },
   
   // Shared settings
@@ -49,6 +55,8 @@ export async function callAI(systemPrompt, userPrompt) {
     return callBedrock(systemPrompt, userPrompt)
   } else if (AI_CONFIG.provider === 'anthropic') {
     return callAnthropic(systemPrompt, userPrompt)
+  } else if (AI_CONFIG.provider === 'openclaw') {
+    return callOpenClaw(systemPrompt, userPrompt)
   } else {
     throw new Error(`Unknown AI provider: ${AI_CONFIG.provider}`)
   }
@@ -64,6 +72,11 @@ export function getAIInfo() {
       provider: 'AWS Bedrock',
       model: config.bedrock.model,
       region: config.bedrock.region,
+    }
+  } else if (config.provider === 'openclaw') {
+    return {
+      provider: 'OpenClaw (local proxy)',
+      model: 'via openclaw agent',
     }
   } else {
     return {
@@ -167,6 +180,36 @@ async function callAnthropic(systemPrompt, userPrompt) {
     req.write(requestBody)
     req.end()
   })
+}
+
+async function callOpenClaw(systemPrompt, userPrompt) {
+  const { nodePath } = AI_CONFIG.openclaw
+  const openclawPath = '/opt/homebrew/bin/openclaw'
+  
+  // Combine system + user prompt into a single message for the agent
+  const combinedMessage = `[System instruction — follow this exactly]\n${systemPrompt}\n\n[User request]\n${userPrompt}`
+  
+  // Use a dedicated session to avoid polluting other sessions
+  const sessionId = `annotation-${Date.now()}`
+  
+  const result = execSync(
+    `${nodePath} ${openclawPath} agent --local --json --timeout 120 --session-id ${sessionId} --message ${JSON.stringify(combinedMessage)}`,
+    { 
+      encoding: 'utf-8',
+      maxBuffer: 10 * 1024 * 1024,
+      timeout: 130000,
+    }
+  )
+  
+  const parsed = JSON.parse(result)
+  
+  // Extract the reply text from payloads
+  const textPayload = parsed.payloads?.find(p => p.text)
+  if (textPayload?.text) {
+    return textPayload.text
+  }
+  
+  throw new Error(`No text in OpenClaw response: ${JSON.stringify(parsed).slice(0, 300)}`)
 }
 
 // ============================================================================
