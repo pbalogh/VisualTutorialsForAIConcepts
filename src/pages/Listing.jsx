@@ -588,6 +588,18 @@ const tutorials = [
     difficulty: 4,
   },
   {
+    id: 'brainstorm-56-rate-distortion-bounds',
+    title: 'Rate-Distortion Bounds on Operator Compression',
+    description: 'When do embeddings provably fail? Shannon\'s theory reveals the minimum dimensions each Schankian operator needs',
+    tags: ['schankian', 'information-theory', 'rate-distortion', 'embeddings'],
+    icon: '📉',
+    gradient: 'from-cyan-500 to-blue-600',
+    shadowColor: 'shadow-cyan-500/30',
+    glowColor: 'rgba(6, 182, 212, 0.4)',
+    readTime: '20 min',
+    difficulty: 4,
+  },
+  {
     id: 'thoughtblend',
     title: 'ThoughtBlend',
     description: 'Synthesize perspectives through dialectical color mixing — add sources as color swatches and blend them into structured text or dialogue',
