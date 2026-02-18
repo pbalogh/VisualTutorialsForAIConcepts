@@ -494,7 +494,18 @@
               },
               {
                 "type": "p",
-                "children": "So the Markov chain captures static transition probabilities learned during training, while the induction head implements a dynamic copying mechanism that adapts to whatever patterns are present in the current input. This is actually one of the key reasons transformers are so powerful at in-context learning — induction heads let them pick up and exploit new patterns without any weight updates, just by attending to what came before in the sequence."
+                "children": [
+                  "So the Markov chain captures static transition probabilities learned during training, while the induction head implements a dynamic copying mechanism that adapts to whatever patterns are present in the current input.",
+                  {
+                    "type": "FootnoteRef",
+                    "props": {
+                      "id": "source-ann-1771412856067-qmwfhe",
+                      "targetId": "ann-1771412856067-qmwfhe",
+                      "type": "ask"
+                    }
+                  },
+                  " This is actually one of the key reasons transformers are so powerful at in-context learning — induction heads let them pick up and exploit new patterns without any weight updates, just by attending to what came before in the sequence."
+                ]
               },
               {
                 "type": "p",
@@ -502,6 +513,37 @@
                   "className": "text-xs text-gray-400 mt-2"
                 },
                 "children": "Asked about \"nduction head pipes up and say...\" — 2/18/2026, 6:05:13 AM"
+              }
+            ]
+          },
+          {
+            "type": "Sidebar",
+            "props": {
+              "type": "note",
+              "title": "Q: Is it crazy to say these sound like the two competing fundamental processes in an LLM? Trained markov chains (if you squint a lot!) vs dynamic ones that learn from the current text?",
+              "expanded": true,
+              "id": "ann-1771412856067-qmwfhe",
+              "sourceId": "source-ann-1771412856067-qmwfhe"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "Not crazy at all — it's actually a pretty sharp intuition, and serious researchers have framed it similarly. You can think of a transformer as blending two modes of operation: one that acts like a massively sophisticated lookup table built from training data (the \"Markov chain\" side, where the model has memorized that \"the cat sat on the\" is usually followed by \"mat\"), and one that acts like a pattern-matcher running live on the current context (the \"induction head\" side, where the model notices that this particular text keeps using an unusual phrase and predicts it will appear again). The trained weights encode what's generally true about language; the attention mechanism figures out what's specifically true about this text."
+              },
+              {
+                "type": "p",
+                "children": "Where it gets interesting is that these aren't really separate systems — they're interleaved across layers. Early layers tend to do more of the statistical, Markov-like work (bigram and trigram patterns baked into the weights), while later layers increasingly rely on attention-based contextual reasoning. An induction head in layer 5 might copy a pattern it spotted, and then a feed-forward layer in layer 6 might refine that prediction using trained knowledge. So it's less \"two competing processes\" and more like a spectrum the model slides along depending on what the input demands. A predictable sentence leans on the trained statistics; a passage full of novel made-up words forces the model to lean hard on dynamic copying."
+              },
+              {
+                "type": "p",
+                "children": "The \"squint a lot\" caveat is fair because real feed-forward layers are doing something richer than Markov chains — they've learned compressed representations, not just transition counts. But as a mental model for the two fundamental impulses at work (what did I learn in training vs. what am I seeing right now), it captures something genuinely important about why transformers can both be fluent in general English and also adapt on the fly to your specific document's weird terminology or style."
+              },
+              {
+                "type": "p",
+                "props": {
+                  "className": "text-xs text-gray-400 mt-2"
+                },
+                "children": "Asked about \"o the Markov chain captures st...\" — 2/18/2026, 6:07:20 AM"
               }
             ]
           },
