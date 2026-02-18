@@ -621,53 +621,53 @@
         "children": [
           {
             "type": "p",
-            "children": "If attention heads implement Bloom filters, several optimizations become possible:"
+            "children": "The revised implications of Bloom filter heads fall into three categories, ordered by confidence and practical impact:"
           },
           {
-            "type": "DeepDive",
+            "type": "Section",
             "props": {
-              "title": "Sparse Attention Replacement"
+              "title": "Hallucination Detection (Strongest)"
             },
             "children": [
               {
                 "type": "p",
-                "children": "Bloom filter heads perform O(n) attention to answer a question a literal Bloom filter answers in O(1). For long-context inference, replace these heads with hash-based lookups → eliminate their quadratic cost entirely."
+                "children": "A Bloom head showing high activation toward a context position where the queried token does NOT appear signals a false positive — the model 'remembering' something that isn't there. This is free, real-time, requires no model modification, and works on any model with identifiable Bloom heads. Monitor the gap between Bloom head confidence and actual token presence as a hallucination risk score."
+              }
+            ]
+          },
+          {
+            "type": "Section",
+            "props": {
+              "title": "Computational Primitives (Scientific)"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "Gradient descent independently reinvented a classical data structure. The capacity curve of L3H0 matches theoretical Bloom filter predictions with R²=0.9921, using fitted parameters of m=59 bits and k=2.16 hash functions. The similarity sweep further revealed these are distance-sensitive Bloom filters — a variant humans took 36 years to formalize after the original (Kirsch & Mitzenmacher 2006). This raises a deep question: what other classical algorithms has gradient descent discovered that we haven't identified yet?"
+              }
+            ]
+          },
+          {
+            "type": "Section",
+            "props": {
+              "title": "Architecture Design (Forward-Looking)"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "If models consistently allocate attention budget to membership testing (scaling from 4 heads in GPT-2 Small to 27 in GPT-2 Large), perhaps we should build this capability in explicitly rather than forcing models to rediscover it from scratch. Dedicated membership-testing modules could free up attention heads for higher-order computation."
               }
             ]
           },
           {
             "type": "DeepDive",
             "props": {
-              "title": "KV-Cache Compression"
+              "title": "What happened to Sparse Attention Replacement and Head Pruning?"
             },
             "children": [
               {
                 "type": "p",
-                "children": "Bloom heads use keys (for membership testing) more than values (for content retrieval). Their KV-cache could be compressed to keys only → 50% memory savings for these heads."
-              }
-            ]
-          },
-          {
-            "type": "DeepDive",
-            "props": {
-              "title": "Hallucination Detection"
-            },
-            "children": [
-              {
-                "type": "p",
-                "children": "A Bloom head showing high activation toward a context position where the queried token does NOT appear = a false positive = the model 'remembering' something that isn't there. Monitor these heads as an early warning system for hallucination."
-              }
-            ]
-          },
-          {
-            "type": "DeepDive",
-            "props": {
-              "title": "Head Pruning"
-            },
-            "children": [
-              {
-                "type": "p",
-                "children": "If 4 heads act as independent hash functions, maybe we don't need all 4. If 2 provide sufficient coverage, prune the others for efficiency."
+                "children": "Earlier versions of this work proposed replacing Bloom heads with literal Bloom filters (O(1) vs O(n)) and pruning redundant heads. Both were walked back after the hardened ablation study (Experiment 8): mean ablation revealed Bloom heads contribute MORE to novel-token processing than repeat-token processing, meaning they aren't functionally modular enough to simply remove or replace. They're specialized for membership testing but deeply integrated into the network's broader computation. The honest conclusion: behaviorally specialized, not architecturally separable."
               }
             ]
           }
@@ -809,7 +809,7 @@
             "children": [
               {
                 "type": "p",
-                "children": "Acknowledged. Our 100 sentence triplets are synthetic. However: (1) Cross-model validation shows the phenomenon isn't stimulus-specific; (2) The ablation study uses the same patterns; (3) Naturalistic corpus studies are planned as follow-up. The current work establishes the phenomenon exists; naturalistic validation extends it."
+                "children": "Acknowledged. Our 100 sentence triplets are synthetic. However: (1) Cross-model validation shows the phenomenon isn't stimulus-specific; (2) The ablation study uses the same patterns; (3) A subsequent similarity sweep (1,284 controlled measurements across 100 target words stratified by POS and frequency, with cosine similarity gradients from 0.9→0.0) confirmed that all 4 Bloom heads show smooth monotonic attention decay with embedding distance — establishing them as distance-sensitive Bloom filters (Kirsch & Mitzenmacher 2006)."
               }
             ]
           },
