@@ -600,6 +600,18 @@ const tutorials = [
     difficulty: 3,
   },
   {
+    id: 'brainstorm-57-reward-machine-transitions',
+    title: 'Operators as Reward Machine Transitions',
+    description: 'How Schankian operators become the transition language for agentic planning — bridging narrative understanding and reinforcement learning',
+    tags: ['schankian', 'reinforcement-learning', 'reward-machines', 'planning', 'symbol-grounding'],
+    icon: '🎰',
+    gradient: 'from-emerald-500 to-teal-600',
+    shadowColor: 'shadow-emerald-500/30',
+    glowColor: 'rgba(16, 185, 129, 0.4)',
+    readTime: '25 min',
+    difficulty: 3,
+  },
+  {
     id: 'brainstorm-52-pearls-ladder',
     title: "Pearl's Ladder as an Operator Hierarchy",
     description: "Why confusing correlation with causation is literally a type error — three classes of operators formalize the Causal Hierarchy Theorem",

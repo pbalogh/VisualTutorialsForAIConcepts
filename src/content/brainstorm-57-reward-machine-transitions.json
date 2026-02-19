@@ -1,0 +1,379 @@
+{
+  "id": "brainstorm-57-reward-machine-transitions",
+  "title": "Operators as Reward Machine Transitions",
+  "subtitle": "How Schankian operators become the transition language for agentic planning — bridging NLU and RL",
+  "readTime": "25 min",
+  "state": {},
+  "content": {
+    "type": "Fragment",
+    "children": [
+      {
+        "type": "Section",
+        "props": {
+          "title": "The Script Is a State Machine"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "You walk into a restaurant. You know the script: enter, get seated, read menu, order, eat, get check, pay, leave. Every step is expected. Every step changes the world. But here's the deep insight: this sequence isn't just a list — it's a finite state automaton where each transition is triggered by a semantic operator."
+          },
+          {
+            "type": "p",
+            "children": "Reward Machines (Icarte et al., JAIR 2022) formalized exactly this idea for reinforcement learning: specify complex, temporally extended tasks as finite state automata where transitions are triggered by high-level propositional events. The question is: what ARE those propositional events? We argue they're Schankian operators."
+          },
+          {
+            "type": "Callout",
+            "props": {
+              "type": "key",
+              "title": "The Core Claim"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "A Schankian script IS a Reward Machine. Each automaton state represents the current world state. Each transition IS an operator application. The restaurant script is a reward machine where PTRANS(customer→restaurant) triggers q₀→q₁, ATRANS(menu→customer) triggers q₁→q₂, MTRANS(order→waiter) triggers q₂→q₃, INGEST(food←customer) triggers q₃→q₄, ATRANS(money→restaurant) triggers q₄→q₅."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "What Is a Reward Machine?"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "Before diving into the connection, let's understand both sides. A Reward Machine is a tuple (Q, Σ, δ, q₀, R) where Q is a set of states, Σ is an alphabet of propositional events, δ is the transition function, q₀ is the start state, and R assigns rewards to transitions."
+          },
+          {
+            "type": "DefinitionList",
+            "props": {
+              "items": [
+                {
+                  "term": "Automaton State (qᵢ)",
+                  "definition": "Represents a stage of task progress. In the restaurant script: q₀ = 'outside', q₁ = 'seated', q₂ = 'ordered', q₃ = 'eating', q₄ = 'paying', q₅ = 'done'. Each state implies a world configuration."
+                },
+                {
+                  "term": "Propositional Event (σ)",
+                  "definition": "A high-level event that triggers a state change. The RM doesn't care HOW the event happens — just THAT it happened. 'Customer received food' is the event, regardless of whether it was a waiter, a conveyor belt, or a drone."
+                },
+                {
+                  "term": "Transition Function δ(qᵢ, σ) = qⱼ",
+                  "definition": "Given current state qᵢ and observed event σ, the next state is qⱼ. This is deterministic: a specific event in a specific state always leads to the same next state."
+                },
+                {
+                  "term": "Reward Function R(qᵢ, σ, qⱼ)",
+                  "definition": "Assigns reward values to transitions. In our framework, this becomes 'narrative progress' — how much the event advances the script toward completion."
+                }
+              ]
+            }
+          },
+          {
+            "type": "Analogy",
+            "props": {
+              "title": "The Board Game Analogy",
+              "text": "A Reward Machine is like a board game. Each square is a state. Landing on certain squares (events) moves you forward. The dice (observations from the environment) get interpreted into moves (propositional events). The rules (transition function) are fixed. The question for AI is: how do you learn to RECOGNIZE which square you've landed on from raw observations? That's the symbol grounding problem — and it's exactly our operator classification challenge."
+            }
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "The Formal Mapping"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "The connection between Reward Machines and Schankian operators isn't just analogical — it's structural. Every component of a Reward Machine has a direct semantic counterpart."
+          },
+          {
+            "type": "Example",
+            "props": {
+              "title": "Restaurant Script as Reward Machine",
+              "code": "States Q = {outside, seated, menu_read, ordered, eating, check_received, paid, left}\n\nTransitions δ:\n  δ(outside,     PTRANS(cust→rest))     = seated\n  δ(seated,      ATTEND(cust→menu))     = menu_read\n  δ(menu_read,   MTRANS(order→waiter))  = ordered\n  δ(ordered,     ATRANS(food→cust))     = eating\n  δ(eating,      INGEST(food←cust))     = check_received\n  δ(check_received, ATRANS(money→rest)) = paid\n  δ(paid,        PTRANS(cust→outside))  = left\n\nReward R:\n  R(*, *, left) = +1.0    // Script completion\n  R(*, *, *)    = -0.01   // Time cost per step\n\nThe operators ARE the transition alphabet Σ.\nThe script IS the automaton (Q, Σ, δ, q₀, R).",
+              "explanation": "Each line in the transition function is: 'in this world state, when this operator fires, we move to that world state.' The operator IS the propositional event that the RM framework requires. The beauty is that operators are TYPED — PTRANS only triggers location changes, ATRANS only triggers possession changes — so the transition function is naturally constrained."
+            }
+          },
+          {
+            "type": "DeepDive",
+            "props": {
+              "title": "Why Operators Beat Raw Propositions",
+              "content": "Standard Reward Machines use propositions like 'food_received' or 'payment_complete.' But these are ad hoc — someone has to define them per task. Schankian operators provide a UNIVERSAL alphabet: any task domain can be described using the same ~15 operators (ATRANS, PTRANS, MTRANS, MBUILD, PROPEL, MOVE, GRASP, INGEST, EXPEL, SPEAK, ATTEND, HEAR, SEE, SMELL, FEEL). This means a single operator classifier, trained once, can ground the transition alphabet for ANY reward machine. You don't need to retrain the symbol grounding for each new task — you just define new automaton structures over the same alphabet."
+            }
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "The Symbol Grounding Problem"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "The hardest challenge in Reward Machines is: how do you map raw observations (pixels, text, sensor data) to the propositional events that trigger transitions? This is called the symbol grounding problem, and it's EXACTLY our operator classification challenge."
+          },
+          {
+            "type": "p",
+            "children": "Neural Reward Machines (Dahan et al., 2024) tackle this with probabilistic Moore machines and semi-supervised symbol grounding. Given some labeled examples of events (supervised) plus lots of unlabeled trajectories (unsupervised), they learn to recognize when propositional events have occurred. The parallels to our operator learning are striking."
+          },
+          {
+            "type": "Example",
+            "props": {
+              "title": "Grounding Operators from Text",
+              "code": "# The symbol grounding pipeline for narratives:\n\n# Step 1: Raw observation (text)\nsentence = \"Maria handed the heavy box to Jake.\"\n\n# Step 2: Operator classification (symbol grounding)\n# Input: sentence embedding\n# Output: probability distribution over operators\nP(operator | sentence) = {\n  ATRANS: 0.92,   # Transfer of possession (giving)\n  PTRANS: 0.05,   # Physical movement (box moves)\n  PROPEL: 0.02,   # Force application (heavy box)\n  other:  0.01\n}\n\n# Step 3: Trigger RM transition\n# Current state: q_maria_has_box\n# Event: ATRANS(box, maria → jake)\n# Next state: q_jake_has_box\n\n# Step 4: Update entity states\n# maria.possession -= box\n# jake.possession += box\n# box.location = jake.location",
+              "explanation": "This is identical to Neural Reward Machine symbol grounding — just applied to text instead of images. The classifier maps observations to propositional events (operators), which trigger state machine transitions. Solutions from the RM literature (semi-supervised learning, probabilistic relaxations) transfer directly."
+            }
+          },
+          {
+            "type": "Callout",
+            "props": {
+              "type": "insight",
+              "title": "The Transfer Opportunity"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "Neural Reward Machines use probabilistic Moore machines for symbol grounding — differentiable, trainable, and capable of handling ambiguity. We can directly adopt their architecture: replace their visual encoder with a text encoder, keep their probabilistic symbol grounding layer, and train on narrative data. The entire NRM codebase becomes a starting point for operator learning."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "Counterfactual Reasoning via Operator Replay"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "One of the most powerful features of Reward Machines is counterfactual experience replay (CRM). When an agent takes a trajectory through one RM, it can retroactively compute what reward it WOULD have received under different RMs. Applied to operators: 'what would have happened if a different operator had fired?'"
+          },
+          {
+            "type": "InteractiveDemo",
+            "props": {
+              "title": "Counterfactual Operator Replay",
+              "prompt": "For each scenario, predict what would happen if the highlighted operator were replaced with the alternative. Think about which entity states change differently.",
+              "scenarios": [
+                {
+                  "input": "Original: 'Jake GAVE the book to Maria' (ATRANS: book transfers from Jake to Maria)\n→ Counterfactual: What if PTRANS instead? 'Jake MOVED the book toward Maria'",
+                  "reveal": "With ATRANS: possession changes (Jake loses book, Maria gains book). With PTRANS: location changes (book moves to Maria's location) but POSSESSION doesn't change — Jake still owns the book, it's just physically near Maria. The counterfactual reveals that ATRANS and PTRANS operate on DIFFERENT state dimensions: one on ownership, the other on location."
+                },
+                {
+                  "input": "Original: 'The teacher TOLD the class about photosynthesis' (MTRANS: information transfers)\n→ Counterfactual: What if MBUILD instead? 'The teacher FIGURED OUT photosynthesis'",
+                  "reveal": "With MTRANS: the class gains knowledge, the teacher's knowledge is unchanged. With MBUILD: only the teacher's knowledge changes, the class learns nothing. The counterfactual exposes the critical difference: MTRANS is INTER-personal knowledge transfer; MBUILD is INTRA-personal knowledge creation. Same knowledge domain, different social topology."
+                },
+                {
+                  "input": "Script context: Customer is at state 'seated' in restaurant RM.\nOriginal: Customer MTRANS(order→waiter) → state becomes 'ordered'\n→ Counterfactual: Customer PTRANS(self→exit) → ???",
+                  "reveal": "The RM BLOCKS this transition! In state 'seated', PTRANS(self→exit) isn't in the valid transition set — you can't leave without paying (well, you can, but that triggers a DIFFERENT reward machine: the 'dine-and-dash' script, which has very different reward signals). This shows how the RM structure constrains which operators are valid at each point — providing selectional restrictions for free."
+                }
+              ]
+            }
+          },
+          {
+            "type": "DeepDive",
+            "props": {
+              "title": "Training with Counterfactuals",
+              "content": "Counterfactual experience replay is a training technique, not just a thought experiment. Given one narrative trajectory (enter→sit→order→eat→pay→leave), the RM framework automatically generates counterfactual training signal: 'At the ordered state, if ATRANS(money→restaurant) had occurred instead of ATRANS(food→customer), the next state would have been paid, not eating — which is WRONG for the restaurant script.' This wrong-transition signal is free training data for learning operator meanings and script structure simultaneously."
+            }
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "Multi-Agent Decomposition"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "Real narratives have multiple characters. The restaurant script involves at least the customer and the waiter, each with their own state trajectory. Recent work on multi-agent Reward Machine decomposition (Dann et al., 2024) automatically splits a joint RM into per-agent sub-machines synchronized at shared events."
+          },
+          {
+            "type": "Example",
+            "props": {
+              "title": "Decomposed Restaurant Script",
+              "code": "# CUSTOMER sub-machine:\n# q₀ --PTRANS(self→rest)--> q₁ --ATTEND(menu)--> q₂\n# --MTRANS(order→waiter)--> q₃ --INGEST(food)--> q₄\n# --ATRANS(money→rest)--> q₅ --PTRANS(self→out)--> q₆\n\n# WAITER sub-machine:\n# w₀ --ATTEND(customer)--> w₁ --MTRANS(greet→cust)--> w₂\n# --HEAR(order←cust)--> w₃ --MTRANS(order→kitchen)--> w₄\n# --GRASP(food)--> w₅ --ATRANS(food→cust)--> w₆\n# --ATRANS(check→cust)--> w₇ --ATRANS(money←cust)--> w₈\n\n# SYNCHRONIZATION POINTS (shared events):\n# Customer.MTRANS(order→waiter) = Waiter.HEAR(order←cust)\n# Waiter.ATRANS(food→cust) = Customer receives food\n# Customer.ATRANS(money→rest) = Waiter.ATRANS(money←cust)\n\n# Each agent runs their own sub-automaton,\n# synchronized at events that involve both parties.",
+              "explanation": "The multi-agent decomposition is exactly the multi-entity state change problem. Each entity runs its own operator sequence, but they synchronize at shared events. An ATRANS always involves at least two entities (giver and receiver), creating natural synchronization points. The RM framework handles this decomposition formally — we get it for free by adopting their formalism."
+            }
+          },
+          {
+            "type": "Callout",
+            "props": {
+              "type": "connection",
+              "title": "Connection to Multi-Entity State Change"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "The critical note in our research: operators transform ALL participants, not just the subject. ATRANS(book, jake→maria) changes Jake's state, Maria's state, AND the book's state simultaneously. Multi-agent RM decomposition formalizes exactly this: the shared event triggers transitions in MULTIPLE sub-machines at once. This isn't a bug to handle — it's a feature of the formalism."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "From Understanding to Planning"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "Here's where it gets exciting. An RL agent equipped with a learned semantic Reward Machine can not only UNDERSTAND narratives (parse them into operator sequences) but PLAN new ones (generate operator sequences to reach goal states). This was Schank's original vision: scripts, plans, and goals as a unified framework."
+          },
+          {
+            "type": "InteractiveDemo",
+            "props": {
+              "title": "Operator Planning with Reward Machines",
+              "prompt": "Given a start state and goal state, plan a valid operator sequence using the RM structure. Think about which operators are valid at each step.",
+              "scenarios": [
+                {
+                  "input": "Start: 'Agent has information I, needs to get it to Person P who is in Location L'\nGoal: 'Person P knows information I'\nAvailable operators: PTRANS, MTRANS, ATRANS, MBUILD",
+                  "reveal": "Plan: Step 1: PTRANS(agent→L) [move to P's location]. Step 2: MTRANS(I, agent→P) [tell P the information]. But wait — there are ALTERNATIVES. The agent could MTRANS via phone (no PTRANS needed), or ATRANS a letter (physical transfer of information carrier), or even trigger MBUILD in P by giving them the premises and letting them figure it out. Each plan is a different path through the reward machine, with different costs and probabilities."
+                },
+                {
+                  "input": "Start: 'Object O is at Location A, needs to be at Location B. Agent is at Location C.'\nGoal: 'Object O is at Location B'\nConstraint: Agent cannot enter Location A.",
+                  "reveal": "The direct plan PTRANS(O, A→B) requires the agent to be at A — blocked by the constraint. Re-planning: Step 1: MTRANS(request, agent→helper_at_A) [ask someone at A to help]. Step 2: helper executes PTRANS(O, A→intermediate). Step 3: PTRANS(agent→intermediate). Step 4: GRASP(O). Step 5: PTRANS(agent→B). Step 6: MOVE(O→surface). This is multi-step planning with delegation — the RM naturally handles plan failures by allowing alternative paths through the automaton."
+                }
+              ]
+            }
+          },
+          {
+            "type": "DeepDive",
+            "props": {
+              "title": "Ground-Compose-Reinforce: Language Grounding via RMs",
+              "content": "Recent work (Oct 2025) by Furelos-Blanco et al. shows how to ground compositional language instructions as Reward Machines, then use RL to learn policies. The key insight: language instructions decompose into RM sub-tasks COMPOSITIONALLY. 'Get the coffee AND deliver it to room 3' becomes two sequential sub-machines composed together. With Schankian operators as the transition alphabet, ANY natural language goal could be automatically compiled into an RM for planning. The operator classifier is the compiler; the RM is the execution plan."
+            }
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "Handling Uncertainty and Noise"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "Real narratives are messy. The operator might be ambiguous ('shot' = HARM or INFORM?), implied rather than stated, or the narrative might skip steps entirely. NeurIPS 2024 work extends Reward Machines to handle exactly this kind of uncertainty."
+          },
+          {
+            "type": "Example",
+            "props": {
+              "title": "Noisy Operator Classification in Practice",
+              "code": "# Sentence: \"The officer shot the suspect.\"\n# Operator classification is AMBIGUOUS:\n\nP(operator | sentence) = {\n  PROPEL: 0.65,   # Physical force (shooting with gun)\n  HARM:   0.20,   # Causing damage (if it hit)\n  ATTEND: 0.10,   # Recording (shooting with camera!)\n  SPEAK:  0.05,   # Communicating (\"shot back\" verbally)\n}\n\n# With context: \"The officer shot the suspect during \n# the standoff after negotiations failed.\"\n\nP(operator | sentence, context) = {\n  PROPEL: 0.85,   # Physical force (standoff context)\n  HARM:   0.12,   # Likely hit (negotiations FAILED)\n  ATTEND: 0.02,   # Recording unlikely in standoff\n  SPEAK:  0.01,   # Verbal response unlikely\n}\n\n# The RM handles this by maintaining a BELIEF STATE\n# over possible automaton states, not a single state.\n# Uncertainty propagates forward through transitions.",
+              "explanation": "Noisy Reward Machines maintain probability distributions over states instead of tracking a single state. When the operator is ambiguous, the RM branches: with probability 0.85, we transition via PROPEL, with probability 0.12 via HARM, etc. As the narrative continues, inconsistent branches get pruned (if the suspect walks away fine, HARM was wrong). This is Bayesian filtering over automaton states — a principled way to handle operator ambiguity."
+            }
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "Quiz: Test Your Understanding"
+        },
+        "children": [
+          {
+            "type": "Quiz",
+            "props": {
+              "questions": [
+                {
+                  "question": "In the Reward Machine framework, what role do Schankian operators play?",
+                  "options": [
+                    "They are the automaton states (the nodes in the state machine)",
+                    "They are the propositional events that trigger state transitions (the edge labels)",
+                    "They are the reward values assigned to each transition",
+                    "They are the raw observations from the environment"
+                  ],
+                  "correctIndex": 1,
+                  "explanation": "Operators are the TRANSITION ALPHABET — the events that cause the state machine to move from one state to another. The states represent world configurations; the operators are what changes the world from one configuration to the next."
+                },
+                {
+                  "question": "What is the 'symbol grounding problem' in the context of Reward Machines?",
+                  "options": [
+                    "How to define enough symbols to represent all possible events",
+                    "How to map raw observations (text, images) to the high-level propositional events that trigger RM transitions",
+                    "How to convert symbols back into natural language",
+                    "How to store symbols efficiently in memory"
+                  ],
+                  "correctIndex": 1,
+                  "explanation": "The symbol grounding problem is: given raw data (a sentence, an image), how do you determine WHICH propositional event just occurred? This is identical to our operator classification challenge — given 'Maria handed the book to Jake,' recognizing that this is an ATRANS event."
+                },
+                {
+                  "question": "Why is counterfactual experience replay useful for learning operators?",
+                  "options": [
+                    "It makes training faster by using GPU parallelism",
+                    "It lets you ask 'what if a different operator had fired?' — generating free training signal about operator meanings and script structure",
+                    "It removes the need for labeled training data",
+                    "It allows the model to generate new narratives"
+                  ],
+                  "correctIndex": 1,
+                  "explanation": "Counterfactual replay lets you take one observed trajectory and generate training signal for ALTERNATIVE transitions. 'At the ordered state, what if ATRANS(money) happened instead of ATRANS(food)?' — that's wrong for the restaurant script, and the wrongness teaches both operator meanings AND script structure."
+                },
+                {
+                  "question": "How does multi-agent RM decomposition relate to multi-entity state change?",
+                  "options": [
+                    "They are unrelated concepts from different fields",
+                    "Multi-agent decomposition splits the joint RM into per-agent sub-machines synchronized at shared events — exactly how operators transform ALL participants simultaneously",
+                    "Multi-agent decomposition eliminates the need for multi-entity tracking",
+                    "Multi-agent decomposition only works for two agents"
+                  ],
+                  "correctIndex": 1,
+                  "explanation": "When ATRANS(book, jake→maria) fires, it's a SHARED EVENT between Jake's sub-machine (losing possession) and Maria's sub-machine (gaining possession). Multi-agent RM decomposition formalizes this: each entity has its own automaton, synchronized at operator applications that involve multiple entities."
+                },
+                {
+                  "question": "What makes Schankian operators superior to ad hoc propositions as the RM transition alphabet?",
+                  "options": [
+                    "Operators are simpler to compute",
+                    "Operators provide a UNIVERSAL alphabet (~15 primitives) that works across ANY domain, so one classifier can ground transitions for any reward machine",
+                    "Operators are always unambiguous",
+                    "Operators don't require neural networks to classify"
+                  ],
+                  "correctIndex": 1,
+                  "explanation": "Standard RMs use task-specific propositions ('food_received', 'payment_complete') that must be redefined for each domain. Schankian operators provide a fixed, universal set of ~15 primitives that describe ANY state change in ANY domain. Train the classifier once; define new tasks by writing new automata over the same alphabet."
+                }
+              ]
+            }
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "Implications and Next Steps"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "This connection repositions Schankian operators from a purely linguistic analysis tool to the TRANSITION LANGUAGE for agentic planning systems. An LLM agent that learns operators + reward machine structure could:"
+          },
+          {
+            "type": "p",
+            "children": "1. Parse a goal description into a target automaton state. 2. Plan a sequence of operators to reach it. 3. Execute those operators as actions in the world. 4. Handle failures by re-planning from the current automaton state. 5. Explain its reasoning in human-understandable terms (because operators have semantic meaning)."
+          },
+          {
+            "type": "p",
+            "children": "This is Schank's original vision of scripts, plans, and goals — but now learned, grounded, and executable. The RM framework provides formal guarantees (convergence of SMDP Q-learning), the operator algebra provides semantic structure, and neural symbol grounding provides the bridge from raw observations to abstract reasoning."
+          },
+          {
+            "type": "Callout",
+            "props": {
+              "type": "key",
+              "title": "Key Papers"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "• Reward Machines: Exploiting Reward Function Structure in RL (Icarte et al., JAIR 2022) — the foundational paper\n• Neural Reward Machines (Dahan et al., Aug 2024) — probabilistic symbol grounding\n• Reward Machines for Deep RL in Noisy Environments (NeurIPS 2024) — handling uncertainty\n• Automatic Decomposition of RMs for Multi-Agent RL (Dann et al., 2024) — multi-entity\n• Ground-Compose-Reinforce (Oct 2025) — language grounding via RMs"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}
