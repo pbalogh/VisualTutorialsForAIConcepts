@@ -4,16 +4,27 @@
     <meta charset="utf-8">
     <title>Redirecting...</title>
     <script>
-      // Single Page App redirect for GitHub Pages
-      // Converts /tutorial/xyz to /?/tutorial/xyz, then index.html handles it
-      const path = window.location.pathname;
-      const search = window.location.search;
-      const hash = window.location.hash;
+      // Single Page App redirect for GitHub Pages / Cloudflare Pages
+      // Converts /path to /?p=/path, then index.html restores it for React Router
+      var path = window.location.pathname;
+      var search = window.location.search;
+      var hash = window.location.hash;
       
-      // Redirect to root with path as query param
+      // Strip repo prefix if on GitHub Pages
+      var prefix = '/VisualTutorialsForAIConcepts';
+      var cleanPath = path;
+      if (path.indexOf(prefix) === 0) {
+        cleanPath = path.slice(prefix.length) || '/';
+      }
+      
+      // Determine base URL
+      var base = window.location.origin;
+      if (window.location.hostname.includes('github.io')) {
+        base += prefix;
+      }
+      
       window.location.replace(
-        window.location.origin + '/VisualTutorialsForAIConcepts/?p=' + 
-        encodeURIComponent(path.replace('/VisualTutorialsForAIConcepts', '')) + 
+        base + '/?p=' + encodeURIComponent(cleanPath) +
         (search ? '&q=' + encodeURIComponent(search) : '') +
         hash
       );
