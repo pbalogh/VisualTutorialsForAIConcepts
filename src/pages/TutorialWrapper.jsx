@@ -99,6 +99,81 @@ function RegroupPreviewModal({ preview, onApply, onCancel }) {
   )
 }
 
+// Floating Edit Tutorial button + input
+function FloatingEditButton({ tutorialId }) {
+  const [open, setOpen] = useState(false)
+  const [instruction, setInstruction] = useState('')
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState(null)
+
+  const handleSubmit = async () => {
+    if (!instruction.trim() || loading) return
+    setLoading(true)
+    setError(null)
+    try {
+      const res = await fetch(`${API_BASE}/edit-tutorial`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ tutorialId, instruction: instruction.trim() })
+      })
+      const data = await res.json()
+      if (data.success) {
+        window.location.reload()
+      } else {
+        setError(data.error || 'Edit failed')
+        setLoading(false)
+      }
+    } catch (e) {
+      setError('Server not reachable')
+      setLoading(false)
+    }
+  }
+
+  if (!open) {
+    return (
+      <button
+        onClick={() => setOpen(true)}
+        className="fixed bottom-6 right-6 z-50 w-12 h-12 rounded-full bg-indigo-600 text-white shadow-lg hover:bg-indigo-500 transition-all hover:scale-110 flex items-center justify-center text-xl"
+        title="Edit Tutorial"
+      >
+        ✏️
+      </button>
+    )
+  }
+
+  return (
+    <div className="fixed bottom-6 right-6 z-50 w-80 bg-gray-900 border border-gray-700 rounded-xl shadow-2xl overflow-hidden">
+      <div className="flex items-center justify-between px-4 py-3 border-b border-gray-700">
+        <span className="text-sm font-medium text-white">✏️ Edit Tutorial</span>
+        <button onClick={() => { setOpen(false); setError(null) }} className="text-gray-400 hover:text-white text-lg">×</button>
+      </div>
+      <div className="p-4 space-y-3">
+        <textarea
+          value={instruction}
+          onChange={e => setInstruction(e.target.value)}
+          placeholder="e.g. Make the intro shorter, add a section about X..."
+          className="w-full h-24 bg-gray-800 border border-gray-600 rounded-lg p-3 text-sm text-white placeholder-gray-500 resize-none focus:outline-none focus:border-indigo-500"
+          disabled={loading}
+          onKeyDown={e => { if (e.key === 'Enter' && e.metaKey) handleSubmit() }}
+        />
+        {error && <div className="text-xs text-red-400">{error}</div>}
+        <button
+          onClick={handleSubmit}
+          disabled={loading || !instruction.trim()}
+          className="w-full py-2 rounded-lg bg-indigo-600 text-white text-sm font-medium hover:bg-indigo-500 disabled:opacity-50 transition-colors flex items-center justify-center gap-2"
+        >
+          {loading ? (
+            <>
+              <div className="animate-spin w-4 h-4 border-2 border-white border-t-transparent rounded-full" />
+              Editing...
+            </>
+          ) : 'Apply Edit'}
+        </button>
+      </div>
+    </div>
+  )
+}
+
 // Legacy JSX component tutorials
 const tutorialComponents = {
   'matrix-discovery': MatrixDiscovery,
@@ -835,6 +910,8 @@ export default function TutorialWrapper({ tutorial: propTutorial }) {
           onApply={handleApplyRegroup}
           onCancel={() => setPreviewData(null)}
         />
+        
+        <FloatingEditButton tutorialId={tutorialId} />
       </div>
     )
   }
@@ -853,6 +930,7 @@ export default function TutorialWrapper({ tutorial: propTutorial }) {
           onApply={handleApplyRegroup}
           onCancel={() => setPreviewData(null)}
         />
+        <FloatingEditButton tutorialId={tutorialId} />
       </div>
     )
   }
@@ -876,6 +954,7 @@ export default function TutorialWrapper({ tutorial: propTutorial }) {
         onApply={handleApplyRegroup}
         onCancel={() => setPreviewData(null)}
       />
+      <FloatingEditButton tutorialId={tutorialId} />
     </div>
   )
 }

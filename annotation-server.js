@@ -3210,6 +3210,170 @@ Return ONLY valid JSON.`
     }
   }
   
+  // ============================================================
+  // POST /edit-tutorial — Natural language tutorial editing
+  // ============================================================
+  if (url.pathname === '/edit-tutorial' && req.method === 'POST') {
+    try {
+      const body = await parseBody(req)
+      const { tutorialId, instruction } = body
+
+      if (!tutorialId || !instruction) {
+        return sendJson(res, 400, { error: 'tutorialId and instruction are required' })
+      }
+
+      console.log(`\n✏️ Edit Tutorial: "${tutorialId}"`)
+      console.log(`  Instruction: "${instruction}"`)
+
+      const jsonPath = path.join(CONTENT_DIR, `${tutorialId}.json`)
+      let tutorial
+      try {
+        const raw = await fs.readFile(jsonPath, 'utf-8')
+        tutorial = JSON.parse(raw)
+      } catch (e) {
+        return sendJson(res, 404, { error: `Tutorial "${tutorialId}" not found` })
+      }
+
+      // Save backup
+      await fs.writeFile(jsonPath + '.backup', JSON.stringify(tutorial, null, 2))
+
+      // Build structure summary for planning step
+      const sections = tutorial.content?.children?.filter(c => c.type === 'Section') || []
+      const structureSummary = sections.map((s, i) => {
+        const preview = JSON.stringify(s.children || []).slice(0, 100)
+        return `[${i}] "${s.props?.title || 'Untitled'}" — preview: ${preview}...`
+      }).join('\n')
+
+      // Step 1: Ask AI for a plan
+      const planSystemPrompt = `You are a tutorial editor. Given a tutorial structure and an edit instruction, return a JSON plan of which sections to modify.
+Return ONLY valid JSON, no markdown fences. Format:
+{"plan": [{"sectionIndex": 0, "action": "modify|delete|add_after", "description": "what to do"}], "summary": "overall description"}`
+
+      const planPrompt = `Tutorial: "${tutorial.title}"
+Sections:
+${structureSummary}
+
+Edit instruction: "${instruction}"
+
+Return the JSON plan.`
+
+      console.log('  Step 1: Getting edit plan...')
+      const planRaw = await callAI(planSystemPrompt, planPrompt)
+      let plan
+      try {
+        const cleaned = planRaw.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim()
+        plan = JSON.parse(cleaned)
+      } catch (e) {
+        console.error('Failed to parse plan:', planRaw)
+        return sendJson(res, 500, { error: 'AI returned invalid plan JSON' })
+      }
+
+      console.log(`  Plan: ${plan.plan?.length || 0} changes — ${plan.summary}`)
+
+      // Step 2: Apply each change
+      const changes = []
+      const newSections = [...sections]
+      const deletions = new Set()
+
+      for (const step of (plan.plan || [])) {
+        const idx = step.sectionIndex
+        
+        if (step.action === 'delete') {
+          deletions.add(idx)
+          changes.push({ section: sections[idx]?.props?.title, action: 'delete', description: step.description })
+          continue
+        }
+
+        if (step.action === 'add_after') {
+          const addSystemPrompt = `You are a tutorial content author. Create a new tutorial section as valid JSON.
+Return ONLY valid JSON matching this structure: {"type": "Section", "props": {"title": "..."}, "children": [...]}
+Children can be: {"type": "Paragraph", "children": ["text"]} or {"type": "DeepDive", "props": {"title": "..."}, "children": [...]}
+No markdown fences.`
+
+          const addPrompt = `Tutorial: "${tutorial.title}"
+Instruction: "${step.description}"
+Overall edit goal: "${instruction}"
+
+Create the new section as JSON.`
+
+          const addRaw = await callAI(addSystemPrompt, addPrompt)
+          try {
+            const cleaned = addRaw.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim()
+            const newSection = JSON.parse(cleaned)
+            // Insert after the specified index
+            newSections.splice(idx + 1, 0, newSection)
+            changes.push({ section: newSection.props?.title || 'New Section', action: 'add', description: step.description })
+          } catch (e) {
+            console.error(`Failed to parse new section:`, addRaw.slice(0, 200))
+            changes.push({ section: `Index ${idx}`, action: 'error', description: 'Failed to create section' })
+          }
+          continue
+        }
+
+        // modify
+        if (idx < 0 || idx >= sections.length) continue
+        const section = sections[idx]
+
+        const modifySystemPrompt = `You are a tutorial content editor. Modify the given section JSON according to the instruction.
+Return ONLY the modified section as valid JSON. Keep the exact same structure format. No markdown fences.`
+
+        const modifyPrompt = `Section JSON:
+${JSON.stringify(section, null, 2)}
+
+Edit instruction: "${instruction}"
+Specific task: "${step.description}"
+
+Return the modified section JSON.`
+
+        console.log(`  Modifying section [${idx}]: "${section.props?.title}"`)
+        const modRaw = await callAI(modifySystemPrompt, modifyPrompt)
+        try {
+          const cleaned = modRaw.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim()
+          const modified = JSON.parse(cleaned)
+          newSections[idx] = modified
+          changes.push({ section: section.props?.title, action: 'modify', description: step.description })
+        } catch (e) {
+          console.error(`Failed to parse modified section [${idx}]:`, modRaw.slice(0, 200))
+          changes.push({ section: section.props?.title, action: 'error', description: 'Failed to parse AI response' })
+        }
+      }
+
+      // Remove deleted sections (reverse order to preserve indices)
+      const finalSections = newSections.filter((_, i) => !deletions.has(i))
+
+      // Rebuild tutorial
+      tutorial.content.children = [
+        ...tutorial.content.children.filter(c => c.type !== 'Section'),
+        ...finalSections
+      ]
+
+      // Validate and save
+      const output = JSON.stringify(tutorial, null, 2)
+      JSON.parse(output) // validate
+      await fs.writeFile(jsonPath, output)
+
+      // Git commit
+      try {
+        const relativePath = path.relative(TUTORIALS_REPO, jsonPath)
+        execSync(`git add "${relativePath}"`, { cwd: TUTORIALS_REPO, stdio: 'pipe' })
+        execSync(`git commit -m "[edit] ${tutorialId}: ${instruction.slice(0, 60)}"`, { cwd: TUTORIALS_REPO, stdio: 'pipe' })
+        console.log('  ✅ Git committed')
+      } catch (e) {
+        console.log('  ⚠️ Git commit skipped:', e.message?.slice(0, 80))
+      }
+
+      return sendJson(res, 200, {
+        success: true,
+        message: plan.summary || 'Tutorial edited',
+        changes
+      })
+
+    } catch (error) {
+      console.error('❌ Edit tutorial error:', error)
+      return sendJson(res, 500, { error: error.message })
+    }
+  }
+
   if (url.pathname === '/generate' && req.method === 'POST') {
     try {
       const body = await parseBody(req)
