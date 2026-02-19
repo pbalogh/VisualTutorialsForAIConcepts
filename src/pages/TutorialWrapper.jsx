@@ -100,16 +100,18 @@ function RegroupPreviewModal({ preview, onApply, onCancel }) {
 }
 
 // Floating Edit Tutorial button + input
-function FloatingEditButton({ tutorialId }) {
+function FloatingEditButton({ tutorialId, onUpdate }) {
   const [open, setOpen] = useState(false)
   const [instruction, setInstruction] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
+  const [successMsg, setSuccessMsg] = useState(null)
 
   const handleSubmit = async () => {
     if (!instruction.trim() || loading) return
     setLoading(true)
     setError(null)
+    setSuccessMsg(null)
     try {
       const res = await fetch(`${API_BASE}/edit-tutorial`, {
         method: 'POST',
@@ -118,7 +120,24 @@ function FloatingEditButton({ tutorialId }) {
       })
       const data = await res.json()
       if (data.success) {
-        window.location.reload()
+        // Fetch the fresh tutorial JSON from the server (not the stale bundle)
+        try {
+          const freshRes = await fetch(`${API_BASE}/api/tutorial/${tutorialId}`)
+          const freshData = await freshRes.json()
+          if (onUpdate && freshData && freshData.content) {
+            onUpdate(freshData)
+            setSuccessMsg(data.message || 'Tutorial updated!')
+            setInstruction('')
+            setLoading(false)
+            // Auto-hide success after 3s
+            setTimeout(() => setSuccessMsg(null), 3000)
+          } else {
+            // Fallback: reload the page
+            window.location.reload()
+          }
+        } catch {
+          window.location.reload()
+        }
       } else {
         setError(data.error || 'Edit failed')
         setLoading(false)
@@ -157,6 +176,7 @@ function FloatingEditButton({ tutorialId }) {
           onKeyDown={e => { if (e.key === 'Enter' && e.metaKey) handleSubmit() }}
         />
         {error && <div className="text-xs text-red-400">{error}</div>}
+        {successMsg && <div className="text-xs text-green-400">✅ {successMsg}</div>}
         <button
           onClick={handleSubmit}
           disabled={loading || !instruction.trim()}
@@ -911,7 +931,7 @@ export default function TutorialWrapper({ tutorial: propTutorial }) {
           onCancel={() => setPreviewData(null)}
         />
         
-        <FloatingEditButton tutorialId={tutorialId} />
+        <FloatingEditButton tutorialId={tutorialId} onUpdate={setJsonTutorial} />
       </div>
     )
   }
@@ -930,7 +950,7 @@ export default function TutorialWrapper({ tutorial: propTutorial }) {
           onApply={handleApplyRegroup}
           onCancel={() => setPreviewData(null)}
         />
-        <FloatingEditButton tutorialId={tutorialId} />
+        <FloatingEditButton tutorialId={tutorialId} onUpdate={setJsonTutorial} />
       </div>
     )
   }
@@ -954,7 +974,7 @@ export default function TutorialWrapper({ tutorial: propTutorial }) {
         onApply={handleApplyRegroup}
         onCancel={() => setPreviewData(null)}
       />
-      <FloatingEditButton tutorialId={tutorialId} />
+      <FloatingEditButton tutorialId={tutorialId} onUpdate={setJsonTutorial} />
     </div>
   )
 }
