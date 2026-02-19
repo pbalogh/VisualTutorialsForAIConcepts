@@ -732,6 +732,48 @@
                 ]
               }
             ]
+          },
+          {
+            "type": "DeepDive",
+            "title": "Scaling Laws for Discrete Diffusion: Uniform vs Masked (Feb 2026)",
+            "children": [
+              {
+                "type": "p",
+                "children": [
+                  {
+                    "type": "strong",
+                    "children": [
+                      "Scaling Behavior of Discrete Diffusion"
+                    ]
+                  },
+                  " (von Rutte et al., updated Feb 15 2026, arXiv:2512.10858) provides the first comprehensive scaling law study of discrete DLMs across noise types (masked vs uniform interpolation). Key finding: uniform diffusion requires MORE parameters but LESS data for compute-efficient training than masked diffusion. Scaled to 10B parameters -- largest publicly known uniform diffusion model."
+                ]
+              },
+              {
+                "type": "p",
+                "children": [
+                  {
+                    "type": "strong",
+                    "children": [
+                      "Relevance to Idea 1:"
+                    ]
+                  },
+                  " Critical for design choices. If we build SAE-guided diffusion in structured latent space, uniform diffusion may be better (less data-hungry, meaning our smaller SAE-feature datasets might suffice). But it requires larger models -- suggesting we might need efficient architectures (FS-DFM style) to keep SAE-guided uniform diffusion practical. Also confirms that Sahoo et al.'s finding (uniform outperforms on GSM8K despite worse perplexity) holds at scale."
+                ]
+              },
+              {
+                "type": "p",
+                "children": [
+                  {
+                    "type": "strong",
+                    "children": [
+                      "New question:"
+                    ]
+                  },
+                  " Does the uniform-state vs masked-state distinction affect how SAE features interact with the diffusion process? Uniform noise preserves more structure than masking -- potentially better for SAE feature alignment."
+                ]
+              }
+            ]
           }
         ]
       },
@@ -1469,6 +1511,55 @@
                 },
                 "children": [
                   "This is the closest existing work to our proposals \u2014 but for images, not text. The gap: nobody has done SAE-based steering for TEXT diffusion yet. With discrete diffusion scaling up and SAE steering proven for image diffusion, the text version is the clear next step."
+                ]
+              }
+            ]
+          },
+          {
+            "type": "DeepDive",
+            "title": "CASL: Supervised Concept-Aligned SAE for Diffusion (Jan 2026)",
+            "children": [
+              {
+                "type": "p",
+                "children": [
+                  {
+                    "type": "strong",
+                    "children": [
+                      "CASL"
+                    ]
+                  },
+                  " (He et al., Jan 21 2026, arXiv:2601.15441) introduces ",
+                  {
+                    "type": "strong",
+                    "children": [
+                      "supervised alignment"
+                    ]
+                  },
+                  " between SAE sparse latent dimensions and human-understandable semantic concepts in diffusion models. Trains SAE on frozen U-Net activations, then learns a lightweight linear mapping from concepts to sparse latent dimensions. Validates with CASL-Steer: a controlled latent intervention that shifts activations along concept axes."
+                ]
+              },
+              {
+                "type": "p",
+                "children": [
+                  {
+                    "type": "strong",
+                    "children": [
+                      "Relevance to Idea 2:"
+                    ]
+                  },
+                  " This is the CLOSEST existing work to our feature steering proposal, but for images not text. Key advance: they go BEYOND unsupervised SAE features to supervised concept alignment -- meaning each latent dimension reliably corresponds to a known concept. Their Editing Precision Ratio (EPR) metric jointly measures concept specificity and attribute preservation -- exactly what we need for text steering quality evaluation."
+                ]
+              },
+              {
+                "type": "p",
+                "children": [
+                  {
+                    "type": "strong",
+                    "children": [
+                      "Gap:"
+                    ]
+                  },
+                  " CASL works on image diffusion (U-Net); nobody has done this for discrete text diffusion. Our contribution would be adapting supervised concept-SAE alignment to text diffusion latent spaces."
                 ]
               }
             ]
