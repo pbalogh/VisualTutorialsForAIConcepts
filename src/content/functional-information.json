@@ -17,6 +17,91 @@
     "type": "Fragment",
     "children": [
       {
+        "type": "Quiz",
+        "props": {
+          "title": "Test Your Understanding",
+          "questions": [
+            {
+              "question": "A combination lock has 10,000 possible codes and 1 correct code. What is the functional information?",
+              "options": [
+                "About 10 bits",
+                "About 13.3 bits",
+                "About 20 bits",
+                "About 100 bits"
+              ],
+              "correct": 1,
+              "explanation": "FI = −log₂(1/10,000) = −log₂(10⁻⁴) = log₂(10⁴) ≈ 13.3 bits."
+            },
+            {
+              "question": "Which of these has the HIGHEST functional information?",
+              "options": [
+                "A rock (any arrangement of atoms)",
+                "A working mechanical watch",
+                "A random string of digits",
+                "A shuffled deck of cards"
+              ],
+              "correct": 1,
+              "explanation": "A working watch requires an extremely specific arrangement of components — the fraction of possible gear arrangements that actually tell time is tiny. The rock, random string, and shuffled deck don't require specific configurations to 'be' what they are."
+            },
+            {
+              "question": "What's the key difference between Kolmogorov complexity and functional information?",
+              "options": [
+                "Kolmogorov is measured in bits, FI is not",
+                "Kolmogorov measures description length, FI measures functional rarity",
+                "FI is always larger than Kolmogorov complexity",
+                "They are the same thing with different names"
+              ],
+              "correct": 1,
+              "explanation": "Kolmogorov complexity asks 'how long is the shortest description?' (structure-focused). FI asks 'how rare is something that does this?' (function-focused). A random string has high Kolmogorov complexity but zero FI."
+            },
+            {
+              "question": "According to Wong & Hazen, what three ingredients are needed for increasing functional information?",
+              "options": [
+                "Energy, entropy, and time",
+                "Diversity, selection, and time",
+                "Mutation, inheritance, and reproduction",
+                "Randomness, feedback, and stability"
+              ],
+              "correct": 1,
+              "explanation": "The Law of Increasing Functional Information requires: (1) diverse components that can combine in many ways, (2) selection that preserves functional configurations, and (3) time for the process to operate."
+            },
+            {
+              "question": "In neural networks, gradient descent plays the role of _____ in FI theory.",
+              "options": [
+                "The configuration space",
+                "The function threshold",
+                "Selection",
+                "Diversity"
+              ],
+              "correct": 2,
+              "explanation": "Gradient descent IS selection — it preferentially moves toward weight configurations that minimize loss (achieve higher function). Weight space is the configuration space, and loss is the function measure."
+            },
+            {
+              "question": "Why do Bloom filter heads in GPT-2 represent high functional information?",
+              "options": [
+                "They use many parameters",
+                "They were trained on a lot of data",
+                "Only a tiny fraction of possible weight matrices implement membership testing",
+                "They appear in the first layer"
+              ],
+              "correct": 2,
+              "explanation": "FI measures what fraction of configurations achieve a function. The vast majority of possible 64×64 weight matrices do NOT implement Bloom-filter-like membership testing — so the ones that do represent extremely rare, high-FI solutions."
+            },
+            {
+              "question": "If raising the function threshold Ex causes FI to increase, what does this mean practically?",
+              "options": [
+                "Better performance is easier to achieve",
+                "The system needs more energy",
+                "Fewer configurations meet the higher bar — working solutions become rarer",
+                "The configuration space has expanded"
+              ],
+              "correct": 2,
+              "explanation": "Higher threshold → fewer qualifying configurations → smaller F(Ex) → larger −log₂(F(Ex)) → higher FI. Demanding better performance makes working solutions exponentially rarer."
+            }
+          ]
+        }
+      },
+      {
         "type": "Section",
         "props": {
           "title": "🔒 ELI5 — Why Do Some Things Work Better Than Others?"
@@ -975,119 +1060,6 @@
               {
                 "type": "p",
                 "children": "• Does the rate of FI increase follow a universal scaling law across domains?"
-              }
-            ]
-          }
-        ]
-      },
-      {
-        "type": "Quiz",
-        "props": {
-          "title": "Test Your Understanding",
-          "questions": [
-            {
-              "question": "A combination lock has 10,000 possible codes and 1 correct code. What is the functional information?",
-              "options": [
-                "About 10 bits",
-                "About 13.3 bits",
-                "About 20 bits",
-                "About 100 bits"
-              ],
-              "correct": 1,
-              "explanation": "FI = −log₂(1/10,000) = −log₂(10⁻⁴) = log₂(10⁴) ≈ 13.3 bits."
-            },
-            {
-              "question": "Which of these has the HIGHEST functional information?",
-              "options": [
-                "A rock (any arrangement of atoms)",
-                "A working mechanical watch",
-                "A random string of digits",
-                "A shuffled deck of cards"
-              ],
-              "correct": 1,
-              "explanation": "A working watch requires an extremely specific arrangement of components — the fraction of possible gear arrangements that actually tell time is tiny. The rock, random string, and shuffled deck don't require specific configurations to 'be' what they are."
-            },
-            {
-              "question": "What's the key difference between Kolmogorov complexity and functional information?",
-              "options": [
-                "Kolmogorov is measured in bits, FI is not",
-                "Kolmogorov measures description length, FI measures functional rarity",
-                "FI is always larger than Kolmogorov complexity",
-                "They are the same thing with different names"
-              ],
-              "correct": 1,
-              "explanation": "Kolmogorov complexity asks 'how long is the shortest description?' (structure-focused). FI asks 'how rare is something that does this?' (function-focused). A random string has high Kolmogorov complexity but zero FI."
-            },
-            {
-              "question": "According to Wong & Hazen, what three ingredients are needed for increasing functional information?",
-              "options": [
-                "Energy, entropy, and time",
-                "Diversity, selection, and time",
-                "Mutation, inheritance, and reproduction",
-                "Randomness, feedback, and stability"
-              ],
-              "correct": 1,
-              "explanation": "The Law of Increasing Functional Information requires: (1) diverse components that can combine in many ways, (2) selection that preserves functional configurations, and (3) time for the process to operate."
-            },
-            {
-              "question": "In neural networks, gradient descent plays the role of _____ in FI theory.",
-              "options": [
-                "The configuration space",
-                "The function threshold",
-                "Selection",
-                "Diversity"
-              ],
-              "correct": 2,
-              "explanation": "Gradient descent IS selection — it preferentially moves toward weight configurations that minimize loss (achieve higher function). Weight space is the configuration space, and loss is the function measure."
-            },
-            {
-              "question": "Why do Bloom filter heads in GPT-2 represent high functional information?",
-              "options": [
-                "They use many parameters",
-                "They were trained on a lot of data",
-                "Only a tiny fraction of possible weight matrices implement membership testing",
-                "They appear in the first layer"
-              ],
-              "correct": 2,
-              "explanation": "FI measures what fraction of configurations achieve a function. The vast majority of possible 64×64 weight matrices do NOT implement Bloom-filter-like membership testing — so the ones that do represent extremely rare, high-FI solutions."
-            },
-            {
-              "question": "If raising the function threshold Ex causes FI to increase, what does this mean practically?",
-              "options": [
-                "Better performance is easier to achieve",
-                "The system needs more energy",
-                "Fewer configurations meet the higher bar — working solutions become rarer",
-                "The configuration space has expanded"
-              ],
-              "correct": 2,
-              "explanation": "Higher threshold → fewer qualifying configurations → smaller F(Ex) → larger −log₂(F(Ex)) → higher FI. Demanding better performance makes working solutions exponentially rarer."
-            }
-          ]
-        }
-      },
-      {
-        "type": "Section",
-        "children": [
-          {
-            "type": "Sidebar",
-            "props": {
-              "type": "note",
-              "title": "Q: I KEEP ASKING FOR THESE TO BE REMOVED FROM THE JSON AND THEY KEEP PERSISTING",
-              "expanded": true,
-              "id": "ann-1771528262293-5lt846",
-              "sourceId": "source-ann-1771528262293-5lt846"
-            },
-            "children": [
-              {
-                "type": "p",
-                "children": "Let me find and fix these broken entries in the tutorial JSON."
-              },
-              {
-                "type": "p",
-                "props": {
-                  "className": "text-xs text-gray-400 mt-2"
-                },
-                "children": "Asked about \"\"A pile of sand has high entro...\" — 2/19/2026, 2:10:22 PM"
               }
             ]
           }
