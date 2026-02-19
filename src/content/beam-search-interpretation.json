@@ -9,25 +9,25 @@
     "children": [
       {
         "type": "Section",
-        "props": { "title": "The Problem: Too Many Meanings, Not Enough Time" },
+        "props": {
+          "title": "The Problem: Too Many Meanings, Not Enough Time"
+        },
         "children": [
           {
             "type": "p",
-            "children": "Every time you encounter an ambiguous word, your brain faces a combinatorial explosion. 'Bank' has at least 8 meanings. 'Set' has over 400. In a sentence with three ambiguous words, the number of possible interpretations MULTIPLIES — 8 × 12 × 5 = 480 candidate readings."
+            "children": "Ambiguous words create combinatorial explosions. 'Bank' has 8+ meanings, 'set' over 400. Three ambiguous words in one sentence? The interpretations MULTIPLY — 8 × 12 × 5 = 480 candidate readings."
           },
           {
             "type": "p",
-            "children": "You can't evaluate all of them. You don't. Instead, you use a strategy that compilers, search engines, and neural networks have all independently converged on: explore the most promising paths, keep backup candidates on a shelf, and backtrack only when forced."
-          },
-          {
-            "type": "p",
-            "children": "This strategy has a name: beam search. And it appears to be a universal algorithm for navigating interpretation spaces."
+            "children": "You can't evaluate them all, and you don't. Instead, you explore the most promising paths, keep backups on a shelf, and backtrack only when forced. This strategy — beam search — turns out to be a universal algorithm for navigating interpretation spaces."
           }
         ]
       },
       {
         "type": "Section",
-        "props": { "title": "Beam Search: The Core Idea" },
+        "props": {
+          "title": "Beam Search: The Core Idea"
+        },
         "children": [
           {
             "type": "h3",
@@ -39,7 +39,9 @@
           },
           {
             "type": "Code",
-            "props": { "language": "text" },
+            "props": {
+              "language": "text"
+            },
             "children": "\"The bank was steep\"\n\n                    bank\n                   / | \\\n                  /  |  \\\n        financial  river  pool table\n          / \\      / \\      / \\\n        ...  ... ...  ... ...  ...\n\n→ Exponential explosion. Impossible."
           },
           {
@@ -52,7 +54,9 @@
           },
           {
             "type": "Code",
-            "props": { "language": "text" },
+            "props": {
+              "language": "text"
+            },
             "children": "\"The bank was steep and muddy near the water\"\n\nGreedy: bank → financial (most frequent meaning)\n        ... steep? That's weird for a building.\n        ... muddy? Buildings aren't muddy.\n        ... near the water? OH. River bank.\n\n→ Committed too early. Expensive reanalysis needed."
           },
           {
@@ -65,19 +69,25 @@
           },
           {
             "type": "Code",
-            "props": { "language": "text" },
+            "props": {
+              "language": "text"
+            },
             "children": "\"The bank was steep\"\n\nBeam width = 3:\n\n  Step 1: \"bank\"\n    → [financial: 0.45, river: 0.35, pool: 0.10, ...]\n    → Keep top 3: financial(0.45), river(0.35), pool(0.10)\n\n  Step 2: \"was steep\"\n    → financial + steep → unlikely (0.45 × 0.1 = 0.045)\n    → river + steep → very likely (0.35 × 0.9 = 0.315)\n    → pool + steep → unlikely (0.10 × 0.05 = 0.005)\n\n  Rerank: river(0.315), financial(0.045), pool(0.005)\n          ^^^^^ river is now dominant!\n\n  Step 3: \"and muddy\"\n    → river + muddy → confirmed (0.315 × 0.95 = 0.299)\n    → financial + muddy → dead (0.045 × 0.01 = 0.0005)\n\n  Result: RIVER BANK. Financial shelved then expired."
           },
           {
             "type": "Callout",
-            "props": { "type": "tip" },
+            "props": {
+              "type": "tip"
+            },
             "children": "The 'beam width' is how many candidates you keep alive. Width 1 = greedy (dangerous). Width ∞ = exhaustive (impossible). Width 3-10 = practical (what brains and machines actually do)."
           }
         ]
       },
       {
         "type": "Section",
-        "props": { "title": "Compilers Did This First" },
+        "props": {
+          "title": "Compilers Did This First"
+        },
         "children": [
           {
             "type": "p",
@@ -85,7 +95,9 @@
           },
           {
             "type": "Code",
-            "props": { "language": "text" },
+            "props": {
+              "language": "text"
+            },
             "children": "int x;        // Is 'x' a variable declaration...\nint x = 5;    // ...or a variable definition with initialization?\n\nf(x);         // Is this a function call...\nf (x);        // ...or a variable declaration with redundant parens?\n              // (In some languages, both are valid!)"
           },
           {
@@ -100,8 +112,14 @@
             "type": "DefinitionList",
             "props": {
               "items": [
-                { "term": "Shift", "definition": "Push the token onto the stack. 'I need more information before deciding.' This is SHELVING." },
-                { "term": "Reduce", "definition": "Pop items off the stack and combine them. 'I know what this is now.' This is COMMITTING." }
+                {
+                  "term": "Shift",
+                  "definition": "Push the token onto the stack. 'I need more information before deciding.' This is SHELVING."
+                },
+                {
+                  "term": "Reduce",
+                  "definition": "Pop items off the stack and combine them. 'I know what this is now.' This is COMMITTING."
+                }
               ]
             }
           },
@@ -119,12 +137,16 @@
           },
           {
             "type": "Code",
-            "props": { "language": "text" },
+            "props": {
+              "language": "text"
+            },
             "children": "Token stream: type  name  (  args  )\n\nStack 1: [function_declaration name (args) ]  ← function declaration\nStack 2: [type name (expression) ]             ← variable with cast\n\nBoth stacks process in parallel until one becomes\ninvalid (missing semicolon, type mismatch, etc.)\n→ Invalid stack is pruned\n→ Surviving stack is the correct parse"
           },
           {
             "type": "Callout",
-            "props": { "type": "info" },
+            "props": {
+              "type": "info"
+            },
             "children": "GLR parsers are beam search on syntax trees. The beam width is dynamic — forks happen at ambiguities and die at contradictions. The same algorithm that (we argue) runs in your head when you read 'The bank was steep.'"
           },
           {
@@ -137,7 +159,9 @@
           },
           {
             "type": "Code",
-            "props": { "language": "cpp" },
+            "props": {
+              "language": "cpp"
+            },
             "children": "T(a);"
           },
           {
@@ -147,9 +171,18 @@
           {
             "type": "ul",
             "children": [
-              { "type": "li", "children": "A function call: call function T with argument a" },
-              { "type": "li", "children": "A variable declaration: declare variable a of type T (with redundant parentheses)" },
-              { "type": "li", "children": "A cast: cast a to type T" }
+              {
+                "type": "li",
+                "children": "A function call: call function T with argument a"
+              },
+              {
+                "type": "li",
+                "children": "A variable declaration: declare variable a of type T (with redundant parentheses)"
+              },
+              {
+                "type": "li",
+                "children": "A cast: cast a to type T"
+              }
             ]
           },
           {
@@ -160,7 +193,9 @@
       },
       {
         "type": "Section",
-        "props": { "title": "Garden Path Sentences: When the Brain's Beam Search Fails" },
+        "props": {
+          "title": "Garden Path Sentences: When the Brain's Beam Search Fails"
+        },
         "children": [
           {
             "type": "p",
@@ -172,7 +207,9 @@
           },
           {
             "type": "Example",
-            "props": { "title": "Garden Path Sentences" },
+            "props": {
+              "title": "Garden Path Sentences"
+            },
             "children": [
               {
                 "type": "p",
@@ -181,10 +218,22 @@
               {
                 "type": "ol",
                 "children": [
-                  { "type": "li", "children": "\"The horse raced past the barn fell.\" — You commit to 'raced' as the main verb. Then 'fell' arrives and you have to reparse: the horse [that was] raced past the barn... fell." },
-                  { "type": "li", "children": "\"The old man the boats.\" — 'Old' seems like an adjective. But 'man' is the verb here: the old [people] man the boats." },
-                  { "type": "li", "children": "\"Time flies like an arrow; fruit flies like a banana.\" — In the second clause, 'flies' is a noun and 'like' is a verb. Your parser doesn't catch this because it committed to the pattern from the first clause." },
-                  { "type": "li", "children": "\"The complex houses married and single soldiers and their families.\" — 'Complex' is a noun (housing complex), not an adjective. 'Houses' is a verb, not a noun." }
+                  {
+                    "type": "li",
+                    "children": "\"The horse raced past the barn fell.\" — You commit to 'raced' as the main verb. Then 'fell' arrives and you have to reparse: the horse [that was] raced past the barn... fell."
+                  },
+                  {
+                    "type": "li",
+                    "children": "\"The old man the boats.\" — 'Old' seems like an adjective. But 'man' is the verb here: the old [people] man the boats."
+                  },
+                  {
+                    "type": "li",
+                    "children": "\"Time flies like an arrow; fruit flies like a banana.\" — In the second clause, 'flies' is a noun and 'like' is a verb. Your parser doesn't catch this because it committed to the pattern from the first clause."
+                  },
+                  {
+                    "type": "li",
+                    "children": "\"The complex houses married and single soldiers and their families.\" — 'Complex' is a noun (housing complex), not an adjective. 'Houses' is a verb, not a noun."
+                  }
                 ]
               }
             ]
@@ -195,7 +244,9 @@
           },
           {
             "type": "Code",
-            "props": { "language": "text" },
+            "props": {
+              "language": "text"
+            },
             "children": "\"The horse raced past the barn fell.\"\n\n  \"The horse\"    → [subject: horse] (only one reading, no ambiguity)\n  \"raced\"        → FORK:\n                    Beam 1: horse raced (main verb, active) → score: 0.85\n                    Beam 2: horse [that was] raced (reduced relative) → score: 0.15\n  \"past the barn\" → Both beams compatible, scores unchanged\n  \"fell\"         → CRASH:\n                    Beam 1: horse raced past the barn... fell? TWO MAIN VERBS? → score: 0.0\n                    Beam 2: horse [that was] raced past the barn fell → score: 0.15\n\n  Beam 1 dies. Beam 2 survives.\n  But Beam 2 was low-probability → REANALYSIS (expensive, the 'huh?' moment)"
           },
           {
@@ -216,14 +267,18 @@
           },
           {
             "type": "Callout",
-            "props": { "type": "warning" },
+            "props": {
+              "type": "warning"
+            },
             "children": "Garden path failures are evidence that the brain does NOT exhaustively evaluate all interpretations. It runs a limited-width beam search and sometimes the beam is too narrow. This is the cost of being fast — you occasionally commit to the wrong parse and pay the reanalysis penalty."
           }
         ]
       },
       {
         "type": "Section",
-        "props": { "title": "Transformers: Beam Search in the Residual Stream" },
+        "props": {
+          "title": "Transformers: Beam Search in the Residual Stream"
+        },
         "children": [
           {
             "type": "p",
@@ -235,7 +290,9 @@
           },
           {
             "type": "Code",
-            "props": { "language": "text" },
+            "props": {
+              "language": "text"
+            },
             "children": "Input: \"He sat on the bank and watched the current\"\n\nLayer 2 residual stream for \"bank\":\n  SAE features active:\n    financial_institution: 0.45  ← Beam candidate 1\n    river_bank: 0.35             ← Beam candidate 2\n    data_bank: 0.05              ← Beam candidate 3 (barely surviving)\n    pool_bank: 0.02              ← Below threshold (pruned by ReLU)\n\nLayer 6 (after \"sat on the\"):\n    river_bank: 0.72             ← Boosted by physical context\n    financial_institution: 0.15  ← Suppressed but SHELVED\n    data_bank: 0.01              ← Fading\n\nLayer 10 (after \"watched the current\"):\n    river_bank: 0.55             ← Still dominant but...\n    financial_institution: 0.25  ← \"current\" boosts this too!\n    → Ambiguity PARTIALLY UNRESOLVED\n    → Both survive until more context arrives"
           },
           {
@@ -253,23 +310,42 @@
           {
             "type": "ol",
             "children": [
-              { "type": "li", "children": "Look back at context tokens ('sat', 'on', 'watched', 'current')" },
-              { "type": "li", "children": "Compute relevance (dot product — it's always dot products)" },
-              { "type": "li", "children": "Pull contextual evidence into the residual stream" },
-              { "type": "li", "children": "This evidence boosts compatible interpretations and suppresses incompatible ones" },
-              { "type": "li", "children": "The beam is reranked. Some candidates rise, others fall." }
+              {
+                "type": "li",
+                "children": "Look back at context tokens ('sat', 'on', 'watched', 'current')"
+              },
+              {
+                "type": "li",
+                "children": "Compute relevance (dot product — it's always dot products)"
+              },
+              {
+                "type": "li",
+                "children": "Pull contextual evidence into the residual stream"
+              },
+              {
+                "type": "li",
+                "children": "This evidence boosts compatible interpretations and suppresses incompatible ones"
+              },
+              {
+                "type": "li",
+                "children": "The beam is reranked. Some candidates rise, others fall."
+              }
             ]
           },
           {
             "type": "Callout",
-            "props": { "type": "info" },
+            "props": {
+              "type": "info"
+            },
             "children": "Each transformer layer is one step of beam search: score the current candidates against new evidence (attention), rerank (MLP), prune (ReLU). 12 layers = 12 rounds of evidence accumulation and pruning. The residual stream IS the beam."
           }
         ]
       },
       {
         "type": "Section",
-        "props": { "title": "The Four Operators of Disambiguation" },
+        "props": {
+          "title": "The Four Operators of Disambiguation"
+        },
         "children": [
           {
             "type": "p",
@@ -278,12 +354,42 @@
           {
             "type": "ComparisonTable",
             "props": {
-              "headers": ["Operator", "What Happens", "Computational Cost", "In Transformers", "In Human Parsing"],
+              "headers": [
+                "Operator",
+                "What Happens",
+                "Computational Cost",
+                "In Transformers",
+                "In Human Parsing"
+              ],
               "rows": [
-                ["COMMIT", "Promote one interpretation to dominant. Suppress (don't eliminate) others.", "Medium — requires scoring all candidates", "Sharp drop in losing features between layers", "The moment you 'decide' what a word means"],
-                ["MAINTAIN", "Continue processing under current interpretation. No reranking.", "Cheap — default operation", "Residual stream passes through unchanged", "Fluent reading, no conscious effort"],
-                ["REANALYZE", "Active interpretation hits contradiction. Swap to shelved candidate.", "Expensive — must reactivate suppressed interpretation", "Sudden reversal in feature activations", "Garden path 'huh?' moment. Eye regressions."],
-                ["EXPIRE", "Shelved interpretation decays past recoverability.", "Free — happens passively", "Weak features overwritten by new information", "Silent. You never notice what you can no longer consider."]
+                [
+                  "COMMIT",
+                  "Promote one interpretation to dominant. Suppress (don't eliminate) others.",
+                  "Medium — requires scoring all candidates",
+                  "Sharp drop in losing features between layers",
+                  "The moment you 'decide' what a word means"
+                ],
+                [
+                  "MAINTAIN",
+                  "Continue processing under current interpretation. No reranking.",
+                  "Cheap — default operation",
+                  "Residual stream passes through unchanged",
+                  "Fluent reading, no conscious effort"
+                ],
+                [
+                  "REANALYZE",
+                  "Active interpretation hits contradiction. Swap to shelved candidate.",
+                  "Expensive — must reactivate suppressed interpretation",
+                  "Sudden reversal in feature activations",
+                  "Garden path 'huh?' moment. Eye regressions."
+                ],
+                [
+                  "EXPIRE",
+                  "Shelved interpretation decays past recoverability.",
+                  "Free — happens passively",
+                  "Weak features overwritten by new information",
+                  "Silent. You never notice what you can no longer consider."
+                ]
               ]
             }
           },
@@ -298,16 +404,33 @@
           {
             "type": "ol",
             "children": [
-              { "type": "li", "children": "COMMIT should be visible as a sharp drop in the activation of the 'losing' SAE feature between two adjacent layers — not a gradual fade. If 'river' drops from 0.35 to 0.05 between layer 5 and layer 6, that's a phase transition, not decay." },
-              { "type": "li", "children": "MAINTAIN should show stable feature activations across multiple layers — the 'committed' feature stays roughly constant while no contradictory evidence arrives." },
-              { "type": "li", "children": "REANALYZE should show a sudden REVERSAL — a previously suppressed feature spikes back up at a specific layer when contradictory context arrives. This should correlate with the garden path effect in reading time data." },
-              { "type": "li", "children": "EXPIRE should show a monotonic, gradual decay of shelved features — and critically, once a feature drops below some threshold, REANALYZE becomes impossible (the model can no longer recover that interpretation)." },
-              { "type": "li", "children": "The EXPIRE threshold should correlate with the human 'distance effect' — reanalysis difficulty increasing with the number of tokens between ambiguity and disambiguation." }
+              {
+                "type": "li",
+                "children": "COMMIT should be visible as a sharp drop in the activation of the 'losing' SAE feature between two adjacent layers — not a gradual fade. If 'river' drops from 0.35 to 0.05 between layer 5 and layer 6, that's a phase transition, not decay."
+              },
+              {
+                "type": "li",
+                "children": "MAINTAIN should show stable feature activations across multiple layers — the 'committed' feature stays roughly constant while no contradictory evidence arrives."
+              },
+              {
+                "type": "li",
+                "children": "REANALYZE should show a sudden REVERSAL — a previously suppressed feature spikes back up at a specific layer when contradictory context arrives. This should correlate with the garden path effect in reading time data."
+              },
+              {
+                "type": "li",
+                "children": "EXPIRE should show a monotonic, gradual decay of shelved features — and critically, once a feature drops below some threshold, REANALYZE becomes impossible (the model can no longer recover that interpretation)."
+              },
+              {
+                "type": "li",
+                "children": "The EXPIRE threshold should correlate with the human 'distance effect' — reanalysis difficulty increasing with the number of tokens between ambiguity and disambiguation."
+              }
             ]
           },
           {
             "type": "Callout",
-            "props": { "type": "tip" },
+            "props": {
+              "type": "tip"
+            },
             "children": "All five predictions are testable TODAY using existing SAE tools (SAE Lens, Neuronpedia) on open-source models (GPT-2, Pythia). Run ambiguous sentences through the model, extract SAE features at every layer, and look for these signatures."
           },
           {
@@ -316,7 +439,9 @@
           },
           {
             "type": "Code",
-            "props": { "language": "python" },
+            "props": {
+              "language": "python"
+            },
             "children": "# Pseudocode for testing the disambiguation operators\n\nimport sae_lens\n\n# Prepare sentences with controlled ambiguity\nsentences = {\n    'early_resolve': 'The river bank was steep and muddy',\n    'late_resolve':  'The bank was visible from far away near the river',\n    'never_resolve': 'He sat on the bank and watched the current',\n    'garden_path':   'The horse raced past the barn fell',\n}\n\nfor name, sentence in sentences.items():\n    # Get SAE features at every layer\n    features_by_layer = extract_sae_features(model, sae, sentence)\n    \n    # Track specific features across layers\n    financial = [features_by_layer[L]['financial_institution'] for L in range(12)]\n    river     = [features_by_layer[L]['river_bank'] for L in range(12)]\n    \n    # Look for:\n    # - COMMIT: sharp divergence point between financial and river\n    # - MAINTAIN: plateau after commitment\n    # - REANALYZE: reversal (if it occurs)\n    # - EXPIRE: gradual decay of losing candidate\n    \n    plot_feature_trajectories(name, financial, river)"
           },
           {
@@ -329,7 +454,9 @@
           },
           {
             "type": "Code",
-            "props": { "language": "text" },
+            "props": {
+              "language": "text"
+            },
             "children": "STACK-BASED DISAMBIGUATION ARCHITECTURE\n\nINTERPRETATION STACK        RESIDUAL STREAM\n                              \n[financial, L4] ←PUSH        ──■──────────────→\n                               ↑ bookmark\n                               (save residual snapshot)\n\nProcessing continues with committed interpretation...\n\n[financial, L4]              ──■──●──●──●──●──→\n                                  layers 5-9\n\nLayer 10: \"near the river\" → CONTRADICTION DETECTED\n  coherence = dot(river_evidence, financial_dir) < threshold\n\nPOP stack → financial\nREWIND to bookmark (layer 4 state)\nCOMMIT to river interpretation\n\n[river, L4]                  ──■──→ re-process from here\n                               ↑ rewind to bookmark"
           },
           {
@@ -339,24 +466,48 @@
           {
             "type": "ComparisonTable",
             "props": {
-              "headers": ["Option", "Mechanism", "Cost", "Quality"],
+              "headers": [
+                "Option",
+                "Mechanism",
+                "Cost",
+                "Quality"
+              ],
               "rows": [
-                ["KV-cache checkpoint", "Save full KV-cache at bookmark, restore and re-run layers", "High (re-processes layers)", "Exact"],
-                ["Residual injection", "Blend: current += α(bookmark - current)", "Low (one vector op)", "Approximate"],
-                ["Learned REWIND op", "Trained module: REWIND(current, bookmark, signal)", "Medium (one forward pass)", "Learned, potentially best"]
+                [
+                  "KV-cache checkpoint",
+                  "Save full KV-cache at bookmark, restore and re-run layers",
+                  "High (re-processes layers)",
+                  "Exact"
+                ],
+                [
+                  "Residual injection",
+                  "Blend: current += α(bookmark - current)",
+                  "Low (one vector op)",
+                  "Approximate"
+                ],
+                [
+                  "Learned REWIND op",
+                  "Trained module: REWIND(current, bookmark, signal)",
+                  "Medium (one forward pass)",
+                  "Learned, potentially best"
+                ]
               ]
             }
           },
           {
             "type": "Callout",
-            "props": { "type": "info" },
+            "props": {
+              "type": "info"
+            },
             "children": "This is cheaper than forking the stream into parallel paths (the GLR approach). Instead of running two interpreters, you run one and save checkpoints. It's closer to how humans seem to work: commit fast, backtrack only when forced. The stack depth = your beam width."
           }
         ]
       },
       {
         "type": "Section",
-        "props": { "title": "The Convergence: Three Fields, One Algorithm" },
+        "props": {
+          "title": "The Convergence: Three Fields, One Algorithm"
+        },
         "children": [
           {
             "type": "p",
@@ -365,29 +516,78 @@
           {
             "type": "ComparisonTable",
             "props": {
-              "headers": ["", "Compiler (GLR)", "Human Brain", "Transformer"],
+              "headers": [
+                "",
+                "Compiler (GLR)",
+                "Human Brain",
+                "Transformer"
+              ],
               "rows": [
-                ["Ambiguity source", "Grammar allows multiple parses", "Words have multiple meanings", "Tokens activate multiple features"],
-                ["Beam representation", "Parallel parse stacks", "Superposed neural activations", "Superposed residual stream features"],
-                ["Evidence integration", "Next token narrows valid parses", "Context from sentence/world", "Attention pulls from context tokens"],
-                ["Commitment", "Reduce (collapse stack)", "Conscious 'aha' interpretation", "Feature dominance at a layer"],
-                ["Shelving", "Shift (keep on stack)", "Low-activation alternative meaning", "Weak SAE feature (survives ReLU)"],
-                ["Pruning", "Invalid stack discarded", "Interpretation forgotten", "Feature drops below ReLU threshold"],
-                ["Reanalysis", "Backtrack to saved state", "Garden path recovery", "Feature reversal at later layer"],
-                ["Failure mode", "Parse error", "Sentence seems ungrammatical", "Hallucination / wrong interpretation"]
+                [
+                  "Ambiguity source",
+                  "Grammar allows multiple parses",
+                  "Words have multiple meanings",
+                  "Tokens activate multiple features"
+                ],
+                [
+                  "Beam representation",
+                  "Parallel parse stacks",
+                  "Superposed neural activations",
+                  "Superposed residual stream features"
+                ],
+                [
+                  "Evidence integration",
+                  "Next token narrows valid parses",
+                  "Context from sentence/world",
+                  "Attention pulls from context tokens"
+                ],
+                [
+                  "Commitment",
+                  "Reduce (collapse stack)",
+                  "Conscious 'aha' interpretation",
+                  "Feature dominance at a layer"
+                ],
+                [
+                  "Shelving",
+                  "Shift (keep on stack)",
+                  "Low-activation alternative meaning",
+                  "Weak SAE feature (survives ReLU)"
+                ],
+                [
+                  "Pruning",
+                  "Invalid stack discarded",
+                  "Interpretation forgotten",
+                  "Feature drops below ReLU threshold"
+                ],
+                [
+                  "Reanalysis",
+                  "Backtrack to saved state",
+                  "Garden path recovery",
+                  "Feature reversal at later layer"
+                ],
+                [
+                  "Failure mode",
+                  "Parse error",
+                  "Sentence seems ungrammatical",
+                  "Hallucination / wrong interpretation"
+                ]
               ]
             }
           },
           {
             "type": "Callout",
-            "props": { "type": "info" },
+            "props": {
+              "type": "info"
+            },
             "children": "This convergence isn't coincidence. It's a consequence of the shared constraint: limited resources (stack space / neural capacity / embedding dimensions) facing combinatorial ambiguity. Beam search is the optimal strategy under bounded computation, regardless of substrate."
           }
         ]
       },
       {
         "type": "Section",
-        "props": { "title": "Connection to Schankian Operators" },
+        "props": {
+          "title": "Connection to Schankian Operators"
+        },
         "children": [
           {
             "type": "p",
@@ -396,10 +596,22 @@
           {
             "type": "ul",
             "children": [
-              { "type": "li", "children": "COMMIT, MAINTAIN, REANALYZE, and EXPIRE are operators in their own right — transformations on the interpretation state, with preconditions and postconditions" },
-              { "type": "li", "children": "Polysemy resolution ('shot him a glance' vs 'shot him dead') is beam search over the operator tree — the hierarchical operator tree (Paper 2c) IS the search space" },
-              { "type": "li", "children": "The shelved interpretations are exactly the implicit state that the enrichment framework (Paper 2a) would annotate: 'at this point, RIVER_BANK is shelved at probability 0.15'" },
-              { "type": "li", "children": "Garden path recovery is operator REANALYZE — a phase transition in interpretation space, with measurable computational cost" }
+              {
+                "type": "li",
+                "children": "COMMIT, MAINTAIN, REANALYZE, and EXPIRE are operators in their own right — transformations on the interpretation state, with preconditions and postconditions"
+              },
+              {
+                "type": "li",
+                "children": "Polysemy resolution ('shot him a glance' vs 'shot him dead') is beam search over the operator tree — the hierarchical operator tree (Paper 2c) IS the search space"
+              },
+              {
+                "type": "li",
+                "children": "The shelved interpretations are exactly the implicit state that the enrichment framework (Paper 2a) would annotate: 'at this point, RIVER_BANK is shelved at probability 0.15'"
+              },
+              {
+                "type": "li",
+                "children": "Garden path recovery is operator REANALYZE — a phase transition in interpretation space, with measurable computational cost"
+              }
             ]
           },
           {
@@ -410,22 +622,44 @@
       },
       {
         "type": "Section",
-        "props": { "title": "Key Takeaways" },
+        "props": {
+          "title": "Key Takeaways"
+        },
         "children": [
           {
             "type": "ol",
             "children": [
-              { "type": "li", "children": "Beam search keeps the top-k interpretations alive, processes the best one, shelves the rest, and prunes when capacity runs out." },
-              { "type": "li", "children": "Compilers (GLR parsers) fork the parse stack at ambiguities and run parallel parses — beam search on syntax." },
-              { "type": "li", "children": "Human brains commit fast to the best interpretation but keep alternatives shelved. Garden path sentences reveal the reanalysis cost when the commitment was wrong." },
-              { "type": "li", "children": "Transformers encode the beam as superposed features in the residual stream. Attention reranks, ReLU prunes, and layers accumulate evidence." },
-              { "type": "li", "children": "Four disambiguation operators (COMMIT, MAINTAIN, REANALYZE, EXPIRE) formalize the process with testable predictions about feature trajectories across layers." },
-              { "type": "li", "children": "The convergence across compilers, brains, and neural networks isn't coincidence — it's the optimal strategy for bounded computation facing combinatorial ambiguity." }
+              {
+                "type": "li",
+                "children": "Beam search keeps the top-k interpretations alive, processes the best one, shelves the rest, and prunes when capacity runs out."
+              },
+              {
+                "type": "li",
+                "children": "Compilers (GLR parsers) fork the parse stack at ambiguities and run parallel parses — beam search on syntax."
+              },
+              {
+                "type": "li",
+                "children": "Human brains commit fast to the best interpretation but keep alternatives shelved. Garden path sentences reveal the reanalysis cost when the commitment was wrong."
+              },
+              {
+                "type": "li",
+                "children": "Transformers encode the beam as superposed features in the residual stream. Attention reranks, ReLU prunes, and layers accumulate evidence."
+              },
+              {
+                "type": "li",
+                "children": "Four disambiguation operators (COMMIT, MAINTAIN, REANALYZE, EXPIRE) formalize the process with testable predictions about feature trajectories across layers."
+              },
+              {
+                "type": "li",
+                "children": "The convergence across compilers, brains, and neural networks isn't coincidence — it's the optimal strategy for bounded computation facing combinatorial ambiguity."
+              }
             ]
           },
           {
             "type": "Callout",
-            "props": { "type": "info" },
+            "props": {
+              "type": "info"
+            },
             "children": "This tutorial is part of the Schankian Operators research program. The disambiguation operators connect to: the hierarchical operator tree (Paper 2c) as the search space, implicit-explicit enrichment (Paper 2a) for annotating shelved interpretations, and SAE mining (Brainstorm #25) for finding the features that participate in beam search."
           }
         ]
