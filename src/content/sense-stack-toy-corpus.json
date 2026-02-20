@@ -584,6 +584,332 @@
             "children": "The core claim is testable: if polysemy contamination matters, replacing GPT-2's embedding layer with sense-stack embeddings (trained on WSD data like SemCor) should measurably reduce perplexity and improve performance on tasks that depend on word sense — even without touching any other weights."
           }
         ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "8. Scaling Up: GPT-2 Experiments"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "The toy corpus proves the concept. But does it work at real scale? We plugged sense-stack embeddings into GPT-2 small (50,257 tokens, 768 dimensions) and trained on SemCor — 37,176 sentences with WordNet sense labels. Here's what happened."
+          },
+          {
+            "type": "DeepDive",
+            "props": {
+              "title": "The Inventory: 500 Polysemous Tokens"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "We selected the 500 most polysemous tokens in GPT-2's vocabulary (from the 18,752 that WordNet flags as ambiguous). Each gets up to 2 sense embeddings — the primary sense (initialized from GPT-2's pretrained embedding) and an alternate sense. All other tokens keep their original single embedding."
+              },
+              {
+                "type": "p",
+                "children": "Training data: 5,953 examples extracted from SemCor where a polysemous target word has a known WordNet sense label. The model sees the sentence, identifies the target word, and must select the correct sense."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "9. Attempt 1: The MLP Selector (and Why It Failed)"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "Our first approach: train a small neural network (MLP) to look at the surrounding context and score each sense. This is the standard approach in WSD literature — context in, sense probabilities out."
+          },
+          {
+            "type": "Example",
+            "props": {
+              "title": "MLP Selector Architecture"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "Input: concatenation of [previous context average, current token embedding, next context average] — a 2,304-dimensional vector (768 × 3)."
+              },
+              {
+                "type": "p",
+                "children": "Network: Linear(2304→768) → GELU → Dropout(0.1) → Linear(768→2) → Softmax"
+              },
+              {
+                "type": "p",
+                "children": "Training: SemCor examples, cross-entropy loss on sense labels + divergence loss to push sense embeddings apart. Gumbel-Softmax for differentiable selection."
+              }
+            ]
+          },
+          {
+            "type": "Example",
+            "props": {
+              "title": "MLP Results: 70% Accuracy, Zero Disambiguation"
+            },
+            "children": [
+              {
+                "type": "ul",
+                "children": [
+                  {
+                    "type": "li",
+                    "children": "Training accuracy: 70.2% (3 epochs)"
+                  },
+                  {
+                    "type": "li",
+                    "children": "Sense embedding divergence: cosine similarity 0.996 → 0.948 (barely moved)"
+                  },
+                  {
+                    "type": "li",
+                    "children": "Disambiguation test: EVERY word picks the same sense regardless of context"
+                  },
+                  {
+                    "type": "li",
+                    "children": "The selector outputs ~60/40 probability for every input — it learned the base rate, not the context"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "Callout",
+            "props": {
+              "type": "warning"
+            },
+            "children": "The MLP hit a chicken-and-egg problem: the selector can't learn to discriminate until the embeddings are different, but the embeddings won't diverge until the selector routes different contexts to different senses. With embeddings at 0.996 cosine similarity, the selector has no signal to learn from — both senses produce virtually identical outputs. So it defaults to always picking the majority class."
+          },
+          {
+            "type": "p",
+            "children": "We tried several fixes: higher divergence loss weight (0.1 → 1.0), WordNet-guided initialization (pushing senses apart using definition text embeddings), and a divergence-first warmup phase. The embeddings moved to 0.94 cosine similarity — better, but the selector still couldn't distinguish between them. The 70% accuracy ceiling was the base rate of the most common sense in SemCor."
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "10. Attempt 2: Drop the Neural Network Entirely"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "The breakthrough came from asking: what if we don't need a selector network at all?"
+          },
+          {
+            "type": "p",
+            "children": "Instead of training an MLP to score senses, we use raw cosine similarity: average the context word embeddings, then pick whichever sense vector is closest. The only trainable parameters are the sense embeddings themselves — no selector, no MLP, no Gumbel-Softmax."
+          },
+          {
+            "type": "Analogy",
+            "props": {
+              "title": "The Magnet Analogy"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "Think of each sense embedding as a magnet in a room. The context words create a force pulling the word toward a region of embedding space. With one magnet (standard word2vec), the word is always pulled to the same compromised location. With two magnets (sense-stack), the word snaps to whichever magnet is closer to where the context is pulling — and training moves each magnet closer to the contexts where it should activate."
+              }
+            ]
+          },
+          {
+            "type": "DeepDive",
+            "props": {
+              "title": "WordNet-Guided Initialization"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "The key innovation: instead of initializing sense 1 as 'sense 0 + tiny noise', we use WordNet definitions to create meaningful initial separation."
+              },
+              {
+                "type": "p",
+                "children": "For each polysemous word, we encode its WordNet definition texts through GPT-2's embedding layer. The definition for 'bank (financial institution)' produces a different average embedding than 'bank (sloping land beside water)'. We push sense 0 toward its definition direction and sense 1 toward its definition direction, with magnitude 2.0."
+              },
+              {
+                "type": "p",
+                "children": "Result: initial inter-sense cosine similarity starts at 0.83–0.93 (vs 0.997 with random noise). The senses begin already meaningfully different."
+              }
+            ]
+          },
+          {
+            "type": "Example",
+            "props": {
+              "title": "V2 Training Results"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "Training on 5,953 SemCor examples, 3 epochs, SGD lr=0.05:"
+              },
+              {
+                "type": "ul",
+                "children": [
+                  {
+                    "type": "li",
+                    "children": "Epoch 1: 82.3% accuracy, divergence 0.847"
+                  },
+                  {
+                    "type": "li",
+                    "children": "Epoch 2: 92.3% accuracy, divergence 0.754"
+                  },
+                  {
+                    "type": "li",
+                    "children": "Epoch 3: 95.3% accuracy, divergence 0.698"
+                  }
+                ]
+              },
+              {
+                "type": "p",
+                "children": "Compare to the MLP: 70% accuracy that never improved. The pure cosine approach jumped to 82% in one epoch and reached 95% by epoch 3."
+              }
+            ]
+          },
+          {
+            "type": "Callout",
+            "props": {
+              "type": "key-insight"
+            },
+            "children": "Why did removing the neural network HELP? Because the chicken-and-egg problem disappears. When selection is cosine similarity, any movement of the sense embeddings immediately changes the selection. There's no intermediate network that needs to learn to interpret the embeddings first. The geometry IS the selector."
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "11. The Money Shot: Sense Divergence"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "After 3 epochs, the sense embeddings didn't just diverge — they became anti-correlated:"
+          },
+          {
+            "type": "Example",
+            "props": {
+              "title": "Inter-Sense Cosine Similarity (Before → After)"
+            },
+            "children": [
+              {
+                "type": "ul",
+                "children": [
+                  {
+                    "type": "li",
+                    "children": "'like': 0.835 → -0.302 (from similar to anti-correlated)"
+                  },
+                  {
+                    "type": "li",
+                    "children": "'right': 0.892 → -0.990 (nearly perfectly opposite!)"
+                  },
+                  {
+                    "type": "li",
+                    "children": "'light': 0.874 → -0.994 (nearly perfectly opposite!)"
+                  }
+                ]
+              },
+              {
+                "type": "p",
+                "children": "The senses for 'right' and 'light' ended up pointing in almost exactly opposite directions in 768-dimensional space. This is dramatically stronger separation than the toy corpus achieved (0.306 cosine similarity). The larger embedding space gives the senses room to fully separate."
+              }
+            ]
+          },
+          {
+            "type": "Example",
+            "props": {
+              "title": "'right' Disambiguates!"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "The strongest result: 'right' actively picks different senses based on context:"
+              },
+              {
+                "type": "ul",
+                "children": [
+                  {
+                    "type": "li",
+                    "children": "\"Turn right at the intersection\" → sense 1 (68% confidence) [direction]"
+                  },
+                  {
+                    "type": "li",
+                    "children": "\"That answer is right\" → sense 0 (85% confidence) [correct]"
+                  },
+                  {
+                    "type": "li",
+                    "children": "\"You have the right to remain silent\" → sense 1 (67% confidence) [entitlement]"
+                  },
+                  {
+                    "type": "li",
+                    "children": "\"She was standing right there\" → sense 0 (62% confidence) [exactly]"
+                  }
+                ]
+              },
+              {
+                "type": "p",
+                "children": "The model learned to split 'right' into two clusters: sense 0 captures 'correct/exactly' usage, sense 1 captures 'direction/entitlement' usage. These aren't the WordNet sense boundaries — the model discovered its own grouping that separates these four uses into two natural clusters based on context co-occurrence patterns."
+              }
+            ]
+          },
+          {
+            "type": "DeepDive",
+            "props": {
+              "title": "Why 'like' Didn't Fully Disambiguate"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "'like' shows variation (59%–88% probability for sense 0 across different sentences) but always picks the same sense. Two factors: (1) the token ID for 'like' in GPT-2 (588) corresponds to ' like' with a space prefix — our test sentences may tokenize differently depending on position, and (2) 'like' as a preposition and verb share many context words ('cats', 'chocolate', etc.), making cosine-based disambiguation harder."
+              },
+              {
+                "type": "p",
+                "children": "The cosine similarity between 'like' senses (-0.30) shows they DID diverge, just not as extremely as 'right' (-0.99). The disambiguation is happening in the embedding space — the selector just needs more context signal to flip between them."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "12. Lessons and Next Steps"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "The journey from MLP selector to cosine-only selection taught us several things:"
+          },
+          {
+            "type": "ul",
+            "children": [
+              {
+                "type": "li",
+                "children": "Simpler is better for small data: with only ~6K training examples, a neural selector can't learn anything beyond base rates. Pure geometry — cosine similarity — is both simpler and far more effective."
+              },
+              {
+                "type": "li",
+                "children": "Initialization matters enormously: pushing senses apart using WordNet definitions (magnitude 2.0) was critical. Tiny random perturbations (0.01) produced the chicken-and-egg deadlock."
+              },
+              {
+                "type": "li",
+                "children": "The selector network was solving the wrong problem: it was trying to learn a mapping from context to sense index. But the sense embeddings themselves already encode what contexts they should appear in — you just need to measure similarity."
+              },
+              {
+                "type": "li",
+                "children": "Anti-correlation is surprising: we expected senses to diverge to ~0 (orthogonal). They went to -0.99 (opposite). This may indicate the divergence loss is too strong, or it may be telling us something about how GPT-2's embedding space naturally organizes semantic distinctions."
+              }
+            ]
+          },
+          {
+            "type": "Callout",
+            "props": {
+              "type": "key-insight"
+            },
+            "children": "The decision tree selector (proposed but not yet implemented) would combine the geometric intuition of cosine selection with hierarchical structure: at each fork, project the context onto a single learned direction and go left or right. This preserves the 'geometry is the selector' insight while adding interpretable, hierarchical sense decisions."
+          },
+          {
+            "type": "p",
+            "children": "Remaining work: (1) expand the sense inventory to cover more token IDs (many common words like 'bank', 'run', 'bat' were missed due to tokenizer space-prefix issues), (2) test whether plugging these trained sense embeddings into GPT-2 actually improves perplexity or downstream task performance, (3) implement the decision tree selector for interpretable hierarchical disambiguation."
+          }
+        ]
       }
     ]
   }
