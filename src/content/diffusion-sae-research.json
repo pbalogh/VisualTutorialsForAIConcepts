@@ -828,6 +828,38 @@
                 ]
               }
             ]
+          },
+          {
+            "type": "DeepDive",
+            "props": {
+              "title": "Feb 20, 2026: Uniform Diffusion Challenges Masked \u2014 Implications for SAE Latent Spaces"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": [
+                  {
+                    "type": "strong",
+                    "children": "\"Scaling Beyond Masked Diffusion\" (arXiv:2602.15014)"
+                  },
+                  " \u2014 First scaling law study across masked, uniform-state, and interpolating discrete diffusion. Key finding: uniform-state outperforms AR and masked on GSM8K at 1.7B params despite worse perplexity. Perplexity is misleading across families."
+                ]
+              },
+              {
+                "type": "p",
+                "children": [
+                  {
+                    "type": "strong",
+                    "children": "Why this matters for SAE integration:"
+                  },
+                  " Uniform-state diffusion uses full-vocabulary noise (not just [MASK] tokens). This means intermediate denoising states have richer token distributions \u2014 potentially much better for SAE feature decomposition. A masked state is just 'unknown'; a uniform-noise state is 'could be anything' with meaningful probability gradients. SAE features trained on normal forward passes would fire more meaningfully on uniform-noise states than on [MASK] tokens."
+                ]
+              },
+              {
+                "type": "p",
+                "children": "Companion paper (arXiv:2512.10858) scales uniform diffusion to 10B parameters, confirming these models are viable at scale. Uniform diffusion is also more data-efficient (more params, less data), relevant for prototype development."
+              }
+            ]
           }
         ]
       },
@@ -1620,7 +1652,7 @@
           },
           {
             "type": "DeepDive",
-            "title": "[Feb 19] Steering Diffusion Transformers with SAEs — First Systematic DiT Study (OpenReview, ICLR 2026 submission)",
+            "title": "[Feb 19] Steering Diffusion Transformers with SAEs \u2014 First Systematic DiT Study (OpenReview, ICLR 2026 submission)",
             "children": [
               {
                 "type": "p",
@@ -1643,7 +1675,7 @@
                       "Key insight:"
                     ]
                   },
-                  " First systematic study of SAE-based steering for Diffusion Transformers (DiTs) — Flux and Stable Diffusion 3. Three contributions: (1) multi-layer steering method that increases causal effectiveness while reducing artifacts, (2) similarity-based criterion for detecting feature presence in residual stream to guide layer selection, (3) SAEs trained on both transformer block updates AND residual stream states to identify which DiT components have strongest causal effects."
+                  " First systematic study of SAE-based steering for Diffusion Transformers (DiTs) \u2014 Flux and Stable Diffusion 3. Three contributions: (1) multi-layer steering method that increases causal effectiveness while reducing artifacts, (2) similarity-based criterion for detecting feature presence in residual stream to guide layer selection, (3) SAEs trained on both transformer block updates AND residual stream states to identify which DiT components have strongest causal effects."
                 ]
               },
               {
@@ -1655,7 +1687,7 @@
                       "Relevance:"
                     ]
                   },
-                  " ⭐⭐⭐ DIRECT METHODOLOGY for Ideas 2 & 4. The multi-layer steering approach (vs single-layer) and the similarity-based layer selection are directly transferable to text diffusion. Prior image-domain SAE steering work (Concept Steerers, CASL, DiffLens) focused on U-Net architectures; this is the first for transformer-based diffusion — architecturally closer to text DLMs like LLaDA/Dream which also use transformers. The finding that block updates vs residual stream states have different causal profiles informs where to apply SAE-guided denoising."
+                  " \u2b50\u2b50\u2b50 DIRECT METHODOLOGY for Ideas 2 & 4. The multi-layer steering approach (vs single-layer) and the similarity-based layer selection are directly transferable to text diffusion. Prior image-domain SAE steering work (Concept Steerers, CASL, DiffLens) focused on U-Net architectures; this is the first for transformer-based diffusion \u2014 architecturally closer to text DLMs like LLaDA/Dream which also use transformers. The finding that block updates vs residual stream states have different causal profiles informs where to apply SAE-guided denoising."
                 ]
               }
             ]
@@ -2196,6 +2228,18 @@
                   },
                   " Their Stochastic Mixed-Modal Transport aligns modalities without heavy contrastive encoders. This could simplify SAE integration \u2014 no need for separate alignment training."
                 ]
+              }
+            ]
+          },
+          {
+            "type": "DeepDive",
+            "props": {
+              "title": "Feb 20, 2026: Noise Type Affects Scaling \u2014 Semantic Schedules Have Real Bite"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "The scaling law study (2602.15014) shows noise type profoundly affects model behavior \u2014 masked, uniform, and interpolating diffusion have fundamentally different scaling curves. This validates our Idea 3 hypothesis: if even the basic noise distribution matters this much, a semantically-aware schedule (destroying high-level features last) should have even larger effects on generation quality."
               }
             ]
           }
