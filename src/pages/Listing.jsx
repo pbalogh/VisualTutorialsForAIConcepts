@@ -588,6 +588,18 @@ const tutorials = [
     difficulty: 2,
   },
   {
+    id: 'brainstorm-51-adversarial-perturbation',
+    title: 'Adversarial Pressure as Operator Perturbation',
+    description: 'Sycophancy through a geometric lens — how social pressure acts as a Lie algebra perturbation rotating model outputs away from truth',
+    tags: ['schankian', 'sycophancy', 'lie-groups', 'adversarial', 'geometric', 'alignment'],
+    icon: '🧲',
+    gradient: 'from-red-500 to-rose-600',
+    shadowColor: 'shadow-red-500/30',
+    glowColor: 'rgba(239, 68, 68, 0.4)',
+    readTime: '20 min',
+    difficulty: 3,
+  },
+  {
     id: 'brainstorm-63-operators-as-options',
     title: 'Operators as Options',
     description: 'Temporal abstraction as event semantics — how Schankian operators ARE Sutton\'s options, with initiation sets, policies, and termination conditions',
