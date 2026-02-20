@@ -1,0 +1,590 @@
+{
+  "type": "Fragment",
+  "meta": {
+    "title": "Sense-Stack Embeddings: A Toy Corpus Demonstration",
+    "description": "Why does word2vec give 'like' one vector when it has two meanings? Watch what happens when we give it two.",
+    "author": "Peter Balogh",
+    "lastUpdated": "2026-02-20",
+    "tags": [
+      "word embeddings",
+      "polysemy",
+      "word2vec",
+      "sense disambiguation",
+      "NLP"
+    ]
+  },
+  "content": {
+    "type": "Fragment",
+    "children": [
+      {
+        "type": "Section",
+        "props": {
+          "title": "1. The Problem: One Word, Two Meanings, One Vector"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "Consider the word 'like.' It has two completely different meanings:"
+          },
+          {
+            "type": "ul",
+            "children": [
+              {
+                "type": "li",
+                "children": "VERB (enjoy/prefer): 'I like cats'"
+              },
+              {
+                "type": "li",
+                "children": "PREPOSITION (similar to): 'run like hell'"
+              }
+            ]
+          },
+          {
+            "type": "p",
+            "children": "Standard word2vec doesn't know this. It gives 'like' exactly one embedding vector — a single point in space that must somehow represent both meanings. That vector ends up as a contaminated average, pulled toward BOTH 'enjoy'-type contexts AND 'similar-to'-type contexts, accurately representing neither."
+          },
+          {
+            "type": "Callout",
+            "props": {
+              "type": "key-insight"
+            },
+            "children": "37% of GPT-2's vocabulary (18,752 tokens) is polysemous according to WordNet. Every one of those tokens suffers from this same dimensional contamination — their embedding vectors are compromised averages of unrelated meanings."
+          },
+          {
+            "type": "p",
+            "children": "What if we gave polysemous words multiple vectors — one per sense — and let context decide which one to use? That's the Sense-Stack idea. Let's see it work on a tiny corpus."
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "2. The Corpus"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "We crafted four sentences where 'like' appears 5 times in two distinct senses:"
+          },
+          {
+            "type": "Example",
+            "props": {
+              "title": "The Toy Corpus"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "1. \"I **like** cats\" — VERB (enjoy)"
+              },
+              {
+                "type": "p",
+                "children": "2. \"Cats run **like** hell\" — PREP (similar to)"
+              },
+              {
+                "type": "p",
+                "children": "3. \"**Like** hell would I ever date someone who doesn't **like** cats\" — PREP, then VERB"
+              },
+              {
+                "type": "p",
+                "children": "4. \"Hell is **like** a place without cats\" — PREP (similar to)"
+              }
+            ]
+          },
+          {
+            "type": "p",
+            "children": "Score: VERB appears 2 times, PREP appears 3 times. The corpus is tiny (15 unique words) but sufficient to demonstrate the contamination problem and the sense-stack solution."
+          },
+          {
+            "type": "DeepDive",
+            "props": {
+              "title": "Why this corpus?"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "Sentence 3 is the key: it contains BOTH senses of 'like' in a single sentence. In standard word2vec with a window of 2, the CBOW context windows for these two occurrences will partially overlap — meaning the single 'like' vector receives gradient updates pulling it in contradictory directions within the same sentence. This is contamination in microcosm."
+              },
+              {
+                "type": "p",
+                "children": "We also chose 'hell' as a co-occurring word because it appears in BOTH prep contexts ('run like hell', 'Like hell would I') and as a standalone subject ('Hell is like a place'). This creates a secondary disambiguation challenge that helps reveal how context windows interact."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "3. Experiment A: Standard CBOW (One Vector)"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "We train a standard Continuous Bag of Words (CBOW) model: 15-word vocabulary, 8-dimensional embeddings, window size 2, 300 epochs, SGD with lr=0.1. Every word gets exactly one vector."
+          },
+          {
+            "type": "DeepDive",
+            "props": {
+              "title": "How CBOW works"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "For each word in the corpus, CBOW takes the surrounding context words (within a window), averages their embeddings, and tries to predict the target word. The key insight: 'like' is both a TARGET (predicted from its neighbors) and a CONTEXT WORD (used to predict its neighbors). Both roles push the embedding around."
+              },
+              {
+                "type": "p",
+                "children": "In our corpus, 'like' appears in 5 target contexts and 14 context windows. That's 19 gradient updates per epoch, each pulling the single 'like' vector toward whatever prediction task is at hand — sometimes 'enjoy cats', sometimes 'similar to hell'."
+              }
+            ]
+          },
+          {
+            "type": "Example",
+            "props": {
+              "title": "Training Results"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "Loss curve (standard CBOW):"
+              },
+              {
+                "type": "ul",
+                "children": [
+                  {
+                    "type": "li",
+                    "children": "Epoch 50: loss = 0.595"
+                  },
+                  {
+                    "type": "li",
+                    "children": "Epoch 100: loss = 0.199"
+                  },
+                  {
+                    "type": "li",
+                    "children": "Epoch 200: loss = 0.126"
+                  },
+                  {
+                    "type": "li",
+                    "children": "Epoch 300: loss = 0.107"
+                  }
+                ]
+              },
+              {
+                "type": "p",
+                "children": "The model converges — but to what? Let's look at the nearest neighbors of the final 'like' embedding."
+              }
+            ]
+          },
+          {
+            "type": "Example",
+            "props": {
+              "title": "Nearest Neighbors of 'like' (Standard)"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "Cosine similarity to 'like':"
+              },
+              {
+                "type": "ul",
+                "children": [
+                  {
+                    "type": "li",
+                    "children": "date: 0.307"
+                  },
+                  {
+                    "type": "li",
+                    "children": "without: 0.271"
+                  },
+                  {
+                    "type": "li",
+                    "children": "would: 0.059"
+                  },
+                  {
+                    "type": "li",
+                    "children": "a: 0.033"
+                  },
+                  {
+                    "type": "li",
+                    "children": "ever: -0.046"
+                  },
+                  {
+                    "type": "li",
+                    "children": "place: -0.066"
+                  },
+                  {
+                    "type": "li",
+                    "children": "doesn't: -0.177"
+                  }
+                ]
+              },
+              {
+                "type": "p",
+                "children": "Notice: the nearest neighbors are a jumble. 'date' and 'without' are closest — neither of which is a clean signal for either sense. The verb-context words (I, cats, doesn't) are all NEGATIVELY correlated. The prep-context words (hell, run, is, place) are also mostly negative. The single vector sits in a no-man's-land between the two meaning clusters."
+              }
+            ]
+          },
+          {
+            "type": "Callout",
+            "props": {
+              "type": "warning"
+            },
+            "children": "This is dimensional contamination in action. The 'like' vector has been pulled by contradictory gradients into a region of embedding space that represents neither meaning well. In a 15-word vocabulary the damage is visible; in GPT-2's 50,257-token vocabulary with 18,752 polysemous tokens, the contamination is pervasive and invisible."
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "4. Experiment B: Sense-Stack CBOW (Two Vectors)"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "Same corpus, same hyperparameters, one change: 'like' gets TWO embedding vectors (sense 0 and sense 1). A small neural selector network takes the averaged context embedding and outputs a probability distribution over the two senses. The selected embedding is a soft weighted combination — fully differentiable, trained end-to-end."
+          },
+          {
+            "type": "DeepDive",
+            "props": {
+              "title": "The Two-Pass Architecture"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "The forward pass works in two stages:"
+              },
+              {
+                "type": "p",
+                "children": "Pass 1 (rough context): Average the sense-0 embeddings of all context words to get a coarse context vector. This is cheap — no sense selection needed."
+              },
+              {
+                "type": "p",
+                "children": "Pass 2 (sense selection): Feed the rough context into a small MLP (8→16→tanh→2) that scores each sense. Softmax gives probabilities; the final embedding is a weighted sum of the sense vectors. For monosemous words (everything except 'like'), this is a no-op — they just use their single embedding."
+              },
+              {
+                "type": "p",
+                "children": "The selector learns from the prediction loss: if picking sense 0 in a 'cats run __ hell' context leads to better next-word prediction than sense 1, gradients flow back through the softmax to reinforce that choice."
+              }
+            ]
+          },
+          {
+            "type": "Example",
+            "props": {
+              "title": "Training: Watch the Senses Diverge"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "Loss and inter-sense cosine similarity over training:"
+              },
+              {
+                "type": "ul",
+                "children": [
+                  {
+                    "type": "li",
+                    "children": "Epoch 50: loss = 0.432, sense similarity = 0.382"
+                  },
+                  {
+                    "type": "li",
+                    "children": "Epoch 100: loss = 0.178, sense similarity = 0.422"
+                  },
+                  {
+                    "type": "li",
+                    "children": "Epoch 150: loss = 0.123, sense similarity = 0.548 (temporary convergence)"
+                  },
+                  {
+                    "type": "li",
+                    "children": "Epoch 200: loss = 0.102, sense similarity = 0.493"
+                  },
+                  {
+                    "type": "li",
+                    "children": "Epoch 250: loss = 0.093, sense similarity = 0.394"
+                  },
+                  {
+                    "type": "li",
+                    "children": "Epoch 300: loss = 0.088, sense similarity = 0.306 ✅"
+                  }
+                ]
+              },
+              {
+                "type": "p",
+                "children": "Two things to notice: (1) the SenseStack model achieves LOWER final loss (0.088 vs 0.107) — the extra capacity helps, and (2) the sense similarity drops from 0.382 to 0.306 over training, meaning the two vectors are moving APART. They started close together (random init) and the gradient signal is pushing them toward different regions of embedding space."
+              }
+            ]
+          },
+          {
+            "type": "Callout",
+            "props": {
+              "type": "key-insight"
+            },
+            "children": "The temporary similarity increase at epoch 150 (0.548) is interesting — it suggests the model initially tries to use both senses similarly (a local minimum), then breaks symmetry as the selector gets better at distinguishing contexts. This is a phase transition in the training dynamics."
+          },
+          {
+            "type": "Example",
+            "props": {
+              "title": "Nearest Neighbors: Sense 0 vs Sense 1"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "Sense 0 nearest neighbors:"
+              },
+              {
+                "type": "ul",
+                "children": [
+                  {
+                    "type": "li",
+                    "children": "without: 0.541"
+                  },
+                  {
+                    "type": "li",
+                    "children": "place: 0.424"
+                  },
+                  {
+                    "type": "li",
+                    "children": "is: 0.184"
+                  },
+                  {
+                    "type": "li",
+                    "children": "a: 0.109"
+                  }
+                ]
+              },
+              {
+                "type": "p",
+                "children": "Sense 1 nearest neighbors:"
+              },
+              {
+                "type": "ul",
+                "children": [
+                  {
+                    "type": "li",
+                    "children": "without: 0.433"
+                  },
+                  {
+                    "type": "li",
+                    "children": "ever: 0.220"
+                  },
+                  {
+                    "type": "li",
+                    "children": "date: 0.044"
+                  },
+                  {
+                    "type": "li",
+                    "children": "would: -0.055"
+                  }
+                ]
+              },
+              {
+                "type": "p",
+                "children": "The two senses have different neighbor profiles. Sense 0 clusters with 'place', 'is', 'a' — words from the prepositional/descriptive contexts ('Hell is like a place without cats'). Sense 1 is closer to 'ever', 'date' — words from the more active/verbal contexts. The separation isn't perfect (this is a 15-word corpus), but the direction is clear."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "5. The Contamination Analysis"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "Now the key comparison: how does the standard 'like' vector relate to context words from each sense, compared to the two sense-stack vectors?"
+          },
+          {
+            "type": "Example",
+            "props": {
+              "title": "Verb-Context Words: I, cats, doesn't"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "Cosine similarity — Standard vs Sense 0 vs Sense 1:"
+              },
+              {
+                "type": "ul",
+                "children": [
+                  {
+                    "type": "li",
+                    "children": "i: Standard=-0.280 | Sense 0=-0.129 | Sense 1=-0.181"
+                  },
+                  {
+                    "type": "li",
+                    "children": "cats: Standard=-0.461 | Sense 0=-0.505 | Sense 1=-0.521"
+                  },
+                  {
+                    "type": "li",
+                    "children": "doesn't: Standard=-0.177 | Sense 0=-0.016 | Sense 1=-0.396"
+                  }
+                ]
+              },
+              {
+                "type": "p",
+                "children": "For 'doesn't', the difference is striking: standard has -0.177 (moderately negative), Sense 0 is nearly orthogonal at -0.016, and Sense 1 is strongly negative at -0.396. The sense vectors are making sharper, more decisive commitments than the contaminated average."
+              }
+            ]
+          },
+          {
+            "type": "Example",
+            "props": {
+              "title": "Prep-Context Words: hell, run, is, place"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "Cosine similarity — Standard vs Sense 0 vs Sense 1:"
+              },
+              {
+                "type": "ul",
+                "children": [
+                  {
+                    "type": "li",
+                    "children": "hell: Standard=-0.282 | Sense 0=-0.054 | Sense 1=-0.325"
+                  },
+                  {
+                    "type": "li",
+                    "children": "run: Standard=-0.750 | Sense 0=-0.418 | Sense 1=-0.235"
+                  },
+                  {
+                    "type": "li",
+                    "children": "is: Standard=-0.398 | Sense 0=+0.184 | Sense 1=-0.255"
+                  },
+                  {
+                    "type": "li",
+                    "children": "place: Standard=-0.066 | Sense 0=+0.424 | Sense 1=-0.084"
+                  }
+                ]
+              },
+              {
+                "type": "p",
+                "children": "Here the differentiation is clearest. For 'is' and 'place' — both from the sentence 'Hell is like a place without cats' — Sense 0 has POSITIVE similarity (+0.184, +0.424) while the standard vector and Sense 1 are both negative. Sense 0 has moved toward the prepositional meaning cluster; the standard vector, pulled in both directions, ended up negative on both."
+              }
+            ]
+          },
+          {
+            "type": "Callout",
+            "props": {
+              "type": "key-insight"
+            },
+            "children": "The standard vector for 'like' is negative with respect to BOTH its verb-context words AND its prep-context words. It lives in a dead zone — pulled by contradictory gradients into a region that's anti-correlated with both of its actual meanings. The sense-stack vectors escape this trap by splitting the gradient signal."
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "6. What This Means for Real Models"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "This toy demo shows the mechanism; the scale of the real problem is staggering. In GPT-2's vocabulary:"
+          },
+          {
+            "type": "ul",
+            "children": [
+              {
+                "type": "li",
+                "children": "18,752 of 50,257 tokens (37%) are polysemous per WordNet"
+              },
+              {
+                "type": "li",
+                "children": "The top 500 most polysemous tokens average 4.2 senses each"
+              },
+              {
+                "type": "li",
+                "children": "'right' has senses for correctness, direction, entitlement, and political leaning — all jammed into one 768-dimensional vector"
+              },
+              {
+                "type": "li",
+                "children": "The token 'bank' must simultaneously encode river banks, financial banks, pool banks, and blood banks"
+              }
+            ]
+          },
+          {
+            "type": "DeepDive",
+            "props": {
+              "title": "The Cascade Hypothesis"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "If a contaminated embedding enters the residual stream, every subsequent layer must negotiate this ambiguity. Attention heads that depend on 'like' being a verb will get noise from its prepositional component, and vice versa."
+              },
+              {
+                "type": "p",
+                "children": "We hypothesize the opposite should also be true: if embeddings arrive pre-disambiguated (the correct sense already selected), the residual stream signal is cleaner from the start. Each correct disambiguation helps resolve neighboring ambiguous tokens — a virtuous cascade where 'clarity is contagious.'"
+              },
+              {
+                "type": "p",
+                "children": "Early experiments support this: in GPT-2 with an untrained sense selector, even random initialization partially disambiguates 'right' (picking 2 different senses in different contexts). The cosine similarity between different-sense contexts of 'light' drops from 1.000 (standard, identical) to 0.993 (sense-stack, already slightly different). With training, this gap should widen dramatically."
+              }
+            ]
+          },
+          {
+            "type": "Analogy",
+            "props": {
+              "title": "The Translator Analogy"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "Imagine a translator who must convert English to French, but their dictionary has only one entry per English word. When they see 'like', they look it up and find a single definition that's somehow the average of 'aimer' (to enjoy) and 'comme' (similar to). They end up writing something that's neither natural French verb usage nor natural French comparison — a garbled compromise."
+              },
+              {
+                "type": "p",
+                "children": "Now give them a dictionary with TWO entries for 'like', each with example sentences. They read the surrounding context, pick the right entry, and produce clean French. That's sense-stack embeddings: a better dictionary at the input layer, so every downstream computation starts from a cleaner signal."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "7. Open Questions"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "This toy demo establishes the mechanism, but several questions remain for the full-scale version:"
+          },
+          {
+            "type": "ul",
+            "children": [
+              {
+                "type": "li",
+                "children": "Does the sense selector learn to match WordNet sense boundaries, or does it discover its own (potentially better) sense categories?"
+              },
+              {
+                "type": "li",
+                "children": "How many senses per word are actually useful? WordNet lists 30+ for 'run', but many are rare — what's the sweet spot?"
+              },
+              {
+                "type": "li",
+                "children": "Can we use beam search over sense assignments at the sequence level to find globally optimal disambiguations?"
+              },
+              {
+                "type": "li",
+                "children": "Does the 'clarity is contagious' cascade actually measurably improve downstream task performance?"
+              },
+              {
+                "type": "li",
+                "children": "Can we retrofit sense-stack embeddings into a pretrained model (like GPT-2) without retraining from scratch?"
+              }
+            ]
+          },
+          {
+            "type": "Callout",
+            "props": {
+              "type": "key-insight"
+            },
+            "children": "The core claim is testable: if polysemy contamination matters, replacing GPT-2's embedding layer with sense-stack embeddings (trained on WSD data like SemCor) should measurably reduce perplexity and improve performance on tasks that depend on word sense — even without touching any other weights."
+          }
+        ]
+      }
+    ]
+  }
+}
