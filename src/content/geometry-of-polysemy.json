@@ -1,0 +1,229 @@
+{
+  "id": "geometry-of-polysemy",
+  "title": "The Geometry of Polysemy",
+  "subtitle": "How raw cosine similarity achieves 99.8%+ accuracy for word sense disambiguation in GPT-2 — no classifier needed",
+  "readTime": "25 min",
+  "tags": ["embeddings", "polysemy", "WSD", "GPT-2", "cosine similarity"],
+  "state": {},
+  "content": {
+    "type": "Fragment",
+    "children": [
+      {
+        "type": "Section",
+        "props": { "title": "Act 1: The Polysemy Problem" },
+        "children": [
+          { "type": "p", "children": "The word 'bank' means at least two very different things: a financial institution and the edge of a river. In NLP, words like these are called polysemous — they carry multiple distinct meanings packed into one lexical form." },
+          { "type": "p", "children": "Contextual language models like GPT-2 produce a different embedding for 'bank' every time they see it, depending on context. In theory, these embeddings should separate by meaning. But how do you figure out WHICH meaning a given embedding represents?" },
+          { "type": "p", "children": "The standard approach: train an elaborate classifier. Researchers have tried MLPs, attention mechanisms, decision trees, Mahalanobis distance with learned covariance matrices — all to answer the question 'which sense is this?'" },
+          {
+            "type": "Callout",
+            "props": { "variant": "warning" },
+            "children": [
+              { "type": "p", "children": "The chicken-and-egg problem: Your classifier needs good sense labels to train on. But getting good sense labels requires… a good classifier. Every prior approach was trapped in this loop." }
+            ]
+          },
+          {
+            "type": "Analogy",
+            "props": { "title": "The Wrong Map" },
+            "children": [
+              { "type": "p", "children": "Imagine you're sorting mail into mailboxes, but someone gave you a map with 10 mailbox slots when there are really only 3. You'd misdeliver constantly — not because you can't read addresses, but because the map is wrong." },
+              { "type": "p", "children": "That's what happens when you use WordNet's sense inventory with GPT-2's embeddings. WordNet says 'bank' has 10 senses. GPT-2 distinguishes 2-3. The map doesn't match the territory." }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "Act 2: The Key Insight — Model-Native Senses" },
+        "children": [
+          { "type": "p", "children": "Here's the breakthrough: instead of imposing an external sense inventory (like WordNet), we asked GPT-2 what IT thinks the senses are." },
+          { "type": "p", "children": "We clustered GPT-2's own embeddings for each word and let the clusters define the senses. The results were dramatic:" },
+          {
+            "type": "Example",
+            "props": { "title": "WordNet Labels vs. Model-Native Labels" },
+            "children": [
+              { "type": "p", "children": "With WordNet labels (external inventory):" },
+              { "type": "ul", "children": [
+                { "type": "li", "children": "Best classifier accuracy: 60-70%" },
+                { "type": "li", "children": "Elaborate methods needed (MLPs, attention, covariance estimation)" },
+                { "type": "li", "children": "Highly variable across words" }
+              ]},
+              { "type": "p", "children": "With model-native labels (GPT-2's own clusters):" },
+              { "type": "ul", "children": [
+                { "type": "li", "children": "Raw cosine similarity: 100% accuracy" },
+                { "type": "li", "children": "No classifier needed at all" },
+                { "type": "li", "children": "Consistent across all words" }
+              ]}
+            ]
+          },
+          {
+            "type": "Callout",
+            "props": { "variant": "key" },
+            "children": [
+              { "type": "p", "children": "\"The sense inventory was the bottleneck, not the classifier.\" When you ask the right question — using the model's own sense boundaries — the geometry of the embedding space already contains the answer." }
+            ]
+          },
+          { "type": "p", "children": "Model-native senses are remarkably compact: 2-4 senses per word, compared to WordNet's 5-10. And disambiguation happens early — at layers 2-3 of GPT-2, not deep in the network. By the time information reaches the later layers, sense identity is already baked in." },
+          {
+            "type": "Analogy",
+            "props": { "title": "The Dictionary vs. The Model" },
+            "children": [
+              { "type": "p", "children": "Asking WordNet how many senses 'bank' has is like asking a dictionary how many meanings 'set' has — technically correct but practically useless for a model that distinguishes 2." },
+              { "type": "p", "children": "WordNet is a human-curated taxonomy. GPT-2 is a statistical learner. They carve meaning at different joints. When you force one's categories onto the other, you get noise." }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "Act 3: The Covariance Showdown" },
+        "children": [
+          { "type": "p", "children": "OK, so model-native labels work. But surely you still need a sophisticated distance metric? We tested 9 methods head-to-head across 50 polysemous words:" },
+          {
+            "type": "Quiz",
+            "props": {
+              "question": "Before seeing the results: which distance/similarity method do you think wins for word sense disambiguation in GPT-2?",
+              "options": [
+                "PCA-reduced cosine (k=50 dimensions)",
+                "Ledoit-Wolf shrinkage estimator",
+                "Raw cosine similarity (no transformation)",
+                "Shared LDA (Linear Discriminant Analysis)"
+              ],
+              "correctIndex": 2,
+              "explanation": "Raw cosine similarity — the simplest possible method — achieves 99.8% average accuracy across all corpora. No dimensionality reduction, no covariance estimation, no learned parameters. Just: compute cosine to each sense centroid, pick the highest."
+            }
+          },
+          {
+            "type": "Example",
+            "props": { "title": "The Scoreboard: 9 Methods × 50 Words" },
+            "children": [
+              { "type": "p", "children": "Results on held-out test data (Wikitext-103):" },
+              { "type": "ul", "children": [
+                { "type": "li", "children": "Raw cosine: 99.8% avg — 45/50 words at 100%" },
+                { "type": "li", "children": "Diagonal covariance: 99.9% avg — fixes the remaining 5 words" },
+                { "type": "li", "children": "Ledoit-Wolf: 99.7% avg — expensive, barely different" },
+                { "type": "li", "children": "PCA k=50: drops to 3.3% minimum on some words" },
+                { "type": "li", "children": "PCA k=5: ~30% on hard words — catastrophic" },
+                { "type": "li", "children": "Shared LDA: competitive but unnecessary complexity" }
+              ]},
+              { "type": "p", "children": "The 5 'failure' words for raw cosine (still above 96%): club (96.7%), drop (98.0%), letter (98.7%), line (98.7%), court (99.3%). That's 4 total misclassifications out of ~4,400 vectors — 99.91% overall." }
+            ]
+          },
+          {
+            "type": "DeepDive",
+            "props": { "title": "The Holographic Insight: Why PCA Fails" },
+            "children": [
+              { "type": "p", "children": "Why does PCA — a perfectly reasonable dimensionality reduction — destroy performance? Because sense information in GPT-2 is distributed holographically across all 768 dimensions." },
+              { "type": "p", "children": "Think of it like a hologram: if you cut a hologram in half, you don't get half the image — you get a blurrier version of the WHOLE image. Every piece contains the full picture at reduced resolution." },
+              { "type": "p", "children": "GPT-2's sense representations work the same way. The difference between 'bank (money)' and 'bank (river)' isn't concentrated in a few principal components. It's spread thinly across ALL 768 dimensions. When PCA projects down to k=50, it keeps the high-variance directions (which encode other things — syntax, frequency, position) and throws away the subtle, distributed sense signal." },
+              { "type": "p", "children": "PCA k=5 gives ~30% accuracy on hard words because you've thrown away the hologram. Raw cosine uses all 768 dimensions and captures everything." },
+              { "type": "p", "children": "This is why diagonal covariance (768 parameters per sense) can fix the remaining failures — it rescales each dimension independently, giving more weight to dimensions that matter for each particular sense pair. But even this is overkill for 45 out of 50 words." }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "Act 4: Cross-Domain Validation" },
+        "children": [
+          { "type": "p", "children": "A skeptic might say: 'Sure, cosine works on Wikipedia text. But what about fiction? Or messy web text?' We tested across three radically different corpora:" },
+          {
+            "type": "Example",
+            "props": { "title": "Three Corpora, One Result" },
+            "children": [
+              { "type": "ul", "children": [
+                { "type": "li", "children": "Wikitext-103 (encyclopedia): 99.8% accuracy" },
+                { "type": "li", "children": "BookCorpus (fiction): 99.8% accuracy" },
+                { "type": "li", "children": "OpenWebText (web): 99.9% accuracy" }
+              ]},
+              { "type": "p", "children": "The cosine dominance holds everywhere. Encyclopedia prose, literary fiction, Reddit comments — the geometric separation of senses is a property of the MODEL, not the data." }
+            ]
+          },
+          {
+            "type": "Callout",
+            "props": { "variant": "insight" },
+            "children": [
+              { "type": "p", "children": "\"The geometry IS the classifier.\" This isn't a corpus-specific finding. GPT-2's embedding space has a stable geometric structure where word senses occupy clearly separated regions, regardless of what text you feed it." }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "Act 5: The Two-Line Algorithm" },
+        "children": [
+          { "type": "p", "children": "After all this research — 9 methods, 50 words, 3 corpora, thousands of experiments — the final algorithm is embarrassingly simple:" },
+          {
+            "type": "Example",
+            "props": { "title": "The Complete Algorithm" },
+            "children": [
+              { "type": "p", "children": "Step 1: Compute cosine similarity between the input embedding and each sense centroid." },
+              { "type": "p", "children": "Step 2: Return argmax." },
+              { "type": "p", "children": "That's it. Two lines of code. No training, no parameters, no neural networks. For the 5 hard words, add a diagonal covariance tiebreaker (768 parameters per sense). Total model size: effectively zero." }
+            ]
+          },
+          { "type": "p", "children": "Compare this to what we thought we'd need: we designed an elaborate decision tree that first tried cosine, then fell back to diagonal covariance, then to Ledoit-Wolf for hard cases. We implemented the whole pipeline. Then we realized the decision tree's first branch — raw cosine — handles 99.8% of cases perfectly." },
+          {
+            "type": "Callout",
+            "props": { "variant": "key" },
+            "children": [
+              { "type": "p", "children": "The lesson isn't just about word sense disambiguation. It's about the power of asking the right question. When you align your sense inventory with what the model actually represents, the simplest possible method becomes near-perfect. The complexity was never in the classifier — it was in the mismatch between human categories and model categories." }
+            ]
+          },
+          {
+            "type": "Quiz",
+            "props": {
+              "question": "The diagonal covariance tiebreaker uses how many parameters per sense?",
+              "options": [
+                "768 (one per embedding dimension)",
+                "768 × 768 (full covariance matrix)",
+                "50 (top PCA components)",
+                "0 (it's parameter-free)"
+              ],
+              "correctIndex": 0,
+              "explanation": "Diagonal covariance uses exactly 768 parameters per sense — one scaling factor per dimension. This is enough to fix all 4 remaining misclassifications. A full covariance matrix (768×768 = 589,824 params) would be massive overkill and risks overfitting."
+            }
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "Summary: Key Numbers" },
+        "children": [
+          {
+            "type": "Example",
+            "props": { "title": "The Geometry of Polysemy — By the Numbers" },
+            "children": [
+              { "type": "ul", "children": [
+                { "type": "li", "children": "50 polysemous words evaluated" },
+                { "type": "li", "children": "3 corpora: Wikitext-103, BookCorpus, OpenWebText" },
+                { "type": "li", "children": "Raw cosine accuracy: 99.8% average across all corpora" },
+                { "type": "li", "children": "45/50 words: perfect 100% on held-out test" },
+                { "type": "li", "children": "4 total misclassifications out of ~4,400 vectors (99.91%)" },
+                { "type": "li", "children": "5 hardest words: club (96.7%), drop (98.0%), letter (98.7%), line (98.7%), court (99.3%)" },
+                { "type": "li", "children": "Diagonal covariance: 768 params/sense, fixes all 4 failures" },
+                { "type": "li", "children": "PCA k=50: drops to 3.3% minimum on BookCorpus" },
+                { "type": "li", "children": "Model-native senses: 2-4 per word (vs WordNet's 5-10)" },
+                { "type": "li", "children": "Disambiguation layer: L2-L3 of GPT-2" }
+              ]}
+            ]
+          },
+          {
+            "type": "Quiz",
+            "props": {
+              "question": "Why does PCA k=5 fail so badly at word sense disambiguation?",
+              "options": [
+                "5 dimensions aren't enough to represent any word embedding",
+                "PCA captures high-variance directions (syntax, frequency) not the subtle distributed sense signal",
+                "PCA requires more training data than was available",
+                "The cosine metric doesn't work well in low dimensions"
+              ],
+              "correctIndex": 1,
+              "explanation": "Sense information is distributed holographically across all 768 dimensions. PCA's top components capture high-variance features like syntax and word frequency, not the subtle, evenly-spread sense distinctions. Projecting to k=5 is like cutting a hologram to 1% of its area — you lose the signal entirely."
+            }
+          }
+        ]
+      }
+    ]
+  }
+}
