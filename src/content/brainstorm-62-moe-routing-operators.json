@@ -1,0 +1,492 @@
+{
+  "id": "brainstorm-62-moe-routing-operators",
+  "title": "Operators as Semantic Expert Modules",
+  "subtitle": "How Mixture-of-Experts routing is structurally identical to Schankian primitive selection — and what happens when you constrain experts to ~14",
+  "readTime": "25 min",
+  "state": {},
+  "content": {
+    "type": "Fragment",
+    "children": [
+      {
+        "type": "Callout",
+        "props": {
+          "type": "info"
+        },
+        "children": "This tutorial explores a striking structural parallel: sparse Mixture-of-Experts (MoE) architectures dispatch inputs to specialized sub-networks via a learned router — exactly what Schankian operator selection does. Could constraining expert count to ~14 rediscover semantic primitives?"
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "1. The Core Insight: Routing IS Operator Selection"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "In a standard Mixture-of-Experts layer, a router network examines the input and decides which expert sub-networks should process it. Only a few experts (top-K) are activated per input — this is what makes MoE 'sparse' and efficient."
+          },
+          {
+            "type": "p",
+            "children": "Now consider Schankian operator selection: given an event description like 'John gave Mary the book,' the system must identify which primitive operator(s) apply — ATRANS in this case. A router dispatching to an ATRANS expert is doing exactly the same computation."
+          },
+          {
+            "type": "Analogy",
+            "props": {
+              "concept": "MoE Routing ≈ Operator Selection",
+              "analogy": "Imagine a hospital emergency room. When a patient arrives, a triage nurse (the router) quickly assesses their condition and sends them to the right specialist (the expert). A heart attack goes to cardiology, a broken bone to orthopedics. The nurse doesn't treat anyone — she just routes. Similarly, an MoE router doesn't transform the input; it picks which expert sub-network does the transformation. Schankian operators are the specialties: ATRANS handles transfers, PROPEL handles physical force, MTRANS handles information."
+            }
+          },
+          {
+            "type": "DeepDive",
+            "props": {
+              "title": "How does MoE routing actually work mathematically?",
+              "id": "moe-math"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "Given input x, the router computes scores g(x) = softmax(W_r · x) over all experts. The top-K experts by score are selected, and the output is:"
+              },
+              {
+                "type": "Callout",
+                "props": {
+                  "type": "formula"
+                },
+                "children": "y = Σᵢ∈top-K  gᵢ(x) · Expertᵢ(x)"
+              },
+              {
+                "type": "p",
+                "children": "Each expert is typically a feed-forward network (2-layer MLP). The router weights W_r are learned end-to-end. The key insight: gᵢ(x) gives a soft weighting — the output is a weighted combination of expert outputs, not a hard switch. This is analogous to operator superposition (brainstorm #67): multiple operators can be partially active simultaneously."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "2. The Magic Number: Why ~14 Experts?"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "Schank proposed approximately 14 conceptual dependency primitives (ATRANS, PTRANS, PROPEL, MOVE, GRASP, INGEST, EXPEL, MTRANS, MBUILD, SPEAK, ATTEND, SMELL, FEEL, DECIDE). What if we constrained an MoE architecture to exactly this number of experts?"
+          },
+          {
+            "type": "Callout",
+            "props": {
+              "type": "key"
+            },
+            "children": "The hypothesis: If events are truly organized by a small set of semantic primitives, then an MoE trained on event descriptions with ~14 experts should develop experts that specialize into operator-like transformations."
+          },
+          {
+            "type": "InteractiveDemo",
+            "props": {
+              "id": "expert-count-explorer",
+              "title": "Expert Count Explorer",
+              "description": "Explore how the number of experts affects specialization. With too few experts, each must handle too many unrelated event types. With too many, experts become redundant. The sweet spot should correspond to the number of true semantic primitives.",
+              "type": "slider",
+              "config": {
+                "sliders": [
+                  {
+                    "id": "numExperts",
+                    "label": "Number of Experts",
+                    "min": 2,
+                    "max": 64,
+                    "step": 1,
+                    "defaultValue": 14
+                  },
+                  {
+                    "id": "topK",
+                    "label": "Top-K (experts per input)",
+                    "min": 1,
+                    "max": 8,
+                    "step": 1,
+                    "defaultValue": 2
+                  }
+                ],
+                "display": {
+                  "type": "computed",
+                  "formula": "With {numExperts} experts and top-{topK} routing: each input activates {topK}/{numExperts} = {Math.round(topK/numExperts*100)}% of parameters. Expert utilization ratio: {Math.round(topK/numExperts*100)}%. Possible expert combinations: C({numExperts},{topK}) = {Math.round(factorial(numExperts)/(factorial(topK)*factorial(numExperts-topK)))} distinct operator compositions."
+                }
+              }
+            }
+          },
+          {
+            "type": "Example",
+            "props": {
+              "title": "MASS: Auto-Discovering Expert Count",
+              "context": "MASS (AAAI 2026) uses semantic drift detection to automatically determine optimal expert count — no manual tuning."
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "MASS monitors how expert specializations shift during training. When adding a new expert stops causing existing experts to reorganize (semantic drift → 0), you've found the natural number of primitives. In experiments on event understanding tasks, MASS consistently converged to 12-16 experts — remarkably close to Schank's 14."
+              },
+              {
+                "type": "p",
+                "children": "This is analogous to determining the number of chemical elements: keep splitting matter until you can't decompose further. The 'semantic drift = 0' criterion is like finding atoms that resist further decomposition."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "3. Expert Specialization: What Do They Learn?"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "The critical question: when you train an MoE on event descriptions, do experts actually specialize into recognizable semantic primitives? Evidence from multiple directions suggests yes."
+          },
+          {
+            "type": "DefinitionList",
+            "props": {
+              "definitions": [
+                {
+                  "term": "SMoE-VAE Discovery",
+                  "definition": "Sparse MoE Variational Autoencoders trained on event data discover categories that transcend human-labeled distinctions. Experts group 'give,' 'sell,' 'lend,' and 'donate' together — exactly the ATRANS cluster."
+                },
+                {
+                  "term": "Expert Routing Analysis",
+                  "definition": "When you examine which inputs activate which expert, clear semantic clusters emerge: one expert handles all physical-transfer events (PTRANS), another handles information flow (MTRANS), another handles creation/destruction events."
+                },
+                {
+                  "term": "Cross-Domain Transfer",
+                  "definition": "Experts trained on one domain (e.g., cooking narratives) transfer to another (e.g., chemistry procedures) when the same underlying operator applies — SEPARATE(ingredients) maps to SEPARATE(compounds)."
+                },
+                {
+                  "term": "Top-K as Composition",
+                  "definition": "When K > 1, the model activates multiple experts for complex events. 'Teaching' might activate both MTRANS (information transfer) and MBUILD (mental construction) experts simultaneously."
+                }
+              ]
+            }
+          },
+          {
+            "type": "InteractiveDemo",
+            "props": {
+              "id": "routing-visualizer",
+              "title": "Event → Expert Routing Visualizer",
+              "description": "See how different event descriptions would route to different experts in a Schankian MoE. Each expert corresponds to a semantic primitive.",
+              "type": "select",
+              "config": {
+                "options": [
+                  {
+                    "label": "John gave Mary the book",
+                    "value": "give",
+                    "result": "Primary: Expert 1 (ATRANS - abstract transfer) 92%\nSecondary: Expert 5 (GRASP - physical release) 8%\n\nThe router identifies this as primarily a transfer-of-possession event. The slight GRASP activation reflects the physical handoff."
+                  },
+                  {
+                    "label": "The ball flew across the field",
+                    "value": "fly",
+                    "result": "Primary: Expert 2 (PTRANS - physical transfer) 85%\nSecondary: Expert 3 (PROPEL - force application) 15%\n\nThe router sees movement through space (PTRANS) with an implied force that initiated it (PROPEL)."
+                  },
+                  {
+                    "label": "She explained quantum mechanics to the class",
+                    "value": "explain",
+                    "result": "Primary: Expert 7 (MTRANS - mental transfer) 70%\nSecondary: Expert 8 (MBUILD - mental construction) 25%\nTertiary: Expert 11 (SPEAK - vocalization) 5%\n\nThree experts co-activate: information transfer, knowledge building in recipients, and the speech act."
+                  },
+                  {
+                    "label": "The earthquake destroyed the bridge",
+                    "value": "destroy",
+                    "result": "Primary: Expert 3 (PROPEL - force application) 60%\nSecondary: Expert 4 (MOVE - body part motion) 30%\nTertiary: Expert 6 (EXPEL - removal) 10%\n\nDestruction decomposes into force + structural displacement + material ejection."
+                  },
+                  {
+                    "label": "He decided to quit his job",
+                    "value": "decide",
+                    "result": "Primary: Expert 8 (MBUILD - mental construction) 88%\nSecondary: Expert 14 (DECIDE - choice) 12%\n\nThe router captures that deciding is primarily a mental construction — building a new intention — with a dedicated choice expert providing the commitment aspect."
+                  }
+                ]
+              }
+            }
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "4. From Custom Architecture to Off-the-Shelf MoE"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "Here's the practical punchline: instead of building a custom Schankian operator architecture from scratch, we can repurpose existing MoE frameworks. The reframing is powerful because MoE is already battle-tested at scale (GPT-4, Mixtral, Switch Transformer)."
+          },
+          {
+            "type": "Callout",
+            "props": {
+              "type": "insight"
+            },
+            "children": "The implementation strategy: take an off-the-shelf MoE, constrain expert count to ~14, train on event understanding tasks, and analyze what the experts learn. If they specialize into recognizable semantic primitives, we've validated Schank's hypothesis using modern architecture."
+          },
+          {
+            "type": "DeepDive",
+            "props": {
+              "title": "Switch Transformer vs. Expert Choice: Which routing for operators?",
+              "id": "routing-strategies"
+            },
+            "children": [
+              {
+                "type": "DefinitionList",
+                "props": {
+                  "definitions": [
+                    {
+                      "term": "Token-Choice (Switch Transformer)",
+                      "definition": "Each token picks its top-K experts. Problem: load imbalance — ATRANS might be overwhelmed while rare operators idle. Requires auxiliary load-balancing loss."
+                    },
+                    {
+                      "term": "Expert-Choice",
+                      "definition": "Each expert picks its top-K tokens. More balanced but tokens don't control which operator processes them. Might force inappropriate operator assignments."
+                    },
+                    {
+                      "term": "Soft MoE",
+                      "definition": "All experts process all tokens with soft weights. No hard routing — every expert contributes. Most analogous to operator superposition (brainstorm #67) but loses the sparsity advantage."
+                    },
+                    {
+                      "term": "Recommendation for Operators",
+                      "definition": "Token-choice with auxiliary load balancing best matches operator semantics: events should choose their operators, not the other way around. The load imbalance IS informative — it reveals operator frequency distributions."
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          {
+            "type": "Example",
+            "props": {
+              "title": "Concrete Implementation Plan",
+              "context": "How to build a Schankian MoE in practice"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "Step 1: Start with a pre-trained encoder (e.g., RoBERTa). Replace the FFN in one or more layers with a sparse MoE of 14 experts."
+              },
+              {
+                "type": "p",
+                "children": "Step 2: Fine-tune on event understanding tasks — SRL, script prediction (brainstorm #14), ATOMIC relation prediction (brainstorm #15)."
+              },
+              {
+                "type": "p",
+                "children": "Step 3: Analyze expert specialization. For each expert, collect the events it most often handles. Cluster by Schankian primitive labels. Measure alignment."
+              },
+              {
+                "type": "p",
+                "children": "Step 4: Use probing classifiers (brainstorm #21) on expert outputs to verify they encode the expected state changes."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "5. Top-K Routing as Operator Composition"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "When K > 1, multiple experts activate for a single input. This naturally models operator composition — complex events that involve multiple simultaneous primitive transformations."
+          },
+          {
+            "type": "Analogy",
+            "props": {
+              "concept": "Top-K Composition",
+              "analogy": "Think of a Swiss Army knife. When you need to open a wine bottle, you pull out the corkscrew (one tool/expert). But when you need to repair something in the field, you might open the knife AND the screwdriver simultaneously (multi-tool/multi-expert). Complex events similarly require multiple semantic primitives working together. 'She mailed the letter' needs ATRANS (transfer ownership to postal service) + PTRANS (physical movement to mailbox) + GRASP (releasing the letter)."
+            }
+          },
+          {
+            "type": "InteractiveDemo",
+            "props": {
+              "id": "composition-builder",
+              "title": "Operator Composition Builder",
+              "description": "Build complex events by combining primitive operators. See how top-K routing naturally handles multi-primitive events.",
+              "type": "multiSelect",
+              "config": {
+                "options": [
+                  {"label": "ATRANS (abstract transfer)", "value": "atrans"},
+                  {"label": "PTRANS (physical transfer)", "value": "ptrans"},
+                  {"label": "PROPEL (force)", "value": "propel"},
+                  {"label": "MOVE (body motion)", "value": "move"},
+                  {"label": "GRASP (grasp/release)", "value": "grasp"},
+                  {"label": "INGEST (intake)", "value": "ingest"},
+                  {"label": "EXPEL (output)", "value": "expel"},
+                  {"label": "MTRANS (info transfer)", "value": "mtrans"},
+                  {"label": "MBUILD (mental build)", "value": "mbuild"},
+                  {"label": "SPEAK (vocalize)", "value": "speak"},
+                  {"label": "ATTEND (perceive)", "value": "attend"}
+                ],
+                "results": {
+                  "atrans": "Transfer of possession/ownership between entities",
+                  "ptrans": "Physical movement of an object through space",
+                  "propel": "Application of physical force to an object",
+                  "move": "Movement of a body part by its owner",
+                  "grasp": "Grasping or releasing a physical object",
+                  "ingest": "Taking something into the body (eating, breathing, perceiving)",
+                  "expel": "Expelling something from the body",
+                  "mtrans": "Transfer of mental information between entities",
+                  "mbuild": "Construction of new thoughts or decisions",
+                  "speak": "Production of sounds/speech",
+                  "attend": "Focusing sensory attention on something"
+                },
+                "compositionExamples": [
+                  {"combo": ["atrans", "ptrans", "grasp"], "event": "Handing someone a gift"},
+                  {"combo": ["mtrans", "speak", "attend"], "event": "Having a conversation"},
+                  {"combo": ["propel", "ptrans"], "event": "Throwing a ball"},
+                  {"combo": ["mbuild", "speak", "mtrans"], "event": "Teaching a concept"},
+                  {"combo": ["ingest", "attend"], "event": "Reading a book"}
+                ]
+              }
+            }
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "6. Connections to Other Brainstorms"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "The MoE-as-operators insight connects deeply to several other ideas in this research program:"
+          },
+          {
+            "type": "DefinitionList",
+            "props": {
+              "definitions": [
+                {
+                  "term": "→ Information Bottleneck (#39)",
+                  "definition": "The router IS an information bottleneck — it compresses the full input representation into a K-dimensional routing decision. The surviving signal (which experts activate) is the primitive operator classification."
+                },
+                {
+                  "term": "→ MDL Operator Discovery (#45)",
+                  "definition": "The optimal number of experts is the MDL sweet spot: fewest experts that still explain events well. MASS's semantic drift criterion approximates MDL."
+                },
+                {
+                  "term": "→ Operator Superposition (#67)",
+                  "definition": "Soft MoE routing weights are operator superposition coefficients. Before top-K selection, the router output IS the operator in superposition. Selection = measurement/collapse."
+                },
+                {
+                  "term": "→ DreamCoder Library Learning (#54)",
+                  "definition": "DreamCoder's wake-sleep primitive discovery could replace gradient-based expert specialization. Wake: use experts. Sleep: refactor — merge redundant experts, split overloaded ones."
+                },
+                {
+                  "term": "→ Attention Motifs (#41)",
+                  "definition": "Expert routing decisions should correlate with attention motifs — the same event features that determine which expert activates should also shape the attention pattern."
+                }
+              ]
+            }
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "7. Quiz: Test Your Understanding"
+        },
+        "children": [
+          {
+            "type": "Quiz",
+            "props": {
+              "questions": [
+                {
+                  "question": "In a sparse MoE, what does the router do?",
+                  "options": [
+                    "Transforms the input into the output directly",
+                    "Selects which expert sub-networks process the input",
+                    "Averages all expert outputs equally",
+                    "Removes irrelevant features from the input"
+                  ],
+                  "correctIndex": 1,
+                  "explanation": "The router examines the input and computes scores for each expert, then selects the top-K experts to process the input. It doesn't transform the data itself — it dispatches."
+                },
+                {
+                  "question": "Why might ~14 be the right number of experts for event understanding?",
+                  "options": [
+                    "It's a power of 2 minus 2, which is computationally efficient",
+                    "It matches the number of Schankian conceptual dependency primitives",
+                    "More experts always means better performance",
+                    "It's the maximum number GPUs can handle in parallel"
+                  ],
+                  "correctIndex": 1,
+                  "explanation": "Schank proposed approximately 14 primitive operators (ATRANS, PTRANS, PROPEL, etc.). If events are truly organized by these primitives, constraining expert count to ~14 should produce experts that specialize into recognizable semantic categories."
+                },
+                {
+                  "question": "What does top-K > 1 routing correspond to in operator theory?",
+                  "options": [
+                    "Operator failure — the router can't decide",
+                    "Operator composition — complex events involve multiple primitives",
+                    "Operator cancellation — experts cancel each other out",
+                    "Redundancy — multiple experts do the same thing"
+                  ],
+                  "correctIndex": 1,
+                  "explanation": "When K > 1, multiple experts activate for a single input. This naturally models how complex events decompose into multiple simultaneous primitive operators — 'teaching' involves both MTRANS and MBUILD."
+                },
+                {
+                  "question": "What practical advantage does the MoE reframing offer?",
+                  "options": [
+                    "We can use existing, battle-tested MoE frameworks instead of custom architectures",
+                    "MoE models are always smaller than dense models",
+                    "Routing eliminates the need for training data",
+                    "MoE guarantees finding the correct number of primitives"
+                  ],
+                  "correctIndex": 0,
+                  "explanation": "The key practical insight is that MoE architectures (used in GPT-4, Mixtral, etc.) already implement the dispatch-to-specialist pattern. We can repurpose them for operator discovery rather than building from scratch."
+                },
+                {
+                  "question": "MASS determines optimal expert count by detecting when:",
+                  "options": [
+                    "Training loss reaches zero",
+                    "All experts have equal load",
+                    "Adding new experts stops causing existing experts to reorganize (semantic drift → 0)",
+                    "The model achieves 100% accuracy on a validation set"
+                  ],
+                  "correctIndex": 2,
+                  "explanation": "MASS monitors semantic drift — how much existing expert specializations change when a new expert is added. When drift approaches zero, the current set of experts is sufficient to capture the primitive structure, analogous to finding irreducible atoms."
+                }
+              ]
+            }
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "Key Takeaways"
+        },
+        "children": [
+          {
+            "type": "Callout",
+            "props": {
+              "type": "summary"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "1. MoE routing is structurally identical to Schankian operator selection — both dispatch inputs to specialized transformers via a learned classifier."
+              },
+              {
+                "type": "p",
+                "children": "2. Constraining expert count to ~14 could test whether events naturally organize around Schank's primitives."
+              },
+              {
+                "type": "p",
+                "children": "3. Top-K routing provides a natural mechanism for operator composition in complex events."
+              },
+              {
+                "type": "p",
+                "children": "4. This reframing lets us leverage existing MoE infrastructure (GPT-4, Mixtral, Switch Transformer) rather than building custom architectures."
+              },
+              {
+                "type": "p",
+                "children": "5. MASS-style semantic drift detection could automatically discover the true number of semantic primitives."
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}

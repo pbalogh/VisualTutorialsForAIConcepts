@@ -126,6 +126,18 @@ function CreateTutorialModal({ isOpen, onClose }) {
 
 const tutorials = [
   {
+    id: 'brainstorm-62-moe-routing-operators',
+    title: 'Operators as Semantic Expert Modules',
+    description: 'How Mixture-of-Experts routing is structurally identical to Schankian primitive selection — constrain experts to ~14 and rediscover semantic primitives.',
+    tags: ['MoE', 'operators', 'Schank', 'routing', 'architecture'],
+    icon: '🎯',
+    gradient: 'from-rose-500 to-orange-600',
+    shadowColor: 'shadow-rose-500/30',
+    glowColor: 'rgba(244, 63, 94, 0.4)',
+    readTime: '25 min',
+    difficulty: 3,
+  },
+  {
     id: 'functional-information',
     title: 'Functional Information: Measuring Complexity That Matters',
     description: 'From combination locks to neural networks — why the universe keeps getting more interesting. Ladders from ELI5 to graduate-level FI theory.',
