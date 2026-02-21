@@ -860,6 +860,72 @@
                 "children": "Companion paper (arXiv:2512.10858) scales uniform diffusion to 10B parameters, confirming these models are viable at scale. Uniform diffusion is also more data-efficient (more params, less data), relevant for prototype development."
               }
             ]
+          },
+          {
+            "type": "DeepDive",
+            "title": "[Feb 21] CaDDi: Non-Markovian Discrete Diffusion with Causal LM Weights (NeurIPS 2025)",
+            "children": [
+              {
+                "type": "p",
+                "children": [
+                  {
+                    "type": "strong",
+                    "children": [
+                      "Paper:"
+                    ]
+                  },
+                  " 'Non-Markovian Discrete Diffusion with Causal Language Models' (NeurIPS 2025 poster)"
+                ]
+              },
+              {
+                "type": "p",
+                "children": [
+                  {
+                    "type": "strong",
+                    "children": [
+                      "Key idea:"
+                    ]
+                  },
+                  " CaDDi lifts the Markov constraint from discrete diffusion by conditioning on the entire generative trajectory, not just the current noised state. It unifies causal (sequential) and temporal (diffusion) reasoning in a single transformer, treating standard causal LMs as a special case. Crucially, it can directly reuse pretrained LLM weights with no architectural changes."
+                ]
+              },
+              {
+                "type": "p",
+                "children": [
+                  {
+                    "type": "strong",
+                    "children": [
+                      "Relevance to Idea 1 (Structured Latent Spaces):"
+                    ]
+                  },
+                  " \u2b50\u2b50 CaDDi's trajectory conditioning means the model has access to the full history of denoising states \u2014 a richer 'latent' context than single-step Markov models. If SAE features were extracted at each step, the non-Markovian framework could condition on the evolution of feature activations across the trajectory, potentially enabling more coherent structured generation."
+                ]
+              },
+              {
+                "type": "p",
+                "children": [
+                  {
+                    "type": "strong",
+                    "children": [
+                      "Relevance to Idea 4 (Dictionary-Guided Denoising):"
+                    ]
+                  },
+                  " \u2b50\u2b50 The trajectory-aware architecture is a natural fit for dictionary-guided denoising: at each step, SAE projections from all previous steps are visible, letting the model learn which feature corrections were effective and adjust accordingly. This could make iterative SAE projection more stable."
+                ]
+              },
+              {
+                "type": "p",
+                "children": [
+                  {
+                    "type": "strong",
+                    "children": [
+                      "Practical note:"
+                    ]
+                  },
+                  " The ability to reuse pretrained AR LLM weights is significant \u2014 it means SAEs already trained on those LLMs could potentially transfer directly to the CaDDi diffusion process."
+                ]
+              }
+            ]
           }
         ]
       },
