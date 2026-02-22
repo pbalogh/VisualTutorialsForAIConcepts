@@ -126,6 +126,18 @@ function CreateTutorialModal({ isOpen, onClose }) {
 
 const tutorials = [
   {
+    id: 'brainstorm-66-thought-gestalts',
+    title: 'Thought Gestalts — Sentence-Level Operators',
+    description: 'How two-level transformers with thought states provide the perfect architecture for Schankian operators — plus the fractal three-level operator hierarchy.',
+    tags: ['thought gestalts', 'operators', 'Schank', 'architecture', 'working memory'],
+    icon: '🧠',
+    gradient: 'from-violet-500 to-fuchsia-600',
+    shadowColor: 'shadow-violet-500/30',
+    glowColor: 'rgba(139, 92, 246, 0.4)',
+    readTime: '25 min',
+    difficulty: 3,
+  },
+  {
     id: 'brainstorm-62-moe-routing-operators',
     title: 'Operators as Semantic Expert Modules',
     description: 'How Mixture-of-Experts routing is structurally identical to Schankian primitive selection — constrain experts to ~14 and rediscover semantic primitives.',

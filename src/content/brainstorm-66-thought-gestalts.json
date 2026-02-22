@@ -1,0 +1,460 @@
+{
+  "id": "brainstorm-66-thought-gestalts",
+  "title": "Thought Gestalts — Operators as Sentence-Level State Transformations",
+  "subtitle": "How two-level transformers with 'thought states' provide the perfect architecture for Schankian operators",
+  "readTime": "25 min",
+  "state": {},
+  "content": {
+    "type": "Fragment",
+    "children": [
+      {
+        "type": "Callout",
+        "props": { "type": "info" },
+        "children": "This tutorial explores the Thought Gestalt model — a two-level transformer architecture that naturally implements Schankian operators by maintaining sentence-level 'thought states' in working memory. We connect this to sub-token compositional structure and the macro/meso/micro operator hierarchy."
+      },
+      {
+        "type": "Section",
+        "props": { "title": "1. The Problem: Tokens Are Too Small" },
+        "children": [
+          {
+            "type": "p",
+            "children": "Standard transformers process text token-by-token. But meaning doesn't live at the token level — it lives at the event level. 'John gave Mary the book' is one semantic event, but it's 6 tokens. The transformer must somehow reconstruct the event from scattered token representations."
+          },
+          {
+            "type": "p",
+            "children": "This is like trying to understand a movie by looking at individual pixels. You need to aggregate pixels into objects, objects into scenes, scenes into plot points. Transformers skip these intermediate levels."
+          },
+          {
+            "type": "Analogy",
+            "props": {
+              "title": "The Orchestra Analogy",
+              "source": "Orchestra Performance",
+              "target": "Language Processing"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "Imagine listening to an orchestra. Individual notes (tokens) combine into phrases (clauses), phrases into movements (sentences/events), and movements into the full symphony (narrative). A standard transformer is like a music critic who can only hear one note at a time and must reconstruct the symphony from memory. The Thought Gestalt model adds a 'conductor' level that tracks entire phrases as coherent units."
+              }
+            ]
+          },
+          {
+            "type": "DeepDive",
+            "props": {
+              "title": "Why can't attention alone solve this?",
+              "id": "why-attention-fails"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "Attention CAN look at all tokens simultaneously, but it has no explicit mechanism for grouping tokens into events. The event structure must emerge implicitly from attention patterns. This works surprisingly well (transformers are powerful!) but it's inefficient — the model wastes parameters rediscovering event boundaries that linguistic structure already provides."
+              },
+              {
+                "type": "p",
+                "children": "Evidence: the Thought Gestalt model achieves 33-42% parameter efficiency gains by operating at the event level. This suggests standard transformers are spending roughly a third of their capacity just on event aggregation."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "2. The Thought Gestalt Architecture" },
+        "children": [
+          {
+            "type": "p",
+            "children": "The Thought Gestalt model (Borazjanizadeh et al., December 2025) introduces a two-level transformer:"
+          },
+          {
+            "type": "DefinitionList",
+            "props": {
+              "items": [
+                {
+                  "term": "Level 1: Token Processor",
+                  "definition": "A standard transformer that processes tokens within a sentence/clause, producing contextualized token embeddings."
+                },
+                {
+                  "term": "Level 2: Thought State Memory",
+                  "definition": "A higher-level transformer that maintains sentence-level 'thought states' in a working memory buffer. Each thought state summarizes an entire event."
+                },
+                {
+                  "term": "Bidirectional Flow",
+                  "definition": "Token processing informs thought states (bottom-up aggregation), and thought states influence token processing (top-down context). This creates a feedback loop."
+                }
+              ]
+            }
+          },
+          {
+            "type": "Callout",
+            "props": { "type": "key-insight" },
+            "children": "The key insight: thought states ARE entity state vectors. Working memory IS the world model. This is exactly what Schankian operators need — a place to store the current state of entities and a mechanism to transform those states when events occur."
+          },
+          {
+            "type": "InteractiveDemo",
+            "props": {
+              "title": "Two-Level Processing Visualization",
+              "id": "two-level-viz",
+              "height": 420,
+              "initialCode": "// Simulating the two-level architecture\nconst sentence = 'John gave Mary the book';\nconst tokens = sentence.split(' ');\n\n// Level 1: Token processing\nconst tokenEmbeddings = tokens.map((t, i) => ({\n  token: t,\n  // Simplified: position encoding\n  embedding: [Math.cos(i * 0.5), Math.sin(i * 0.5), Math.random() * 0.3]\n}));\n\n// Level 2: Thought state aggregation\nconst thoughtState = {\n  event: 'ATRANS',\n  agent: 'John',\n  patient: 'book',\n  source: 'John',\n  destination: 'Mary',\n  stateChanges: {\n    John: { possession: -1 },\n    Mary: { possession: +1 },\n    book: { custodian: 'John → Mary' }\n  }\n};\n\nreturn (\n  <div style={{fontFamily: 'monospace', padding: 16}}>\n    <div style={{marginBottom: 16}}>\n      <strong>Level 1 — Token Embeddings:</strong>\n      <div style={{display: 'flex', gap: 8, marginTop: 8, flexWrap: 'wrap'}}>\n        {tokenEmbeddings.map((t, i) => (\n          <div key={i} style={{\n            background: `hsl(${i * 60}, 70%, 85%)`,\n            padding: '8px 12px', borderRadius: 8, fontSize: 13\n          }}>\n            <div style={{fontWeight: 'bold'}}>{t.token}</div>\n            <div style={{fontSize: 10, opacity: 0.7}}>\n              [{t.embedding.map(v => v.toFixed(2)).join(', ')}]\n            </div>\n          </div>\n        ))}\n      </div>\n    </div>\n    <div style={{fontSize: 24, textAlign: 'center'}}>⬇️ aggregate ⬇️</div>\n    <div style={{background: '#1a1a2e', color: '#e0e0ff', padding: 16, borderRadius: 12, marginTop: 8}}>\n      <strong>Level 2 — Thought State:</strong>\n      <div style={{marginTop: 8}}>\n        <div>Operator: <span style={{color: '#ffd700', fontWeight: 'bold'}}>{thoughtState.event}</span></div>\n        <div>Agent: {thoughtState.agent} | Patient: {thoughtState.patient}</div>\n        <div>Source: {thoughtState.source} → Dest: {thoughtState.destination}</div>\n        <div style={{marginTop: 8, borderTop: '1px solid #333', paddingTop: 8}}>\n          <strong>State Changes:</strong>\n          {Object.entries(thoughtState.stateChanges).map(([entity, changes]) => (\n            <div key={entity} style={{marginLeft: 16}}>\n              {entity}: {JSON.stringify(changes)}\n            </div>\n          ))}\n        </div>\n      </div>\n    </div>\n  </div>\n);"
+            }
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "3. Why This Matters for Operators" },
+        "children": [
+          {
+            "type": "p",
+            "children": "The connection to Schankian operators is profound. Standard transformers entangle event semantics across token positions. The Thought Gestalt model provides an explicit level where operators can live and act:"
+          },
+          {
+            "type": "Example",
+            "props": {
+              "title": "Operator Application in Thought Space",
+              "id": "operator-in-thought-space"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "Consider the narrative: 'The thief snatched the purse. The woman screamed.'"
+              },
+              {
+                "type": "p",
+                "children": "In standard transformers, these are just token sequences. In the Thought Gestalt model:"
+              },
+              {
+                "type": "ol",
+                "children": [
+                  { "type": "li", "children": "Sentence 1 produces thought state T₁ encoding ATRANS(thief, purse, woman→thief)" },
+                  { "type": "li", "children": "The operator transforms entity states: thief.possession += purse, woman.possession -= purse" },
+                  { "type": "li", "children": "Sentence 2 produces thought state T₂ encoding EXPEL(woman, scream) — an emotional reaction" },
+                  { "type": "li", "children": "T₂ is CAUSALLY linked to T₁ via the working memory — the model can see that T₁'s state changes motivated T₂" }
+                ]
+              },
+              {
+                "type": "Callout",
+                "props": { "type": "key-insight" },
+                "children": "The working memory buffer acts as a world model, and operators are the transition functions between thought states. This is exactly the architecture we've been looking for."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "4. The Three-Level Hierarchy" },
+        "children": [
+          {
+            "type": "p",
+            "children": "A second paper — 'Breaking Token Into Concepts' (EMNLP 2025) — reveals compositional structure BELOW the token level via product quantization. Combined with thought states ABOVE the token level, we get a three-level hierarchy:"
+          },
+          {
+            "type": "DefinitionList",
+            "props": {
+              "items": [
+                {
+                  "term": "Micro: Sub-Token Concepts",
+                  "definition": "Morphemes and semantic features within tokens. 'Un-break-able' has three concept units. Product quantization reveals these as discrete semantic atoms."
+                },
+                {
+                  "term": "Meso: Token-Level Processing",
+                  "definition": "Standard transformer attention over tokens. This is where current LLMs operate. Contextualizes tokens within sentences."
+                },
+                {
+                  "term": "Macro: Thought States (Operators)",
+                  "definition": "Sentence/event-level representations in working memory. Schankian operators live here — transforming entity states at the event granularity."
+                }
+              ]
+            }
+          },
+          {
+            "type": "InteractiveDemo",
+            "props": {
+              "title": "Three-Level Hierarchy Explorer",
+              "id": "three-level-hierarchy",
+              "height": 380,
+              "initialCode": "const levels = [\n  {\n    name: 'MACRO — Thought States',\n    color: '#ffd700',\n    bg: '#2d2200',\n    items: ['ATRANS(thief, purse, woman→thief)', 'EXPEL(woman, scream)'],\n    desc: 'Event-level operators transform entity states'\n  },\n  {\n    name: 'MESO — Token Processing',\n    color: '#00bfff',\n    bg: '#002233',\n    items: ['The', 'thief', 'snatched', 'the', 'purse'],\n    desc: 'Standard attention contextualizes tokens'\n  },\n  {\n    name: 'MICRO — Sub-Token Concepts',\n    color: '#ff69b4',\n    bg: '#330022',\n    items: ['snatch', '-ed', 'purse', 'thief'],\n    desc: 'Morphemes & semantic features via product quantization'\n  }\n];\n\nreturn (\n  <div style={{fontFamily: 'sans-serif', padding: 12}}>\n    {levels.map((level, i) => (\n      <div key={i} style={{\n        background: level.bg, border: `2px solid ${level.color}`,\n        borderRadius: 12, padding: 14, marginBottom: 10\n      }}>\n        <div style={{color: level.color, fontWeight: 'bold', fontSize: 15, marginBottom: 6}}>\n          {level.name}\n        </div>\n        <div style={{color: '#ccc', fontSize: 12, marginBottom: 8}}>{level.desc}</div>\n        <div style={{display: 'flex', gap: 6, flexWrap: 'wrap'}}>\n          {level.items.map((item, j) => (\n            <span key={j} style={{\n              background: level.color + '22', color: level.color,\n              padding: '4px 10px', borderRadius: 6, fontSize: 12,\n              border: `1px solid ${level.color}44`\n            }}>{item}</span>\n          ))}\n        </div>\n      </div>\n    ))}\n    <div style={{textAlign: 'center', color: '#888', fontSize: 12, marginTop: 4}}>\n      ↕ Information flows bidirectionally between all three levels\n    </div>\n  </div>\n);"
+            }
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "5. Parameter Efficiency: The Proof Is in the Numbers" },
+        "children": [
+          {
+            "type": "p",
+            "children": "The Thought Gestalt model achieves 33-42% parameter efficiency gains over standard transformers on language modeling tasks. Why? Because it doesn't waste parameters reconstructing event structure that's already present in language."
+          },
+          {
+            "type": "Example",
+            "props": {
+              "title": "Where Parameters Go in Standard vs. Thought Gestalt Models",
+              "id": "parameter-efficiency"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "In a standard transformer with N parameters:"
+              },
+              {
+                "type": "ul",
+                "children": [
+                  { "type": "li", "children": "~33% of capacity goes to implicitly learning event boundaries and aggregation" },
+                  { "type": "li", "children": "~33% goes to maintaining entity state across token positions" },
+                  { "type": "li", "children": "~33% goes to actual semantic reasoning" }
+                ]
+              },
+              {
+                "type": "p",
+                "children": "The Thought Gestalt model handles the first two explicitly via architecture, freeing all parameters for semantic reasoning. This is the same insight behind our operator proposal: make event structure explicit rather than forcing the model to discover it."
+              }
+            ]
+          },
+          {
+            "type": "Callout",
+            "props": { "type": "warning" },
+            "children": "These efficiency numbers are approximate — the actual division of labor in standard transformers isn't cleanly separable. But the 33-42% efficiency gain suggests that roughly a third of standard transformer capacity is spent on event-level bookkeeping."
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "6. Connecting to Our Operator Framework" },
+        "children": [
+          {
+            "type": "p",
+            "children": "Here's how the Thought Gestalt architecture maps to our Schankian operator framework:"
+          },
+          {
+            "type": "DefinitionList",
+            "props": {
+              "items": [
+                {
+                  "term": "Thought States = Entity State Vectors",
+                  "definition": "Each thought state in working memory can represent the current state of an entity (its properties, relationships, location, possession, etc.)."
+                },
+                {
+                  "term": "Working Memory = World Model",
+                  "definition": "The collection of thought states IS the world model — a representation of all entity states at the current narrative point."
+                },
+                {
+                  "term": "Sentence Processing = Operator Selection + Application",
+                  "definition": "Processing a new sentence selects an operator (from the sentence content) and applies it to relevant thought states (transforming entity states)."
+                },
+                {
+                  "term": "Top-Down Flow = Expectation/Prediction",
+                  "definition": "The world model generates expectations that guide token-level processing — just like Schank's scripts predict upcoming events."
+                }
+              ]
+            }
+          },
+          {
+            "type": "DeepDive",
+            "props": {
+              "title": "How does this relate to the Successor Representation (Brainstorm #61)?",
+              "id": "sr-connection"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "The successor representation encodes 'from this state, what follows?' — exactly what working memory should predict. Thought states provide the state space, operators provide the transition matrix T, and the SR M = (I - γT)⁻¹ provides the predictive map. The Thought Gestalt architecture gives us the computational substrate where this SR can live and be updated."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "7. Sub-Token Structure: Breaking Tokens Into Concepts" },
+        "children": [
+          {
+            "type": "p",
+            "children": "The 'Breaking Token Into Concepts' paper (EMNLP 2025) discovered that token embeddings have internal compositional structure. Using product quantization, they decompose single token vectors into multiple discrete 'concept' units."
+          },
+          {
+            "type": "Example",
+            "props": {
+              "title": "Sub-Token Decomposition",
+              "id": "sub-token-example"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "The token 'unbreakable' decomposes into:"
+              },
+              {
+                "type": "ul",
+                "children": [
+                  { "type": "li", "children": "Concept 1: negation/reversal (the 'un-' prefix)" },
+                  { "type": "li", "children": "Concept 2: physical integrity (the 'break' root)" },
+                  { "type": "li", "children": "Concept 3: possibility/capability (the '-able' suffix)" }
+                ]
+              },
+              {
+                "type": "p",
+                "children": "These sub-token concepts are micro-operators! 'Un-' is a negation operator, '-able' is a modality operator. They compose to form token meaning just as operators compose to form event meaning."
+              }
+            ]
+          },
+          {
+            "type": "Callout",
+            "props": { "type": "key-insight" },
+            "children": "The three-level hierarchy (sub-token → token → thought state) mirrors the operator hierarchy: micro-operators (morpheme-level features) → meso-operators (token-level composition) → macro-operators (event-level state transformations). Operators are fractal — the same compositional principle at every scale."
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "8. Implementation Implications" },
+        "children": [
+          {
+            "type": "p",
+            "children": "What would it take to actually build a Schankian operator system on top of the Thought Gestalt architecture?"
+          },
+          {
+            "type": "ol",
+            "children": [
+              { "type": "li", "children": "Use the Thought Gestalt two-level transformer as the backbone" },
+              { "type": "li", "children": "Constrain the thought-state transition function to use K ≈ 14 primitive operators (like the MoE approach from Brainstorm #62)" },
+              { "type": "li", "children": "Train the token-level processor to select operators and identify entity roles" },
+              { "type": "li", "children": "Train the thought-level processor to apply operators to entity state vectors" },
+              { "type": "li", "children": "Use the information bottleneck (Brainstorm #39) between token and thought levels to ensure operators are truly primitive" }
+            ]
+          },
+          {
+            "type": "InteractiveDemo",
+            "props": {
+              "title": "Operator Pipeline Simulator",
+              "id": "operator-pipeline",
+              "height": 450,
+              "initialCode": "const [step, setStep] = React.useState(0);\nconst narrative = [\n  { text: 'The chef chopped the onion.', op: 'SEPARATE', agent: 'chef', patient: 'onion', stateChange: 'onion: whole → pieces' },\n  { text: 'She tossed them into the pan.', op: 'PTRANS', agent: 'chef', patient: 'onion pieces', stateChange: 'onion: counter → pan' },\n  { text: 'The oil sizzled loudly.', op: 'EXPEL', agent: 'oil', patient: 'sound', stateChange: 'oil: hot + disturbed' },\n  { text: 'She seasoned the dish.', op: 'ATRANS', agent: 'chef', patient: 'seasoning', stateChange: 'dish: unseasoned → seasoned' }\n];\n\nconst worldState = {};\nnarrative.slice(0, step + 1).forEach(n => { worldState[n.patient] = n.stateChange; });\n\nreturn (\n  <div style={{fontFamily: 'sans-serif', padding: 12}}>\n    <div style={{display: 'flex', gap: 6, marginBottom: 16, flexWrap: 'wrap'}}>\n      {narrative.map((n, i) => (\n        <button key={i} onClick={() => setStep(i)} style={{\n          padding: '6px 12px', borderRadius: 8, fontSize: 12, cursor: 'pointer',\n          background: i === step ? '#ffd700' : i < step ? '#333' : '#1a1a1a',\n          color: i === step ? '#000' : '#888',\n          border: i === step ? '2px solid #ffd700' : '1px solid #444'\n        }}>Step {i + 1}</button>\n      ))}\n    </div>\n    <div style={{background: '#1a1a2e', padding: 16, borderRadius: 12, marginBottom: 12}}>\n      <div style={{color: '#aaa', fontSize: 11, marginBottom: 4}}>CURRENT SENTENCE:</div>\n      <div style={{color: '#fff', fontSize: 16, marginBottom: 12}}>\"{narrative[step].text}\"</div>\n      <div style={{display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12}}>\n        <div>\n          <div style={{color: '#ffd700', fontSize: 12, fontWeight: 'bold'}}>OPERATOR</div>\n          <div style={{color: '#ffd700', fontSize: 20}}>{narrative[step].op}</div>\n        </div>\n        <div>\n          <div style={{color: '#00bfff', fontSize: 12, fontWeight: 'bold'}}>ROLES</div>\n          <div style={{color: '#00bfff', fontSize: 13}}>Agent: {narrative[step].agent}</div>\n          <div style={{color: '#00bfff', fontSize: 13}}>Patient: {narrative[step].patient}</div>\n        </div>\n      </div>\n    </div>\n    <div style={{background: '#0a1a0a', border: '1px solid #2a4a2a', padding: 14, borderRadius: 12}}>\n      <div style={{color: '#4CAF50', fontSize: 12, fontWeight: 'bold', marginBottom: 8}}>🌍 WORLD STATE (Working Memory)</div>\n      {Object.entries(worldState).map(([entity, state]) => (\n        <div key={entity} style={{color: '#8BC34A', fontSize: 13, marginBottom: 4}}>\n          <strong>{entity}:</strong> {state}\n        </div>\n      ))}\n    </div>\n  </div>\n);"
+            }
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "9. Quiz: Test Your Understanding" },
+        "children": [
+          {
+            "type": "Quiz",
+            "props": {
+              "id": "thought-gestalt-quiz",
+              "questions": [
+                {
+                  "question": "What is the main architectural innovation of the Thought Gestalt model?",
+                  "options": [
+                    "Larger attention windows",
+                    "A two-level transformer with sentence-level 'thought states' in working memory",
+                    "More transformer layers",
+                    "Better tokenization"
+                  ],
+                  "correctIndex": 1,
+                  "explanation": "The Thought Gestalt model adds a second transformer level that operates on sentence/event-level representations (thought states) maintained in a working memory buffer, rather than processing everything at the token level."
+                },
+                {
+                  "question": "In the three-level hierarchy, where do Schankian operators primarily live?",
+                  "options": [
+                    "Micro level (sub-token concepts)",
+                    "Meso level (token processing)",
+                    "Macro level (thought states)",
+                    "They exist equally at all levels"
+                  ],
+                  "correctIndex": 2,
+                  "explanation": "Schankian operators are macro-level constructs — they transform entity states at the event/sentence granularity. However, micro-operators (like negation morphemes) and meso-level processing support them."
+                },
+                {
+                  "question": "Why does the Thought Gestalt model achieve 33-42% parameter efficiency gains?",
+                  "options": [
+                    "It uses fewer layers",
+                    "It avoids attention entirely",
+                    "It makes event structure explicit rather than forcing implicit discovery",
+                    "It uses a smaller vocabulary"
+                  ],
+                  "correctIndex": 2,
+                  "explanation": "Standard transformers waste significant capacity implicitly learning event boundaries and maintaining entity states across tokens. By making this structure architecturally explicit, those parameters are freed for semantic reasoning."
+                },
+                {
+                  "question": "How does 'Breaking Token Into Concepts' (EMNLP 2025) relate to the operator hierarchy?",
+                  "options": [
+                    "It replaces operators entirely",
+                    "It reveals sub-token compositional structure — micro-operators below the token level",
+                    "It shows tokens are already optimal units",
+                    "It's unrelated to operators"
+                  ],
+                  "correctIndex": 1,
+                  "explanation": "Product quantization reveals that tokens have internal compositional structure (morpheme-level concepts). These are micro-operators — the same compositional principle operating at a finer scale than Schankian event-level operators."
+                },
+                {
+                  "question": "What role does working memory play in the operator framework?",
+                  "options": [
+                    "It stores raw token embeddings",
+                    "It acts as the world model — storing entity states that operators transform",
+                    "It caches attention weights",
+                    "It holds the loss function"
+                  ],
+                  "correctIndex": 1,
+                  "explanation": "Working memory in the Thought Gestalt model IS the world model — it maintains the current state of all tracked entities, and operators (triggered by new sentences) transform those states."
+                }
+              ]
+            }
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "10. Key Takeaways" },
+        "children": [
+          {
+            "type": "Callout",
+            "props": { "type": "key-insight" },
+            "children": "The Thought Gestalt model provides the missing architectural piece for Schankian operators: an explicit level for event-level state transformations, maintained in a working memory that serves as the world model. Combined with sub-token compositional structure, we get a fractal three-level operator hierarchy — the same compositional principle from morphemes to events."
+          },
+          {
+            "type": "DefinitionList",
+            "props": {
+              "items": [
+                {
+                  "term": "Key Paper 1",
+                  "definition": "Borazjanizadeh et al. (Dec 2025) — Thought Gestalt: two-level transformer with sentence-level working memory, 33-42% parameter efficiency."
+                },
+                {
+                  "term": "Key Paper 2",
+                  "definition": "Breaking Token Into Concepts (EMNLP 2025) — Sub-token compositional structure via product quantization."
+                },
+                {
+                  "term": "Key Paper 3",
+                  "definition": "Xue et al. (2025) — Multi-Scale Representations for Neural Sequence Models, showing benefits of hierarchical processing."
+                }
+              ]
+            }
+          },
+          {
+            "type": "DeepDive",
+            "props": {
+              "title": "What's next? How to build on this.",
+              "id": "next-steps"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "The natural next step is to implement a constrained Thought Gestalt model where the thought-state transitions are limited to K primitive operators. This connects to:"
+              },
+              {
+                "type": "ul",
+                "children": [
+                  { "type": "li", "children": "Brainstorm #62 (MoE routing as operator selection)" },
+                  { "type": "li", "children": "Brainstorm #39 (Information Bottleneck between token and thought levels)" },
+                  { "type": "li", "children": "Brainstorm #61 (Successor Representation over thought states)" },
+                  { "type": "li", "children": "Brainstorm #55 (Full rotation matrices as the operator transformation)" }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}
