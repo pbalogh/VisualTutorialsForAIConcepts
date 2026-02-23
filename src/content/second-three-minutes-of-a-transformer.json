@@ -133,7 +133,53 @@
               },
               {
                 "type": "p",
-                "children": "The Query is what a token is looking for. The Key is what a token advertises about itself. The Value is the actual information a token carries. When a Query matches a Key, the corresponding Value gets pulled in."
+                "children": [
+                  "The Query is what a token is looking for",
+                  {
+                    "type": "FootnoteRef",
+                    "props": {
+                      "id": "source-ann-1771876565993-os5uhp",
+                      "targetId": "ann-1771876565993-os5uhp",
+                      "type": "ask"
+                    }
+                  },
+                  ". The Key is what a token advertises about itself. The Value is the actual information a token carries. When a Query matches a Key, the corresponding Value gets pulled in."
+                ]
+              },
+              {
+                "type": "Sidebar",
+                "props": {
+                  "type": "note",
+                  "title": "Q: Conceptually, does this mean \"the kinds of things that this token would need to give it meaning\"? For example, \"threw\" would really benefit from knowing the subject (who did the throwing) and/or the direct object (what was thrown) or even the indirect object (who a thing was thrown at or to). Is this fair?",
+                  "expanded": true,
+                  "id": "ann-1771876565993-os5uhp",
+                  "sourceId": "source-ann-1771876565993-os5uhp"
+                },
+                "children": [
+                  {
+                    "type": "p",
+                    "children": "Yes, that's an excellent intuition and largely correct. When we say the Query is \"what a token is looking for,\" we mean exactly the kind of thing you're describing: the token \"threw\" generates a Query that essentially asks \"who did the throwing? what was thrown?\" It's learned, through training, that its meaning becomes much richer and more precise when it can pull in information from tokens filling those roles."
+                  },
+                  {
+                    "type": "p",
+                    "children": "Where it gets slightly more nuanced is that the Query isn't a conscious shopping list. It's a learned vector that happens to point in directions that align with the Keys of tokens that have historically been useful. So \"threw\" doesn't literally encode \"I need a subject and an object.\" Instead, its Query vector ends up being geometrically close to the Key vectors of agents and patients in throwing-sentences, because that proximity was what helped the model predict the next token during training. The result is the same as what you described, but the mechanism is pattern-matching in vector space rather than explicit grammatical reasoning."
+                  },
+                  {
+                    "type": "p",
+                    "children": "Your example is actually a great illustration of why attention is so powerful. A simpler model might only look at adjacent words, but \"threw\" might need to attend to a subject five words back or an object three words ahead. The Query-Key matching lets it reach across the whole sentence to find exactly the tokens that give it meaning, regardless of distance. So \"The excited child on the playground threw\" generates a Query from \"threw\" that strongly matches the Key of \"child\" even with several words in between, because \"child\" advertises itself as an agent-like noun, which is precisely what \"threw\" is looking for."
+                  },
+                  {
+                    "type": "p",
+                    "children": "One small refinement to your framing: it's not just about what a token \"needs\" for its own meaning, but what it needs to be useful for predicting what comes next. So \"threw\" is looking for its subject and object partly because knowing those things helps the model predict the rest of the sentence. The Query is shaped by utility for the task, which often aligns with linguistic structure in the way you described, but the driving force is prediction, not grammar."
+                  },
+                  {
+                    "type": "p",
+                    "props": {
+                      "className": "text-xs text-gray-400 mt-2"
+                    },
+                    "children": "Asked about \"what a token is looking for\" — 2/23/2026, 2:55:45 PM"
+                  }
+                ]
               },
               {
                 "type": "DeepDive",
