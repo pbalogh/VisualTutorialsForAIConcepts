@@ -126,6 +126,30 @@ function CreateTutorialModal({ isOpen, onClose }) {
 
 const tutorials = [
   {
+    id: 'first-three-minutes-of-a-transformer',
+    title: 'The First Three Minutes of a Transformer',
+    description: 'Everything that happens to raw text before Layer 1 — BPE tokenization, the embedding matrix, positional encoding, and the vector that enters GPT-2.',
+    tags: ['transformers', 'GPT-2', 'tokenization', 'BPE', 'embeddings', 'positional encoding', 'BERT'],
+    icon: '⏱️',
+    gradient: 'from-sky-500 to-blue-600',
+    shadowColor: 'shadow-sky-500/30',
+    glowColor: 'rgba(14, 165, 233, 0.4)',
+    readTime: '20 min',
+    difficulty: 1,
+  },
+  {
+    id: 'second-three-minutes-of-a-transformer',
+    title: 'The Second Three Minutes of a Transformer',
+    description: 'From Layer 1 to the next token — attention, the residual stream, MLPs, and how GPT-2 turns vectors into language. Sequel to The First Three Minutes.',
+    tags: ['transformers', 'GPT-2', 'attention', 'residual stream', 'MLP', 'BERT', 'softmax', 'unembedding'],
+    icon: '⏱️',
+    gradient: 'from-blue-500 to-indigo-600',
+    shadowColor: 'shadow-blue-500/30',
+    glowColor: 'rgba(59, 130, 246, 0.4)',
+    readTime: '25 min',
+    difficulty: 2,
+  },
+  {
     id: 'brainstorm-66-thought-gestalts',
     title: 'Thought Gestalts — Sentence-Level Operators',
     description: 'How two-level transformers with thought states provide the perfect architecture for Schankian operators — plus the fractal three-level operator hierarchy.',
