@@ -1,0 +1,1249 @@
+{
+  "type": "Fragment",
+  "meta": {
+    "title": "The Second Three Minutes of a Transformer",
+    "subtitle": "From Layer 1 to the next token — the inner life of GPT-2",
+    "description": "A deep dive into everything that happens INSIDE GPT-2's 12 transformer blocks — attention, residual streams, MLPs, and the journey from hidden states to the next predicted token.",
+    "author": "Peter Balogh",
+    "lastUpdated": "2026-02-23",
+    "tags": [
+      "transformers",
+      "GPT-2",
+      "attention",
+      "MLP",
+      "residual stream",
+      "softmax",
+      "language modeling",
+      "deep learning"
+    ]
+  },
+  "content": {
+    "type": "Fragment",
+    "children": [
+      {
+        "type": "Section",
+        "props": {
+          "title": "Prologue: Picking Up Where We Left Off"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "In \"The First Three Minutes of a Transformer,\" we followed raw text through GPT-2's preprocessing pipeline: characters became BPE tokens, tokens became integer IDs, IDs became 768-dimensional embedding vectors, and those vectors got stamped with positional information. We ended at the entrance to Layer 1 with a matrix of shape (seq_len × 768) — each row the sum of a token embedding and a position embedding."
+          },
+          {
+            "type": "p",
+            "children": "That matrix was a primordial plasma. Rich in potential, but lacking all the things we associate with \"understanding.\" The word \"bank\" didn't know whether it lived near a river or held money. The word \"it\" didn't know what it referred to. No token had any awareness of any other token. Each sat alone in its 768-dimensional coordinate, a point of light in an enormous dark space."
+          },
+          {
+            "type": "p",
+            "children": "Now the layers begin their work. And what happens next is one of the most elegant computational processes ever devised."
+          },
+          {
+            "type": "Callout",
+            "props": {
+              "type": "key-idea"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "We're continuing with GPT-2 small — the same model, the same real numbers: 768 dimensions, 12 layers, 12 attention heads (64 dimensions each), MLP inner dimension of 3,072, vocabulary of 50,257. Post-layer-norm architecture. Vanilla transformer decoder, circa February 2019."
+              }
+            ]
+          },
+          {
+            "type": "Section",
+            "props": {
+              "title": "The Residual Stream: A Highway Through the Network"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "Before we dive into the layers, we need to understand the single most important architectural idea in the transformer: the residual stream."
+              },
+              {
+                "type": "p",
+                "children": "Think of the (seq_len × 768) matrix as a highway. Each token has its own lane — a 768-dimensional vector flowing forward through the network. As this highway passes through each of GPT-2's 12 blocks, two things happen: the attention mechanism reads from the highway, computes something, and adds its result back. Then the MLP reads from the highway, computes something, and adds its result back. Reading and adding. Reading and adding. Twelve times."
+              },
+              {
+                "type": "Analogy",
+                "children": "Imagine a shared whiteboard in a meeting room. Twelve teams of experts file through the room, one at a time. Each team reads what's on the whiteboard, discusses among themselves, and then writes additional notes on the whiteboard — but they never erase anything. The original writing persists. Layer 5's notes sit alongside Layer 1's notes and the original text. By the end, the whiteboard is dense with annotations, cross-references, and insights — but the original signal is still there, underneath it all."
+              },
+              {
+                "type": "p",
+                "children": "This is the residual stream framework, popularized by Elhage et al. (2021). It's not a pipeline where each layer's output replaces the previous layer's output. It's a communication channel where every layer reads from and writes to the same shared state. Layer 10 can directly access what Layer 1 wrote — and also what the original embedding said."
+              },
+              {
+                "type": "p",
+                "children": "Now let's watch the first team of experts enter the room."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "Act I: Attention — The First Layer Sees Everything (That Came Before)"
+        },
+        "children": [
+          {
+            "type": "Section",
+            "props": {
+              "title": "1. The Fundamental Question"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "The attention mechanism answers a deceptively simple question: \"For each token, which other tokens should I pay attention to, and what should I take from them?\""
+              },
+              {
+                "type": "p",
+                "children": "Consider our running example: \"The cat sat on the mat.\" When GPT-2 processes the token \"sat,\" attention asks: should \"sat\" pay more attention to \"cat\" (its subject) or \"The\" (a mere article) or \"on\" (which hasn't been seen yet — more on that shortly)? And once it decides to attend to \"cat,\" what information should it extract?"
+              },
+              {
+                "type": "p",
+                "children": "This is the operation that finally introduces context. Before attention, every token was an island. After attention, \"bank\" will know about \"river.\" After attention, \"sat\" will know about \"cat.\" The isolation ends here."
+              },
+              {
+                "type": "Analogy",
+                "children": "Imagine you're at a party and someone says the word \"Python.\" To understand what they mean, you look around the room for context. Are you at a tech conference? They probably mean the programming language. A biology seminar? The snake. A comedy festival? Monty Python. Attention is this act of looking around — scanning the other tokens in the sequence and pulling in the contextual clues that disambiguate meaning."
+              }
+            ]
+          },
+          {
+            "type": "Section",
+            "props": {
+              "title": "2. Q, K, V: Three Projections of the Same Vector"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "Here is where the machinery gets specific. Each token's 768-dimensional vector gets transformed three different ways, simultaneously, by three different learned weight matrices. These produce three new vectors for each token: a Query, a Key, and a Value."
+              },
+              {
+                "type": "Code",
+                "props": {
+                  "language": "text"
+                },
+                "children": "For each token vector x (768-dimensional):\n\n  q = x @ W_Q    # Query:  \"What am I looking for?\"\n  k = x @ W_K    # Key:    \"What do I have to offer?\"\n  v = x @ W_V    # Value:  \"What information do I carry?\"\n\nW_Q, W_K, W_V are each 768 × 768 learned weight matrices.\nEach produces a 768-dimensional output vector."
+              },
+              {
+                "type": "Analogy",
+                "children": "Think of a library. Every book has three aspects: (1) what it's searching for — the bibliography at the back, the references it cites (Query), (2) what it advertises on its spine and cover — the keywords and subject headings that help others find it (Key), and (3) the actual content inside — the knowledge it contains (Value). When book A's bibliography (Query) matches book B's subject heading (Key), book A will \"attend to\" book B and absorb some of its content (Value)."
+              },
+              {
+                "type": "p",
+                "children": "The Query is what a token is looking for. The Key is what a token advertises about itself. The Value is the actual information a token carries. When a Query matches a Key, the corresponding Value gets pulled in."
+              },
+              {
+                "type": "DeepDive",
+                "props": {
+                  "title": "The Parameter Cost of Q, K, V"
+                },
+                "children": [
+                  {
+                    "type": "p",
+                    "children": "Each of the three projection matrices (W_Q, W_K, W_V) has 768 × 768 = 589,824 parameters. That's 1,769,472 parameters just for these three matrices in one layer. Add bias terms (768 each, so 2,304 total) and we're at about 1.77 million parameters — and we haven't even done the attention computation yet."
+                  },
+                  {
+                    "type": "p",
+                    "children": "In GPT-2's actual implementation, these three matrices are often stored as a single combined matrix of shape 768 × 2304 (= 768 × 3 × 768) and the output is split three ways. This is computationally equivalent but more efficient on GPUs."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "Section",
+            "props": {
+              "title": "3. Multi-Head Attention: Twelve Perspectives at Once"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "GPT-2 doesn't compute attention once. It computes it twelve times in parallel — twelve \"heads,\" each with its own perspective on the sequence."
+              },
+              {
+                "type": "p",
+                "children": "Here's how: the 768-dimensional Q, K, and V vectors are each split into 12 chunks of 64 dimensions. Each chunk goes to a different attention head. Head 0 gets dimensions 0–63. Head 1 gets dimensions 64–127. And so on through Head 11 (dimensions 704–767)."
+              },
+              {
+                "type": "Code",
+                "props": {
+                  "language": "text"
+                },
+                "children": "Full Q vector (768d): [q_0, q_1, ..., q_767]\n\nSplit into 12 heads of 64d each:\n  Head 0:  [q_0,   q_1,   ..., q_63  ]  (64d)\n  Head 1:  [q_64,  q_65,  ..., q_127 ]  (64d)\n  Head 2:  [q_128, q_129, ..., q_191 ]  (64d)\n  ...\n  Head 11: [q_704, q_705, ..., q_767 ]  (64d)\n\nSame split happens to K and V.\nEach head operates independently in its own 64d subspace."
+              },
+              {
+                "type": "p",
+                "children": "Why twelve heads instead of one? Because language has many simultaneous kinds of relationships. One head might learn to attend to the syntactic subject (\"who did the action?\"). Another might attend to the most recent noun. Another might always look at the previous token. Another might track long-range dependencies. By having twelve independent attention patterns, GPT-2 can capture twelve different kinds of relationships simultaneously."
+              },
+              {
+                "type": "Example",
+                "props": {
+                  "title": "What Different Heads Learn (Observed in Practice)"
+                },
+                "children": [
+                  {
+                    "type": "p",
+                    "children": "Researchers have studied what attention heads actually learn. Some patterns observed in GPT-2:"
+                  },
+                  {
+                    "type": "ul",
+                    "children": [
+                      {
+                        "type": "li",
+                        "children": "Positional heads: attend to the token at a fixed offset (e.g., always attend to the previous token, or the token two positions back)"
+                      },
+                      {
+                        "type": "li",
+                        "children": "Syntactic heads: attend from a verb to its subject, or from a pronoun to its antecedent"
+                      },
+                      {
+                        "type": "li",
+                        "children": "Induction heads: detect and continue repeated patterns (if \"AB\" appeared before, and \"A\" appears again, attend to the \"B\" that followed)"
+                      },
+                      {
+                        "type": "li",
+                        "children": "Rare token heads: attend disproportionately to unusual or information-rich tokens"
+                      }
+                    ]
+                  },
+                  {
+                    "type": "p",
+                    "children": "No one programmed these patterns. They emerged from training on next-token prediction over millions of web pages. The model discovered that these attention patterns were useful for predicting what comes next."
+                  }
+                ]
+              },
+              {
+                "type": "Callout",
+                "props": {
+                  "type": "info"
+                },
+                "children": [
+                  {
+                    "type": "p",
+                    "children": "12 heads × 64 dimensions per head = 768 total dimensions. This isn't a coincidence — multi-head attention partitions the full embedding space. Each head works in a smaller subspace, then the results are reassembled. The total computation is roughly the same as single-head attention over 768 dimensions, but the model gets twelve different attention patterns instead of one."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "Section",
+            "props": {
+              "title": "4. The Attention Score Computation"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "Now we compute the actual attention. Inside each head, every token's Query asks: \"How relevant is every other token's Key to me?\" The answer is a dot product."
+              },
+              {
+                "type": "Code",
+                "props": {
+                  "language": "text"
+                },
+                "children": "For one attention head (working in 64 dimensions):\n\n  Q: (seq_len × 64)  — one 64d query per token\n  K: (seq_len × 64)  — one 64d key per token\n\n  Attention scores = Q @ K^T\n  Result shape: (seq_len × seq_len)\n\n  scores[i][j] = dot product of token i's query with token j's key\n               = \"how much should token i attend to token j?\""
+              },
+              {
+                "type": "p",
+                "children": "The dot product measures similarity between two vectors. When token i's query (\"what am I looking for?\") aligns with token j's key (\"what do I have to offer?\"), the score is high. When they point in different directions, the score is low."
+              },
+              {
+                "type": "p",
+                "children": "But there's a scaling issue. The dot product of two 64-dimensional vectors can produce values that grow with the dimension — roughly proportional to sqrt(64) = 8 in magnitude. Large values cause problems for the softmax that comes next (it pushes almost all probability mass to a single token, making gradients vanish). So we divide by sqrt(64):"
+              },
+              {
+                "type": "Code",
+                "props": {
+                  "language": "text"
+                },
+                "children": "Scaled attention scores = (Q @ K^T) / sqrt(64)\n                       = (Q @ K^T) / 8\n\nThis keeps the variance of the scores at a reasonable level,\nregardless of the dimension size."
+              },
+              {
+                "type": "Example",
+                "props": {
+                  "title": "Attention Scores for 'The cat sat on the mat'"
+                },
+                "children": [
+                  {
+                    "type": "p",
+                    "children": "For one head, the attention score matrix (before masking and softmax) might look something like:"
+                  },
+                  {
+                    "type": "Code",
+                    "props": {
+                      "language": "text"
+                    },
+                    "children": "           The   cat   sat    on   the   mat\n  The    [ 1.2, -0.3,  0.1, -0.5,  0.8, -0.2]\n  cat    [ 0.4,  1.5, -0.1,  0.2,  0.3,  0.6]\n  sat    [ 0.1,  2.1,  0.8, -0.3,  0.1,  0.4]\n  on     [-0.2,  0.3,  1.1,  0.9, -0.1,  0.5]\n  the    [ 0.7, -0.1,  0.2,  0.4,  1.3,  0.1]\n  mat    [ 0.0,  0.5,  0.3,  0.8,  1.6,  1.1]\n\nRow i, column j: how much should token i attend to token j?\nNote: 'sat' has a high score for 'cat' (2.1) — \nit's finding its subject."
+                  },
+                  {
+                    "type": "p",
+                    "children": "These numbers are illustrative — the actual scores depend on the learned weight matrices. But the structure is real: each row represents one token's attention pattern over all other tokens."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "Section",
+            "props": {
+              "title": "5. The Causal Mask: No Peeking Forward"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "Now comes the constraint that defines GPT-2 as a language model rather than something like BERT. GPT-2 is autoregressive — it generates text left to right, one token at a time. During training and inference, token i must never attend to any token j where j > i. You can't use the future to predict the future."
+              },
+              {
+                "type": "p",
+                "children": "This is enforced by the causal mask (also called the \"look-ahead mask\"): before applying softmax, we set all entries in the upper triangle of the attention matrix to negative infinity."
+              },
+              {
+                "type": "Code",
+                "props": {
+                  "language": "text"
+                },
+                "children": "Before masking:\n           The   cat   sat    on   the   mat\n  The    [ 1.2, -0.3,  0.1, -0.5,  0.8, -0.2]\n  cat    [ 0.4,  1.5, -0.1,  0.2,  0.3,  0.6]\n  sat    [ 0.1,  2.1,  0.8, -0.3,  0.1,  0.4]\n  on     [-0.2,  0.3,  1.1,  0.9, -0.1,  0.5]\n  the    [ 0.7, -0.1,  0.2,  0.4,  1.3,  0.1]\n  mat    [ 0.0,  0.5,  0.3,  0.8,  1.6,  1.1]\n\nAfter causal masking:\n           The   cat   sat    on   the   mat\n  The    [ 1.2,  -∞,   -∞,   -∞,   -∞,   -∞ ]\n  cat    [ 0.4,  1.5,  -∞,   -∞,   -∞,   -∞ ]\n  sat    [ 0.1,  2.1,  0.8,  -∞,   -∞,   -∞ ]\n  on     [-0.2,  0.3,  1.1,  0.9,  -∞,   -∞ ]\n  the    [ 0.7, -0.1,  0.2,  0.4,  1.3,  -∞ ]\n  mat    [ 0.0,  0.5,  0.3,  0.8,  1.6,  1.1]\n\nThe first token can only see itself.\nThe last token can see everything."
+              },
+              {
+                "type": "Callout",
+                "props": {
+                  "type": "key-idea"
+                },
+                "children": [
+                  {
+                    "type": "p",
+                    "children": "The causal mask is THE fundamental difference between GPT-style models (decoders) and BERT-style models (encoders). BERT allows every token to attend to every other token — it sees the whole sentence at once. GPT-2 enforces a strict left-to-right constraint: each token can only attend to itself and everything before it. This is what makes autoregressive generation possible — each position's output depends only on past context, so you can generate one token at a time."
+                  }
+                ]
+              },
+              {
+                "type": "Analogy",
+                "children": "The causal mask turns attention into a one-way mirror. Token 5 (\"mat\") can see tokens 0 through 5 — the whole sentence so far. But token 0 (\"The\") can only see itself. It's like reading a mystery novel: you can use everything you've read so far to predict what comes next, but you can't flip ahead. Each token experiences the sentence as an unfolding narrative, not a completed document."
+              },
+              {
+                "type": "Quiz",
+                "props": {
+                  "question": "In GPT-2's attention mechanism, what can the third token in a sequence (position 2) attend to?",
+                  "options": [
+                    "All tokens in the sequence",
+                    "Only itself",
+                    "Tokens at positions 0, 1, and 2 (itself and everything before it)",
+                    "Only the previous token (position 1)"
+                  ],
+                  "correctIndex": 2,
+                  "explanation": "The causal mask allows each token to attend to itself and all previous tokens. Token at position 2 can attend to positions 0, 1, and 2. The upper triangle of the attention matrix (positions 3, 4, 5, ...) is masked with -infinity, which softmax converts to zero attention weight. This is what makes GPT-2 autoregressive — each position only has access to the past."
+                }
+              }
+            ]
+          },
+          {
+            "type": "Section",
+            "props": {
+              "title": "6. Softmax: From Scores to Probabilities"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "The masked attention scores are raw numbers — they can be positive, negative, or zero. We need them to be probabilities: non-negative, summing to 1 for each row. Softmax does this."
+              },
+              {
+                "type": "Code",
+                "props": {
+                  "language": "text"
+                },
+                "children": "softmax(scores[i]) = exp(scores[i]) / sum(exp(scores[i]))\n\nFor token 'sat' (row 2), after masking:\n  Raw scores: [0.1, 2.1, 0.8, -∞, -∞, -∞]\n\n  exp values: [1.11, 8.17, 2.23, 0, 0, 0]\n  sum = 11.50\n\n  Attention weights: [0.096, 0.710, 0.194, 0, 0, 0]\n                      ↑       ↑       ↑\n                    'The'   'cat'   'sat'\n\n  'sat' attends 71% to 'cat', 19% to itself, 10% to 'The'"
+              },
+              {
+                "type": "p",
+                "children": "The negative infinity values become exactly zero after softmax (e^(-∞) = 0). So the causal mask completely blocks information from future tokens — not just making it unlikely, but making it mathematically impossible."
+              },
+              {
+                "type": "p",
+                "children": "Each row of the attention matrix is now a probability distribution: a set of non-negative weights that sum to 1. Token i's attention weights tell us exactly how much it \"pays attention to\" each previous token. This is the mechanism's core output: a routing decision, determining whose information flows where."
+              }
+            ]
+          },
+          {
+            "type": "Section",
+            "props": {
+              "title": "7. The Attention Output: Context Enters the Picture"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "Now the attention weights are used for their actual purpose: mixing information. We multiply the attention weights by the Value vectors."
+              },
+              {
+                "type": "Code",
+                "props": {
+                  "language": "text"
+                },
+                "children": "For one head (64d):\n\n  Attention weights: (seq_len × seq_len) — probability distributions\n  V (Values):        (seq_len × 64)      — information carried by each token\n\n  Output = attention_weights @ V\n  Result: (seq_len × 64)\n\n  Each token's output = weighted average of all attended tokens' Values"
+              },
+              {
+                "type": "p",
+                "children": "For our token \"sat,\" which attends 71% to \"cat,\" 19% to itself, and 10% to \"The\":"
+              },
+              {
+                "type": "Code",
+                "props": {
+                  "language": "text"
+                },
+                "children": "output_sat = 0.710 × V_cat + 0.194 × V_sat + 0.096 × V_The\n\nThe output is mostly 'cat' information, with some of 'sat's own\ninformation, and a touch of 'The'."
+              },
+              {
+                "type": "Callout",
+                "props": {
+                  "type": "key-idea"
+                },
+                "children": [
+                  {
+                    "type": "p",
+                    "children": "THIS is where context enters the representation. Before this operation, \"bank\" was just \"bank\" — the same vector regardless of context. After this operation, \"bank\" in \"river bank\" has absorbed information from \"river\" through the attention weights. The Value vector of \"river\" has been mixed into \"bank's\" representation. For the first time, the model knows which kind of bank we're talking about."
+                  }
+                ]
+              },
+              {
+                "type": "Analogy",
+                "children": "Attention is like a cocktail party conversation. Each person (token) looks around the room, decides who has relevant things to say (attention weights), and then listens to those people in proportion to their relevance. The result is that each person's \"state of mind\" is now a blend of their own thoughts plus what they absorbed from others. You're still you, but you're you-having-been-informed-by-others."
+              }
+            ]
+          },
+          {
+            "type": "Section",
+            "props": {
+              "title": "8. Concatenate and Project: Reassembling the Heads"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "We now have 12 heads, each producing a 64-dimensional output vector for each token. These need to be recombined."
+              },
+              {
+                "type": "Code",
+                "props": {
+                  "language": "text"
+                },
+                "children": "Head 0 output:  (seq_len × 64)\nHead 1 output:  (seq_len × 64)\n...\nHead 11 output: (seq_len × 64)\n\nStep 1: Concatenate all 12 heads\n  Result: (seq_len × 768)  [12 × 64 = 768]\n\nStep 2: Multiply by output projection W_O (768 × 768)\n  Result: (seq_len × 768)\n\nThis final projection lets the model learn how to combine\nthe information from all 12 heads."
+              },
+              {
+                "type": "p",
+                "children": "The output projection W_O is crucial. Without it, the heads would simply be placed side by side — dimensions 0–63 from Head 0, dimensions 64–127 from Head 1, etc. The output projection allows the model to mix information across heads: Head 3's syntactic insight might need to combine with Head 7's semantic insight to produce the right representation."
+              },
+              {
+                "type": "DeepDive",
+                "props": {
+                  "title": "Parameter Count for Multi-Head Attention"
+                },
+                "children": [
+                  {
+                    "type": "p",
+                    "children": "Let's count the parameters in one layer's multi-head attention:"
+                  },
+                  {
+                    "type": "Code",
+                    "props": {
+                      "language": "text"
+                    },
+                    "children": "W_Q:  768 × 768 = 589,824  (+ 768 bias = 590,592)\nW_K:  768 × 768 = 589,824  (+ 768 bias = 590,592)\nW_V:  768 × 768 = 589,824  (+ 768 bias = 590,592)\nW_O:  768 × 768 = 589,824  (+ 768 bias = 590,592)\n─────────────────────────────────────────────────────\nTotal attention parameters per layer: ~2,362,368\n\nAbout 2.4 million parameters just for attention in one block."
+                  }
+                ]
+              },
+              {
+                "type": "p",
+                "children": "The result of all this — Q, K, V projections, 12-head attention, concatenation, output projection — is a single (seq_len × 768) matrix. Each row is a context-enriched version of the corresponding token. The first act of the transformer block is complete."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "Act II: The Residual Stream and Layer Norm"
+        },
+        "children": [
+          {
+            "type": "Section",
+            "props": {
+              "title": "9. The Residual Connection: Nothing Is Ever Lost"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "The attention mechanism has produced a (seq_len × 768) matrix of context-enriched representations. But GPT-2 does NOT use this as the new representation. Instead, it ADDS this to the original input:"
+              },
+              {
+                "type": "Code",
+                "props": {
+                  "language": "python"
+                },
+                "children": "# The residual connection:\nx = x + attn(x)\n\n# x started as token_embed + pos_embed (from the previous tutorial)\n# attn(x) is the attention output\n# The new x contains BOTH the original information AND the attention output"
+              },
+              {
+                "type": "p",
+                "children": "This is the residual connection, and it's arguably the most important architectural innovation in the transformer (borrowed from ResNets, He et al. 2015). By adding instead of replacing, the original embedding information survives through all 12 layers. The model can never destroy its input — it can only enrich it."
+              },
+              {
+                "type": "Analogy",
+                "children": "Writing in the margin of a book rather than rewriting the book. The original text is always there. Each annotation adds new insight, but you can always go back and read the original words. After 12 layers of annotations, the margins are full — but the book itself is unchanged."
+              },
+              {
+                "type": "Callout",
+                "props": {
+                  "type": "key-idea"
+                },
+                "children": [
+                  {
+                    "type": "p",
+                    "children": "The residual connection is what makes deep transformers possible. Without it, information would have to survive through 12 rounds of matrix multiplication, attention routing, and nonlinear activation — and the gradients during training would vanish or explode. With it, there's always a direct path from input to output (and from output gradient back to input). The attention and MLP layers become incremental refinements rather than total transformations."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "Section",
+            "props": {
+              "title": "10. Post-Layer-Norm (GPT-2 Specific)"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "After the residual addition, GPT-2 applies Layer Normalization. This is GPT-2's post-norm architecture — normalize after the residual, not before the sublayer."
+              },
+              {
+                "type": "Code",
+                "props": {
+                  "language": "text"
+                },
+                "children": "GPT-2 (post-norm):\n  x = LayerNorm(x + attn(x))     ← normalize AFTER residual + attention\n\nModern models (pre-norm, e.g. Llama, GPT-3):\n  x = x + attn(LayerNorm(x))     ← normalize BEFORE attention"
+              },
+              {
+                "type": "p",
+                "children": "What does Layer Normalization actually do? For each token's 768-dimensional vector independently:"
+              },
+              {
+                "type": "Code",
+                "props": {
+                  "language": "text"
+                },
+                "children": "LayerNorm(x):\n  1. Compute mean:  μ = (1/768) × Σ x_i\n  2. Compute variance: σ² = (1/768) × Σ (x_i - μ)²\n  3. Normalize: x̂_i = (x_i - μ) / sqrt(σ² + ε)   [ε ≈ 1e-5 for stability]\n  4. Scale and shift: y_i = γ_i × x̂_i + β_i\n\nγ (gain) and β (bias) are learned parameters, 768-dimensional each.\nTotal LayerNorm parameters: 768 + 768 = 1,536"
+              },
+              {
+                "type": "p",
+                "children": "Layer norm ensures that each token's vector has zero mean and unit variance (before the learned scale and shift). This prevents the magnitudes from growing or shrinking as information accumulates in the residual stream across layers. Without it, the vectors might grow unboundedly or collapse to zero."
+              },
+              {
+                "type": "DeepDive",
+                "props": {
+                  "title": "Why Post-Norm is Harder to Train"
+                },
+                "children": [
+                  {
+                    "type": "p",
+                    "children": "GPT-2's post-norm architecture puts the layer norm after the residual addition. This means the residual path passes through the layer norm, which can make gradient flow less stable in very deep networks. Pre-norm (used by GPT-3 and nearly all modern transformers) moves the layer norm before the sublayer, keeping the residual path completely clean — just addition, no normalization."
+                  },
+                  {
+                    "type": "p",
+                    "children": "This is one reason GPT-2 has \"only\" 12 layers. Deeper post-norm models become increasingly difficult to train without careful learning rate warmup and other tricks. Pre-norm enabled the scaling to 96 layers (GPT-3) and beyond."
+                  }
+                ]
+              },
+              {
+                "type": "p",
+                "children": "After the attention residual connection and layer norm, the computation so far is:"
+              },
+              {
+                "type": "Code",
+                "props": {
+                  "language": "text"
+                },
+                "children": "x = LayerNorm(x + MultiHeadAttention(x))\n\nThe vector now contains:\n  - Original token + position information (from the residual)\n  - Context from other tokens (from attention)\n  - Stabilized magnitudes (from layer norm)"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "Act III: The Feed-Forward Network (MLP)"
+        },
+        "children": [
+          {
+            "type": "Section",
+            "props": {
+              "title": "11. What the MLP Does: Independent Processing"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "Attention is where tokens talk to each other. The MLP (Multi-Layer Perceptron, also called the feed-forward network) is where each token thinks alone."
+              },
+              {
+                "type": "p",
+                "children": "After attention has mixed contextual information between tokens, the MLP processes each token's vector independently — the exact same function applied to each position, with no cross-token communication whatsoever. If attention is the group discussion, the MLP is private reflection."
+              },
+              {
+                "type": "Analogy",
+                "children": "Imagine a classroom. The discussion period (attention) is over — students have shared ideas, debated, cross-pollinated their thinking. Now they sit at their separate desks for a quiz (the MLP). Each student works alone, applying what they've learned to refine their own understanding. The same test is given to every student. No talking, no peeking at your neighbor's paper."
+              },
+              {
+                "type": "p",
+                "children": "What does this \"thinking\" accomplish? The MLP transforms each token's representation in a nonlinear way, allowing the model to compute complex functions of the attention output. If attention decides \"this token is a verb in past tense,\" the MLP can use that information to activate the relevant knowledge about verb forms, tense patterns, and likely continuations."
+              }
+            ]
+          },
+          {
+            "type": "Section",
+            "props": {
+              "title": "12. The Two-Layer Expansion Bottleneck"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "The MLP has a specific structure: expand, activate, contract. It's remarkably simple and consistent across nearly all transformer architectures."
+              },
+              {
+                "type": "Code",
+                "props": {
+                  "language": "text"
+                },
+                "children": "MLP structure (for each token independently):\n\n  Input: x (768 dimensions)\n    ↓\n  First linear layer: x @ W_1 + b_1\n    W_1: 768 × 3072   (expand by 4×)\n    Output: 3072 dimensions\n    ↓\n  GELU activation (nonlinearity)\n    ↓\n  Second linear layer: h @ W_2 + b_2\n    W_2: 3072 × 768   (project back down)\n    Output: 768 dimensions\n    ↓\n  Result: a new 768-dim vector"
+              },
+              {
+                "type": "p",
+                "children": "The key insight: the model temporarily expands to 3,072 dimensions (4× the model dimension), does its nonlinear processing in this larger space, then projects back down to 768. Why?"
+              },
+              {
+                "type": "p",
+                "children": "In 768 dimensions, the model has limited room to represent all the patterns it needs. By expanding to 3,072 dimensions, it gets 4× more \"workspace.\" Each of those 3,072 neurons can detect a different feature. The nonlinearity (GELU) allows each neuron to activate or not based on the input. Then the second linear layer combines the activated neurons back into 768 dimensions, encoding whatever complex function was needed."
+              },
+              {
+                "type": "Analogy",
+                "children": "It's like a woodworker's workbench. The project (the 768-dim vector) starts compact. The worker spreads it out across a wide bench (3,072 dimensions) to have room for detailed work — cutting, shaping, adjusting individual pieces. Then everything gets assembled back into a compact final piece (768 dimensions). The expansion creates room for detailed manipulation that wouldn't be possible in the cramped original space."
+              },
+              {
+                "type": "DeepDive",
+                "props": {
+                  "title": "MLP Parameter Count"
+                },
+                "children": [
+                  {
+                    "type": "Code",
+                    "props": {
+                      "language": "text"
+                    },
+                    "children": "W_1: 768 × 3072  = 2,359,296  (+ 3072 bias)\nW_2: 3072 × 768  = 2,359,296  (+ 768 bias)\n────────────────────────────────────────────\nTotal MLP parameters per layer: ~4,722,432\n\nNote: the MLP has roughly TWICE the parameters of attention!\nIn a transformer block, the MLP is the bigger component."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "Section",
+            "props": {
+              "title": "13. GELU: The Smooth Gatekeeper"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "Between the two linear layers, GPT-2 applies the GELU (Gaussian Error Linear Unit) activation function. This is the nonlinearity that gives the MLP its computational power — without it, the two linear layers would collapse into a single linear transformation (a matrix times a matrix is just a matrix), and the MLP would be useless."
+              },
+              {
+                "type": "Code",
+                "props": {
+                  "language": "text"
+                },
+                "children": "GELU(x) = x × Φ(x)\n\nwhere Φ(x) is the CDF of the standard normal distribution.\n\nApproximately:\n  GELU(x) ≈ 0.5x(1 + tanh(√(2/π)(x + 0.044715x³)))\n\nBehavior:\n  x >> 0:  GELU(x) ≈ x     (passes through, like ReLU)\n  x << 0:  GELU(x) ≈ 0     (blocks, like ReLU)\n  x ≈ 0:   smooth transition (unlike ReLU's hard kink)"
+              },
+              {
+                "type": "p",
+                "children": "GELU is like ReLU's sophisticated cousin. ReLU (Rectified Linear Unit) has a hard cutoff at zero: positive values pass through, negative values become exactly zero. GELU smooths this boundary, allowing small negative values to have a small (negative) output. This smoothness helps with gradient flow during training — there's no \"dead zone\" where the gradient is exactly zero."
+              },
+              {
+                "type": "p",
+                "children": "GPT-2 uses GELU. Not ReLU, not SiLU/Swish (used in Llama), not SwiGLU (used in modern models). Plain GELU. Another instance of GPT-2's pre-2020 simplicity."
+              }
+            ]
+          },
+          {
+            "type": "Section",
+            "props": {
+              "title": "14. The Key-Value Memory Interpretation"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "Here's a beautiful reinterpretation of what the MLP is doing, from Geva et al. (2021): each neuron in the MLP can be thought of as storing a (key, value) pair."
+              },
+              {
+                "type": "p",
+                "children": "The first linear layer's weight matrix W_1 has 3,072 rows. Each row is a 768-dimensional vector — a \"key\" that defines when that neuron fires. When the input has a high dot product with that row (i.e., the input matches the key), the neuron activates strongly."
+              },
+              {
+                "type": "p",
+                "children": "The second linear layer's weight matrix W_2 has 3,072 columns. Each column is a 768-dimensional vector — a \"value\" that defines what that neuron contributes to the output. When a neuron fires, its value gets added to the result."
+              },
+              {
+                "type": "Code",
+                "props": {
+                  "language": "text"
+                },
+                "children": "MLP as key-value memory:\n\n  Neuron i:\n    key_i   = row i of W_1      (768-dim: what triggers this neuron?)\n    value_i = column i of W_2   (768-dim: what does this neuron contribute?)\n\n  For input x:\n    activation_i = GELU(key_i · x + bias_i)\n    output = Σ activation_i × value_i\n\n  The MLP output is a weighted sum of value vectors,\n  where the weights are determined by key-input matches."
+              },
+              {
+                "type": "p",
+                "children": "This is strikingly similar to attention — but instead of matching queries and keys from the input tokens, the MLP matches the input against a fixed set of 3,072 learned patterns. It's a kind of associative memory: \"when I see this pattern (key), contribute this information (value).\""
+              },
+              {
+                "type": "Callout",
+                "props": {
+                  "type": "info"
+                },
+                "children": [
+                  {
+                    "type": "p",
+                    "children": "This key-value memory interpretation helps explain where factual knowledge is stored in transformers. When GPT-2 \"knows\" that the Eiffel Tower is in Paris, that knowledge is likely encoded as MLP neurons whose keys detect Eiffel-Tower-related patterns and whose values push the representation toward Paris-related outputs. Editing or erasing factual knowledge often involves modifying specific MLP weights."
+                  }
+                ]
+              },
+              {
+                "type": "Quiz",
+                "props": {
+                  "question": "What is the key difference between the attention mechanism and the MLP in a transformer block?",
+                  "options": [
+                    "Attention is linear, MLP is nonlinear",
+                    "Attention mixes information between tokens, MLP processes each token independently",
+                    "Attention uses more parameters than MLP",
+                    "Attention is applied once, MLP is applied multiple times"
+                  ],
+                  "correctIndex": 1,
+                  "explanation": "The fundamental distinction: attention is the inter-token operation (tokens look at each other and exchange information), while the MLP is the intra-token operation (each token is processed independently by the same network). Attention enables context; the MLP enables complex per-token computation. Both are essential. And in GPT-2, the MLP actually uses MORE parameters than attention (~4.7M vs ~2.4M per layer)."
+                }
+              }
+            ]
+          },
+          {
+            "type": "Section",
+            "props": {
+              "title": "15. Another Residual + Layer Norm"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "Just like after attention, the MLP output gets a residual connection and layer norm:"
+              },
+              {
+                "type": "Code",
+                "props": {
+                  "language": "python"
+                },
+                "children": "# After attention:\nx = LayerNorm(x + attn(x))        # first sublayer\n\n# After MLP:\nx = LayerNorm(x + mlp(x))          # second sublayer\n\n# Same pattern: compute, add to residual, normalize."
+              },
+              {
+                "type": "p",
+                "children": "The residual stream now contains the original embedding information, plus the attention output, plus the MLP output. Three layers of annotation on our shared whiteboard. And that completes one transformer block."
+              },
+              {
+                "type": "Example",
+                "props": {
+                  "title": "One Complete GPT-2 Block"
+                },
+                "children": [
+                  {
+                    "type": "Code",
+                    "props": {
+                      "language": "text"
+                    },
+                    "children": "Input x: (seq_len × 768)\n  ↓\n  Multi-Head Attention (Q,K,V projections → 12 heads → concat → W_O)\n  ↓\n  Residual: x = x + attn_output\n  ↓\n  Layer Norm\n  ↓\n  MLP (768 → 3072 → GELU → 768)\n  ↓\n  Residual: x = x + mlp_output\n  ↓\n  Layer Norm\n  ↓\nOutput x: (seq_len × 768)   ← same shape as input!\n\nParameters per block:\n  Attention:  ~2.4M\n  MLP:        ~4.7M\n  LayerNorms: ~3K (tiny)\n  ────────────────────\n  Total:      ~7.1M per block"
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "Act IV: Repeat × 12 (The Layer Stack)"
+        },
+        "children": [
+          {
+            "type": "Section",
+            "props": {
+              "title": "16. One Block Down, Eleven to Go"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "What we just described — attention, residual, layer norm, MLP, residual, layer norm — is one transformer block. GPT-2 has twelve of them, stacked one after another. The output of Block 1 feeds directly into Block 2. Block 2's output feeds into Block 3. All the way through Block 12."
+              },
+              {
+                "type": "Code",
+                "props": {
+                  "language": "text"
+                },
+                "children": "x = token_embed + pos_embed                    # (seq_len × 768)\nx = Block_1(x)    # attention + MLP + residuals + layer norms\nx = Block_2(x)    # same structure, different learned weights\nx = Block_3(x)\n...\nx = Block_12(x)\nx = LayerNorm_final(x)                          # one last layer norm\n# x is now the final hidden state: (seq_len × 768)"
+              },
+              {
+                "type": "p",
+                "children": "Each block has its OWN set of weight matrices — its own W_Q, W_K, W_V, W_O, W_1, W_2, and layer norm parameters. The blocks share a structure but not weights. Block 5's attention heads have learned completely different patterns from Block 2's."
+              },
+              {
+                "type": "Analogy",
+                "children": "Think of the 12 blocks as 12 rounds of editorial review. The first editor corrects basic grammar and identifies the main topics. The middle editors refine the argument, strengthen connections between paragraphs, resolve ambiguities. The final editors focus on the conclusion — polishing exactly the information needed to determine what comes next. Each editor uses the same tools (red pen, comments, suggestions) but brings different expertise."
+              }
+            ]
+          },
+          {
+            "type": "Section",
+            "props": {
+              "title": "17. What Different Layers Learn"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "One of the most fascinating findings in transformer interpretability is that the layers form a rough hierarchy, processing progressively more abstract features. Research by Tenney et al. (2019), \"BERT Rediscovers the Classical NLP Pipeline,\" showed that transformer layers roughly recapitulate the traditional stack of NLP tasks:"
+              },
+              {
+                "type": "ComparisonTable",
+                "props": {
+                  "headers": [
+                    "Layers",
+                    "What they tend to compute",
+                    "NLP analogy"
+                  ],
+                  "rows": [
+                    [
+                      "Early (1–4)",
+                      "Part-of-speech tags, basic syntax, word sense disambiguation, local patterns",
+                      "Tokenization, POS tagging, shallow parsing"
+                    ],
+                    [
+                      "Middle (5–8)",
+                      "Semantic roles, entity relationships, coreference, compositional meaning",
+                      "Dependency parsing, named entity recognition, semantic role labeling"
+                    ],
+                    [
+                      "Late (9–12)",
+                      "Task-specific features, prediction-relevant information, final disambiguation",
+                      "Sentiment analysis, question answering, text generation decisions"
+                    ]
+                  ]
+                }
+              },
+              {
+                "type": "p",
+                "children": "This isn't a rigid division — information about syntax persists into late layers, and some semantic processing happens early. But the trend is real: the representations become progressively more abstract and task-relevant as they flow through the layers."
+              },
+              {
+                "type": "DeepDive",
+                "props": {
+                  "title": "Probing Experiments: How We Know What Layers Know"
+                },
+                "children": [
+                  {
+                    "type": "p",
+                    "children": "How do researchers determine what information each layer encodes? The standard technique is probing: take the hidden states from a specific layer, freeze them, and train a simple linear classifier to predict some linguistic property (part of speech, dependency relation, entity type, etc.)."
+                  },
+                  {
+                    "type": "p",
+                    "children": "If a simple probe achieves high accuracy, the information is \"accessible\" in that layer's representations — it's linearly decodable. If accuracy is low, the information either isn't there or is encoded in a way that requires nonlinear extraction."
+                  },
+                  {
+                    "type": "p",
+                    "children": "These experiments consistently show the layer hierarchy: POS accuracy peaks in early layers, syntactic dependencies in middle layers, and task-specific features in late layers."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "Section",
+            "props": {
+              "title": "18. The Residual Stream as Communication Channel"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "Here is a subtle but profound point about the residual stream. Because every layer's output is added to the stream (not substituted), every layer can communicate with every other layer — including layers that came much earlier."
+              },
+              {
+                "type": "p",
+                "children": "When Layer 10's attention computes its query-key dot products, it's computing them on a vector that contains Layer 1's attention output, Layer 2's MLP output, Layer 5's attention insights, and the original embedding — all superimposed through addition. Layer 10 doesn't need to \"remember\" what Layer 1 did. That information is still right there in the residual stream."
+              },
+              {
+                "type": "Callout",
+                "props": {
+                  "type": "key-idea"
+                },
+                "children": [
+                  {
+                    "type": "p",
+                    "children": "The residual stream isn't a pipeline where information flows from Layer 1 → Layer 2 → ... → Layer 12 sequentially. It's a shared bulletin board. Every layer reads the full accumulated state and writes its contribution. Layer 12 has direct access to what Layer 1 wrote. This is fundamentally different from an RNN, where information must survive through a bottleneck at each step."
+                  }
+                ]
+              },
+              {
+                "type": "Analogy",
+                "children": "A wiki page that 12 different editors work on sequentially. Each editor reads the entire page (including all previous edits) before making their own additions. The first editor's contributions are visible to the twelfth. Nobody's work gets overwritten. The final page is a rich palimpsest of all twelve editors' contributions layered on the original text."
+              }
+            ]
+          },
+          {
+            "type": "Section",
+            "props": {
+              "title": "19. The Full Parameter Count"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "Now we can account for every parameter in GPT-2 small:"
+              },
+              {
+                "type": "Code",
+                "props": {
+                  "language": "text"
+                },
+                "children": "GPT-2 Small: Complete Parameter Breakdown\n\n  Token embeddings (wte):      50,257 × 768 = 38,597,376\n  Position embeddings (wpe):    1,024 × 768 =    786,432\n  ─────────────────────────────────────────────────────────\n  Embedding total:                            39,383,808\n\n  Per transformer block (×12):\n    Attention (Q,K,V,O):        4 × 768 × 768 = 2,359,296\n    Attention biases:           4 × 768        =     3,072\n    MLP W_1:                    768 × 3072     = 2,359,296\n    MLP b_1:                    3072           =     3,072\n    MLP W_2:                    3072 × 768     = 2,359,296\n    MLP b_2:                    768            =       768\n    LayerNorm ×2:               2 × 2 × 768   =     3,072\n    ───────────────────────────────────────────────────────\n    Block total:                                7,087,872\n\n  12 blocks:                                   85,054,464\n\n  Final layer norm:             2 × 768        =     1,536\n\n  Output projection (tied with wte):                     0\n  ─────────────────────────────────────────────────────────\n  GRAND TOTAL:                               124,439,808\n\n  ~124 million parameters"
+              },
+              {
+                "type": "p",
+                "children": "Notice: the output projection is free! GPT-2 uses weight tying — the unembedding matrix is the transpose of the token embedding matrix wte. The same 38.6 million parameters serve double duty. Without this trick, the model would have about 163 million parameters."
+              },
+              {
+                "type": "Quiz",
+                "props": {
+                  "question": "In a single GPT-2 transformer block, which component has the most parameters?",
+                  "options": [
+                    "The multi-head attention mechanism (Q, K, V, O projections)",
+                    "The MLP (feed-forward network)",
+                    "The layer normalization layers",
+                    "They all have roughly the same number"
+                  ],
+                  "correctIndex": 1,
+                  "explanation": "The MLP has about 4.7 million parameters per block (two large weight matrices: 768×3072 and 3072×768), while multi-head attention has about 2.4 million (four 768×768 weight matrices for Q, K, V, O). The MLP is roughly twice the size of attention! Layer norm contributes only about 3,000 parameters — negligible. This is often surprising because attention gets most of the spotlight in discussions of transformers."
+                }
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "Act V: From Hidden State to Next Token"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "The vector has traveled through all 12 blocks. It entered as a raw sum of token and position embeddings. It now carries the accumulated insights of 12 rounds of attention and 12 rounds of MLP processing. The residual stream is dense with information. But GPT-2 has one job: predict the next token. How does a 768-dimensional vector become a probability distribution over 50,257 possible next tokens?"
+          },
+          {
+            "type": "Section",
+            "props": {
+              "title": "20. The Final Layer Norm"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "After the 12th block, GPT-2 applies one last layer normalization — called ln_f (\"layer norm final\") in the code. This stabilizes the magnitude of the final hidden states before the output projection."
+              },
+              {
+                "type": "Code",
+                "props": {
+                  "language": "python"
+                },
+                "children": "# After all 12 blocks:\nhidden_states = self.ln_f(hidden_states)  # shape: (seq_len × 768)\n\n# ln_f has its own learned γ and β parameters (768 each)\n# It's the same LayerNorm operation, just applied one final time"
+              }
+            ]
+          },
+          {
+            "type": "Section",
+            "props": {
+              "title": "21. The Unembedding: From 768 Dimensions to 50,257"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "This is the moment the model's internal representation meets the vocabulary. The 768-dimensional hidden state gets projected back to the full vocabulary size — one number (a \"logit\") for each of the 50,257 possible next tokens."
+              },
+              {
+                "type": "Code",
+                "props": {
+                  "language": "text"
+                },
+                "children": "logits = hidden_state @ wte.T\n\nhidden_state: (768,)      — one token's final representation\nwte.T:        (768 × 50,257) — transpose of the embedding matrix\nlogits:       (50,257,)    — one score per vocabulary item"
+              },
+              {
+                "type": "p",
+                "children": "Remember weight tying from the first tutorial? The same matrix wte that converts token IDs to 768-dim vectors at the input is now transposed and used to convert 768-dim vectors back to 50,257-dim logits at the output. This beautiful symmetry means that the output logit for token j is literally the dot product between the final hidden state and the embedding of token j."
+              },
+              {
+                "type": "Callout",
+                "props": {
+                  "type": "key-idea"
+                },
+                "children": [
+                  {
+                    "type": "p",
+                    "children": "The unembedding dot product has an elegant interpretation: logit_j = hidden_state · embedding_j measures how \"similar\" the model's final representation is to token j's embedding. Tokens whose embeddings are close to the final hidden state get high logits. The model is essentially asking: \"Which token in my vocabulary is this hidden state most pointing toward?\""
+                  }
+                ]
+              },
+              {
+                "type": "Analogy",
+                "children": "If the embedding matrix is a dictionary that maps words to coordinates, the unembedding is a reverse lookup: given a coordinate, find the nearest words. It's like GPS in reverse — instead of looking up an address to find a location, you're looking at a location and asking \"what's the nearest address?\""
+              }
+            ]
+          },
+          {
+            "type": "Section",
+            "props": {
+              "title": "22. Logits → Probabilities: The Final Softmax"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "The logits are raw, unbounded numbers. Some are large and positive (the model thinks those tokens are likely). Some are large and negative (very unlikely). We need probabilities — values between 0 and 1 that sum to 1 across all 50,257 tokens."
+              },
+              {
+                "type": "Code",
+                "props": {
+                  "language": "text"
+                },
+                "children": "probabilities = softmax(logits)\n\nP(token_j | context) = exp(logit_j) / Σ exp(logit_k)\n                                       k=0 to 50,256\n\nExample (after processing 'The cat sat on the'):\n  logit for ' mat':    4.2   → P ≈ 0.035  (3.5%)\n  logit for ' floor':  3.8   → P ≈ 0.023  (2.3%)\n  logit for ' table':  3.5   → P ≈ 0.017  (1.7%)\n  logit for ' bed':    3.3   → P ≈ 0.014  (1.4%)\n  logit for ' couch':  3.1   → P ≈ 0.011  (1.1%)\n  ...49,252 other tokens share the remaining ~91%..."
+              },
+              {
+                "type": "p",
+                "children": "This is a probability distribution over the entire vocabulary. The model has taken a 6-word input and produced a judgment about every possible 7th word. Most tokens get negligibly small probabilities. A few rise to the top. The distribution reflects everything the model has learned about English from 40 GB of web text."
+              }
+            ]
+          },
+          {
+            "type": "Section",
+            "props": {
+              "title": "23. Temperature and Sampling: Choosing the Next Token"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "We have probabilities. Now we need to pick a token. This is where the model's deterministic computation meets a design choice made by the user: the sampling strategy."
+              },
+              {
+                "type": "h3",
+                "children": "Temperature"
+              },
+              {
+                "type": "p",
+                "children": "Temperature scales the logits before softmax, controlling how \"sharp\" or \"flat\" the probability distribution is:"
+              },
+              {
+                "type": "Code",
+                "props": {
+                  "language": "text"
+                },
+                "children": "probabilities = softmax(logits / temperature)\n\nTemperature = 0 (greedy):  Always pick the highest-probability token.\n                            Deterministic. Repetitive. Safe.\n\nTemperature = 1 (default):  Sample from the distribution as-is.\n                            The model's native uncertainty is preserved.\n\nTemperature = 2 (high):     Flatten the distribution. More randomness.\n                            Creative but sometimes incoherent.\n\nTemperature → ∞:            Uniform distribution. Pure chaos.\n                            Every token equally likely."
+              },
+              {
+                "type": "Analogy",
+                "children": "Temperature is like the adventurousness dial on a restaurant recommendation system. Temperature 0: \"Always recommend the #1 rated restaurant.\" Temperature 1: \"Recommend restaurants in proportion to their ratings — you'll usually get great ones, occasionally good ones.\" Temperature 2: \"Feel like exploring? Here's a random place that might be amazing or terrible.\""
+              },
+              {
+                "type": "h3",
+                "children": "Top-k Sampling"
+              },
+              {
+                "type": "p",
+                "children": "Instead of sampling from all 50,257 tokens, only consider the top k most probable tokens. Zero out everything else, re-normalize, then sample. With k=50, you'll never generate a truly bizarre token — only the 50 most likely candidates are in play."
+              },
+              {
+                "type": "h3",
+                "children": "Top-p (Nucleus) Sampling"
+              },
+              {
+                "type": "p",
+                "children": "More sophisticated: sort tokens by probability, then include tokens until their cumulative probability exceeds p (e.g., 0.95). If the model is very confident (one token has 90% probability), nucleus sampling might only keep 2-3 tokens. If the model is uncertain, it might keep hundreds. The size of the nucleus adapts to the model's confidence."
+              },
+              {
+                "type": "DeepDive",
+                "props": {
+                  "title": "Why Not Always Use Greedy Decoding?"
+                },
+                "children": [
+                  {
+                    "type": "p",
+                    "children": "You might think: just always pick the highest-probability token. But greedy decoding has serious problems:"
+                  },
+                  {
+                    "type": "ul",
+                    "children": [
+                      {
+                        "type": "li",
+                        "children": "Repetition: the model often gets stuck in loops, repeating the same phrase endlessly. \"The cat sat on the mat. The cat sat on the mat. The cat...\""
+                      },
+                      {
+                        "type": "li",
+                        "children": "Blandness: the most probable next token is often a generic word. Sampling introduces the specificity and color that makes text interesting."
+                      },
+                      {
+                        "type": "li",
+                        "children": "Human text isn't greedy: actual human writing frequently uses words that wouldn't be the single most probable next word. We write with variety, surprise, and personal style."
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "Section",
+            "props": {
+              "title": "24. Autoregressive Generation: One Token at a Time"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "The chosen token is appended to the input sequence, and the entire process starts over. Not metaphorically — literally. The new, longer sequence goes through all 12 blocks again to predict the NEXT next token."
+              },
+              {
+                "type": "Code",
+                "props": {
+                  "language": "text"
+                },
+                "children": "Step 1: Input  \"The cat sat on the\"  → predict → \" mat\"  (sampled)\nStep 2: Input  \"The cat sat on the mat\"  → predict → \".\"  (sampled)\nStep 3: Input  \"The cat sat on the mat.\"  → predict → \" It\"  (sampled)\nStep 4: Input  \"The cat sat on the mat. It\" → predict → \" was\" (sampled)\n...\n\nEach step: full forward pass through all 12 blocks.\nOne token generated per forward pass."
+              },
+              {
+                "type": "p",
+                "children": "This is autoregressive generation. \"Autoregressive\" means each output depends on all previous outputs. The model is writing one word at a time, exactly as you might write a sentence — each word choice constraining what comes next."
+              },
+              {
+                "type": "DeepDive",
+                "props": {
+                  "title": "The KV Cache: Avoiding Redundant Computation"
+                },
+                "children": [
+                  {
+                    "type": "p",
+                    "children": "Running the full forward pass for every new token sounds wasteful — and it is. The Keys and Values for tokens 0 through n-1 don't change when we add token n. So in practice, GPT-2 caches the K and V tensors from previous positions (the \"KV cache\") and only computes Q, K, V for the new token."
+                  },
+                  {
+                    "type": "p",
+                    "children": "This reduces the per-token computation from O(n × d²) to O(d²) for projections and O(n × d) for attention. The tradeoff: the KV cache uses memory proportional to sequence length × number of layers × hidden dimension. For GPT-2: 12 layers × 2 (K and V) × seq_len × 768 floats. At sequence length 1024, that's about 75 MB."
+                  }
+                ]
+              },
+              {
+                "type": "Callout",
+                "props": {
+                  "type": "info"
+                },
+                "children": [
+                  {
+                    "type": "p",
+                    "children": "A critical implication: GPT-2 has no concept of \"editing\" or \"going back.\" Once a token is generated, it's permanent — it becomes part of the context for all future tokens. This is why language models sometimes make errors that a human would immediately correct: they can't revise. They can only move forward. (Chat-based models work around this with system-level tricks, but the underlying generation is always left-to-right, one token at a time.)"
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "Epilogue: The Remarkable Journey"
+        },
+        "children": [
+          {
+            "type": "Section",
+            "props": {
+              "title": "25. The Complete Pipeline"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "Let's trace the entire journey — from the first tutorial through this one — in a single breath:"
+              },
+              {
+                "type": "Code",
+                "props": {
+                  "language": "text"
+                },
+                "children": "THE COMPLETE LIFE OF A TOKEN IN GPT-2\n\nInput: \"The cat sat on the mat\"\n\n═══ THE FIRST THREE MINUTES (preprocessing) ═══\n  Characters → BPE tokenization → Token IDs\n  Token IDs → wte lookup → 768-dim token embeddings\n  Positions → wpe lookup → 768-dim position embeddings\n  Input = token_embed + pos_embed → (6 × 768) matrix\n\n═══ THE SECOND THREE MINUTES (the 12 blocks) ═══\n  For each of 12 blocks:\n    ┌─ Multi-Head Attention ──────────────────┐\n    │  Q = x @ W_Q   (768 → 768)             │\n    │  K = x @ W_K   (768 → 768)             │\n    │  V = x @ W_V   (768 → 768)             │\n    │  Split into 12 heads of 64d each        │\n    │  Scores = (Q @ K^T) / sqrt(64)          │\n    │  Apply causal mask (-∞ above diagonal)  │\n    │  Weights = softmax(scores)              │\n    │  Output = weights @ V                   │\n    │  Concat 12 heads → 768d                 │\n    │  Project through W_O (768 × 768)        │\n    └─────────────────────────────────────────┘\n    x = LayerNorm(x + attn_output)    [residual + post-norm]\n    ┌─ MLP ───────────────────────────────────┐\n    │  768 → 3072 (expand)                    │\n    │  GELU activation                        │\n    │  3072 → 768 (contract)                  │\n    └─────────────────────────────────────────┘\n    x = LayerNorm(x + mlp_output)     [residual + post-norm]\n\n═══ OUTPUT ═══\n  Final LayerNorm\n  Logits = x @ wte.T    (768 → 50,257)  [weight tying!]\n  Probabilities = softmax(logits / temperature)\n  Sample next token from distribution\n  Append to sequence. Repeat."
+              },
+              {
+                "type": "p",
+                "children": "That's it. That's the entire model. No hidden magic, no secret sauce. Just embedding lookups, linear projections, dot products, softmaxes, additions, and one nonlinearity (GELU). Every operation is a simple, differentiable function. Every parameter was learned by gradient descent on next-token prediction."
+              }
+            ]
+          },
+          {
+            "type": "Section",
+            "props": {
+              "title": "26. What's Remarkable"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "If you've followed both tutorials, you now know — in concrete, specific detail — every single computation that GPT-2 performs. There is no mystery left in the mechanism. Table lookups. Matrix multiplications. Softmax. Addition. GELU. That's the complete list of operations."
+              },
+              {
+                "type": "p",
+                "children": "And yet."
+              },
+              {
+                "type": "p",
+                "children": "This collection of simple operations, repeated 12 times with learned weights, can write poetry. It can explain quantum mechanics. It can translate between languages it was never explicitly taught. It can solve logic puzzles (sometimes). It can adopt personas, follow instructions, and generate text that is, at times, indistinguishable from human writing."
+              },
+              {
+                "type": "p",
+                "children": "GPT-2 was considered dangerous when it was released in February 2019. OpenAI initially withheld the full model, fearing misuse. At 124 million parameters, it seemed shockingly capable. Now, four years and several orders of magnitude later, GPT-2 looks quaint. But the architecture — the fundamental design of attention, residual streams, and MLPs — hasn't changed. Modern models are bigger, wider, deeper, trained on more data with better techniques. But they're doing the same operations we've described here."
+              },
+              {
+                "type": "blockquote",
+                "children": "\"The effort to understand the universe is one of the very few things which lifts human life a little above the level of farce and gives it some of the grace of tragedy.\" — Steven Weinberg"
+              },
+              {
+                "type": "p",
+                "children": "Weinberg wrote about the first three minutes of a universe that became, over billions of years, complex enough to understand itself. GPT-2's first three minutes are simpler and faster. But there is a similar quality of emergence: from initial conditions of staggering simplicity — random weights, a pile of text, and the mandate to predict the next token — something that looks like understanding crystallizes."
+              },
+              {
+                "type": "p",
+                "children": "Whether it IS understanding is a question for philosophers. What we can say, having traced every operation, is that the mechanism is beautiful. It is transparent. And it is, in the deepest sense, surprising — not because it does anything individually complex, but because the interaction of simple parts produces something that none of them could do alone."
+              },
+              {
+                "type": "p",
+                "children": "The first three minutes gave us the initial conditions. The second three minutes showed us the dynamics. The next step — the part that remains genuinely mysterious — is understanding WHY these particular dynamics, these particular learned weights, produce the behaviors we observe. That's the project of mechanistic interpretability, and it's the frontier."
+              },
+              {
+                "type": "p",
+                "children": "But that, as Weinberg might say, is a story for another book."
+              }
+            ]
+          },
+          {
+            "type": "Quiz",
+            "props": {
+              "question": "Which of the following best describes the complete forward pass of GPT-2 from input text to predicted next token?",
+              "options": [
+                "Tokenize → Embed → 12× [Attention → MLP] → Softmax",
+                "Tokenize → Embed → Add positions → 12× [Attention → Residual → LayerNorm → MLP → Residual → LayerNorm] → Final LayerNorm → Unembed (wte.T) → Softmax",
+                "Tokenize → One-hot encode → 12× [Self-attention → Cross-attention → FFN] → Linear output",
+                "Tokenize → Embed → RoPE → 12× [LayerNorm → Attention → LayerNorm → MLP] → Unembed → Softmax"
+              ],
+              "correctIndex": 1,
+              "explanation": "The complete GPT-2 pipeline: (1) BPE tokenization, (2) token embedding lookup (wte), (3) position embedding addition (wpe), (4) twelve blocks each containing attention → residual addition → layer norm → MLP → residual addition → layer norm (post-norm architecture), (5) a final layer norm, (6) unembedding by multiplying with wte transposed (weight tying), (7) softmax to get probabilities. Option D describes a pre-norm architecture with RoPE — that's Llama, not GPT-2. Option C describes an encoder-decoder with cross-attention — that's the original Transformer, not GPT-2."
+            }
+          }
+        ]
+      }
+    ]
+  }
+}
