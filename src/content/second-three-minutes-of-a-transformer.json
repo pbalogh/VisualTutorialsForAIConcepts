@@ -162,7 +162,18 @@
                   },
                   {
                     "type": "p",
-                    "children": "Where it gets slightly more nuanced is that the Query isn't a conscious shopping list. It's a learned vector that happens to point in directions that align with the Keys of tokens that have historically been useful. So \"threw\" doesn't literally encode \"I need a subject and an object.\" Instead, its Query vector ends up being geometrically close to the Key vectors of agents and patients in throwing-sentences, because that proximity was what helped the model predict the next token during training. The result is the same as what you described, but the mechanism is pattern-matching in vector space rather than explicit grammatical reasoning."
+                    "children": [
+                      "Where it gets slightly more nuanced is that the Query isn't a conscious shopping list. It's a learned vector that happens to point in directions that align with the Keys of tokens that have historically been useful.",
+                      {
+                        "type": "FootnoteRef",
+                        "props": {
+                          "id": "source-ann-1771876745555-nz06mo",
+                          "targetId": "ann-1771876745555-nz06mo",
+                          "type": "ask"
+                        }
+                      },
+                      " So \"threw\" doesn't literally encode \"I need a subject and an object.\" Instead, its Query vector ends up being geometrically close to the Key vectors of agents and patients in throwing-sentences, because that proximity was what helped the model predict the next token during training. The result is the same as what you described, but the mechanism is pattern-matching in vector space rather than explicit grammatical reasoning."
+                    ]
                   },
                   {
                     "type": "p",
@@ -178,6 +189,37 @@
                       "className": "text-xs text-gray-400 mt-2"
                     },
                     "children": "Asked about \"what a token is looking for\" — 2/23/2026, 2:55:45 PM"
+                  }
+                ]
+              },
+              {
+                "type": "Sidebar",
+                "props": {
+                  "type": "note",
+                  "title": "Q: And since it works, everyone's happy. But have people tried to deliberately come up with intentional \"scorings\" that make sense semantically? I.e., designating one dimension as \"related to a verb's subject\"?",
+                  "expanded": true,
+                  "id": "ann-1771876745555-nz06mo",
+                  "sourceId": "source-ann-1771876745555-nz06mo"
+                },
+                "children": [
+                  {
+                    "type": "p",
+                    "children": "Yes, people have tried this, and the results are interesting. The broad field is called \"disentangled representations,\" and one notable example in the attention world is DeBERTa (Decoding-enhanced BERT with disentangled attention), which explicitly separates position information from content information into distinct scoring components. Instead of one opaque dot product, you get separate terms for content-to-content, content-to-position, and position-to-content relevance. That is a step toward the kind of intentional semantic scoring you are describing, though it still learns what \"content\" means rather than hand-labeling dimensions as \"subject\" or \"object.\""
+                  },
+                  {
+                    "type": "p",
+                    "children": "The deeper version of your question, whether anyone has tried reserving specific dimensions for specific linguistic roles, runs into a practical wall. Hand-designed dimensions like \"related to a verb's subject\" assume a fixed ontology of what matters, and it turns out language is far messier than any ontology we have come up with. Thematic roles like agent and patient are already fuzzy, and real sentences constantly blend, nest, and violate those categories. The learned vectors end up discovering structure that is more useful than anything linguists have pre-specified, partly because they are not constrained to categories humans find intuitive. A single dimension might encode a blend of agenthood, animacy, and topicality that no linguist would have thought to define but that turns out to be exactly what predicts the next word."
+                  },
+                  {
+                    "type": "p",
+                    "children": "That said, there is a thriving field called mechanistic interpretability that works the problem from the other direction. Rather than designing the dimensions up front, researchers reverse-engineer what the learned dimensions actually encode after training. They have found directions in representation space that correspond to things like \"this token is the indirect object\" or \"this verb is past tense.\" So the semantic structure you are imagining does exist in these models, it just was not hand-designed. It emerged, and we are now reading it back out. The consensus so far is that letting the model discover its own scoring geometry and then interpreting it beats trying to impose human-legible structure from the start, because the model finds encodings we would not have thought to look for."
+                  },
+                  {
+                    "type": "p",
+                    "props": {
+                      "className": "text-xs text-gray-400 mt-2"
+                    },
+                    "children": "Asked about \"happens to point in directions...\" — 2/23/2026, 2:58:46 PM"
                   }
                 ]
               },
