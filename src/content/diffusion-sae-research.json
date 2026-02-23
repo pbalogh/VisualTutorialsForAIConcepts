@@ -926,8 +926,7 @@
                 ]
               }
             ]
-          }
-        ],
+          },
           {
             "type": "DeepDive",
             "title": "[Feb 23] STAR-LDM: Latent Diffusion Planning for Language Generation (COLM 2026 submission)",
@@ -2334,6 +2333,33 @@
               {
                 "type": "p",
                 "children": "The scaling law study (2602.15014) shows noise type profoundly affects model behavior \u2014 masked, uniform, and interpolating diffusion have fundamentally different scaling curves. This validates our Idea 3 hypothesis: if even the basic noise distribution matters this much, a semantically-aware schedule (destroying high-level features last) should have even larger effects on generation quality."
+              }
+            ]
+          },
+          {
+            "type": "DeepDive",
+            "title": "[Feb 23] NeoDiff: Non-Simultaneous Continuous Diffusion with Per-Token Semantic Noise (ACL 2025)",
+            "children": [
+              {
+                "type": "p",
+                "children": [
+                  {"type": "strong", "children": ["Paper:"]},
+                  " 'Unifying Continuous and Discrete Text Diffusion with Non-simultaneous Diffusion Processes' (arXiv:2505.22165, ACL 2025)"
+                ]
+              },
+              {
+                "type": "p",
+                "children": [
+                  {"type": "strong", "children": ["Key insight:"]},
+                  " NeoDiff introduces a Poisson diffusion process where different tokens receive different noise levels, and a time predictor that adaptively modulates denoising progress based on token semantics. Unlike uniform corruption (all tokens noised equally) or discrete masking (binary mask/unmask), NeoDiff provides fine-grained, continuous, per-token noise control conditioned on semantic content."
+                ]
+              },
+              {
+                "type": "p",
+                "children": [
+                  {"type": "strong", "children": ["Relevance:"]},
+                  " \u2b50\u2b50\u2b50 DIRECT IMPLEMENTATION OF IDEA 3! NeoDiff\u2019s per-token semantic noise modulation is essentially a semantic-aware noise schedule. Their \u2018time predictor\u2019 learns which tokens need more/less denoising based on content \u2014 exactly our hypothesis that high-level semantic features should be destroyed last. The key extension: replace their learned time predictor with SAE feature-based scheduling, where noise levels are determined by which SAE features (low-level syntactic vs high-level semantic) are active at each position. NeoDiff outperforms both discrete and continuous diffusion baselines, validating that non-uniform semantic noise is strictly better than uniform."
+                ]
               }
             ]
           }
