@@ -750,7 +750,40 @@
                 "props": {
                   "language": "text"
                 },
-                "children": "GELU(x) = x × Φ(x)\n\nwhere Φ(x) is the CDF of the standard normal distribution.\n\nApproximately:\n  GELU(x) ≈ 0.5x(1 + tanh(√(2/π)(x + 0.044715x³)))\n\nBehavior:\n  x >> 0:  GELU(x) ≈ x     (passes through, like ReLU)\n  x << 0:  GELU(x) ≈ 0     (blocks, like ReLU)\n  x ≈ 0:   smooth transition (unlike ReLU's hard kink)"
+                "children": [
+                  "GELU(x) = x × Φ(x)\n\nwhere Φ(x) is the CDF of the standard normal distribution.\n\nApproximately:\n  GELU(x) ≈ 0.5x(1 + tanh(√(2/π)(x + 0.044715x³)))",
+                  {
+                    "type": "FootnoteRef",
+                    "props": {
+                      "id": "source-ann-1771875572577-rjbcsw",
+                      "targetId": "ann-1771875572577-rjbcsw",
+                      "type": "explain"
+                    }
+                  },
+                  "\n\nBehavior:\n  x >> 0:  GELU(x) ≈ x     (passes through, like ReLU)\n  x << 0:  GELU(x) ≈ 0     (blocks, like ReLU)\n  x ≈ 0:   smooth transition (unlike ReLU's hard kink)"
+                ]
+              },
+              {
+                "type": "Sidebar",
+                "props": {
+                  "type": "note",
+                  "title": "About \"GELU(x) ≈ 0.5x(1 + tanh(√(2/π)(x + 0.044715x³)))\"",
+                  "id": "ann-1771875572577-rjbcsw",
+                  "sourceId": "source-ann-1771875572577-rjbcsw"
+                },
+                "children": [
+                  {
+                    "type": "p",
+                    "children": "This is the practical approximation used in actual transformer implementations because computing the exact normal CDF (Φ) is expensive. The tanh expression cleverly mimics the S-shaped curve of Φ, giving you the smooth gating behavior — where inputs near zero get partially passed rather than hard-cut — at a fraction of the computational cost. The magic number 0.044715 is a fitted constant that keeps this approximation tight enough that the difference from the true GELU is negligible across the range that matters."
+                  },
+                  {
+                    "type": "p",
+                    "props": {
+                      "className": "text-xs text-gray-400 mt-2"
+                    },
+                    "children": "Added 2/23/2026, 2:39:24 PM"
+                  }
+                ]
               },
               {
                 "type": "p",
