@@ -381,7 +381,53 @@
                 "props": {
                   "language": "text"
                 },
-                "children": "For one head (64d):\n\n  Attention weights: (seq_len × seq_len) — probability distributions\n  V (Values):        (seq_len × 64)      — information carried by each token\n\n  Output = attention_weights @ V\n  Result: (seq_len × 64)\n\n  Each token's output = weighted average of all attended tokens' Values"
+                "children": [
+                  "For one head (64d):\n\n  Attention weights: (seq_len × seq_len) — probability distributions\n  V (Values):        (seq_len × 64)      — information carried by each token\n\n  Output = attention_weights @ V\n  Result: (seq_len × 64)",
+                  {
+                    "type": "FootnoteRef",
+                    "props": {
+                      "id": "source-ann-1771870596036-0h1dkf",
+                      "targetId": "ann-1771870596036-0h1dkf",
+                      "type": "ask"
+                    }
+                  },
+                  "\n\n  Each token's output = weighted average of all attended tokens' Values"
+                ]
+              },
+              {
+                "type": "Sidebar",
+                "props": {
+                  "type": "note",
+                  "title": "Q: How exactly does this multiplication work? The two matrices have very different shapes....",
+                  "expanded": true,
+                  "id": "ann-1771870596036-0h1dkf",
+                  "sourceId": "source-ann-1771870596036-0h1dkf"
+                },
+                "children": [
+                  {
+                    "type": "p",
+                    "children": "The shapes actually fit together perfectly, and seeing why reveals what attention is really doing. Matrix multiplication requires that the inner dimensions match: (seq_len × seq_len) @ (seq_len × 64) works because the two seq_len dimensions align. The result is (seq_len × 64), taking the outer dimensions."
+                  },
+                  {
+                    "type": "p",
+                    "children": "Here is what happens concretely. Say your sequence is 5 tokens and each value vector has 64 dimensions. The attention weight matrix is 5×5, where each row is a probability distribution that sums to 1. Row 3, for instance, might be [0.05, 0.10, 0.70, 0.05, 0.10], meaning token 3 is paying 70% attention to itself, 10% to tokens 2 and 5, and so on. V is 5×64, where each row is one token's 64-dimensional value vector, the information that token carries."
+                  },
+                  {
+                    "type": "p",
+                    "children": "When you multiply row 3 of the attention weights by the entire V matrix, you are taking 0.05 times token 1's value vector, plus 0.10 times token 2's value vector, plus 0.70 times token 3's value vector, and so on. You end up with a single 64-dimensional vector that is a weighted blend of all tokens' information, mixed according to those attention probabilities. That is exactly what \"weighted average of all attended tokens' Values\" means at the bottom of the passage. Every row of the attention matrix produces one such blended output, so you get 5 output rows of 64 dimensions each, one new representation per token, now enriched with information from the tokens it attended to."
+                  },
+                  {
+                    "type": "p",
+                    "children": "The key intuition is that the seq_len × seq_len matrix is not carrying content, it is carrying routing instructions. It says how much of each token's information to mix together. V carries the actual content. The multiplication combines routing with content to produce the attention head's output."
+                  },
+                  {
+                    "type": "p",
+                    "props": {
+                      "className": "text-xs text-gray-400 mt-2"
+                    },
+                    "children": "Asked about \"Attention weights: (seq_len × ...\" — 2/23/2026, 1:16:19 PM"
+                  }
+                ]
               },
               {
                 "type": "p",
