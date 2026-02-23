@@ -493,6 +493,18 @@ const tutorials = [
     difficulty: 2,
   },
   {
+    id: 'brainstorm-05-prototypes-good-enough-centers',
+    title: 'Prototypes vs. Definitions — Good Enough Centers',
+    description: 'Why Schankian primitives work like Rosch\'s prototypes — fuzzy, gradient, and "good enough" rather than rigidly defined',
+    tags: ['schankian', 'prototypes', 'categorization', 'embeddings'],
+    icon: '🎯',
+    gradient: 'from-amber-500 to-orange-600',
+    shadowColor: 'shadow-amber-500/30',
+    glowColor: 'rgba(245, 158, 11, 0.4)',
+    readTime: '18 min',
+    difficulty: 1,
+  },
+  {
     id: 'brainstorm-02-frame-problem-annotations',
     title: 'The Frame Problem and Implicit State Annotation',
     description: 'How making the invisible visible solves AI\'s oldest problem — the hierarchical annotation schema for Darkness Visible',
