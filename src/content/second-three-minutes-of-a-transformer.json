@@ -664,7 +664,18 @@
                 "children": [
                   {
                     "type": "p",
-                    "children": "Yes, exactly right, and this is one of the most elegant things about the transformer architecture. The entire residual stream is those same 768 dimensions from start to finish. Every layer reads from and writes back to that same shared space. The attention heads make subtle adjustments to the vector, nudging it in certain directions within that 768-dimensional space, and those nudges are precisely what the MLP reads as its input signal."
+                    "children": [
+                      "Yes, exactly right, and this is one of the most elegant things about the transformer architecture. The entire residual stream is those same 768 dimensions",
+                      {
+                        "type": "FootnoteRef",
+                        "props": {
+                          "id": "source-ann-1771875717776-m6st33",
+                          "targetId": "ann-1771875717776-m6st33",
+                          "type": "ask"
+                        }
+                      },
+                      " from start to finish. Every layer reads from and writes back to that same shared space. The attention heads make subtle adjustments to the vector, nudging it in certain directions within that 768-dimensional space, and those nudges are precisely what the MLP reads as its input signal."
+                    ]
                   },
                   {
                     "type": "p",
@@ -684,6 +695,41 @@
                       "className": "text-xs text-gray-400 mt-2"
                     },
                     "children": "Asked about \"The MLP transforms each token'...\" — 2/23/2026, 2:37:43 PM"
+                  }
+                ]
+              },
+              {
+                "type": "Sidebar",
+                "props": {
+                  "type": "note",
+                  "title": "Q: But ity's actually But it's actually a *list* of 768-d vectors, right? I'm wondering if the MLP takes in the entire list at once, or each vector one at a time....",
+                  "expanded": true,
+                  "id": "ann-1771875717776-m6st33",
+                  "sourceId": "source-ann-1771875717776-m6st33"
+                },
+                "children": [
+                  {
+                    "type": "p",
+                    "children": "You're absolutely right to push back on that. The residual stream isn't a single 768-dimensional vector — it's a sequence of them, one per token position. So if your input is 50 tokens long, the residual stream is a 50 × 768 matrix, where each row is one token's evolving representation."
+                  },
+                  {
+                    "type": "p",
+                    "children": "The MLP operates on each token's 768-d vector independently and in parallel. It doesn't see the full sequence at once. So for each position in that list, the MLP takes in that single 768-d vector, expands it (typically to 4× the size, so 3072 dimensions), applies a nonlinearity, then projects it back down to 768. It does this identically for every position. The MLP has no idea what's happening at other token positions — it's purely a per-token transformation."
+                  },
+                  {
+                    "type": "p",
+                    "children": "This is actually a really important architectural distinction: attention is where tokens talk to each other (it operates across the sequence), while the MLP is where each token \"thinks privately\" (it operates within a single position). The attention heads have already mixed information between positions and deposited their updates into each token's vector. By the time the MLP sees a given token's 768-d vector, that vector already contains contextual information blended in by attention — but the MLP itself just processes each one in isolation."
+                  },
+                  {
+                    "type": "p",
+                    "children": "So the passage's phrasing is a little loose. When it says attention heads \"nudge the vector\" and the MLP reads that as input, it's describing what happens at each individual token position, repeated across the whole sequence."
+                  },
+                  {
+                    "type": "p",
+                    "props": {
+                      "className": "text-xs text-gray-400 mt-2"
+                    },
+                    "children": "Asked about \"those same 768 dimensions\" — 2/23/2026, 2:41:43 PM"
                   }
                 ]
               }
