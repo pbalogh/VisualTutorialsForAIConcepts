@@ -853,7 +853,53 @@
               },
               {
                 "type": "p",
-                "children": "The first linear layer's weight matrix W_1 has 3,072 rows. Each row is a 768-dimensional vector — a \"key\" that defines when that neuron fires. When the input has a high dot product with that row (i.e., the input matches the key), the neuron activates strongly."
+                "children": [
+                  "The first linear layer's weight matrix W_1 has 3,072 rows. Each row is a 768-dimensional vector — a \"key\" that defines when that neuron fires. When the input has a high dot product with that row (i.e., the input matches the key",
+                  {
+                    "type": "FootnoteRef",
+                    "props": {
+                      "id": "source-ann-1771876138148-utwrov",
+                      "targetId": "ann-1771876138148-utwrov",
+                      "type": "ask"
+                    }
+                  },
+                  "), the neuron activates strongly."
+                ]
+              },
+              {
+                "type": "Sidebar",
+                "props": {
+                  "type": "note",
+                  "title": "Q: I'm scared of how tidy this sounds, but can I allow myself to think \"it's like a fuzzy matching mechanism for comparing an input vector to a list of possible matches, and returning the resulting scores as an array\"?",
+                  "expanded": true,
+                  "id": "ann-1771876138148-utwrov",
+                  "sourceId": "source-ann-1771876138148-utwrov"
+                },
+                "children": [
+                  {
+                    "type": "p",
+                    "children": "Yes, you should absolutely allow yourself to think that, because it's essentially correct. The weight matrix W_1 is exactly a stack of 3,072 learned \"templates,\" and multiplying the input by this matrix computes the dot product against every single template simultaneously. The output is a vector of 3,072 scores, each saying \"how well did the input match template number n?\" That really is fuzzy matching against a lookup table, done in one matrix multiply."
+                  },
+                  {
+                    "type": "p",
+                    "children": "The reason it sounds suspiciously tidy is that dot products genuinely are a similarity measure. Two vectors pointing in similar directions produce a large dot product; orthogonal ones produce zero. So each row of W_1 learns to point in the direction of whatever pattern that neuron \"cares about,\" and the dot product is the match score. The ReLU afterward just zeros out the negative scores, keeping only the neurons that found a positive match. Your instinct that it returns \"resulting scores as an array\" is spot on — that array is the activation pattern of the hidden layer."
+                  },
+                  {
+                    "type": "p",
+                    "children": "Where you might want to add one small wrinkle to your mental model: unlike traditional fuzzy matching where the templates are hand-designed, these keys are learned during training. The network discovers for itself what patterns are worth matching against. Some neurons might end up matching \"this token is a verb following a noun,\" others might match \"we're inside a parenthetical clause.\" The templates aren't interpretable categories you'd design yourself, but the mechanism is exactly the fuzzy lookup you're describing."
+                  },
+                  {
+                    "type": "p",
+                    "children": "So don't be scared of how tidy it sounds. Sometimes the tidy explanation is just the right one. Linear algebra was practically invented for this kind of \"compare one thing to many things at once\" operation."
+                  },
+                  {
+                    "type": "p",
+                    "props": {
+                      "className": "text-xs text-gray-400 mt-2"
+                    },
+                    "children": "Asked about \"input matches the key\" — 2/23/2026, 2:48:42 PM"
+                  }
+                ]
               },
               {
                 "type": "p",
