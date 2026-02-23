@@ -1,0 +1,1108 @@
+{
+  "type": "Fragment",
+  "meta": {
+    "title": "The First Three Minutes of a Transformer",
+    "subtitle": "Everything that happens to raw text before Layer 1 — a Weinbergian chronicle",
+    "description": "A deep dive into everything that happens to raw text BEFORE it enters Layer 1 of a transformer — tokenization, embeddings, positional encoding, and the birth of the residual stream.",
+    "author": "Peter Balogh",
+    "lastUpdated": "2026-02-23",
+    "tags": [
+      "transformers",
+      "tokenization",
+      "embeddings",
+      "positional encoding",
+      "NLP",
+      "deep learning"
+    ]
+  },
+  "content": {
+    "type": "Fragment",
+    "children": [
+      {
+        "type": "Section",
+        "props": { "title": "Prologue: Before the Beginning" },
+        "children": [
+          {
+            "type": "p",
+            "children": "In 1977, the physicist Steven Weinberg wrote a book called \"The First Three Minutes,\" chronicling everything that happened in the universe between the Big Bang and t = 180 seconds. His argument was simple: those first moments determined everything that followed — the ratio of hydrogen to helium, the seeds of galaxies, the shape of the cosmos. But nobody could see them directly. You had to reconstruct them from theory and inference."
+          },
+          {
+            "type": "p",
+            "children": "Transformers have their own first three minutes. When you type a sentence into ChatGPT or Claude, a remarkable sequence of transformations happens before the neural network's first layer even fires. Raw text — mere squiggles on a screen — gets converted into high-dimensional geometry. Characters become tokens. Tokens become vectors. Vectors get stamped with positional information. And then, and only then, does the transformer begin its work."
+          },
+          {
+            "type": "p",
+            "children": "This tutorial is about that invisible preprocessing pipeline. It's the story of how meaning begins — not in the attention heads or the feed-forward layers, but in the quiet, deterministic machinery that prepares the input. Like Weinberg's first three minutes, these early moments are decisive. Get them wrong, and nothing downstream can recover."
+          },
+          {
+            "type": "Callout",
+            "props": { "type": "key-idea" },
+            "children": [
+              {
+                "type": "p",
+                "children": "Everything in this tutorial happens BEFORE the first transformer layer. No attention. No learned transformations. Just lookup tables, additions, and normalization. And yet, by the end, we'll have converted a string of characters into a rich geometric object that encodes both meaning and position."
+              }
+            ]
+          }
+        ]
+      },
+
+      {
+        "type": "Section",
+        "props": { "title": "Act I: From Characters to Tokens" },
+        "children": [
+          {
+            "type": "Section",
+            "props": { "title": "1. Raw Text Arrives" },
+            "children": [
+              {
+                "type": "p",
+                "children": "It starts with nothing more than a string. When you type \"The cat sat on the mat\" into a language model, what arrives at the system boundary is a sequence of Unicode characters:"
+              },
+              {
+                "type": "Code",
+                "props": { "language": "text" },
+                "children": "T  h  e     c  a  t     s  a  t     o  n     t  h  e     m  a  t\n54 68 65 20 63 61 74 20 73 61 74 20 6F 6E 20 74 68 65 20 6D 61 74"
+              },
+              {
+                "type": "p",
+                "children": "That's it. No structure. No words. No meaning. Just bytes. The computer doesn't know where one word ends and another begins. It doesn't know that \"the\" appears twice. It doesn't know that \"cat\" is a noun or that \"sat\" is past tense. It sees a flat sequence of numbers."
+              },
+              {
+                "type": "Analogy",
+                "children": "Imagine receiving a telegram written in a language you don't speak. You can see the individual symbols, count them, compare them — but you have no idea what they mean. That's where the transformer starts. Every bit of \"understanding\" it eventually displays is built up from this starting point of pure ignorance."
+              },
+              {
+                "type": "p",
+                "children": "The first task, then, is to carve this flat stream of characters into meaningful chunks. Not words exactly — something both more principled and more strange. We need tokens."
+              }
+            ]
+          },
+
+          {
+            "type": "Section",
+            "props": { "title": "2. Byte-Pair Encoding: Building the Dictionary" },
+            "children": [
+              {
+                "type": "p",
+                "children": "How do you decide what the \"meaningful chunks\" of a language are? You could use words — split on spaces and punctuation. But this has problems. What about \"don't\"? Is that one word or two? What about \"running\" — should the model see it as one thing, or recognize that it shares a root with \"run\"? And what happens when the model encounters \"Pneumonoultramicroscopicsilicovolcanoconiosis\"?"
+              },
+              {
+                "type": "p",
+                "children": "Modern language models use a technique called Byte-Pair Encoding (BPE), and understanding it is essential to understanding everything that follows. BPE doesn't use linguistic rules about words or morphemes. It uses statistics. Pure, beautiful statistics."
+              },
+              {
+                "type": "h3",
+                "children": "The Training Phase: Building the Merge Table"
+              },
+              {
+                "type": "p",
+                "children": "BPE is trained on a large corpus of text — typically billions of words. The algorithm starts from the most atomic possible representation and iteratively builds up larger units:"
+              },
+              {
+                "type": "Example",
+                "props": { "title": "BPE Training: A Miniature Example" },
+                "children": [
+                  {
+                    "type": "p",
+                    "children": "Suppose our entire training corpus consists of these words (with frequencies):"
+                  },
+                  {
+                    "type": "Code",
+                    "props": { "language": "text" },
+                    "children": "low     (5 times)\nlower   (2 times)\nnewest  (6 times)\nwidest  (3 times)"
+                  },
+                  {
+                    "type": "p",
+                    "children": "Step 1: Start by splitting every word into individual characters, with a special end-of-word marker ⟨/w⟩:"
+                  },
+                  {
+                    "type": "Code",
+                    "props": { "language": "text" },
+                    "children": "l o w ⟨/w⟩       × 5\nl o w e r ⟨/w⟩   × 2\nn e w e s t ⟨/w⟩ × 6\nw i d e s t ⟨/w⟩ × 3"
+                  },
+                  {
+                    "type": "p",
+                    "children": "Step 2: Count all adjacent pairs across the corpus:"
+                  },
+                  {
+                    "type": "Code",
+                    "props": { "language": "text" },
+                    "children": "Pair      Count\n(e, s)  → 6 + 3 = 9   ← WINNER\n(s, t)  → 6 + 3 = 9   ← tied\n(l, o)  → 5 + 2 = 7\n(o, w)  → 5 + 2 = 7\n(n, e)  → 6\n(e, w)  → 6\n(w, ⟨/w⟩) → 5\n(w, e)  → 2\n..."
+                  },
+                  {
+                    "type": "p",
+                    "children": "Step 3: Merge the most frequent pair (e, s) → es everywhere:"
+                  },
+                  {
+                    "type": "Code",
+                    "props": { "language": "text" },
+                    "children": "l o w ⟨/w⟩         × 5\nl o w e r ⟨/w⟩     × 2\nn e w es t ⟨/w⟩    × 6\nw i d es t ⟨/w⟩    × 3"
+                  },
+                  {
+                    "type": "p",
+                    "children": "Step 4: Recount pairs. Now (es, t) appears 9 times — merge it into est:"
+                  },
+                  {
+                    "type": "Code",
+                    "props": { "language": "text" },
+                    "children": "l o w ⟨/w⟩         × 5\nl o w e r ⟨/w⟩     × 2\nn e w est ⟨/w⟩     × 6\nw i d est ⟨/w⟩     × 3"
+                  },
+                  {
+                    "type": "p",
+                    "children": "And so on. Each merge creates a new \"token\" — a frequently occurring character sequence. After thousands of merges, you end up with a vocabulary of common subwords."
+                  }
+                ]
+              },
+              {
+                "type": "Analogy",
+                "children": "BPE is like a data compression algorithm that discovers the repeating patterns in a language. Just as ZIP files find repeated byte sequences and replace them with shorter codes, BPE finds repeated character sequences and promotes them to first-class tokens. The difference is that BPE's \"compression dictionary\" becomes the model's vocabulary — the set of atomic units it thinks in."
+              },
+              {
+                "type": "DeepDive",
+                "props": { "title": "Why BPE Converges on Something Useful" },
+                "children": [
+                  {
+                    "type": "p",
+                    "children": "It might seem surprising that a purely statistical procedure — just counting and merging — would discover linguistically meaningful units. But it does, and here's why:"
+                  },
+                  {
+                    "type": "ul",
+                    "children": [
+                      {
+                        "type": "li",
+                        "children": "Common words like \"the\", \"and\", \"is\" appear so frequently that they quickly become single tokens."
+                      },
+                      {
+                        "type": "li",
+                        "children": "Common morphemes like \"-ing\", \"-tion\", \"-ment\", \"un-\" also appear frequently and get merged into single tokens."
+                      },
+                      {
+                        "type": "li",
+                        "children": "The process naturally creates a hierarchy: characters → common pairs → common subwords → common words. Rare words stay decomposed into common subwords."
+                      },
+                      {
+                        "type": "li",
+                        "children": "This means the model never encounters a truly \"unknown\" word. Even \"Pneumonoultramicroscopicsilicovolcanoconiosis\" gets broken into recognizable pieces like [\"P\", \"ne\", \"um\", \"ono\", \"ultra\", \"micro\", \"scop\", \"ic\", \"s\", \"ili\", \"co\", \"vol\", \"can\", \"oc\", \"on\", \"ios\", \"is\"]."
+                      }
+                    ]
+                  },
+                  {
+                    "type": "p",
+                    "children": "The vocabulary size is a hyperparameter — typically 32K to 100K tokens. Smaller vocabularies mean more tokens per sentence (more splitting of words), while larger vocabularies mean each token carries more information but the embedding matrix is bigger. GPT-2 uses ~50,257 tokens. GPT-4 uses ~100,000. Llama uses ~32,000."
+                  }
+                ]
+              },
+              {
+                "type": "Callout",
+                "props": { "type": "key-idea" },
+                "children": [
+                  {
+                    "type": "p",
+                    "children": "BPE produces a fixed merge table — an ordered list of character pair merges. This table, combined with the base character set, defines the vocabulary. It's determined once during training and never changes. Every time you use the model, the same merge table is applied."
+                  }
+                ]
+              }
+            ]
+          },
+
+          {
+            "type": "Section",
+            "props": { "title": "3. The Tokenizer in Action" },
+            "children": [
+              {
+                "type": "p",
+                "children": "Now let's watch the trained tokenizer process actual text. The tokenizer has its merge table memorized and applies the merges greedily, from highest-priority to lowest."
+              },
+              {
+                "type": "Example",
+                "props": { "title": "Tokenizing 'The cat sat on the mat'" },
+                "children": [
+                  {
+                    "type": "p",
+                    "children": "Using GPT-2's tokenizer (which is publicly available), here's what actually happens:"
+                  },
+                  {
+                    "type": "Code",
+                    "props": { "language": "text" },
+                    "children": "Input:  \"The cat sat on the mat\"\n\nTokens: [\"The\", \" cat\", \" sat\", \" on\", \" the\", \" mat\"]\n\nToken IDs: [464, 3797, 3332, 319, 262, 2291]"
+                  },
+                  {
+                    "type": "p",
+                    "children": "Notice several things:"
+                  },
+                  {
+                    "type": "ul",
+                    "children": [
+                      {
+                        "type": "li",
+                        "children": "\"The\" (capitalized, start of sentence) is token 464"
+                      },
+                      {
+                        "type": "li",
+                        "children": "\" the\" (lowercase, with leading space) is a DIFFERENT token: 262. The tokenizer treats leading spaces as part of the token."
+                      },
+                      {
+                        "type": "li",
+                        "children": "Each common word is a single token. These are frequent enough in English that BPE merged all their characters."
+                      },
+                      {
+                        "type": "li",
+                        "children": "The output is a sequence of integers. From this point on, the original characters are gone. The model works entirely with these IDs."
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "type": "Example",
+                "props": { "title": "What About Rare and Complex Words?" },
+                "children": [
+                  {
+                    "type": "p",
+                    "children": "The real magic of BPE shows when we look at less common words:"
+                  },
+                  {
+                    "type": "Code",
+                    "props": { "language": "text" },
+                    "children": "\"sitting\"   → [\" sitting\"]         → [5765]          (1 token — very common)\n\"sat\"        → [\" sat\"]             → [3332]          (1 token — common)\n\"concatenate\"→ [\" conc\", \"aten\", \"ate\"] → [1673, 3371, 378]  (3 tokens)\n\"tokenizer\"  → [\" token\", \"izer\"]   → [11241, 7509]   (2 tokens)\n\"BPE\"        → [\"B\", \"PE\"]          → [33, 11401]     (2 tokens)"
+                  },
+                  {
+                    "type": "p",
+                    "children": "See the pattern? Common words are single tokens. Less common words get split into common subwords. Very rare words get split into many pieces. This is the compression at work — the tokenizer allocates its limited vocabulary budget to the patterns it sees most often."
+                  }
+                ]
+              },
+              {
+                "type": "Analogy",
+                "children": "Think of the tokenizer as a mosaic artist with a fixed set of tiles. Common shapes (sky blue, forest green) come in large pieces. But when the artist needs an unusual color — say, a specific shade of magenta — they assemble it from smaller tiles. No image is unrepresentable; some just require more tiles than others."
+              },
+              {
+                "type": "DeepDive",
+                "props": { "title": "The Space Prefix Convention" },
+                "children": [
+                  {
+                    "type": "p",
+                    "children": "You may have noticed that tokens like \" cat\" include a leading space. This is a deliberate design choice in many tokenizers (GPT-2, GPT-4, Llama). Instead of having a separate \"space\" token, the space is attached to the beginning of the following word. This means:"
+                  },
+                  {
+                    "type": "ul",
+                    "children": [
+                      {
+                        "type": "li",
+                        "children": "\" the\" and \"the\" are different tokens (the first appears mid-sentence, the second at the start)"
+                      },
+                      {
+                        "type": "li",
+                        "children": "You can reconstruct the original text by simply concatenating all tokens — no need for a separate de-tokenization step"
+                      },
+                      {
+                        "type": "li",
+                        "children": "The model implicitly learns that tokens with leading spaces are \"word starts\" in running text"
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "type": "Quiz",
+                "props": {
+                  "question": "If a word appears very rarely in the training corpus, what will the BPE tokenizer likely do with it?",
+                  "options": [
+                    "Replace it with an <UNK> (unknown) token",
+                    "Split it into multiple smaller, more common subword tokens",
+                    "Leave it as a single character sequence",
+                    "Skip it entirely"
+                  ],
+                  "correctIndex": 1,
+                  "explanation": "BPE never produces unknown tokens — that's one of its key advantages. Rare words get decomposed into common subword pieces. Even a completely novel word will be split into known character sequences, since individual characters are always in the vocabulary as a fallback."
+                }
+              }
+            ]
+          },
+
+          {
+            "type": "Section",
+            "props": { "title": "4. Special Tokens: The Stage Directions" },
+            "children": [
+              {
+                "type": "p",
+                "children": "Beyond the tokens that represent actual text, every vocabulary includes special tokens — signals that tell the model about the structure of its input rather than its content."
+              },
+              {
+                "type": "ComparisonTable",
+                "props": {
+                  "headers": ["Token", "Name", "Purpose"],
+                  "rows": [
+                    ["<|bos|> or <s>", "Beginning of Sequence", "Marks the start of a new input. Tells the model: everything after this is one coherent piece of text."],
+                    ["<|eos|> or </s>", "End of Sequence", "Marks the end. During generation, when the model outputs this token, it stops."],
+                    ["<|pad|>", "Padding", "Used to make sequences the same length in a batch. The model learns to ignore these."],
+                    ["<|sep|> or [SEP]", "Separator", "Used in models like BERT to separate two segments (e.g., question and passage)."],
+                    ["<|endoftext|>", "End of Text (GPT)", "GPT-2's version of EOS. Token ID 50256 — the very last entry in its vocabulary."]
+                  ]
+                }
+              },
+              {
+                "type": "p",
+                "children": "These tokens have their own learned embeddings, just like regular tokens. But their embeddings encode structural information rather than semantic content. The BOS embedding, for instance, might encode something like \"pay attention, something new is starting.\""
+              },
+              {
+                "type": "Analogy",
+                "children": "Special tokens are like stage directions in a play. They're not part of the dialogue — the characters never speak them — but they're essential for the actors (attention heads) to know when a scene begins, when it ends, and where the breaks are. Without them, the performance would be chaos."
+              }
+            ]
+          },
+
+          {
+            "type": "Section",
+            "props": { "title": "5. The Vocabulary: A Fixed Universe of Meaning" },
+            "children": [
+              {
+                "type": "p",
+                "children": "Let's step back and appreciate what the tokenizer has produced. We now have a vocabulary — a fixed, finite lookup table that maps between tokens (text fragments) and IDs (integers). For GPT-2, it looks something like this:"
+              },
+              {
+                "type": "Code",
+                "props": { "language": "text" },
+                "children": "ID 0     → \"!\"\nID 1     → \"\\\"\"\nID 2     → \"#\"\n...\nID 262   → \" the\"\nID 464   → \"The\"\n...\nID 3797  → \" cat\"\n...\nID 50256 → \"<|endoftext|>\"\n\nTotal: 50,257 entries"
+              },
+              {
+                "type": "p",
+                "children": "This vocabulary is the model's entire alphabet. Every piece of text it will ever process must be expressible as a sequence of these 50,257 tokens. Every piece of text it will ever generate must be assembled from these same tokens. It's a closed universe."
+              },
+              {
+                "type": "Callout",
+                "props": { "type": "info" },
+                "children": [
+                  {
+                    "type": "p",
+                    "children": "The vocabulary is determined entirely during tokenizer training, before the model itself is trained. Once set, it never changes. If you train a model with a 50K vocabulary on English text and then want it to handle Chinese, you're stuck — those Chinese characters may not be in the vocabulary, or they'll be split into bytes, making processing extremely inefficient. This is why modern multilingual models use larger vocabularies (100K+)."
+                  }
+                ]
+              },
+              {
+                "type": "p",
+                "children": "With our text now converted to a sequence of integer IDs, the first act is complete. We've gone from squiggles on a screen to a sequence of numbers. But numbers alone aren't enough for a neural network. We need geometry."
+              }
+            ]
+          }
+        ]
+      },
+
+      {
+        "type": "Section",
+        "props": { "title": "Act II: From Token IDs to Vectors" },
+        "children": [
+          {
+            "type": "Section",
+            "props": { "title": "6. The Embedding Matrix: The Great Lookup Table" },
+            "children": [
+              {
+                "type": "p",
+                "children": "Here is one of the most important and most misunderstood operations in all of deep learning. It is also one of the simplest."
+              },
+              {
+                "type": "p",
+                "children": "The model has a matrix — a giant table of numbers — called the embedding matrix. Its dimensions are V × d, where V is the vocabulary size and d is the model's hidden dimension. For GPT-2:"
+              },
+              {
+                "type": "Code",
+                "props": { "language": "text" },
+                "children": "V = 50,257  (vocabulary size)\nd = 768     (hidden dimension)\n\nEmbedding matrix shape: 50,257 × 768\nTotal parameters: 38,597,376  (about 38.6 million numbers)"
+              },
+              {
+                "type": "p",
+                "children": "Each row of this matrix corresponds to one token in the vocabulary. Row 262 is the embedding for \" the\". Row 3797 is the embedding for \" cat\". Row 50256 is the embedding for \"<|endoftext|>\"."
+              },
+              {
+                "type": "p",
+                "children": "When the model receives a token ID, it doesn't compute anything. It just looks up the corresponding row. That row — a vector of 768 numbers — IS the token's representation."
+              },
+              {
+                "type": "Code",
+                "props": { "language": "python" },
+                "children": "# This is literally all that happens:\ntoken_id = 262          # \" the\"\nembedding = E[token_id] # Look up row 262\n# embedding is now a vector of 768 numbers\n# e.g., [0.0423, -0.1891, 0.0712, ..., -0.0334]"
+              },
+              {
+                "type": "Analogy",
+                "children": "The embedding matrix is like a dictionary, but instead of mapping words to definitions (other words), it maps tokens to locations in a vast geometric space. Each token gets assigned a specific point in 768-dimensional space. \"Looking up\" a token means reading its coordinates."
+              },
+              {
+                "type": "Callout",
+                "props": { "type": "key-idea" },
+                "children": [
+                  {
+                    "type": "p",
+                    "children": "The embedding lookup is NOT a neural network computation. There's no activation function, no matrix multiplication, no nonlinearity. It's a pure table lookup — index into an array, retrieve a row. The magic is in what those rows contain, which was determined during training."
+                  }
+                ]
+              },
+              {
+                "type": "DeepDive",
+                "props": { "title": "Embedding Lookup as Matrix Multiplication" },
+                "children": [
+                  {
+                    "type": "p",
+                    "children": "Mathematically, the embedding lookup can be expressed as a matrix multiplication with a one-hot vector:"
+                  },
+                  {
+                    "type": "Code",
+                    "props": { "language": "text" },
+                    "children": "One-hot vector for token 262 (out of 50,257):\n[0, 0, 0, ..., 0, 1, 0, ..., 0]  (1 in position 262)\n         ↓\nMultiply by E (50,257 × 768):\n         ↓\nResult: Row 262 of E (a 768-dim vector)"
+                  },
+                  {
+                    "type": "p",
+                    "children": "This is mathematically equivalent to a table lookup — the one-hot vector \"selects\" a single row. In practice, implementations use actual array indexing (E[262]) because it's much faster than computing a massive matrix multiplication. But the one-hot perspective is useful theoretically because it shows that embedding lookup is a special case of a linear transformation."
+                  }
+                ]
+              }
+            ]
+          },
+
+          {
+            "type": "Section",
+            "props": { "title": "7. What Are These Vectors, Actually?" },
+            "children": [
+              {
+                "type": "p",
+                "children": "The embedding matrix was initialized randomly before training — each entry a small random number near zero. During training, as the model learned to predict next tokens across billions of examples, these vectors were gradually adjusted. The result is that tokens which appear in similar contexts end up with similar vectors."
+              },
+              {
+                "type": "p",
+                "children": "This is the distributional hypothesis made geometric: \"You shall know a word by the company it keeps\" (J.R. Firth, 1957). Tokens that substitute for each other in sentences — that appear in the same slots, surrounded by the same neighbors — converge to nearby points in embedding space."
+              },
+              {
+                "type": "Example",
+                "props": { "title": "Similarity in Embedding Space" },
+                "children": [
+                  {
+                    "type": "p",
+                    "children": "After training, if we measure the cosine similarity between token embeddings, we find patterns like:"
+                  },
+                  {
+                    "type": "Code",
+                    "props": { "language": "text" },
+                    "children": "similarity(\"cat\", \"dog\")     ≈ 0.82  (high — both are common pets)\nsimilarity(\"cat\", \"table\")   ≈ 0.31  (low — different categories)\nsimilarity(\"run\", \"running\") ≈ 0.74  (moderate — related but different forms)\nsimilarity(\"Paris\", \"France\")≈ 0.71  (capital-country relationship)"
+                  },
+                  {
+                    "type": "p",
+                    "children": "These numbers are illustrative — actual values depend on the specific model. But the pattern is real: semantic similarity is reflected in geometric proximity."
+                  }
+                ]
+              },
+              {
+                "type": "Callout",
+                "props": { "type": "warning" },
+                "children": [
+                  {
+                    "type": "p",
+                    "children": "Critical limitation: at this stage, every occurrence of a token gets the SAME vector, regardless of context. The word \"bank\" in \"river bank\" and \"bank account\" maps to the exact same 768-dimensional point. The embedding doesn't know which meaning is intended. That disambiguation is the job of the transformer layers — the attention mechanism will create different contextual representations. But right now, we're still in the preprocessing pipeline, and context hasn't entered the picture yet."
+                  }
+                ]
+              }
+            ]
+          },
+
+          {
+            "type": "Section",
+            "props": { "title": "8. The Geometry of Embedding Space" },
+            "children": [
+              {
+                "type": "p",
+                "children": "768 dimensions is a lot. We can't visualize it. But we can reason about it, and the geometry turns out to be remarkably structured."
+              },
+              {
+                "type": "h3",
+                "children": "Directions Encode Meaning"
+              },
+              {
+                "type": "p",
+                "children": "The most famous finding about word embeddings is that directions in the space encode semantic relationships. The canonical example:"
+              },
+              {
+                "type": "Code",
+                "props": { "language": "text" },
+                "children": "king - man + woman ≈ queen\n\nIn vector terms:\nvec(\"king\") - vec(\"man\") + vec(\"woman\") ≈ vec(\"queen\")"
+              },
+              {
+                "type": "p",
+                "children": "What this means: the vector from \"man\" to \"king\" (the \"royalty\" direction) is approximately the same as the vector from \"woman\" to \"queen\". The space has organized itself so that abstract relationships like gender, tense, and plurality correspond to consistent directions."
+              },
+              {
+                "type": "Example",
+                "props": { "title": "More Vector Arithmetic" },
+                "children": [
+                  {
+                    "type": "Code",
+                    "props": { "language": "text" },
+                    "children": "Paris - France + Italy     ≈ Rome       (capital-of direction)\nwalking - walk + swim      ≈ swimming   (progressive tense direction)\nbigger - big + small       ≈ smaller    (comparative direction)"
+                  },
+                  {
+                    "type": "p",
+                    "children": "These analogies work because training carved out consistent geometric patterns. The model never explicitly learned \"Paris is to France as Rome is to Italy\" — it emerged from the statistics of next-token prediction."
+                  }
+                ]
+              },
+              {
+                "type": "DeepDive",
+                "props": { "title": "The Limitations of Vector Arithmetic" },
+                "children": [
+                  {
+                    "type": "p",
+                    "children": "The king-queen example is famous, but it's also somewhat cherry-picked. In practice:"
+                  },
+                  {
+                    "type": "ul",
+                    "children": [
+                      {
+                        "type": "li",
+                        "children": "Many analogies don't work as cleanly. The vector arithmetic gives the right answer maybe 40-70% of the time on analogy benchmarks."
+                      },
+                      {
+                        "type": "li",
+                        "children": "The \"directions\" aren't perfectly consistent — the gender direction for king/queen isn't identical to the one for actor/actress."
+                      },
+                      {
+                        "type": "li",
+                        "children": "High-frequency words tend to cluster in a particular region of the space, creating a frequency bias."
+                      },
+                      {
+                        "type": "li",
+                        "children": "Token embeddings in modern transformers are less individually meaningful than classic Word2Vec embeddings because the transformer relies on its layers to build contextual representations."
+                      }
+                    ]
+                  },
+                  {
+                    "type": "p",
+                    "children": "Still, the basic insight holds: the embedding space is geometrically structured, and that structure reflects statistical patterns in language use."
+                  }
+                ]
+              },
+              {
+                "type": "Analogy",
+                "children": "Imagine a city where every building's address encodes information about the building. Buildings on the same street share a function (all restaurants, all hospitals). Buildings at the same numbered cross-street share a price range. The city wasn't planned this way — it emerged from people choosing locations based on their neighbors. That's embedding space: a self-organized city of meaning, where proximity and direction encode relationships that nobody explicitly programmed."
+              },
+              {
+                "type": "Quiz",
+                "props": {
+                  "question": "At the embedding lookup stage (before any transformer layers), what happens when the model encounters the word 'bank' in two different sentences: 'river bank' and 'bank account'?",
+                  "options": [
+                    "The model creates different embeddings based on context",
+                    "The model looks up the exact same vector both times",
+                    "The model averages the vectors of surrounding words",
+                    "The model uses attention to disambiguate"
+                  ],
+                  "correctIndex": 1,
+                  "explanation": "The embedding matrix is a static lookup table. Token ID → vector. Same ID, same vector, every time. Context-dependent disambiguation happens later, in the transformer layers. At this preprocessing stage, 'bank' always maps to the same point in 768-dimensional space."
+                }
+              }
+            ]
+          }
+        ]
+      },
+
+      {
+        "type": "Section",
+        "props": { "title": "Act III: Where Am I? (Positional Encoding)" },
+        "children": [
+          {
+            "type": "Section",
+            "props": { "title": "9. The Position Problem" },
+            "children": [
+              {
+                "type": "p",
+                "children": "We now have a sequence of vectors — one per token. But there's a devastating problem. Consider these two sentences:"
+              },
+              {
+                "type": "Code",
+                "props": { "language": "text" },
+                "children": "Sentence A: \"dog bites man\"\nSentence B: \"man bites dog\""
+              },
+              {
+                "type": "p",
+                "children": "Both contain the same three content tokens: \"dog\", \"bites\", \"man\". If we just look up their embeddings, we get the same set of vectors — just in a different order. But self-attention, the core operation of a transformer, is permutation-invariant. That means if we feed in the same set of vectors in any order, we get the same output."
+              },
+              {
+                "type": "Callout",
+                "props": { "type": "warning" },
+                "children": [
+                  {
+                    "type": "p",
+                    "children": "Without positional information, \"dog bites man\" and \"man bites dog\" are literally indistinguishable to the transformer. The attention mechanism computes similarity between all pairs of tokens — it doesn't care about order. This is by design (it's what makes attention so powerful and parallelizable), but it means we need to inject position information separately."
+                  }
+                ]
+              },
+              {
+                "type": "Analogy",
+                "children": "Imagine reading a novel where someone has cut out every sentence and tossed them into a bag. You have all the same content, but the story is gone. That's what a transformer without positional encoding faces — a bag of words with no sequence. Position information is what turns the bag back into a narrative."
+              },
+              {
+                "type": "p",
+                "children": "The solution: add position information directly to the vectors. Stamp each token's embedding with a signal that says \"I am at position 0\" or \"I am at position 42\". There are several ways to do this, and the history of their development reveals something about how the field thinks."
+              }
+            ]
+          },
+
+          {
+            "type": "Section",
+            "props": { "title": "10. Sinusoidal Positional Encoding (The Original)" },
+            "children": [
+              {
+                "type": "p",
+                "children": "In the original \"Attention Is All You Need\" paper (Vaswani et al., 2017), the authors proposed a clever, parameter-free approach. For each position in the sequence, they generate a vector of the same dimension as the embeddings (d = 768 for GPT-2), using sine and cosine functions at different frequencies:"
+              },
+              {
+                "type": "Code",
+                "props": { "language": "text" },
+                "children": "PE(pos, 2i)   = sin(pos / 10000^(2i/d))\nPE(pos, 2i+1) = cos(pos / 10000^(2i/d))\n\nwhere:\n  pos = position in the sequence (0, 1, 2, ...)\n  i   = dimension index (0, 1, 2, ..., d/2)\n  d   = model dimension (e.g., 768)"
+              },
+              {
+                "type": "p",
+                "children": "This looks intimidating, but the intuition is beautiful."
+              },
+              {
+                "type": "Analogy",
+                "children": "Think of a clock. The second hand completes a full rotation every 60 seconds. The minute hand every 60 minutes. The hour hand every 12 hours. At any given moment, the combination of all three hand positions uniquely identifies the time. Sinusoidal positional encoding works the same way: each dimension oscillates at a different frequency. Dimension 0 oscillates rapidly (like the second hand), dimension 100 more slowly (like the minute hand), dimension 700 very slowly (like the hour hand). The combination of all these oscillations at any given position creates a unique \"timestamp\" — a vector fingerprint that identifies that position."
+              },
+              {
+                "type": "DeepDive",
+                "props": { "title": "Why Sines and Cosines Specifically?" },
+                "children": [
+                  {
+                    "type": "p",
+                    "children": "The choice of sinusoidal functions wasn't arbitrary. They have a crucial mathematical property: the positional encoding of position (pos + k) can be expressed as a linear transformation of the encoding at position pos. In other words:"
+                  },
+                  {
+                    "type": "Code",
+                    "props": { "language": "text" },
+                    "children": "PE(pos + k) = f(PE(pos))  for some linear function f that depends on k but not pos"
+                  },
+                  {
+                    "type": "p",
+                    "children": "This means the model can easily learn to attend to relative positions. \"Look 3 tokens back\" can be implemented as a simple linear operation on the positional encoding, regardless of where in the sequence you are. This is because sin(a+b) and cos(a+b) can be expressed as linear combinations of sin(a), cos(a), sin(b), cos(b)."
+                  },
+                  {
+                    "type": "p",
+                    "children": "This relative-position property was a key design goal. The authors wanted the model to be able to learn patterns like \"the adjective usually comes right before the noun\" without having to learn separate patterns for every absolute position."
+                  }
+                ]
+              },
+              {
+                "type": "Example",
+                "props": { "title": "Visualizing Sinusoidal Encodings" },
+                "children": [
+                  {
+                    "type": "p",
+                    "children": "Here's what the first few dimensions of the positional encoding look like for positions 0 through 7:"
+                  },
+                  {
+                    "type": "Code",
+                    "props": { "language": "text" },
+                    "children": "         dim0    dim1    dim2    dim3    dim4    dim5    ...\npos 0: [ 0.000,  1.000,  0.000,  1.000,  0.000,  1.000, ...]\npos 1: [ 0.841,  0.540,  0.010,  1.000,  0.000,  1.000, ...]\npos 2: [ 0.909, -0.416,  0.020,  1.000,  0.000,  1.000, ...]\npos 3: [ 0.141, -0.990,  0.030,  1.000,  0.000,  1.000, ...]\npos 4: [-0.757, -0.654,  0.039,  0.999,  0.000,  1.000, ...]\npos 5: [-0.959,  0.284,  0.049,  0.999,  0.001,  1.000, ...]\npos 6: [-0.279,  0.960,  0.059,  0.998,  0.001,  1.000, ...]\npos 7: [ 0.657,  0.754,  0.069,  0.998,  0.001,  1.000, ...]"
+                  },
+                  {
+                    "type": "p",
+                    "children": "Notice: dimensions 0-1 oscillate rapidly (they've gone through nearly a full cycle in 7 positions), while dimensions 4-5 barely change. Higher dimensions oscillate even more slowly. This multi-scale pattern is what gives each position a unique signature."
+                  }
+                ]
+              },
+              {
+                "type": "Callout",
+                "props": { "type": "key-idea" },
+                "children": [
+                  {
+                    "type": "p",
+                    "children": "The positional encoding is ADDED to the token embedding, not concatenated. This means the final vector lives in the same 768-dimensional space, carrying both semantic information (from the embedding) and positional information (from the encoding). The model's layers must learn to disentangle and use both signals."
+                  }
+                ]
+              }
+            ]
+          },
+
+          {
+            "type": "Section",
+            "props": { "title": "11. Learned Positional Embeddings (GPT-Style)" },
+            "children": [
+              {
+                "type": "p",
+                "children": "The sinusoidal approach is elegant, but GPT and its descendants took a simpler route: just learn the positional encodings as parameters."
+              },
+              {
+                "type": "p",
+                "children": "GPT-2 has a second embedding matrix — the position embedding matrix — with shape (max_seq_length × d). For GPT-2, that's 1024 × 768. Each position gets its own learnable vector:"
+              },
+              {
+                "type": "Code",
+                "props": { "language": "python" },
+                "children": "# Position embedding matrix\nW_pos = nn.Embedding(1024, 768)  # 1024 positions, 768 dims each\n\n# For a token at position 5:\npos_embedding = W_pos[5]  # Just a lookup, same as token embeddings\n\n# Final input:\ninput_vector = token_embedding + pos_embedding"
+              },
+              {
+                "type": "p",
+                "children": "That's it. No sines, no cosines. Just another lookup table. During training, these vectors get optimized along with everything else. The model figures out what positional information it needs and encodes it in these vectors."
+              },
+              {
+                "type": "ComparisonTable",
+                "props": {
+                  "headers": ["Feature", "Sinusoidal", "Learned"],
+                  "rows": [
+                    ["Parameters", "Zero (computed from formula)", "max_seq_len × d (e.g., 786K for GPT-2)"],
+                    ["Extrapolation", "Can handle positions beyond training (in theory)", "Cannot — no embedding exists for unseen positions"],
+                    ["Inductive bias", "Encodes smooth, periodic structure", "No assumption — model learns whatever it needs"],
+                    ["Relative position", "Built-in via sin/cos properties", "Must be learned implicitly"],
+                    ["Used by", "Original Transformer, some research models", "GPT-2, GPT-3, BERT, many production models"]
+                  ]
+                }
+              },
+              {
+                "type": "Callout",
+                "props": { "type": "info" },
+                "children": [
+                  {
+                    "type": "p",
+                    "children": "Learned positional embeddings have a hard maximum sequence length. GPT-2 was trained with a maximum of 1024 positions, so its position embedding table has exactly 1024 rows. If you try to input a longer sequence, there's simply no position embedding for position 1025. This is one motivation for the newer approaches."
+                  }
+                ]
+              }
+            ]
+          },
+
+          {
+            "type": "Section",
+            "props": { "title": "12. RoPE: A Modern Twist" },
+            "children": [
+              {
+                "type": "p",
+                "children": "Both sinusoidal and learned positional embeddings add position information to the token vectors before attention. Rotary Position Embeddings (RoPE), introduced by Su et al. in 2021, take a fundamentally different approach: they apply position information inside the attention mechanism itself."
+              },
+              {
+                "type": "p",
+                "children": "The core idea: instead of adding a positional vector, rotate the query and key vectors by an angle that depends on their position. When two tokens compute their attention score (via dot product), the rotation angles interact to produce a score that naturally depends on the relative distance between the tokens."
+              },
+              {
+                "type": "DeepDive",
+                "props": { "title": "RoPE in Brief" },
+                "children": [
+                  {
+                    "type": "p",
+                    "children": "RoPE treats pairs of dimensions as 2D coordinates and rotates them:"
+                  },
+                  {
+                    "type": "Code",
+                    "props": { "language": "text" },
+                    "children": "For dimensions (2i, 2i+1) at position m:\n\n[x_{2i}  ]     [cos(mθ_i)  -sin(mθ_i)] [x_{2i}  ]\n[x_{2i+1}]  ←  [sin(mθ_i)   cos(mθ_i)] [x_{2i+1}]\n\nwhere θ_i = 10000^(-2i/d)"
+                  },
+                  {
+                    "type": "p",
+                    "children": "The magic: when you compute the dot product of a rotated query at position m and a rotated key at position n, the result depends only on (m - n), the relative position. This means RoPE naturally encodes relative position without needing to store or learn absolute position embeddings."
+                  },
+                  {
+                    "type": "p",
+                    "children": "Benefits: handles variable sequence lengths gracefully, encodes relative position by construction, no extra parameters. Used by Llama, Mistral, and most modern open-source models."
+                  }
+                ]
+              },
+              {
+                "type": "p",
+                "children": "For our story, the key point is this: one way or another, every transformer must inject positional information. The method varies, but the need is universal. Without it, the model literally cannot tell the difference between \"dog bites man\" and \"man bites dog.\""
+              },
+              {
+                "type": "Quiz",
+                "props": {
+                  "question": "Why does a transformer need positional encoding at all?",
+                  "options": [
+                    "The embedding vectors don't contain enough information",
+                    "Self-attention is permutation-invariant — it treats input as an unordered set",
+                    "The model needs to know the absolute date and time of each word",
+                    "It's needed to handle multiple languages"
+                  ],
+                  "correctIndex": 1,
+                  "explanation": "Self-attention computes pairwise similarities between all tokens — the operation gives the same result regardless of the order the tokens appear in. Without positional encoding, the model would treat 'dog bites man' and 'man bites dog' as identical inputs. Positional encoding breaks this symmetry by giving each position a unique signature."
+                }
+              }
+            ]
+          }
+        ]
+      },
+
+      {
+        "type": "Section",
+        "props": { "title": "Act IV: The Vector That Enters Layer 1" },
+        "children": [
+          {
+            "type": "Section",
+            "props": { "title": "13. Assembly: Token + Position = Input" },
+            "children": [
+              {
+                "type": "p",
+                "children": "We've arrived at the moment of synthesis. For each token in our input sequence, we have two vectors:"
+              },
+              {
+                "type": "ol",
+                "children": [
+                  {
+                    "type": "li",
+                    "children": "The token embedding — looked up from the embedding matrix based on the token ID"
+                  },
+                  {
+                    "type": "li",
+                    "children": "The positional encoding — either computed (sinusoidal), looked up (learned), or applied later (RoPE)"
+                  }
+                ]
+              },
+              {
+                "type": "p",
+                "children": "For models with additive position encoding (the original Transformer, GPT-2, BERT), these are simply added together:"
+              },
+              {
+                "type": "Code",
+                "props": { "language": "python" },
+                "children": "# For each token at position pos with token_id:\nx = E_token[token_id] + E_pos[pos]\n\n# Concrete example for \"The cat sat on the mat\":\nx_0 = E_token[464]  + E_pos[0]   # \"The\" at position 0\nx_1 = E_token[3797] + E_pos[1]   # \" cat\" at position 1\nx_2 = E_token[3332] + E_pos[2]   # \" sat\" at position 2\nx_3 = E_token[319]  + E_pos[3]   # \" on\" at position 3\nx_4 = E_token[262]  + E_pos[4]   # \" the\" at position 4\nx_5 = E_token[2291] + E_pos[5]   # \" mat\" at position 5"
+              },
+              {
+                "type": "p",
+                "children": "Each of these x vectors is 768-dimensional. It carries information about both what the token is and where it is. These six vectors, stacked into a matrix, form the input to the transformer."
+              },
+              {
+                "type": "Analogy",
+                "children": "If the token embedding is a person's identity — their name, personality, skills — then the positional encoding is their assigned seat in a theater. The combined vector says: \"I am 'cat,' and I am sitting in seat 1.\" Both pieces of information matter. Who you are determines how you interact with others. Where you sit determines who you can easily interact with."
+              }
+            ]
+          },
+
+          {
+            "type": "Section",
+            "props": { "title": "14. Layer Normalization: Stabilizing the Input" },
+            "children": [
+              {
+                "type": "p",
+                "children": "In many modern transformer architectures, there's a layer normalization step near the boundary of Layer 1. GPT-2 uses post-layer-norm — meaning the norm is applied after each sub-layer's residual addition, not before. So technically, the raw sum of token + position embeddings enters the first attention head directly, without normalization. But understanding layer norm matters because it shapes how vectors flow through the network."
+              },
+              {
+                "type": "p",
+                "children": "Layer norm takes each vector and normalizes it — adjusting it to have zero mean and unit variance, then applying a learned scale and shift:"
+              },
+              {
+                "type": "Code",
+                "props": { "language": "python" },
+                "children": "# Layer normalization for a single vector x:\nmean = x.mean()          # Average of all 768 values\nstd = x.std()            # Standard deviation\nx_norm = (x - mean) / std  # Normalize\n\n# Apply learned parameters (γ and β, each 768-dim):\nx_final = γ * x_norm + β"
+              },
+              {
+                "type": "p",
+                "children": "Why bother? Training deep networks is delicate. If vectors become too large or too small, gradients explode or vanish, and learning stalls. Layer norm keeps the magnitudes in a stable range, acting as a kind of automatic volume control."
+              },
+              {
+                "type": "DeepDive",
+                "props": { "title": "Pre-Norm vs. Post-Norm" },
+                "children": [
+                  {
+                    "type": "p",
+                    "children": "The original Transformer (2017) applied layer norm after each sub-layer (post-norm): output = LayerNorm(x + sublayer(x)). Most modern models use pre-norm instead: output = x + sublayer(LayerNorm(x)). The difference matters for training stability:"
+                  },
+                  {
+                    "type": "ul",
+                    "children": [
+                      {
+                        "type": "li",
+                        "children": "Pre-norm: the residual connection passes through unmodified, making gradient flow easier. Enables training deeper models without careful learning rate warmup."
+                      },
+                      {
+                        "type": "li",
+                        "children": "Post-norm: can achieve slightly better final performance, but is harder to train and more sensitive to hyperparameters."
+                      }
+                    ]
+                  },
+                  {
+                    "type": "p",
+                    "children": "GPT-2 actually uses post-norm (the original style). GPT-3, Llama, and most models since ~2020 switched to pre-norm. For GPT-2 specifically, this means the raw embedding sum enters the first attention layer directly — layer norm is applied after each sub-layer, not before."
+                  }
+                ]
+              }
+            ]
+          },
+
+          {
+            "type": "Section",
+            "props": { "title": "15. What Layer 1 Receives" },
+            "children": [
+              {
+                "type": "p",
+                "children": "Let's take stock. Starting from \"The cat sat on the mat\", we now have:"
+              },
+              {
+                "type": "Code",
+                "props": { "language": "text" },
+                "children": "Input matrix X:  shape (6 × 768)\n\n  Row 0: [0.123, -0.456, 0.789, ...]  ← \"The\" at position 0\n  Row 1: [0.234, -0.567, 0.890, ...]  ← \" cat\" at position 1\n  Row 2: [0.345, -0.678, 0.901, ...]  ← \" sat\" at position 2\n  Row 3: [0.456, -0.789, 0.012, ...]  ← \" on\" at position 3\n  Row 4: [0.567, -0.890, 0.123, ...]  ← \" the\" at position 4\n  Row 5: [0.678, -0.901, 0.234, ...]  ← \" mat\" at position 5\n\nEach row = token_embedding + position_embedding (then layer-normed)"
+              },
+              {
+                "type": "p",
+                "children": "This matrix is the starting state of what's called the residual stream. In the residual stream framework (popularized by Elhage et al., 2021), each transformer layer reads from this stream, computes something, and writes the result back by addition. Layer after layer, the representations get richer and more contextual."
+              },
+              {
+                "type": "p",
+                "children": "But that's the future. Right now, at the entrance to Layer 1, this matrix is the entire state of the computation. Every piece of information the model has access to is encoded in these 6 × 768 = 4,608 numbers."
+              },
+              {
+                "type": "Callout",
+                "props": { "type": "key-idea" },
+                "children": [
+                  {
+                    "type": "p",
+                    "children": "The input to Layer 1 is a matrix of shape (sequence_length × d_model). Each row is one token's representation, containing both its identity (from the embedding) and its position (from the positional encoding). This is the residual stream's initial state — the starting point from which all of the model's 'understanding' will be built."
+                  }
+                ]
+              }
+            ]
+          },
+
+          {
+            "type": "Section",
+            "props": { "title": "16. What's NOT There Yet" },
+            "children": [
+              {
+                "type": "p",
+                "children": "As we stand at the threshold of Layer 1, it's worth reflecting on what our input representation does NOT contain. This is just as important as what it does contain, because it defines exactly what the transformer layers must accomplish."
+              },
+              {
+                "type": "ul",
+                "children": [
+                  {
+                    "type": "li",
+                    "children": [
+                      {
+                        "type": "strong",
+                        "children": "No contextual information."
+                      },
+                      " The vector for \"bank\" is the same whether the surrounding words are \"river\" or \"account\". Each token's vector was looked up independently."
+                    ]
+                  },
+                  {
+                    "type": "li",
+                    "children": [
+                      {
+                        "type": "strong",
+                        "children": "No syntactic structure."
+                      },
+                      " The model doesn't know that \"cat\" is the subject and \"mat\" is part of a prepositional phrase. Syntax must be discovered by the layers."
+                    ]
+                  },
+                  {
+                    "type": "li",
+                    "children": [
+                      {
+                        "type": "strong",
+                        "children": "No coreference."
+                      },
+                      " If the text said \"The cat sat on the mat. It was soft.\", the model doesn't yet know that \"it\" refers to \"mat\" (or possibly \"cat\"). That linking happens in the layers."
+                    ]
+                  },
+                  {
+                    "type": "li",
+                    "children": [
+                      {
+                        "type": "strong",
+                        "children": "No world knowledge activation."
+                      },
+                      " The embedding for \"cat\" might be near \"dog\" and \"pet\" in the space, but the model hasn't yet activated its knowledge that cats are small, furry, independent, etc. That knowledge is stored in the feed-forward layers and gets activated during the forward pass."
+                    ]
+                  },
+                  {
+                    "type": "li",
+                    "children": [
+                      {
+                        "type": "strong",
+                        "children": "No prediction."
+                      },
+                      " The model hasn't even begun to think about what comes next. The entire prediction machinery — attention, feed-forward networks, residual connections — is downstream."
+                    ]
+                  }
+                ]
+              },
+              {
+                "type": "p",
+                "children": "And yet — and this is the remarkable part — everything the model needs to build all of that is present in these initial vectors. The token embeddings encode rough semantic similarity. The positional encodings encode sequence order. From these two ingredients, through dozens of layers of attention and feed-forward transformations, the model will construct a representation rich enough to generate coherent, contextually appropriate, sometimes brilliant text."
+              },
+              {
+                "type": "Analogy",
+                "children": "We're at the moment just after the Big Bang, when the universe consisted of a hot, uniform plasma. No stars, no galaxies, no planets, no life. But all the matter and energy were there. All the physical laws were in place. Everything that followed — the cooling, the condensation, the formation of structure — was a consequence of those initial conditions. The vector that enters Layer 1 is the transformer's primordial plasma: undifferentiated, but pregnant with possibility."
+              }
+            ]
+          }
+        ]
+      },
+
+      {
+        "type": "Section",
+        "props": { "title": "Epilogue: The Remarkable Journey" },
+        "children": [
+          {
+            "type": "p",
+            "children": "Let's trace the complete journey one final time:"
+          },
+          {
+            "type": "ol",
+            "children": [
+              {
+                "type": "li",
+                "children": "A string of characters arrives: \"The cat sat on the mat\""
+              },
+              {
+                "type": "li",
+                "children": "The tokenizer segments it using learned BPE merges: [\"The\", \" cat\", \" sat\", \" on\", \" the\", \" mat\"]"
+              },
+              {
+                "type": "li",
+                "children": "Each token is mapped to an integer ID: [464, 3797, 3332, 319, 262, 2291]"
+              },
+              {
+                "type": "li",
+                "children": "Each ID is used to look up a 768-dimensional vector from the embedding matrix"
+              },
+              {
+                "type": "li",
+                "children": "Positional information is added to each vector (via addition or rotation)"
+              },
+              {
+                "type": "li",
+                "children": "In GPT-2, these raw sums enter Layer 1 directly (post-norm architecture — layer norm comes after each sub-layer, not before)"
+              },
+              {
+                "type": "li",
+                "children": "The result — a matrix of shape (6 × 768) — enters Layer 1"
+              }
+            ]
+          },
+          {
+            "type": "p",
+            "children": "In perhaps a microsecond of compute time, we've gone from squiggles to geometry. From characters to meaning-bearing vectors in a high-dimensional space, tagged with their positions in the sequence. No attention mechanism has fired. No feed-forward network has activated. And yet the transformation is already profound."
+          },
+          {
+            "type": "p",
+            "children": "These first three minutes of a transformer — tokenization, embedding, positional encoding — are the foundation on which everything else is built. They're deterministic, mostly parameter-free (except the embedding matrices and layer norm), and often overlooked. But like Weinberg's first three minutes of the universe, they set the initial conditions that determine everything that follows."
+          },
+          {
+            "type": "blockquote",
+            "children": "\"The effort to understand the universe is one of the very few things which lifts human life a little above the level of farce and gives it some of the grace of tragedy.\" — Steven Weinberg"
+          },
+          {
+            "type": "p",
+            "children": "The effort to understand how a transformer turns text into meaning begins here, in these quiet first moments before the layers begin their work."
+          },
+          {
+            "type": "Quiz",
+            "props": {
+              "question": "In GPT-2, what is the correct order of operations BEFORE Layer 1?",
+              "options": [
+                "Tokenization → Positional Encoding → Embedding Lookup",
+                "Embedding Lookup → Tokenization → Positional Encoding",
+                "Tokenization → Embedding Lookup → Add Positional Embeddings → Enter Layer 1",
+                "Layer Norm → Tokenization → Embedding Lookup"
+              ],
+              "correctIndex": 2,
+              "explanation": "The correct order is: (1) Tokenization — raw text is split into tokens and mapped to integer IDs; (2) Embedding lookup — each ID retrieves a 768-dim vector from the token embedding matrix; (3) Positional embedding addition — a learned position vector is added to each token embedding. The resulting sum enters Layer 1 directly. GPT-2 uses post-norm, so there is no layer norm before the first attention layer."
+            }
+          }
+        ]
+      }
+    ]
+  }
+}
