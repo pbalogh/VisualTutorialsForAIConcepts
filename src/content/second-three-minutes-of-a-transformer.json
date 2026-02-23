@@ -640,7 +640,52 @@
               },
               {
                 "type": "p",
-                "children": "What does this \"thinking\" accomplish? The MLP transforms each token's representation in a nonlinear way, allowing the model to compute complex functions of the attention output. If attention decides \"this token is a verb in past tense,\" the MLP can use that information to activate the relevant knowledge about verb forms, tense patterns, and likely continuations."
+                "children": [
+                  "What does this \"thinking\" accomplish? The MLP transforms each token's representation in a nonlinear way, allowing the model to compute complex functions of the attention output. If attention decides \"this token is a verb in past tense,\" the MLP can use that information to activate the relevant knowledge about verb forms, tense patterns, and likely continuations.",
+                  {
+                    "type": "FootnoteRef",
+                    "props": {
+                      "id": "source-ann-1771875484128-3au3ds",
+                      "targetId": "ann-1771875484128-3au3ds",
+                      "type": "ask"
+                    }
+                  }
+                ]
+              },
+              {
+                "type": "Sidebar",
+                "props": {
+                  "type": "note",
+                  "title": "Q: And all of this information is in the same 768 dimensions that the original token embedding was in? That is, the changes within those 768 dimensions that were added by the attention heads are enough to cause the MLP to \"detect\" and implement its *own* changes?",
+                  "expanded": true,
+                  "id": "ann-1771875484128-3au3ds",
+                  "sourceId": "source-ann-1771875484128-3au3ds"
+                },
+                "children": [
+                  {
+                    "type": "p",
+                    "children": "Yes, exactly right, and this is one of the most elegant things about the transformer architecture. The entire residual stream is those same 768 dimensions from start to finish. Every layer reads from and writes back to that same shared space. The attention heads make subtle adjustments to the vector, nudging it in certain directions within that 768-dimensional space, and those nudges are precisely what the MLP reads as its input signal."
+                  },
+                  {
+                    "type": "p",
+                    "children": "Think of it like a shared whiteboard with 768 slots. The original embedding fills in initial values. Then the attention heads come along and erase some numbers, adjust others, based on what they learned from context. The MLP doesn't need a separate channel or a memo saying \"hey, this is a past-tense verb now.\" It just looks at the updated whiteboard and, because of how it was trained, certain patterns in those 768 numbers cause specific neurons to fire. A direction in that space that means \"past-tense verb\" might strongly activate MLP neurons that encode knowledge about tense patterns and continuations. The information isn't labeled, it's geometric. It's about where the vector points."
+                  },
+                  {
+                    "type": "p",
+                    "children": "What makes this work is that during training, the attention heads and MLPs co-adapt. The attention heads learn to write information in directions that downstream MLPs have learned to read. It's like a protocol that emerges from training. The attention heads don't just store \"past tense\" in some arbitrary way. They shift the vector into a region of the 768-dimensional space where the MLP's weight matrices will naturally pick up on it and route it to the right knowledge. So the 768 dimensions aren't a bottleneck so much as a shared language. Every component reads and writes in that language, and the superposition of many features across those dimensions gives the model far more effective capacity than 768 independent slots would suggest."
+                  },
+                  {
+                    "type": "p",
+                    "children": "One concrete way to see this: if you intervene and manually add a small \"past tense direction\" vector to a token's representation before it hits the MLP, the MLP will respond as if attention had flagged it as past tense, even though no attention head actually did. That's how tightly coupled the geometry is. The MLP is just a function of those 768 numbers, nothing more, and the magic is that those numbers carry enough structure to trigger the right computations."
+                  },
+                  {
+                    "type": "p",
+                    "props": {
+                      "className": "text-xs text-gray-400 mt-2"
+                    },
+                    "children": "Asked about \"The MLP transforms each token'...\" — 2/23/2026, 2:37:43 PM"
+                  }
+                ]
               }
             ]
           },
