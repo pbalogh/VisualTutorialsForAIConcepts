@@ -2,12 +2,13 @@
   "type": "Fragment",
   "meta": {
     "title": "The First Three Minutes of a Transformer",
-    "subtitle": "Everything that happens to raw text before Layer 1 — a Weinbergian chronicle",
-    "description": "A deep dive into everything that happens to raw text BEFORE it enters Layer 1 of a transformer — tokenization, embeddings, positional encoding, and the birth of the residual stream.",
+    "subtitle": "Everything that happens to raw text before Layer 1 — a Weinbergian chronicle of GPT-2's preprocessing pipeline",
+    "description": "A deep dive into everything that happens to raw text BEFORE it enters Layer 1 of GPT-2 — tokenization, embeddings, positional encoding, and the birth of the residual stream.",
     "author": "Peter Balogh",
     "lastUpdated": "2026-02-23",
     "tags": [
       "transformers",
+      "GPT-2",
       "tokenization",
       "embeddings",
       "positional encoding",
@@ -28,11 +29,11 @@
           },
           {
             "type": "p",
-            "children": "Transformers have their own first three minutes. When you type a sentence into ChatGPT or Claude, a remarkable sequence of transformations happens before the neural network's first layer even fires. Raw text — mere squiggles on a screen — gets converted into high-dimensional geometry. Characters become tokens. Tokens become vectors. Vectors get stamped with positional information. And then, and only then, does the transformer begin its work."
+            "children": "Transformers have their own first three minutes. When you type a sentence into a language model, a remarkable sequence of transformations happens before the neural network's first layer even fires. Raw text — mere squiggles on a screen — gets converted into high-dimensional geometry. Characters become tokens. Tokens become vectors. Vectors get stamped with positional information. And then, and only then, does the transformer begin its work."
           },
           {
             "type": "p",
-            "children": "This tutorial is about that invisible preprocessing pipeline. It's the story of how meaning begins — not in the attention heads or the feed-forward layers, but in the quiet, deterministic machinery that prepares the input. Like Weinberg's first three minutes, these early moments are decisive. Get them wrong, and nothing downstream can recover."
+            "children": "This tutorial follows that invisible pipeline in one specific, concrete model: GPT-2 (small), released by OpenAI in February 2019. We'll use its real numbers, its actual architecture, its specific design choices. Not a generic transformer — this one, with its 50,257-token vocabulary, its 768-dimensional embeddings, and its 1,024-position context window."
           },
           {
             "type": "Callout",
@@ -40,7 +41,7 @@
             "children": [
               {
                 "type": "p",
-                "children": "Everything in this tutorial happens BEFORE the first transformer layer. No attention. No learned transformations. Just lookup tables, additions, and normalization. And yet, by the end, we'll have converted a string of characters into a rich geometric object that encodes both meaning and position."
+                "children": "Everything in this tutorial happens BEFORE GPT-2's first transformer layer. No attention. No feed-forward networks. Just tokenization, two table lookups, and an addition. And yet, by the end, we'll have converted a string of characters into a rich geometric object that encodes both meaning and position."
               }
             ]
           }
@@ -57,7 +58,7 @@
             "children": [
               {
                 "type": "p",
-                "children": "It starts with nothing more than a string. When you type \"The cat sat on the mat\" into a language model, what arrives at the system boundary is a sequence of Unicode characters:"
+                "children": "It starts with nothing more than a string. When you type \"The cat sat on the mat\" into GPT-2, what arrives at the system boundary is a sequence of Unicode characters:"
               },
               {
                 "type": "Code",
@@ -70,11 +71,11 @@
               },
               {
                 "type": "Analogy",
-                "children": "Imagine receiving a telegram written in a language you don't speak. You can see the individual symbols, count them, compare them — but you have no idea what they mean. That's where the transformer starts. Every bit of \"understanding\" it eventually displays is built up from this starting point of pure ignorance."
+                "children": "Imagine receiving a telegram written in a language you don't speak. You can see the individual symbols, count them, compare them — but you have no idea what they mean. That's where GPT-2 starts. Every bit of \"understanding\" it eventually displays is built up from this starting point of pure ignorance."
               },
               {
                 "type": "p",
-                "children": "The first task, then, is to carve this flat stream of characters into meaningful chunks. Not words exactly — something both more principled and more strange. We need tokens."
+                "children": "The first task is to carve this flat stream of characters into meaningful chunks. Not words exactly — something both more principled and more strange. We need tokens."
               }
             ]
           },
@@ -89,7 +90,11 @@
               },
               {
                 "type": "p",
-                "children": "Modern language models use a technique called Byte-Pair Encoding (BPE), and understanding it is essential to understanding everything that follows. BPE doesn't use linguistic rules about words or morphemes. It uses statistics. Pure, beautiful statistics."
+                "children": "GPT-2 uses a technique called Byte-Pair Encoding (BPE), and understanding it is essential to understanding everything that follows. BPE doesn't use linguistic rules about words or morphemes. It uses statistics. Pure, beautiful statistics."
+              },
+              {
+                "type": "p",
+                "children": "GPT-2's tokenizer was trained on WebText — a dataset of about 8 million web pages (roughly 40 GB of text) scraped from outbound links on Reddit that received at least 3 upvotes. This is the corpus from which the tokenizer learned what chunks of text are worth treating as units."
               },
               {
                 "type": "h3",
@@ -97,7 +102,7 @@
               },
               {
                 "type": "p",
-                "children": "BPE is trained on a large corpus of text — typically billions of words. The algorithm starts from the most atomic possible representation and iteratively builds up larger units:"
+                "children": "BPE starts from the most atomic possible representation and iteratively builds up larger units:"
               },
               {
                 "type": "Example",
@@ -150,7 +155,7 @@
                   },
                   {
                     "type": "p",
-                    "children": "And so on. Each merge creates a new \"token\" — a frequently occurring character sequence. After thousands of merges, you end up with a vocabulary of common subwords."
+                    "children": "And so on. Each merge creates a new \"token\" — a frequently occurring character sequence. After thousands of merges, you end up with a vocabulary of common subwords. GPT-2's tokenizer performed exactly this process on WebText until it accumulated 50,257 tokens."
                   }
                 ]
               },
@@ -183,13 +188,32 @@
                       },
                       {
                         "type": "li",
-                        "children": "This means the model never encounters a truly \"unknown\" word. Even \"Pneumonoultramicroscopicsilicovolcanoconiosis\" gets broken into recognizable pieces like [\"P\", \"ne\", \"um\", \"ono\", \"ultra\", \"micro\", \"scop\", \"ic\", \"s\", \"ili\", \"co\", \"vol\", \"can\", \"oc\", \"on\", \"ios\", \"is\"]."
+                        "children": "This means the model never encounters a truly \"unknown\" word. Even \"Pneumonoultramicroscopicsilicovolcanoconiosis\" gets broken into recognizable pieces."
                       }
                     ]
+                  }
+                ]
+              },
+              {
+                "type": "DeepDive",
+                "props": { "title": "GPT-2's BPE Variant: Byte-Level BPE" },
+                "children": [
+                  {
+                    "type": "p",
+                    "children": "GPT-2 uses a specific variant called byte-level BPE. Instead of starting with Unicode characters (of which there are ~150,000), it starts with raw bytes (of which there are exactly 256). Every possible text — English, Chinese, emoji, binary — can be represented as a sequence of bytes."
                   },
                   {
                     "type": "p",
-                    "children": "The vocabulary size is a hyperparameter — typically 32K to 100K tokens. Smaller vocabularies mean more tokens per sentence (more splitting of words), while larger vocabularies mean each token carries more information but the embedding matrix is bigger. GPT-2 uses ~50,257 tokens. GPT-4 uses ~100,000. Llama uses ~32,000."
+                    "children": "This means GPT-2's base vocabulary is 256 byte tokens, and the remaining ~50,000 entries in its vocabulary are merges built on top of those bytes. The advantage: the tokenizer can handle any input, in any language, without any preprocessing. The disadvantage: non-English text and rare symbols often get split into many byte-level tokens, making processing less efficient."
+                  },
+                  {
+                    "type": "p",
+                    "children": "GPT-2 also applies a regex-based pre-tokenization step that splits text on word boundaries before BPE. This prevents merges from crossing word boundaries — the tokenizer won't merge the 'ed' at the end of 'walked' with the space and 'i' at the start of 'into'. The regex pattern looks roughly like this:"
+                  },
+                  {
+                    "type": "Code",
+                    "props": { "language": "python" },
+                    "children": "# GPT-2's pre-tokenization pattern (simplified):\npat = r\"\"\"'s|'t|'re|'ve|'m|'ll|'d| ?\\w+| ?\\d+| ?[^\\s\\w\\d]+|\\s+\"\"\""
                   }
                 ]
               },
@@ -199,7 +223,7 @@
                 "children": [
                   {
                     "type": "p",
-                    "children": "BPE produces a fixed merge table — an ordered list of character pair merges. This table, combined with the base character set, defines the vocabulary. It's determined once during training and never changes. Every time you use the model, the same merge table is applied."
+                    "children": "BPE produces a fixed merge table — an ordered list of 50,000+ character pair merges. This table, combined with the 256 base byte tokens, defines GPT-2's vocabulary of exactly 50,257 entries. It was determined once during tokenizer training on WebText and never changes."
                   }
                 ]
               }
@@ -212,7 +236,7 @@
             "children": [
               {
                 "type": "p",
-                "children": "Now let's watch the trained tokenizer process actual text. The tokenizer has its merge table memorized and applies the merges greedily, from highest-priority to lowest."
+                "children": "Now let's watch GPT-2's trained tokenizer process actual text. The tokenizer has its merge table memorized and applies the merges greedily, from highest-priority to lowest."
               },
               {
                 "type": "Example",
@@ -220,7 +244,7 @@
                 "children": [
                   {
                     "type": "p",
-                    "children": "Using GPT-2's tokenizer (which is publicly available), here's what actually happens:"
+                    "children": "Using GPT-2's actual tokenizer:"
                   },
                   {
                     "type": "Code",
@@ -236,19 +260,19 @@
                     "children": [
                       {
                         "type": "li",
-                        "children": "\"The\" (capitalized, start of sentence) is token 464"
+                        "children": "\"The\" (capitalized, start of sentence) is token 464."
                       },
                       {
                         "type": "li",
-                        "children": "\" the\" (lowercase, with leading space) is a DIFFERENT token: 262. The tokenizer treats leading spaces as part of the token."
+                        "children": "\" the\" (lowercase, with leading space) is a DIFFERENT token: 262. GPT-2's tokenizer treats leading spaces as part of the token."
                       },
                       {
                         "type": "li",
-                        "children": "Each common word is a single token. These are frequent enough in English that BPE merged all their characters."
+                        "children": "Each common English word is a single token. These are frequent enough that BPE merged all their characters during training on WebText."
                       },
                       {
                         "type": "li",
-                        "children": "The output is a sequence of integers. From this point on, the original characters are gone. The model works entirely with these IDs."
+                        "children": "The output is a sequence of integers. From this point on, the original characters are gone. GPT-2 works entirely with these IDs."
                       }
                     ]
                   }
@@ -265,17 +289,17 @@
                   {
                     "type": "Code",
                     "props": { "language": "text" },
-                    "children": "\"sitting\"   → [\" sitting\"]         → [5765]          (1 token — very common)\n\"sat\"        → [\" sat\"]             → [3332]          (1 token — common)\n\"concatenate\"→ [\" conc\", \"aten\", \"ate\"] → [1673, 3371, 378]  (3 tokens)\n\"tokenizer\"  → [\" token\", \"izer\"]   → [11241, 7509]   (2 tokens)\n\"BPE\"        → [\"B\", \"PE\"]          → [33, 11401]     (2 tokens)"
+                    "children": "\"sitting\"     → [\" sitting\"]             → [5765]            (1 token — very common)\n\"sat\"          → [\" sat\"]                 → [3332]            (1 token — common)\n\"concatenate\" → [\" conc\", \"aten\", \"ate\"] → [1673, 3371, 378] (3 tokens)\n\"tokenizer\"   → [\" token\", \"izer\"]       → [11241, 7509]     (2 tokens)\n\"BPE\"          → [\"B\", \"PE\"]              → [33, 11401]       (2 tokens)"
                   },
                   {
                     "type": "p",
-                    "children": "See the pattern? Common words are single tokens. Less common words get split into common subwords. Very rare words get split into many pieces. This is the compression at work — the tokenizer allocates its limited vocabulary budget to the patterns it sees most often."
+                    "children": "See the pattern? Common words are single tokens. Less common words get split into common subwords. Very rare words get split into many pieces. This is the compression at work — the tokenizer allocates its limited vocabulary budget of 50,257 entries to the patterns it saw most often in WebText."
                   }
                 ]
               },
               {
                 "type": "Analogy",
-                "children": "Think of the tokenizer as a mosaic artist with a fixed set of tiles. Common shapes (sky blue, forest green) come in large pieces. But when the artist needs an unusual color — say, a specific shade of magenta — they assemble it from smaller tiles. No image is unrepresentable; some just require more tiles than others."
+                "children": "Think of the tokenizer as a mosaic artist with a fixed set of 50,257 tiles. Common shapes (sky blue, forest green) come in large pieces. But when the artist needs an unusual color — say, a specific shade of magenta — they assemble it from smaller tiles. No image is unrepresentable; some just require more tiles than others."
               },
               {
                 "type": "DeepDive",
@@ -283,39 +307,31 @@
                 "children": [
                   {
                     "type": "p",
-                    "children": "You may have noticed that tokens like \" cat\" include a leading space. This is a deliberate design choice in many tokenizers (GPT-2, GPT-4, Llama). Instead of having a separate \"space\" token, the space is attached to the beginning of the following word. This means:"
+                    "children": "GPT-2's tokenizer encodes spaces by attaching them to the beginning of the following token. A leading space is represented as the Unicode character 'Ġ' (a G with a dot above it) in the vocabulary file. So the vocabulary actually contains entries like:"
                   },
                   {
-                    "type": "ul",
-                    "children": [
-                      {
-                        "type": "li",
-                        "children": "\" the\" and \"the\" are different tokens (the first appears mid-sentence, the second at the start)"
-                      },
-                      {
-                        "type": "li",
-                        "children": "You can reconstruct the original text by simply concatenating all tokens — no need for a separate de-tokenization step"
-                      },
-                      {
-                        "type": "li",
-                        "children": "The model implicitly learns that tokens with leading spaces are \"word starts\" in running text"
-                      }
-                    ]
+                    "type": "Code",
+                    "props": { "language": "text" },
+                    "children": "Token 262:  \"Ġthe\"   → decodes as \" the\"  (with leading space)\nToken 464:  \"The\"    → decodes as \"The\"   (no space — sentence start)\nToken 1169: \"Ġcat\"   → decodes as \" cat\"\nToken 9246: \"cat\"    → decodes as \"cat\"   (no space — rare, e.g., after punctuation)"
+                  },
+                  {
+                    "type": "p",
+                    "children": "This means you can reconstruct the original text by simply concatenating all decoded tokens — no need for a separate de-tokenization step with space-insertion rules."
                   }
                 ]
               },
               {
                 "type": "Quiz",
                 "props": {
-                  "question": "If a word appears very rarely in the training corpus, what will the BPE tokenizer likely do with it?",
+                  "question": "If a word appears very rarely in the training corpus, what will GPT-2's BPE tokenizer likely do with it?",
                   "options": [
                     "Replace it with an <UNK> (unknown) token",
                     "Split it into multiple smaller, more common subword tokens",
-                    "Leave it as a single character sequence",
+                    "Leave it as raw bytes without tokenization",
                     "Skip it entirely"
                   ],
                   "correctIndex": 1,
-                  "explanation": "BPE never produces unknown tokens — that's one of its key advantages. Rare words get decomposed into common subword pieces. Even a completely novel word will be split into known character sequences, since individual characters are always in the vocabulary as a fallback."
+                  "explanation": "BPE never produces unknown tokens — that's one of its key advantages over older tokenizers. Rare words get decomposed into common subword pieces. Even a completely novel word will be split into known byte sequences, since the 256 individual bytes are always in the vocabulary as a fallback. GPT-2 can tokenize literally any byte sequence."
                 }
               }
             ]
@@ -327,28 +343,46 @@
             "children": [
               {
                 "type": "p",
-                "children": "Beyond the tokens that represent actual text, every vocabulary includes special tokens — signals that tell the model about the structure of its input rather than its content."
+                "children": "Beyond the tokens that represent actual text, GPT-2's vocabulary includes one crucial special token."
+              },
+              {
+                "type": "p",
+                "children": "GPT-2 is minimalist about special tokens. Unlike BERT (which uses [CLS], [SEP], [MASK], [PAD], and more), GPT-2 has essentially one:"
               },
               {
                 "type": "ComparisonTable",
                 "props": {
-                  "headers": ["Token", "Name", "Purpose"],
+                  "headers": ["Token", "ID", "Purpose"],
                   "rows": [
-                    ["<|bos|> or <s>", "Beginning of Sequence", "Marks the start of a new input. Tells the model: everything after this is one coherent piece of text."],
-                    ["<|eos|> or </s>", "End of Sequence", "Marks the end. During generation, when the model outputs this token, it stops."],
-                    ["<|pad|>", "Padding", "Used to make sequences the same length in a batch. The model learns to ignore these."],
-                    ["<|sep|> or [SEP]", "Separator", "Used in models like BERT to separate two segments (e.g., question and passage)."],
-                    ["<|endoftext|>", "End of Text (GPT)", "GPT-2's version of EOS. Token ID 50256 — the very last entry in its vocabulary."]
+                    ["<|endoftext|>", "50256", "Marks the boundary between documents. During training, all of WebText was concatenated into one long stream with this token between documents. It serves as both beginning-of-sequence and end-of-sequence marker."]
                   ]
                 }
               },
               {
                 "type": "p",
-                "children": "These tokens have their own learned embeddings, just like regular tokens. But their embeddings encode structural information rather than semantic content. The BOS embedding, for instance, might encode something like \"pay attention, something new is starting.\""
+                "children": "That's it. Token 50,256 — the very last entry in the vocabulary, index 50,256 of a 50,257-element table (0-indexed). When GPT-2 generates this token, it's signaling \"I'm done.\" When it sees this token in its input, it knows a new document is starting."
+              },
+              {
+                "type": "p",
+                "children": "GPT-2 has no padding token (it doesn't do batched variable-length inference in the way BERT does), no separator token (it processes single sequences, not pairs), and no mask token (it's not a masked language model). This simplicity is part of its elegance."
               },
               {
                 "type": "Analogy",
-                "children": "Special tokens are like stage directions in a play. They're not part of the dialogue — the characters never speak them — but they're essential for the actors (attention heads) to know when a scene begins, when it ends, and where the breaks are. Without them, the performance would be chaos."
+                "children": "If the text tokens are the dialogue in a play, <|endoftext|> is the stage direction that says \"END OF SCENE.\" It's not part of the story — it's metadata about the story's structure. But it has its own learned embedding, just like any other token, so the model has learned what it means to encounter a scene boundary."
+              },
+              {
+                "type": "DeepDive",
+                "props": { "title": "Why So Few Special Tokens?" },
+                "children": [
+                  {
+                    "type": "p",
+                    "children": "GPT-2 was designed as a pure autoregressive language model: predict the next token, given all previous tokens. This task requires only one structural signal — where documents begin and end. BERT, by contrast, was designed for different tasks (masked prediction, sentence pair classification) that required richer structural markup."
+                  },
+                  {
+                    "type": "p",
+                    "children": "Later GPT variants and chat models (GPT-3.5, GPT-4, ChatGPT) added more special tokens for system prompts, user/assistant turn boundaries, function calls, etc. But GPT-2, in its original form, kept things beautifully simple."
+                  }
+                ]
               }
             ]
           },
@@ -359,16 +393,16 @@
             "children": [
               {
                 "type": "p",
-                "children": "Let's step back and appreciate what the tokenizer has produced. We now have a vocabulary — a fixed, finite lookup table that maps between tokens (text fragments) and IDs (integers). For GPT-2, it looks something like this:"
+                "children": "Let's step back and appreciate what the tokenizer has produced. We have a vocabulary — a fixed, finite lookup table that maps between tokens (text fragments) and IDs (integers). GPT-2's vocabulary looks something like this:"
               },
               {
                 "type": "Code",
                 "props": { "language": "text" },
-                "children": "ID 0     → \"!\"\nID 1     → \"\\\"\"\nID 2     → \"#\"\n...\nID 262   → \" the\"\nID 464   → \"The\"\n...\nID 3797  → \" cat\"\n...\nID 50256 → \"<|endoftext|>\"\n\nTotal: 50,257 entries"
+                "children": "ID 0     → \"!\"              (single byte)\nID 1     → \"\\\"\"             (single byte)\nID 2     → \"#\"              (single byte)\n...\nID 255   → \"ÿ\"              (last single byte)\nID 256   → first BPE merge  (most common pair)\n...\nID 262   → \"Ġthe\"           (\" the\" — extremely common)\nID 464   → \"The\"            (common at sentence starts)\n...\nID 3797  → \"Ġcat\"           (\" cat\")\n...\nID 50256 → \"<|endoftext|>\"  (the one special token)\n\nTotal: 50,257 entries\n  - 256 byte tokens (the base alphabet)\n  - 50,000 BPE merges (learned subwords)\n  - 1 special token (<|endoftext|>)"
               },
               {
                 "type": "p",
-                "children": "This vocabulary is the model's entire alphabet. Every piece of text it will ever process must be expressible as a sequence of these 50,257 tokens. Every piece of text it will ever generate must be assembled from these same tokens. It's a closed universe."
+                "children": "This vocabulary is GPT-2's entire alphabet. Every piece of text it will ever process must be expressible as a sequence of these 50,257 tokens. Every piece of text it will ever generate must be assembled from these same tokens. It's a closed universe."
               },
               {
                 "type": "Callout",
@@ -376,7 +410,7 @@
                 "children": [
                   {
                     "type": "p",
-                    "children": "The vocabulary is determined entirely during tokenizer training, before the model itself is trained. Once set, it never changes. If you train a model with a 50K vocabulary on English text and then want it to handle Chinese, you're stuck — those Chinese characters may not be in the vocabulary, or they'll be split into bytes, making processing extremely inefficient. This is why modern multilingual models use larger vocabularies (100K+)."
+                    "children": "The vocabulary was determined entirely during tokenizer training on WebText, before GPT-2's neural network was trained. Once set, it never changes. Because WebText was overwhelmingly English, GPT-2's vocabulary is heavily biased toward English subwords. Chinese characters, Arabic script, or emoji often get split into multiple byte-level tokens, making GPT-2 much less efficient at processing non-English text. A sentence that takes 10 tokens in English might take 30+ tokens in Chinese — eating into that precious 1,024-token context window."
                   }
                 ]
               },
@@ -395,7 +429,7 @@
         "children": [
           {
             "type": "Section",
-            "props": { "title": "6. The Embedding Matrix: The Great Lookup Table" },
+            "props": { "title": "6. The Token Embedding Matrix: The Great Lookup Table" },
             "children": [
               {
                 "type": "p",
@@ -403,12 +437,12 @@
               },
               {
                 "type": "p",
-                "children": "The model has a matrix — a giant table of numbers — called the embedding matrix. Its dimensions are V × d, where V is the vocabulary size and d is the model's hidden dimension. For GPT-2:"
+                "children": "GPT-2 has a matrix called wte (\"word token embeddings\") — a giant table of numbers. Its dimensions are 50,257 × 768:"
               },
               {
                 "type": "Code",
                 "props": { "language": "text" },
-                "children": "V = 50,257  (vocabulary size)\nd = 768     (hidden dimension)\n\nEmbedding matrix shape: 50,257 × 768\nTotal parameters: 38,597,376  (about 38.6 million numbers)"
+                "children": "wte: GPT-2's token embedding matrix\n\n  V = 50,257  (vocabulary size — one row per token)\n  d = 768     (hidden dimension — the size of each embedding vector)\n\n  Shape: 50,257 × 768\n  Total parameters: 38,597,376  (about 38.6 million numbers)\n  Memory: ~147 MB at float32"
               },
               {
                 "type": "p",
@@ -416,12 +450,12 @@
               },
               {
                 "type": "p",
-                "children": "When the model receives a token ID, it doesn't compute anything. It just looks up the corresponding row. That row — a vector of 768 numbers — IS the token's representation."
+                "children": "When GPT-2 receives a token ID, it doesn't compute anything. It just looks up the corresponding row. That row — a vector of 768 numbers — IS the token's representation."
               },
               {
                 "type": "Code",
                 "props": { "language": "python" },
-                "children": "# This is literally all that happens:\ntoken_id = 262          # \" the\"\nembedding = E[token_id] # Look up row 262\n# embedding is now a vector of 768 numbers\n# e.g., [0.0423, -0.1891, 0.0712, ..., -0.0334]"
+                "children": "# In GPT-2's actual code (simplified from HuggingFace):\n# self.wte = nn.Embedding(50257, 768)\n\ntoken_id = 262            # \" the\"\nembedding = wte[token_id] # Look up row 262 of the 50,257 × 768 matrix\n# embedding is now a vector of 768 numbers\n# e.g., [0.0423, -0.1891, 0.0712, ..., -0.0334]"
               },
               {
                 "type": "Analogy",
@@ -433,7 +467,7 @@
                 "children": [
                   {
                     "type": "p",
-                    "children": "The embedding lookup is NOT a neural network computation. There's no activation function, no matrix multiplication, no nonlinearity. It's a pure table lookup — index into an array, retrieve a row. The magic is in what those rows contain, which was determined during training."
+                    "children": "The embedding lookup is NOT a neural network computation. There's no activation function, no matrix multiplication, no nonlinearity. It's a pure table lookup — index into an array, retrieve a row. The magic is in what those rows contain, which was determined during training on WebText."
                   }
                 ]
               },
@@ -448,11 +482,25 @@
                   {
                     "type": "Code",
                     "props": { "language": "text" },
-                    "children": "One-hot vector for token 262 (out of 50,257):\n[0, 0, 0, ..., 0, 1, 0, ..., 0]  (1 in position 262)\n         ↓\nMultiply by E (50,257 × 768):\n         ↓\nResult: Row 262 of E (a 768-dim vector)"
+                    "children": "One-hot vector for token 262 (out of 50,257):\n[0, 0, 0, ..., 0, 1, 0, ..., 0]  (1 in position 262, 0 everywhere else)\n         ↓\nMultiply by wte (50,257 × 768):\n         ↓\nResult: Row 262 of wte (a 768-dim vector)"
                   },
                   {
                     "type": "p",
-                    "children": "This is mathematically equivalent to a table lookup — the one-hot vector \"selects\" a single row. In practice, implementations use actual array indexing (E[262]) because it's much faster than computing a massive matrix multiplication. But the one-hot perspective is useful theoretically because it shows that embedding lookup is a special case of a linear transformation."
+                    "children": "This is mathematically equivalent to a table lookup — the one-hot vector \"selects\" a single row. In practice, PyTorch uses actual array indexing (wte.weight[262]) because it's much faster than a 50,257-wide matrix multiplication. But the one-hot perspective is useful theoretically because it shows that embedding lookup is a special case of a linear transformation."
+                  }
+                ]
+              },
+              {
+                "type": "DeepDive",
+                "props": { "title": "GPT-2's Weight Tying Trick" },
+                "children": [
+                  {
+                    "type": "p",
+                    "children": "An interesting architectural detail: GPT-2 reuses the token embedding matrix wte at the output. After all 12 transformer layers, the final hidden state is multiplied by the transpose of wte to produce logits over the vocabulary. This is called \"weight tying\" or \"tied embeddings.\""
+                  },
+                  {
+                    "type": "p",
+                    "children": "This means the same 38.6 million parameters serve double duty — as input embeddings and as the output projection. It saves parameters and creates a nice symmetry: tokens whose embeddings are similar will also have similar output probabilities in similar contexts."
                   }
                 ]
               }
@@ -465,11 +513,11 @@
             "children": [
               {
                 "type": "p",
-                "children": "The embedding matrix was initialized randomly before training — each entry a small random number near zero. During training, as the model learned to predict next tokens across billions of examples, these vectors were gradually adjusted. The result is that tokens which appear in similar contexts end up with similar vectors."
+                "children": "GPT-2's embedding matrix was initialized randomly before training — each entry drawn from a normal distribution with mean 0 and standard deviation 0.02. During training, as the model learned to predict next tokens across the ~8 million WebText documents, these vectors were gradually adjusted by backpropagation. The result is that tokens which appear in similar contexts ended up with similar vectors."
               },
               {
                 "type": "p",
-                "children": "This is the distributional hypothesis made geometric: \"You shall know a word by the company it keeps\" (J.R. Firth, 1957). Tokens that substitute for each other in sentences — that appear in the same slots, surrounded by the same neighbors — converge to nearby points in embedding space."
+                "children": "This is the distributional hypothesis made geometric: \"You shall know a word by the company it keeps\" (J.R. Firth, 1957). Tokens that substitute for each other in sentences — that appear in the same slots, surrounded by the same neighbors — converge to nearby points in GPT-2's 768-dimensional embedding space."
               },
               {
                 "type": "Example",
@@ -477,16 +525,16 @@
                 "children": [
                   {
                     "type": "p",
-                    "children": "After training, if we measure the cosine similarity between token embeddings, we find patterns like:"
+                    "children": "After training, if we measure the cosine similarity between GPT-2's token embeddings, we find patterns like:"
                   },
                   {
                     "type": "Code",
                     "props": { "language": "text" },
-                    "children": "similarity(\"cat\", \"dog\")     ≈ 0.82  (high — both are common pets)\nsimilarity(\"cat\", \"table\")   ≈ 0.31  (low — different categories)\nsimilarity(\"run\", \"running\") ≈ 0.74  (moderate — related but different forms)\nsimilarity(\"Paris\", \"France\")≈ 0.71  (capital-country relationship)"
+                    "children": "similarity(\" cat\", \" dog\")     ≈ high   (both common pets, similar contexts)\nsimilarity(\" cat\", \" table\")   ≈ low    (different categories)\nsimilarity(\" run\", \" running\") ≈ moderate (related but different forms)\nsimilarity(\" Paris\", \" France\")≈ moderate (capital-country relationship)"
                   },
                   {
                     "type": "p",
-                    "children": "These numbers are illustrative — actual values depend on the specific model. But the pattern is real: semantic similarity is reflected in geometric proximity."
+                    "children": "Note: in GPT-2, token embeddings are less individually meaningful than in models trained specifically for embeddings (like Word2Vec). GPT-2's embeddings are just the starting point — the model relies heavily on its 12 transformer layers to build rich contextual representations. The embeddings just need to be \"good enough\" initial representations."
                   }
                 ]
               },
@@ -496,7 +544,7 @@
                 "children": [
                   {
                     "type": "p",
-                    "children": "Critical limitation: at this stage, every occurrence of a token gets the SAME vector, regardless of context. The word \"bank\" in \"river bank\" and \"bank account\" maps to the exact same 768-dimensional point. The embedding doesn't know which meaning is intended. That disambiguation is the job of the transformer layers — the attention mechanism will create different contextual representations. But right now, we're still in the preprocessing pipeline, and context hasn't entered the picture yet."
+                    "children": "Critical limitation: at this stage, every occurrence of a token gets the SAME vector, regardless of context. The word \"bank\" in \"river bank\" and \"bank account\" maps to the exact same 768-dimensional point. The embedding doesn't know which meaning is intended. That disambiguation is the job of GPT-2's 12 transformer layers — the attention mechanism will create different contextual representations. But right now, we're still in the preprocessing pipeline, and context hasn't entered the picture yet."
                   }
                 ]
               }
@@ -539,7 +587,7 @@
                   },
                   {
                     "type": "p",
-                    "children": "These analogies work because training carved out consistent geometric patterns. The model never explicitly learned \"Paris is to France as Rome is to Italy\" — it emerged from the statistics of next-token prediction."
+                    "children": "These analogies work because training carved out consistent geometric patterns. GPT-2 never explicitly learned \"Paris is to France as Rome is to Italy\" — it emerged from the statistics of next-token prediction on WebText."
                   }
                 ]
               },
@@ -568,7 +616,7 @@
                       },
                       {
                         "type": "li",
-                        "children": "Token embeddings in modern transformers are less individually meaningful than classic Word2Vec embeddings because the transformer relies on its layers to build contextual representations."
+                        "children": "These examples come from Word2Vec and GloVe — purpose-built embedding models. GPT-2's token embeddings are less individually polished because the model can compensate in later layers. The initial embeddings just need to be a reasonable starting point."
                       }
                     ]
                   },
@@ -585,15 +633,15 @@
               {
                 "type": "Quiz",
                 "props": {
-                  "question": "At the embedding lookup stage (before any transformer layers), what happens when the model encounters the word 'bank' in two different sentences: 'river bank' and 'bank account'?",
+                  "question": "At the embedding lookup stage (before any transformer layers), what happens when GPT-2 encounters the word 'bank' in two different sentences: 'river bank' and 'bank account'?",
                   "options": [
-                    "The model creates different embeddings based on context",
-                    "The model looks up the exact same vector both times",
-                    "The model averages the vectors of surrounding words",
-                    "The model uses attention to disambiguate"
+                    "GPT-2 creates different embeddings based on context",
+                    "GPT-2 looks up the exact same vector both times",
+                    "GPT-2 averages the vectors of surrounding words",
+                    "GPT-2 uses attention to disambiguate"
                   ],
                   "correctIndex": 1,
-                  "explanation": "The embedding matrix is a static lookup table. Token ID → vector. Same ID, same vector, every time. Context-dependent disambiguation happens later, in the transformer layers. At this preprocessing stage, 'bank' always maps to the same point in 768-dimensional space."
+                  "explanation": "The token embedding matrix wte is a static lookup table. Token ID → vector. Same ID, same vector, every time. Context-dependent disambiguation happens later, in GPT-2's 12 transformer layers. At this preprocessing stage, 'bank' always maps to the same point in 768-dimensional space."
                 }
               }
             ]
@@ -620,7 +668,7 @@
               },
               {
                 "type": "p",
-                "children": "Both contain the same three content tokens: \"dog\", \"bites\", \"man\". If we just look up their embeddings, we get the same set of vectors — just in a different order. But self-attention, the core operation of a transformer, is permutation-invariant. That means if we feed in the same set of vectors in any order, we get the same output."
+                "children": "Both contain the same three content tokens: \"dog\", \"bites\", \"man\". If we just look up their embeddings from wte, we get the same set of vectors — the same three rows from the same table. But self-attention, the core operation of a transformer, is permutation-invariant. That means if we feed in the same set of vectors in any order, we get the same output."
               },
               {
                 "type": "Callout",
@@ -628,7 +676,7 @@
                 "children": [
                   {
                     "type": "p",
-                    "children": "Without positional information, \"dog bites man\" and \"man bites dog\" are literally indistinguishable to the transformer. The attention mechanism computes similarity between all pairs of tokens — it doesn't care about order. This is by design (it's what makes attention so powerful and parallelizable), but it means we need to inject position information separately."
+                    "children": "Without positional information, \"dog bites man\" and \"man bites dog\" are literally indistinguishable to GPT-2. The attention mechanism computes similarity between all pairs of tokens — it doesn't care about order. This is by design (it's what makes attention so powerful and parallelizable), but it means we need to inject position information separately."
                   }
                 ]
               },
@@ -638,73 +686,36 @@
               },
               {
                 "type": "p",
-                "children": "The solution: add position information directly to the vectors. Stamp each token's embedding with a signal that says \"I am at position 0\" or \"I am at position 42\". There are several ways to do this, and the history of their development reveals something about how the field thinks."
+                "children": "The solution: add position information directly to the vectors. Stamp each token's embedding with a signal that says \"I am at position 0\" or \"I am at position 42\". GPT-2's approach to this is characteristically direct."
               }
             ]
           },
 
           {
             "type": "Section",
-            "props": { "title": "10. Sinusoidal Positional Encoding (The Original)" },
+            "props": { "title": "10. GPT-2's Learned Positional Embeddings" },
             "children": [
               {
                 "type": "p",
-                "children": "In the original \"Attention Is All You Need\" paper (Vaswani et al., 2017), the authors proposed a clever, parameter-free approach. For each position in the sequence, they generate a vector of the same dimension as the embeddings (d = 768 for GPT-2), using sine and cosine functions at different frequencies:"
+                "children": "GPT-2 solves the position problem in the simplest possible way: it has a second embedding matrix — wpe (\"word position embeddings\") — and it just looks up the position, exactly like it looks up the token."
               },
               {
                 "type": "Code",
                 "props": { "language": "text" },
-                "children": "PE(pos, 2i)   = sin(pos / 10000^(2i/d))\nPE(pos, 2i+1) = cos(pos / 10000^(2i/d))\n\nwhere:\n  pos = position in the sequence (0, 1, 2, ...)\n  i   = dimension index (0, 1, 2, ..., d/2)\n  d   = model dimension (e.g., 768)"
+                "children": "wpe: GPT-2's position embedding matrix\n\n  max_seq_length = 1,024  (one row per possible position)\n  d = 768                 (same dimension as token embeddings)\n\n  Shape: 1,024 × 768\n  Total parameters: 786,432  (about 0.8 million numbers)\n  Memory: ~3 MB at float32"
               },
               {
                 "type": "p",
-                "children": "This looks intimidating, but the intuition is beautiful."
+                "children": "That's it. No sines, no cosines, no clever mathematical construction. Just another lookup table with 1,024 rows. Row 0 is the positional embedding for \"first token in the sequence.\" Row 1 is for \"second token.\" Row 1023 is for \"1024th and last possible token.\""
               },
               {
-                "type": "Analogy",
-                "children": "Think of a clock. The second hand completes a full rotation every 60 seconds. The minute hand every 60 minutes. The hour hand every 12 hours. At any given moment, the combination of all three hand positions uniquely identifies the time. Sinusoidal positional encoding works the same way: each dimension oscillates at a different frequency. Dimension 0 oscillates rapidly (like the second hand), dimension 100 more slowly (like the minute hand), dimension 700 very slowly (like the hour hand). The combination of all these oscillations at any given position creates a unique \"timestamp\" — a vector fingerprint that identifies that position."
+                "type": "Code",
+                "props": { "language": "python" },
+                "children": "# In GPT-2's actual code (simplified):\n# self.wpe = nn.Embedding(1024, 768)\n\n# For a token at position 5:\npos_embedding = wpe[5]  # Look up row 5 of the 1,024 × 768 matrix\n\n# Exactly the same operation as token embedding lookup.\n# No computation. Just indexing."
               },
               {
-                "type": "DeepDive",
-                "props": { "title": "Why Sines and Cosines Specifically?" },
-                "children": [
-                  {
-                    "type": "p",
-                    "children": "The choice of sinusoidal functions wasn't arbitrary. They have a crucial mathematical property: the positional encoding of position (pos + k) can be expressed as a linear transformation of the encoding at position pos. In other words:"
-                  },
-                  {
-                    "type": "Code",
-                    "props": { "language": "text" },
-                    "children": "PE(pos + k) = f(PE(pos))  for some linear function f that depends on k but not pos"
-                  },
-                  {
-                    "type": "p",
-                    "children": "This means the model can easily learn to attend to relative positions. \"Look 3 tokens back\" can be implemented as a simple linear operation on the positional encoding, regardless of where in the sequence you are. This is because sin(a+b) and cos(a+b) can be expressed as linear combinations of sin(a), cos(a), sin(b), cos(b)."
-                  },
-                  {
-                    "type": "p",
-                    "children": "This relative-position property was a key design goal. The authors wanted the model to be able to learn patterns like \"the adjective usually comes right before the noun\" without having to learn separate patterns for every absolute position."
-                  }
-                ]
-              },
-              {
-                "type": "Example",
-                "props": { "title": "Visualizing Sinusoidal Encodings" },
-                "children": [
-                  {
-                    "type": "p",
-                    "children": "Here's what the first few dimensions of the positional encoding look like for positions 0 through 7:"
-                  },
-                  {
-                    "type": "Code",
-                    "props": { "language": "text" },
-                    "children": "         dim0    dim1    dim2    dim3    dim4    dim5    ...\npos 0: [ 0.000,  1.000,  0.000,  1.000,  0.000,  1.000, ...]\npos 1: [ 0.841,  0.540,  0.010,  1.000,  0.000,  1.000, ...]\npos 2: [ 0.909, -0.416,  0.020,  1.000,  0.000,  1.000, ...]\npos 3: [ 0.141, -0.990,  0.030,  1.000,  0.000,  1.000, ...]\npos 4: [-0.757, -0.654,  0.039,  0.999,  0.000,  1.000, ...]\npos 5: [-0.959,  0.284,  0.049,  0.999,  0.001,  1.000, ...]\npos 6: [-0.279,  0.960,  0.059,  0.998,  0.001,  1.000, ...]\npos 7: [ 0.657,  0.754,  0.069,  0.998,  0.001,  1.000, ...]"
-                  },
-                  {
-                    "type": "p",
-                    "children": "Notice: dimensions 0-1 oscillate rapidly (they've gone through nearly a full cycle in 7 positions), while dimensions 4-5 barely change. Higher dimensions oscillate even more slowly. This multi-scale pattern is what gives each position a unique signature."
-                  }
-                ]
+                "type": "p",
+                "children": "These 786,432 parameters were initialized randomly (just like the token embeddings) and learned during training. The model figured out what positional information it needed and encoded it in these vectors. Nobody told it how to represent position — it discovered a useful scheme on its own."
               },
               {
                 "type": "Callout",
@@ -712,111 +723,137 @@
                 "children": [
                   {
                     "type": "p",
-                    "children": "The positional encoding is ADDED to the token embedding, not concatenated. This means the final vector lives in the same 768-dimensional space, carrying both semantic information (from the embedding) and positional information (from the encoding). The model's layers must learn to disentangle and use both signals."
+                    "children": "GPT-2's context window of 1,024 tokens is hard-coded by the size of the position embedding table. There are exactly 1,024 rows in wpe. If you try to input a longer sequence, there's simply no position embedding for position 1,024. This isn't a soft limit — it's a hard architectural constraint. The model literally doesn't have the parameters to represent positions beyond 1,023."
                   }
                 ]
-              }
-            ]
-          },
-
-          {
-            "type": "Section",
-            "props": { "title": "11. Learned Positional Embeddings (GPT-Style)" },
-            "children": [
-              {
-                "type": "p",
-                "children": "The sinusoidal approach is elegant, but GPT and its descendants took a simpler route: just learn the positional encodings as parameters."
-              },
-              {
-                "type": "p",
-                "children": "GPT-2 has a second embedding matrix — the position embedding matrix — with shape (max_seq_length × d). For GPT-2, that's 1024 × 768. Each position gets its own learnable vector:"
-              },
-              {
-                "type": "Code",
-                "props": { "language": "python" },
-                "children": "# Position embedding matrix\nW_pos = nn.Embedding(1024, 768)  # 1024 positions, 768 dims each\n\n# For a token at position 5:\npos_embedding = W_pos[5]  # Just a lookup, same as token embeddings\n\n# Final input:\ninput_vector = token_embedding + pos_embedding"
-              },
-              {
-                "type": "p",
-                "children": "That's it. No sines, no cosines. Just another lookup table. During training, these vectors get optimized along with everything else. The model figures out what positional information it needs and encodes it in these vectors."
-              },
-              {
-                "type": "ComparisonTable",
-                "props": {
-                  "headers": ["Feature", "Sinusoidal", "Learned"],
-                  "rows": [
-                    ["Parameters", "Zero (computed from formula)", "max_seq_len × d (e.g., 786K for GPT-2)"],
-                    ["Extrapolation", "Can handle positions beyond training (in theory)", "Cannot — no embedding exists for unseen positions"],
-                    ["Inductive bias", "Encodes smooth, periodic structure", "No assumption — model learns whatever it needs"],
-                    ["Relative position", "Built-in via sin/cos properties", "Must be learned implicitly"],
-                    ["Used by", "Original Transformer, some research models", "GPT-2, GPT-3, BERT, many production models"]
-                  ]
-                }
-              },
-              {
-                "type": "Callout",
-                "props": { "type": "info" },
-                "children": [
-                  {
-                    "type": "p",
-                    "children": "Learned positional embeddings have a hard maximum sequence length. GPT-2 was trained with a maximum of 1024 positions, so its position embedding table has exactly 1024 rows. If you try to input a longer sequence, there's simply no position embedding for position 1025. This is one motivation for the newer approaches."
-                  }
-                ]
-              }
-            ]
-          },
-
-          {
-            "type": "Section",
-            "props": { "title": "12. RoPE: A Modern Twist" },
-            "children": [
-              {
-                "type": "p",
-                "children": "Both sinusoidal and learned positional embeddings add position information to the token vectors before attention. Rotary Position Embeddings (RoPE), introduced by Su et al. in 2021, take a fundamentally different approach: they apply position information inside the attention mechanism itself."
-              },
-              {
-                "type": "p",
-                "children": "The core idea: instead of adding a positional vector, rotate the query and key vectors by an angle that depends on their position. When two tokens compute their attention score (via dot product), the rotation angles interact to produce a score that naturally depends on the relative distance between the tokens."
               },
               {
                 "type": "DeepDive",
-                "props": { "title": "RoPE in Brief" },
+                "props": { "title": "What Did GPT-2 Learn About Position?" },
                 "children": [
                   {
                     "type": "p",
-                    "children": "RoPE treats pairs of dimensions as 2D coordinates and rotates them:"
+                    "children": "If we examine the learned position embeddings after training, we find interesting structure:"
+                  },
+                  {
+                    "type": "ul",
+                    "children": [
+                      {
+                        "type": "li",
+                        "children": "Nearby positions have similar embeddings — the vector for position 100 is more similar to position 101 than to position 500. The model learned that adjacency matters."
+                      },
+                      {
+                        "type": "li",
+                        "children": "If you project the 1,024 position embeddings into 2D (via PCA or t-SNE), they trace out a roughly smooth curve — the positions are ordered in embedding space."
+                      },
+                      {
+                        "type": "li",
+                        "children": "Early positions (0-50) have somewhat distinct embeddings, likely because the beginnings of documents have special statistical properties (titles, headers, opening sentences)."
+                      },
+                      {
+                        "type": "li",
+                        "children": "Some dimensions of the position embeddings appear to encode something like sinusoidal patterns — the model partially rediscovered the original Transformer's approach, because it's a useful inductive bias."
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "type": "Example",
+                "props": { "title": "The Two Lookup Tables Side by Side" },
+                "children": [
+                  {
+                    "type": "p",
+                    "children": "For our input \"The cat sat on the mat\", GPT-2 performs two parallel lookups:"
                   },
                   {
                     "type": "Code",
                     "props": { "language": "text" },
-                    "children": "For dimensions (2i, 2i+1) at position m:\n\n[x_{2i}  ]     [cos(mθ_i)  -sin(mθ_i)] [x_{2i}  ]\n[x_{2i+1}]  ←  [sin(mθ_i)   cos(mθ_i)] [x_{2i+1}]\n\nwhere θ_i = 10000^(-2i/d)"
+                    "children": "Token Embeddings (from wte):          Position Embeddings (from wpe):\n\nwte[464]  → [0.04, -0.19, ...]  768d   wpe[0] → [0.01, 0.03, ...]  768d\nwte[3797] → [0.12, -0.05, ...]  768d   wpe[1] → [0.02, 0.01, ...]  768d\nwte[3332] → [0.08, -0.11, ...]  768d   wpe[2] → [0.01, 0.04, ...]  768d\nwte[319]  → [0.03, -0.22, ...]  768d   wpe[3] → [0.03, 0.02, ...]  768d\nwte[262]  → [0.06, -0.14, ...]  768d   wpe[4] → [0.02, 0.05, ...]  768d\nwte[2291] → [0.09, -0.08, ...]  768d   wpe[5] → [0.04, 0.01, ...]  768d\n\n     ↓           ↓\n  \"what\"       \"where\""
                   },
                   {
                     "type": "p",
-                    "children": "The magic: when you compute the dot product of a rotated query at position m and a rotated key at position n, the result depends only on (m - n), the relative position. This means RoPE naturally encodes relative position without needing to store or learn absolute position embeddings."
+                    "children": "Two tables, two lookups per token. One says WHAT the token is. The other says WHERE it is. Both are 768-dimensional vectors. Both were learned during training."
+                  }
+                ]
+              }
+            ]
+          },
+
+          {
+            "type": "Section",
+            "props": { "title": "11. A Historical Note: Other Approaches to Position" },
+            "children": [
+              {
+                "type": "p",
+                "children": "GPT-2's learned positional embeddings are just one solution to the position problem. Understanding the alternatives helps appreciate the design space and why later models moved on."
+              },
+              {
+                "type": "DeepDive",
+                "props": { "title": "Sinusoidal Positional Encoding (The Original Transformer)" },
+                "children": [
+                  {
+                    "type": "p",
+                    "children": "The original \"Attention Is All You Need\" paper (Vaswani et al., 2017) used a parameter-free approach: sine and cosine functions at different frequencies."
+                  },
+                  {
+                    "type": "Code",
+                    "props": { "language": "text" },
+                    "children": "PE(pos, 2i)   = sin(pos / 10000^(2i/d))\nPE(pos, 2i+1) = cos(pos / 10000^(2i/d))"
                   },
                   {
                     "type": "p",
-                    "children": "Benefits: handles variable sequence lengths gracefully, encodes relative position by construction, no extra parameters. Used by Llama, Mistral, and most modern open-source models."
+                    "children": "The intuition: each dimension oscillates at a different frequency, like the hands of a clock. The combination of all oscillations creates a unique \"timestamp\" for each position. The mathematical advantage: the encoding at position (pos + k) can be expressed as a linear function of the encoding at position pos, making it easy for the model to attend to relative positions."
+                  },
+                  {
+                    "type": "p",
+                    "children": "GPT-2's authors chose learned embeddings instead, likely because they found they worked just as well in practice and require no design choices about frequency scales."
                   }
                 ]
               },
               {
-                "type": "p",
-                "children": "For our story, the key point is this: one way or another, every transformer must inject positional information. The method varies, but the need is universal. Without it, the model literally cannot tell the difference between \"dog bites man\" and \"man bites dog.\""
+                "type": "DeepDive",
+                "props": { "title": "RoPE: Rotary Position Embeddings (Modern Models)" },
+                "children": [
+                  {
+                    "type": "p",
+                    "children": "Rotary Position Embeddings (Su et al., 2021) take a fundamentally different approach: instead of adding positional vectors to the embeddings, they rotate the query and key vectors inside the attention mechanism by an angle that depends on position."
+                  },
+                  {
+                    "type": "p",
+                    "children": "The key advantage: RoPE naturally encodes relative position (the attention score between tokens depends on their distance, not their absolute positions) and can handle sequence lengths longer than those seen during training. This is why models like Llama, Mistral, and most modern open-source LLMs use RoPE instead of learned absolute positions."
+                  },
+                  {
+                    "type": "p",
+                    "children": "But that's a story for another tutorial. GPT-2 predates RoPE by two years."
+                  }
+                ]
+              },
+              {
+                "type": "ComparisonTable",
+                "props": {
+                  "headers": ["Feature", "Sinusoidal (2017)", "Learned / GPT-2 (2019)", "RoPE (2021+)"],
+                  "rows": [
+                    ["Parameters", "Zero", "max_seq_len × d (786K for GPT-2)", "Zero"],
+                    ["Max sequence length", "Unlimited (in theory)", "Hard-coded (1,024 for GPT-2)", "Flexible, extrapolates"],
+                    ["Position type", "Absolute", "Absolute", "Relative"],
+                    ["Where applied", "Added to embeddings", "Added to embeddings", "Applied inside attention"],
+                    ["Used by", "Original Transformer", "GPT-2, GPT-3, BERT", "Llama, Mistral, most modern LLMs"]
+                  ]
+                }
               },
               {
                 "type": "Quiz",
                 "props": {
-                  "question": "Why does a transformer need positional encoding at all?",
+                  "question": "Why does GPT-2 have a hard limit of 1,024 tokens per input?",
                   "options": [
-                    "The embedding vectors don't contain enough information",
-                    "Self-attention is permutation-invariant — it treats input as an unordered set",
-                    "The model needs to know the absolute date and time of each word",
-                    "It's needed to handle multiple languages"
+                    "The attention mechanism can't handle more than 1,024 tokens",
+                    "The position embedding table (wpe) has exactly 1,024 rows — there's no embedding for position 1,024 or beyond",
+                    "1,024 tokens is the maximum that fits in GPU memory",
+                    "The tokenizer can only produce 1,024 tokens"
                   ],
                   "correctIndex": 1,
-                  "explanation": "Self-attention computes pairwise similarities between all tokens — the operation gives the same result regardless of the order the tokens appear in. Without positional encoding, the model would treat 'dog bites man' and 'man bites dog' as identical inputs. Positional encoding breaks this symmetry by giving each position a unique signature."
+                  "explanation": "GPT-2's context window is hard-coded by the size of its position embedding table wpe, which has shape 1,024 × 768. Positions 0 through 1,023 each have a learned embedding vector; position 1,024 simply has no entry in the table. The tokenizer can produce sequences of any length, and attention could in principle handle them, but without a position embedding, the model can't process them."
                 }
               }
             ]
@@ -830,90 +867,62 @@
         "children": [
           {
             "type": "Section",
-            "props": { "title": "13. Assembly: Token + Position = Input" },
+            "props": { "title": "12. Assembly: Token + Position = Input" },
             "children": [
               {
                 "type": "p",
-                "children": "We've arrived at the moment of synthesis. For each token in our input sequence, we have two vectors:"
-              },
-              {
-                "type": "ol",
-                "children": [
-                  {
-                    "type": "li",
-                    "children": "The token embedding — looked up from the embedding matrix based on the token ID"
-                  },
-                  {
-                    "type": "li",
-                    "children": "The positional encoding — either computed (sinusoidal), looked up (learned), or applied later (RoPE)"
-                  }
-                ]
-              },
-              {
-                "type": "p",
-                "children": "For models with additive position encoding (the original Transformer, GPT-2, BERT), these are simply added together:"
+                "children": "We've arrived at the moment of synthesis. For each token in our input sequence, GPT-2 has looked up two vectors from two tables. Now it combines them with the simplest possible operation: addition."
               },
               {
                 "type": "Code",
                 "props": { "language": "python" },
-                "children": "# For each token at position pos with token_id:\nx = E_token[token_id] + E_pos[pos]\n\n# Concrete example for \"The cat sat on the mat\":\nx_0 = E_token[464]  + E_pos[0]   # \"The\" at position 0\nx_1 = E_token[3797] + E_pos[1]   # \" cat\" at position 1\nx_2 = E_token[3332] + E_pos[2]   # \" sat\" at position 2\nx_3 = E_token[319]  + E_pos[3]   # \" on\" at position 3\nx_4 = E_token[262]  + E_pos[4]   # \" the\" at position 4\nx_5 = E_token[2291] + E_pos[5]   # \" mat\" at position 5"
+                "children": "# GPT-2's actual input computation (from HuggingFace, simplified):\n# This is the ENTIRE preprocessing pipeline.\n\ndef forward(self, input_ids):\n    # input_ids: [464, 3797, 3332, 319, 262, 2291]  (our 6 tokens)\n    \n    position_ids = torch.arange(len(input_ids))  # [0, 1, 2, 3, 4, 5]\n    \n    token_embeds = self.wte(input_ids)      # shape: (6, 768)\n    pos_embeds   = self.wpe(position_ids)    # shape: (6, 768)\n    \n    hidden_states = token_embeds + pos_embeds  # shape: (6, 768)\n    \n    # That's it. hidden_states goes directly into Layer 1.\n    # No layer norm. No dropout (at inference). Just addition."
               },
               {
                 "type": "p",
-                "children": "Each of these x vectors is 768-dimensional. It carries information about both what the token is and where it is. These six vectors, stacked into a matrix, form the input to the transformer."
+                "children": "For our example:"
+              },
+              {
+                "type": "Code",
+                "props": { "language": "text" },
+                "children": "x_0 = wte[464]  + wpe[0]   # \"The\" at position 0  → 768-dim vector\nx_1 = wte[3797] + wpe[1]   # \" cat\" at position 1 → 768-dim vector\nx_2 = wte[3332] + wpe[2]   # \" sat\" at position 2 → 768-dim vector\nx_3 = wte[319]  + wpe[3]   # \" on\" at position 3  → 768-dim vector\nx_4 = wte[262]  + wpe[4]   # \" the\" at position 4 → 768-dim vector\nx_5 = wte[2291] + wpe[5]   # \" mat\" at position 5 → 768-dim vector"
+              },
+              {
+                "type": "p",
+                "children": "Each of these vectors is 768-dimensional. It carries information about both what the token is and where it is. These six vectors, stacked into a matrix of shape (6 × 768), are the input to GPT-2's first transformer block."
               },
               {
                 "type": "Analogy",
-                "children": "If the token embedding is a person's identity — their name, personality, skills — then the positional encoding is their assigned seat in a theater. The combined vector says: \"I am 'cat,' and I am sitting in seat 1.\" Both pieces of information matter. Who you are determines how you interact with others. Where you sit determines who you can easily interact with."
-              }
-            ]
-          },
-
-          {
-            "type": "Section",
-            "props": { "title": "14. Layer Normalization: Stabilizing the Input" },
-            "children": [
-              {
-                "type": "p",
-                "children": "In many modern transformer architectures, there's a layer normalization step near the boundary of Layer 1. GPT-2 uses post-layer-norm — meaning the norm is applied after each sub-layer's residual addition, not before. So technically, the raw sum of token + position embeddings enters the first attention head directly, without normalization. But understanding layer norm matters because it shapes how vectors flow through the network."
-              },
-              {
-                "type": "p",
-                "children": "Layer norm takes each vector and normalizes it — adjusting it to have zero mean and unit variance, then applying a learned scale and shift:"
-              },
-              {
-                "type": "Code",
-                "props": { "language": "python" },
-                "children": "# Layer normalization for a single vector x:\nmean = x.mean()          # Average of all 768 values\nstd = x.std()            # Standard deviation\nx_norm = (x - mean) / std  # Normalize\n\n# Apply learned parameters (γ and β, each 768-dim):\nx_final = γ * x_norm + β"
-              },
-              {
-                "type": "p",
-                "children": "Why bother? Training deep networks is delicate. If vectors become too large or too small, gradients explode or vanish, and learning stalls. Layer norm keeps the magnitudes in a stable range, acting as a kind of automatic volume control."
+                "children": "If the token embedding is a person's identity — their name, personality, skills — then the positional embedding is their assigned seat in a theater. The combined vector says: \"I am 'cat,' and I am sitting in seat 1.\" Both pieces of information matter. Who you are determines how you interact with others. Where you sit determines who you can easily interact with."
               },
               {
                 "type": "DeepDive",
-                "props": { "title": "Pre-Norm vs. Post-Norm" },
+                "props": { "title": "Why Addition? Why Not Concatenation?" },
                 "children": [
                   {
                     "type": "p",
-                    "children": "The original Transformer (2017) applied layer norm after each sub-layer (post-norm): output = LayerNorm(x + sublayer(x)). Most modern models use pre-norm instead: output = x + sublayer(LayerNorm(x)). The difference matters for training stability:"
+                    "children": "An obvious alternative would be to concatenate the two vectors — put the 768 token dimensions next to the 768 position dimensions to get a 1,536-dimensional vector. Why does GPT-2 add instead?"
                   },
                   {
                     "type": "ul",
                     "children": [
                       {
                         "type": "li",
-                        "children": "Pre-norm: the residual connection passes through unmodified, making gradient flow easier. Enables training deeper models without careful learning rate warmup."
+                        "children": "Addition keeps the dimension at 768, meaning all downstream layers (attention, feed-forward) work with 768-dimensional vectors. Concatenation would double the size, doubling the cost of every subsequent computation."
                       },
                       {
                         "type": "li",
-                        "children": "Post-norm: can achieve slightly better final performance, but is harder to train and more sensitive to hyperparameters."
+                        "children": "Addition forces the model to share the 768 dimensions between token and position information. This creates a form of information compression that, empirically, works well."
+                      },
+                      {
+                        "type": "li",
+                        "children": "The first layer's attention can immediately compute token-position interactions without needing to learn cross-dimensional correlations."
                       }
                     ]
                   },
                   {
                     "type": "p",
-                    "children": "GPT-2 actually uses post-norm (the original style). GPT-3, Llama, and most models since ~2020 switched to pre-norm. For GPT-2 specifically, this means the raw embedding sum enters the first attention layer directly — layer norm is applied after each sub-layer, not before."
+                    "children": "Is information lost by jamming two signals into one vector via addition? In theory, yes — but in practice, 768 dimensions is a lot of room. The model learns to use some dimensions primarily for token identity, others primarily for position, and some for both."
                   }
                 ]
               }
@@ -922,7 +931,45 @@
 
           {
             "type": "Section",
-            "props": { "title": "15. What Layer 1 Receives" },
+            "props": { "title": "13. No Layer Norm Here (GPT-2's Post-Norm Architecture)" },
+            "children": [
+              {
+                "type": "p",
+                "children": "You might expect some kind of normalization step before the vectors enter the first transformer block. Many tutorials mention \"layer norm\" as part of the preprocessing. But GPT-2 does NOT apply layer normalization at this point."
+              },
+              {
+                "type": "p",
+                "children": "GPT-2 uses what's called a post-norm (or post-LN) architecture. The layer normalization happens after the attention and feed-forward sub-layers, not before them. The structure of each GPT-2 block looks like:"
+              },
+              {
+                "type": "Code",
+                "props": { "language": "text" },
+                "children": "GPT-2 Block structure (post-norm):\n\n  Input x\n    ↓\n  Multi-Head Attention\n    ↓\n  Add residual (x + attention_output)\n    ↓\n  Layer Norm        ← normalization happens AFTER attention\n    ↓\n  Feed-Forward Network\n    ↓\n  Add residual\n    ↓\n  Layer Norm        ← normalization happens AFTER FFN\n    ↓\n  Output"
+              },
+              {
+                "type": "p",
+                "children": "This means the raw sum of token embeddings and position embeddings — with no normalization — goes directly into the first block's multi-head attention. The vectors arrive at Layer 1 in whatever scale and distribution the learned embeddings happen to have."
+              },
+              {
+                "type": "Callout",
+                "props": { "type": "info" },
+                "children": [
+                  {
+                    "type": "p",
+                    "children": "This is a key difference from many later models. GPT-3, Llama, Mistral, and most modern transformers use pre-norm (also called pre-LN) architecture, where layer norm is applied BEFORE attention and FFN. Pre-norm makes training more stable and enables deeper models. But GPT-2 predates this convention. If you're reading about transformers and see \"layer norm is applied before the first layer,\" that's true for newer models but not for GPT-2."
+                  }
+                ]
+              },
+              {
+                "type": "p",
+                "children": "GPT-2 does have a final layer norm (ln_f) after the last transformer block, before the output projection. But between the embedding addition and Layer 1's attention? Nothing. The vectors go in raw."
+              }
+            ]
+          },
+
+          {
+            "type": "Section",
+            "props": { "title": "14. What Layer 1 Receives" },
             "children": [
               {
                 "type": "p",
@@ -931,7 +978,7 @@
               {
                 "type": "Code",
                 "props": { "language": "text" },
-                "children": "Input matrix X:  shape (6 × 768)\n\n  Row 0: [0.123, -0.456, 0.789, ...]  ← \"The\" at position 0\n  Row 1: [0.234, -0.567, 0.890, ...]  ← \" cat\" at position 1\n  Row 2: [0.345, -0.678, 0.901, ...]  ← \" sat\" at position 2\n  Row 3: [0.456, -0.789, 0.012, ...]  ← \" on\" at position 3\n  Row 4: [0.567, -0.890, 0.123, ...]  ← \" the\" at position 4\n  Row 5: [0.678, -0.901, 0.234, ...]  ← \" mat\" at position 5\n\nEach row = token_embedding + position_embedding (then layer-normed)"
+                "children": "Input matrix X:  shape (6 × 768)\n\n  Row 0: [0.052, -0.186, 0.073, ...]  ← wte[464] + wpe[0]   = \"The\" at pos 0\n  Row 1: [0.141, -0.052, 0.094, ...]  ← wte[3797] + wpe[1]  = \" cat\" at pos 1\n  Row 2: [0.089, -0.117, 0.045, ...]  ← wte[3332] + wpe[2]  = \" sat\" at pos 2\n  Row 3: [0.035, -0.221, 0.012, ...]  ← wte[319] + wpe[3]   = \" on\" at pos 3\n  Row 4: [0.068, -0.143, 0.081, ...]  ← wte[262] + wpe[4]   = \" the\" at pos 4\n  Row 5: [0.097, -0.089, 0.056, ...]  ← wte[2291] + wpe[5]  = \" mat\" at pos 5\n\nEach row = token_embedding + position_embedding\nNo layer norm. No other processing. Just two lookups and an addition."
               },
               {
                 "type": "p",
@@ -939,7 +986,26 @@
               },
               {
                 "type": "p",
-                "children": "But that's the future. Right now, at the entrance to Layer 1, this matrix is the entire state of the computation. Every piece of information the model has access to is encoded in these 6 × 768 = 4,608 numbers."
+                "children": "But that's the future. Right now, at the entrance to Layer 1, this matrix is the entire state of the computation. Every piece of information GPT-2 has access to is encoded in these 6 × 768 = 4,608 numbers."
+              },
+              {
+                "type": "Example",
+                "props": { "title": "The Complete GPT-2 Preprocessing Pipeline" },
+                "children": [
+                  {
+                    "type": "p",
+                    "children": "Let's count every parameter involved in getting from text to the input of Layer 1:"
+                  },
+                  {
+                    "type": "Code",
+                    "props": { "language": "text" },
+                    "children": "Component                  Shape           Parameters\n─────────────────────────────────────────────────────\nToken embeddings (wte)     50,257 × 768    38,597,376\nPosition embeddings (wpe)  1,024 × 768        786,432\n─────────────────────────────────────────────────────\nTotal preprocessing params                 39,383,808\n\nGPT-2 small total params:                124,439,808\n\nPreprocessing is 31.6% of all parameters!"
+                  },
+                  {
+                    "type": "p",
+                    "children": "Nearly a third of GPT-2's parameters are in the embedding tables. This is typical of smaller language models — the vocabulary embedding is a fixed cost regardless of model depth. In GPT-2 medium (345M params) and large (774M params), the embedding fraction shrinks because the transformer layers get bigger while the vocabulary stays the same."
+                  }
+                ]
               },
               {
                 "type": "Callout",
@@ -947,7 +1013,7 @@
                 "children": [
                   {
                     "type": "p",
-                    "children": "The input to Layer 1 is a matrix of shape (sequence_length × d_model). Each row is one token's representation, containing both its identity (from the embedding) and its position (from the positional encoding). This is the residual stream's initial state — the starting point from which all of the model's 'understanding' will be built."
+                    "children": "The input to Layer 1 is a matrix of shape (sequence_length × 768). Each row is one token's representation, containing both its identity (from wte) and its position (from wpe), combined by addition. This is the residual stream's initial state — the starting point from which all of GPT-2's 'understanding' will be built through 12 layers of attention and feed-forward processing."
                   }
                 ]
               }
@@ -956,11 +1022,11 @@
 
           {
             "type": "Section",
-            "props": { "title": "16. What's NOT There Yet" },
+            "props": { "title": "15. What's NOT There Yet" },
             "children": [
               {
                 "type": "p",
-                "children": "As we stand at the threshold of Layer 1, it's worth reflecting on what our input representation does NOT contain. This is just as important as what it does contain, because it defines exactly what the transformer layers must accomplish."
+                "children": "As we stand at the threshold of Layer 1, it's worth reflecting on what our input representation does NOT contain. This is just as important as what it does contain, because it defines exactly what GPT-2's 12 transformer layers must accomplish."
               },
               {
                 "type": "ul",
@@ -972,7 +1038,7 @@
                         "type": "strong",
                         "children": "No contextual information."
                       },
-                      " The vector for \"bank\" is the same whether the surrounding words are \"river\" or \"account\". Each token's vector was looked up independently."
+                      " The vector for \"bank\" is the same whether the surrounding words are \"river\" or \"account\". Each token's vector was looked up independently from wte — no interaction between tokens has occurred."
                     ]
                   },
                   {
@@ -982,7 +1048,7 @@
                         "type": "strong",
                         "children": "No syntactic structure."
                       },
-                      " The model doesn't know that \"cat\" is the subject and \"mat\" is part of a prepositional phrase. Syntax must be discovered by the layers."
+                      " GPT-2 doesn't know that \"cat\" is the subject and \"mat\" is part of a prepositional phrase. Syntax must be discovered by the attention layers."
                     ]
                   },
                   {
@@ -992,7 +1058,7 @@
                         "type": "strong",
                         "children": "No coreference."
                       },
-                      " If the text said \"The cat sat on the mat. It was soft.\", the model doesn't yet know that \"it\" refers to \"mat\" (or possibly \"cat\"). That linking happens in the layers."
+                      " If the text said \"The cat sat on the mat. It was soft.\", GPT-2 doesn't yet know that \"it\" refers to \"mat\" (or possibly \"cat\"). That linking happens in the layers."
                     ]
                   },
                   {
@@ -1002,7 +1068,7 @@
                         "type": "strong",
                         "children": "No world knowledge activation."
                       },
-                      " The embedding for \"cat\" might be near \"dog\" and \"pet\" in the space, but the model hasn't yet activated its knowledge that cats are small, furry, independent, etc. That knowledge is stored in the feed-forward layers and gets activated during the forward pass."
+                      " The embedding for \"cat\" might be near \"dog\" and \"pet\" in the space, but GPT-2 hasn't yet activated its stored knowledge that cats are small, furry, independent, etc. That knowledge is stored in the feed-forward layers' weight matrices and gets activated during the forward pass."
                     ]
                   },
                   {
@@ -1012,18 +1078,18 @@
                         "type": "strong",
                         "children": "No prediction."
                       },
-                      " The model hasn't even begun to think about what comes next. The entire prediction machinery — attention, feed-forward networks, residual connections — is downstream."
+                      " GPT-2 hasn't even begun to think about what comes next. Its entire job — predicting the next token — is performed by the 12 transformer blocks downstream."
                     ]
                   }
                 ]
               },
               {
                 "type": "p",
-                "children": "And yet — and this is the remarkable part — everything the model needs to build all of that is present in these initial vectors. The token embeddings encode rough semantic similarity. The positional encodings encode sequence order. From these two ingredients, through dozens of layers of attention and feed-forward transformations, the model will construct a representation rich enough to generate coherent, contextually appropriate, sometimes brilliant text."
+                "children": "And yet — and this is the remarkable part — everything GPT-2 needs to build all of that is present in these initial vectors. The token embeddings encode rough semantic similarity. The positional embeddings encode sequence order. From these two ingredients, through 12 layers of attention and feed-forward transformations, GPT-2 will construct representations rich enough to generate coherent, contextually appropriate text."
               },
               {
                 "type": "Analogy",
-                "children": "We're at the moment just after the Big Bang, when the universe consisted of a hot, uniform plasma. No stars, no galaxies, no planets, no life. But all the matter and energy were there. All the physical laws were in place. Everything that followed — the cooling, the condensation, the formation of structure — was a consequence of those initial conditions. The vector that enters Layer 1 is the transformer's primordial plasma: undifferentiated, but pregnant with possibility."
+                "children": "We're at the moment just after the Big Bang, when the universe consisted of a hot, uniform plasma. No stars, no galaxies, no planets, no life. But all the matter and energy were there. All the physical laws were in place. Everything that followed — the cooling, the condensation, the formation of structure — was a consequence of those initial conditions. The vector that enters Layer 1 is GPT-2's primordial plasma: undifferentiated, but pregnant with possibility."
               }
             ]
           }
@@ -1036,7 +1102,7 @@
         "children": [
           {
             "type": "p",
-            "children": "Let's trace the complete journey one final time:"
+            "children": "Let's trace the complete journey one final time, with all of GPT-2's specific numbers:"
           },
           {
             "type": "ol",
@@ -1047,37 +1113,37 @@
               },
               {
                 "type": "li",
-                "children": "The tokenizer segments it using learned BPE merges: [\"The\", \" cat\", \" sat\", \" on\", \" the\", \" mat\"]"
+                "children": "GPT-2's byte-level BPE tokenizer (trained on WebText) segments it: [\"The\", \" cat\", \" sat\", \" on\", \" the\", \" mat\"]"
               },
               {
                 "type": "li",
-                "children": "Each token is mapped to an integer ID: [464, 3797, 3332, 319, 262, 2291]"
+                "children": "Each token is mapped to an integer ID from the 50,257-token vocabulary: [464, 3797, 3332, 319, 262, 2291]"
               },
               {
                 "type": "li",
-                "children": "Each ID is used to look up a 768-dimensional vector from the embedding matrix"
+                "children": "Each token ID is used to look up a 768-dimensional vector from wte (the 50,257 × 768 token embedding matrix)"
               },
               {
                 "type": "li",
-                "children": "Positional information is added to each vector (via addition or rotation)"
+                "children": "Each position index (0-5) is used to look up a 768-dimensional vector from wpe (the 1,024 × 768 position embedding matrix)"
               },
               {
                 "type": "li",
-                "children": "In GPT-2, these raw sums enter Layer 1 directly (post-norm architecture — layer norm comes after each sub-layer, not before)"
+                "children": "The token and position vectors are added together: input = wte[token_id] + wpe[position]"
               },
               {
                 "type": "li",
-                "children": "The result — a matrix of shape (6 × 768) — enters Layer 1"
+                "children": "The result — a matrix of shape (6 × 768) — enters Block 1 directly, with no layer norm"
               }
             ]
           },
           {
             "type": "p",
-            "children": "In perhaps a microsecond of compute time, we've gone from squiggles to geometry. From characters to meaning-bearing vectors in a high-dimensional space, tagged with their positions in the sequence. No attention mechanism has fired. No feed-forward network has activated. And yet the transformation is already profound."
+            "children": "The entire preprocessing pipeline involves exactly two embedding tables (39.4 million parameters), two lookups, and one addition. No neural network computation. No activation functions. No attention. Nothing nonlinear."
           },
           {
             "type": "p",
-            "children": "These first three minutes of a transformer — tokenization, embedding, positional encoding — are the foundation on which everything else is built. They're deterministic, mostly parameter-free (except the embedding matrices and layer norm), and often overlooked. But like Weinberg's first three minutes of the universe, they set the initial conditions that determine everything that follows."
+            "children": "And yet in perhaps a microsecond of compute time, we've gone from squiggles to geometry. From characters to meaning-bearing vectors in a 768-dimensional space, tagged with their positions in the sequence. Like Weinberg's first three minutes of the universe, these early moments are deterministic, quiet, and often overlooked. But they set the initial conditions that determine everything that follows."
           },
           {
             "type": "blockquote",
@@ -1090,15 +1156,15 @@
           {
             "type": "Quiz",
             "props": {
-              "question": "In GPT-2, what is the correct order of operations BEFORE Layer 1?",
+              "question": "Which of the following correctly describes GPT-2's complete preprocessing pipeline (everything before Layer 1)?",
               "options": [
-                "Tokenization → Positional Encoding → Embedding Lookup",
-                "Embedding Lookup → Tokenization → Positional Encoding",
-                "Tokenization → Embedding Lookup → Add Positional Embeddings → Enter Layer 1",
-                "Layer Norm → Tokenization → Embedding Lookup"
+                "Tokenization → Embedding lookup → Sinusoidal positional encoding → Layer norm",
+                "Tokenization → Embedding lookup (wte) → Position lookup (wpe) → Addition → Layer norm → Layer 1",
+                "Tokenization → Embedding lookup (wte) → Position lookup (wpe) → Addition → Layer 1 (no layer norm)",
+                "Tokenization → One-hot encoding → Matrix multiplication → RoPE rotation → Layer 1"
               ],
               "correctIndex": 2,
-              "explanation": "The correct order is: (1) Tokenization — raw text is split into tokens and mapped to integer IDs; (2) Embedding lookup — each ID retrieves a 768-dim vector from the token embedding matrix; (3) Positional embedding addition — a learned position vector is added to each token embedding. The resulting sum enters Layer 1 directly. GPT-2 uses post-norm, so there is no layer norm before the first attention layer."
+              "explanation": "GPT-2's preprocessing is: (1) BPE tokenization to get token IDs, (2) look up token embeddings from wte (50,257 × 768), (3) look up position embeddings from wpe (1,024 × 768), (4) add them together. The resulting vectors go directly into Layer 1 — GPT-2 uses post-norm architecture, so there's no layer norm before the first attention computation. No sinusoidal encoding (that was the original Transformer). No RoPE (that came later, in 2021)."
             }
           }
         ]
