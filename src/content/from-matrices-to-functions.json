@@ -1,0 +1,1179 @@
+{
+  "type": "Fragment",
+  "meta": {
+    "title": "From Matrices to Functions: What If Neural Networks Used Richer Math?",
+    "subtitle": "The relationship between matrices, continuous functions, and neural network weights — and why the computational primitives we chose aren't the only ones possible",
+    "description": "Starting from the insight that continuous functions can't be captured by single matrices, this tutorial explores the kernel trick, functional compression, low-rank structure, KANs, structured matrices, and the frontier of richer mathematical primitives for neural networks.",
+    "author": "Peter Balogh",
+    "lastUpdated": "2026-02-24",
+    "tags": [
+      "neural networks",
+      "linear algebra",
+      "kernel methods",
+      "KAN",
+      "Fourier",
+      "compression",
+      "deep learning"
+    ]
+  },
+  "content": {
+    "type": "Fragment",
+    "children": [
+      {
+        "type": "Section",
+        "props": {
+          "title": "Prologue: A Chain of Insights"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "This tutorial began with a deceptively simple question: can a matrix represent the mapping (x,y) → (sin(x²), cos(y²), cos(x+y))?"
+          },
+          {
+            "type": "p",
+            "children": "The answer — an emphatic no — led to a cascade of realizations, each one deeper than the last. That a continuous function is an infinitely more compressed representation than any discrete matrix approximating it. That neural network weights 'aren't really data' — they're inert coefficients that only become meaningful when composed with activation functions. That an MLP is thousands of separate functions with potentially massive redundancy. That maybe — just maybe — the particular mathematical primitive we've built all of deep learning on (dense matrix multiply + pointwise nonlinearity) isn't the only option. Or even the best one."
+          },
+          {
+            "type": "p",
+            "children": "If you've had these thoughts, you've been independently rediscovering ideas that span decades of mathematics and are now at the cutting edge of deep learning research. Let's trace those insights to their full depth."
+          },
+          {
+            "type": "Callout",
+            "props": {
+              "type": "key-idea"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "The central question: Neural networks are built on matrix multiply + pointwise nonlinearity. This is universal (can approximate anything) but is it efficient? What mathematical structures could do the same work with fewer parameters, less compute, or better generalization?"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "1. The Parametric Surface Problem"
+        },
+        "children": [
+          {
+            "type": "Section",
+            "props": {
+              "title": "Why Matrices Can't Capture Nonlinear Maps"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "Consider the mapping f(x,y) = (sin(x²), cos(y²), cos(x+y)). This takes two inputs and produces three outputs. A matrix that maps ℝ² → ℝ³ would be a 3×2 matrix — six numbers. But that matrix can only represent LINEAR mappings: things like (x,y) → (2x+3y, x-y, 4x)."
+              },
+              {
+                "type": "p",
+                "children": "Our function involves sin, cos, and squaring — fundamentally nonlinear operations. No 3×2 matrix can produce sin(x²) from a linear combination of x and y. This isn't a limitation of finding the right matrix; it's a mathematical impossibility. A matrix is a linear operator, and linear operators preserve addition and scaling: M(ax + by) = aM(x) + bM(y). But sin(x² + y²) ≠ sin(x²) + sin(y²). The linearity axiom is violated."
+              },
+              {
+                "type": "Code",
+                "props": {
+                  "language": "python"
+                },
+                "children": "import numpy as np\n\n# A 3x2 matrix can only do linear maps\nM = np.array([[2, 3],\n              [1, -1],\n              [4, 0]])\n\nx = np.array([1.0, 2.0])\nprint(M @ x)  # [8, -1, 4] — always linear combinations\n\n# But we want:\ndef f(x, y):\n    return np.array([np.sin(x**2), np.cos(y**2), np.cos(x+y)])\n\nprint(f(1.0, 2.0))  # [0.841, -0.654, -0.990]\n# No matrix can produce this from [1, 2]"
+              },
+              {
+                "type": "p",
+                "children": "So what do you do when you need a linear tool to handle a nonlinear problem? You change the inputs."
+              }
+            ]
+          },
+          {
+            "type": "Section",
+            "props": {
+              "title": "The Lifting Trick: Making Nonlinear Problems Linear"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "Here's the key insight: if we first transform (x,y) into a richer representation — say φ(x,y) = [x, y, x², y², xy, x³, y³, x²y, xy², sin(x), cos(y), ...] — then a linear map on THIS expanded space can approximate our nonlinear function."
+              },
+              {
+                "type": "p",
+                "children": "Think about it: sin(x²) can be Taylor-expanded as x² - x⁶/6 + x¹⁰/120 - ... If our feature map φ includes x², x⁶, x¹⁰, etc., then sin(x²) is literally a linear combination of these features. A matrix CAN capture it — but only after we've 'lifted' the inputs into a higher-dimensional space where the nonlinear relationships have become linear."
+              },
+              {
+                "type": "Code",
+                "props": {
+                  "language": "python"
+                },
+                "children": "# Lifting (x,y) to polynomial features\ndef phi(x, y, degree=5):\n    features = []\n    for i in range(degree + 1):\n        for j in range(degree + 1 - i):\n            features.append(x**i * y**j)\n    return np.array(features)\n\n# Now phi(1, 2) has 21 components for degree=5\n# A 3×21 matrix W can approximate f by:\n# f(x,y) ≈ W @ phi(x, y)\n# We traded a 3×2 impossible problem \n# for a 3×21 possible one"
+              },
+              {
+                "type": "Callout",
+                "props": {
+                  "type": "historical"
+                },
+                "children": [
+                  {
+                    "type": "p",
+                    "children": "You just rediscovered the kernel trick. In the 1990s, Vladimir Vapnik and colleagues realized that Support Vector Machines could handle nonlinear classification by implicitly lifting data into higher-dimensional spaces. The genius of the kernel trick (Aizerman et al., 1964; popularized by Boser, Guyon, and Vapnik, 1992) is that you never actually COMPUTE φ(x) — you only need the dot products φ(x)·φ(y), which can be computed directly via a kernel function K(x,y). This is why it's called a 'trick' — infinite-dimensional features, finite computation."
+                  }
+                ]
+              },
+              {
+                "type": "Analogy",
+                "children": [
+                  {
+                    "type": "p",
+                    "children": "Imagine you're in Flatland — a 2D world. Two groups of points are mixed together in a circle pattern: group A in the center, group B in a ring around it. No line (1D separator) can divide them. But if you lift every point (x,y) to (x, y, x²+y²), the circle pattern becomes separated in height — group A is low, group B is high — and now a flat plane can cut between them. You made a nonlinear problem linear by adding a dimension."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "Section",
+            "props": {
+              "title": "Neural Networks as Learned Feature Maps"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "Here's the punchline that connects this to deep learning: a neural network IS a learned lifting. Each layer constructs increasingly abstract features of the input. The final linear layer operates on these learned features — which live in a space where the problem HAS become approximately linear."
+              },
+              {
+                "type": "p",
+                "children": "The difference from kernel methods is that neural networks learn φ (the feature map) from data, while SVMs use a fixed φ chosen by the engineer. This is both the power and the mystery of deep learning: the network discovers which nonlinear features matter, rather than having them specified in advance."
+              },
+              {
+                "type": "DeepDive",
+                "props": {
+                  "title": "The Kernel Trick in Detail"
+                },
+                "children": [
+                  {
+                    "type": "p",
+                    "children": "The polynomial kernel K(x,y) = (x·y + c)^d implicitly computes the dot product in a space that includes ALL monomials up to degree d. For d=2 with inputs in ℝ²: K((x₁,x₂), (y₁,y₂)) = (x₁y₁ + x₂y₂ + c)² expands to include terms for x₁², x₂², x₁x₂, x₁, x₂, and 1 — a 6-dimensional feature space, computed with a single dot product and a squaring."
+                  },
+                  {
+                    "type": "p",
+                    "children": "The Gaussian RBF kernel K(x,y) = exp(-||x-y||²/2σ²) implicitly maps to an INFINITE-dimensional space. Every possible polynomial feature, of every degree, is included. Yet K(x,y) is computed in O(d) time where d is the original dimension. This is the magic — infinite features, finite computation."
+                  },
+                  {
+                    "type": "p",
+                    "children": "The connection to neural networks runs deep. Neal (1996) showed that a single-hidden-layer neural network with infinite width converges to a Gaussian process — a kernel method. This 'Neural Tangent Kernel' (Jacot et al., 2018) correspondence means that at infinite width, training a neural network is EXACTLY equivalent to kernel regression with a specific kernel determined by the architecture."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "Quiz",
+            "props": {
+              "question": "If you have a mapping f(x) = x³ that you need to represent as a matrix operation, what's the minimum feature map φ(x) that would work?",
+              "options": [
+                "φ(x) = [x] — a 1×1 matrix suffices",
+                "φ(x) = [x, x², x³] — you need the cubic monomial",
+                "φ(x) = [x, x²] — the square is enough",
+                "It's impossible no matter what features you use"
+              ],
+              "answer": 1,
+              "explanation": "φ(x) = [x, x², x³] with the matrix W = [0, 0, 1] gives W·φ(x) = x³. You need x³ as an explicit feature because a linear combination of x and x² can never produce x³. The minimum feature map must include the target monomial (or higher-degree terms that can combine to produce it)."
+            }
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "2. The Compression Insight: Functions as Ultimate Compression"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "Here's a number that should stop you in your tracks: the function sin(x) can be specified with essentially zero parameters (it's a well-known mathematical function — one word). A matrix approximation of sin(x) over a grid of 1000 points requires 1000 entries. Over a million points? A million entries. The function is a finite description of an infinite object; the matrix is always a finite, lossy sample."
+          },
+          {
+            "type": "p",
+            "children": "Even if we're generous and say sin(x) 'costs' a few parameters — its Taylor series needs coefficients 1, -1/6, 1/120, -1/5040, ... — we only need about 10 terms to approximate sin(x) to machine precision over [-π, π]. That's 10 numbers to encode what a matrix needs a million entries for."
+          },
+          {
+            "type": "Example",
+            "props": {
+              "title": "The Cost of Discretizing sin(x)"
+            },
+            "children": [
+              {
+                "type": "Code",
+                "props": {
+                  "language": "python"
+                },
+                "children": "import numpy as np\n\n# How many Taylor terms to approximate sin(x) on [-pi, pi]?\nfor n_terms in [3, 5, 7, 10, 15]:\n    x = np.linspace(-np.pi, np.pi, 10000)\n    approx = sum((-1)**k * x**(2*k+1) / \n                 np.math.factorial(2*k+1) \n                 for k in range(n_terms))\n    error = np.max(np.abs(np.sin(x) - approx))\n    print(f\"{n_terms} terms: max error = {error:.2e}\")\n\n# Output:\n# 3 terms:  max error = 7.57e-02  \n# 5 terms:  max error = 1.04e-03\n# 7 terms:  max error = 6.28e-06\n# 10 terms: max error = 3.23e-10\n# 15 terms: max error = 2.22e-16  (machine epsilon!)\n\n# So 15 numbers vs 10,000 matrix entries\n# Compression ratio: 667:1\n# At 1M points: 66,667:1"
+              },
+              {
+                "type": "p",
+                "children": "15 coefficients encode sin(x) to machine precision EVERYWHERE on [-π, π]. A lookup table needs as many entries as you want sample points. The function is infinitely more compressed."
+              }
+            ]
+          },
+          {
+            "type": "Callout",
+            "props": {
+              "type": "key-idea"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "A continuous function is a GENERATOR of matrices, not one matrix. Given any grid of n points, a function f generates an n-dimensional output vector. The function contains all possible discretizations simultaneously. It's the compressed representation; the matrix is the decompressed, lossy sample."
+              }
+            ]
+          },
+          {
+            "type": "p",
+            "children": "This insight has profound implications for neural networks. A trained network's weight matrix might have millions of entries, but if the underlying relationship it's encoding could be described by a simple functional form, most of those entries are redundant. They're the lookup table version of something that could be expressed more compactly."
+          },
+          {
+            "type": "Analogy",
+            "children": [
+              {
+                "type": "p",
+                "children": "Consider a digital photograph of a solid blue rectangle. Stored as raw pixels, it might be 10 million values (10 megapixels × RGB). But the FUNCTION 'return blue for all (x,y) in [0,w]×[0,h]' is a few bytes. PNG and JPEG compression find structure like this — but they're nowhere near as efficient as knowing the generating function. A neural network's weight matrix is like the raw pixels; the functional form it approximates is like the description 'blue rectangle.'"
+              }
+            ]
+          },
+          {
+            "type": "DeepDive",
+            "props": {
+              "title": "Kolmogorov Complexity and the Shortest Description"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "This is formalized in algorithmic information theory as Kolmogorov complexity: the length of the shortest program that produces a given output. The Kolmogorov complexity of sin(x) evaluated at 1 million points is tiny — it's the length of a program that computes the Taylor series. But the matrix of 1 million entries has high raw complexity because you'd need to store (or compute) each value."
+              },
+              {
+                "type": "p",
+                "children": "Neural networks trained with gradient descent are implicitly biased toward low Kolmogorov complexity solutions — functions with short descriptions. This is the 'simplicity bias' of neural networks (Valle-Pérez et al., 2019). SGD doesn't find arbitrary functions that fit the data; it finds SIMPLE ones. And simple functions are exactly those with compact functional representations."
+              }
+            ]
+          },
+          {
+            "type": "Quiz",
+            "props": {
+              "question": "A 768×768 weight matrix in a transformer has 589,824 parameters. If the underlying function it represents could be described by a Fourier series with 50 frequency components, what's the theoretical compression ratio?",
+              "options": [
+                "About 12:1 (589,824 / 50,000)",
+                "About 6,000:1 (589,824 / 100 — amplitude + phase per frequency)",
+                "About 12,000:1 (589,824 / 50)",
+                "Compression isn't possible because the matrix IS the function"
+              ],
+              "answer": 1,
+              "explanation": "Each Fourier component needs an amplitude and a phase, so 50 components = 100 parameters. 589,824 / 100 ≈ 6,000:1. In practice, you'd also need some overhead to specify the representation, but the core insight holds: if the matrix has structure, it's compressible. This is essentially what LoRA and other parameter-efficient methods exploit."
+            }
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "3. Weights Aren't Really Data"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "Consider the number 0.37 sitting at position (i, j) in a weight matrix. What does it mean? Nothing. Absolutely nothing. It's not a measurement of anything. It's not a probability. It's not a pixel value. It's not a coordinate. By itself, 0.37 is informationally inert — it carries no meaning without the computational context that activates it."
+          },
+          {
+            "type": "p",
+            "children": "For that 0.37 to participate in computation, it needs to be:"
+          },
+          {
+            "type": "Code",
+            "props": {
+              "language": "text"
+            },
+            "children": "1. Multiplied by an input activation (its column determines WHICH input)\n2. Summed with all other products in row i (context from other inputs)\n3. Added to a bias term (shifting the response)\n4. Passed through a nonlinear activation function (GELU, ReLU, etc.)\n5. Fed into the next layer as input\n\nOnly after ALL of these steps does 0.37 contribute to a meaningful output."
+          },
+          {
+            "type": "p",
+            "children": "Weights are coefficients of a function, not entries in a table. They're parameters — in the etymological sense of 'alongside the measure.' They shape the function but aren't the function themselves."
+          },
+          {
+            "type": "Analogy",
+            "children": [
+              {
+                "type": "p",
+                "children": "A recipe says '2 cups flour.' Is '2' data? Not really. It's meaningless without the recipe — the process that combines flour with eggs, sugar, butter, heat, and time to produce a cake. Change '2' to '3' and you get a denser cake, not a different number. The '2' is a parameter of the baking function. Similarly, a neural network weight of 0.37 is a parameter of a computational function — it modifies behavior when the function runs, but it doesn't represent anything in isolation."
+              }
+            ]
+          },
+          {
+            "type": "Callout",
+            "props": {
+              "type": "key-idea"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "This distinction matters because it changes how we think about compression and representation. If weights were data (like pixels), you'd need all of them. But if weights are parameters of a function, then any EQUIVALENT parameterization that produces the same function is equally valid — even if it uses far fewer numbers. The question shifts from 'how do I store these weights?' to 'what function do these weights encode, and is there a more compact way to specify that function?'"
+              }
+            ]
+          },
+          {
+            "type": "DeepDive",
+            "props": {
+              "title": "The Lottery Ticket Hypothesis: Most Weights Don't Matter"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "The Lottery Ticket Hypothesis (Frankle & Carlin, 2019) provides dramatic evidence that weights aren't all necessary data. They showed that neural networks contain sparse subnetworks (as little as 10-20% of the original weights) that can match the full network's performance when trained from their original initialization. The other 80-90% of weights were, in a sense, scaffolding — they helped the optimization process find the right subnetwork but weren't needed in the final computation."
+              },
+              {
+                "type": "p",
+                "children": "Even more dramatic: you can prune many trained networks by 90% or more with minimal accuracy loss. This means that for a 100-million parameter model, perhaps 10 million parameters carry the actual 'function' — the rest are redundant encoding of that function in a format convenient for gradient descent to discover."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "4. The MLP as a Vector Field"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "Let's get concrete with GPT-2's architecture. In each transformer block, the MLP takes a 768-dimensional vector and passes it through two linear layers with a GELU activation between them:"
+          },
+          {
+            "type": "Code",
+            "props": {
+              "language": "text"
+            },
+            "children": "Input:   x ∈ ℝ⁷⁶⁸\nExpand:  h = GELU(W₁x + b₁)    where W₁ is 3072×768\nProject: y = W₂h + b₂           where W₂ is 768×3072\n\nParameters: 768×3072 + 3072 + 3072×768 + 768\n          = 2,359,296 + 3,072 + 2,359,296 + 768\n          ≈ 4.7 million parameters per MLP block"
+          },
+          {
+            "type": "p",
+            "children": "Focus on W₁, the 3072×768 expansion matrix. Each of its 3072 rows is a 768-dimensional vector — a 'detector' that takes a dot product with the input. Row i computes wᵢ·x: how much the input aligns with the pattern encoded in wᵢ. Then GELU squashes the result, and the whole vector of 3072 activations gets projected back to 768 dimensions by W₂."
+          },
+          {
+            "type": "p",
+            "children": "Geometrically: each row of W₁ defines a HYPERPLANE in 768-dimensional space. The dot product wᵢ·x measures the signed distance from that hyperplane. GELU then applies a soft threshold — inputs on the 'wrong side' get suppressed, inputs on the 'right side' pass through approximately linearly. So the MLP is a collection of 3072 soft half-space indicators, each looking for a different pattern in the input."
+          },
+          {
+            "type": "Callout",
+            "props": {
+              "type": "tip"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "The 'key-value memory' interpretation (Geva et al., 2021) makes this vivid: each row of W₁ is a KEY (pattern to detect), and the corresponding column of W₂ is a VALUE (update to apply when that pattern is detected). The MLP is literally a soft lookup table: 3072 entries, each comparing the input to a stored pattern and adding a stored response, weighted by the match quality."
+              }
+            ]
+          },
+          {
+            "type": "p",
+            "children": "Now here's the question that should be nagging you: do we really need 3072 separate detectors? Are they all looking for genuinely different things, or are many of them redundant? If many rows of W₁ point in similar directions — if many detectors are correlated — then the weight matrix has LOW-RANK STRUCTURE, and those 4.7 million parameters could be compressed."
+          },
+          {
+            "type": "Quiz",
+            "props": {
+              "question": "In GPT-2's MLP, the expansion factor from 768 to 3072 is 4×. Why not 2×? Or 8×? Or 100×?",
+              "options": [
+                "4× was proven to be mathematically optimal",
+                "It's a practical trade-off between model capacity and compute cost, found by experimentation",
+                "768 × 4 = 3072, which is a power of 2 (it isn't, but that's the reasoning)",
+                "The number of detectors must equal 4× the input dimension by the universal approximation theorem"
+              ],
+              "answer": 1,
+              "explanation": "The 4× expansion ratio is a design choice found empirically — it provides enough capacity for the MLP to learn useful features without being so large that it dominates the model's compute budget. The original Transformer paper (Vaswani et al., 2017) used 4× and it stuck. Recent models like LLaMA use 8/3× with SwiGLU activation for the same effective capacity. There's no theorem requiring any particular ratio."
+            }
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "5. Low-Rank Structure: Commonalities Among Functions"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "If you take that 3072×768 weight matrix and perform Singular Value Decomposition (SVD), you decompose it as W = UΣVᵀ, where Σ is a diagonal matrix of singular values sorted from largest to smallest. The singular values tell you how much 'energy' or 'importance' each component carries."
+          },
+          {
+            "type": "p",
+            "children": "In many neural networks, the singular values drop off rapidly. The first few capture most of the matrix's action; the rest are near-zero noise. This means the effective rank is much lower than 768 — perhaps 50 or 100 dimensions carry 90% of the information."
+          },
+          {
+            "type": "Code",
+            "props": {
+              "language": "python"
+            },
+            "children": "import torch\nfrom transformers import GPT2Model\n\nmodel = GPT2Model.from_pretrained('gpt2')\nW = model.h[0].mlp.c_fc.weight.data  # 3072×768\n\nU, S, Vh = torch.linalg.svd(W, full_matrices=False)\n\n# How quickly do singular values decay?\ncumulative = torch.cumsum(S**2, dim=0) / torch.sum(S**2)\nfor threshold in [0.5, 0.8, 0.9, 0.95, 0.99]:\n    rank = (cumulative < threshold).sum().item() + 1\n    print(f\"{threshold*100:.0f}% of energy in top {rank} / {len(S)} components\")\n\n# Typical output:\n# 50% of energy in top 82 / 768 components  \n# 80% of energy in top 245 / 768 components\n# 90% of energy in top 384 / 768 components\n# 95% of energy in top 502 / 768 components\n# 99% of energy in top 667 / 768 components"
+          },
+          {
+            "type": "p",
+            "children": "This means many of those 3072 detectors are NOT independent. They share common directions. The 3072 functions of 768 variables have commonalities — they live in a subspace much smaller than you'd expect."
+          },
+          {
+            "type": "Section",
+            "props": {
+              "title": "LoRA: Exploiting Low-Rank Structure"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "Low-Rank Adaptation (LoRA) (Hu et al., 2021) is the practical incarnation of this insight. Instead of fine-tuning a full weight matrix W (say 768×768 = 589,824 parameters), LoRA freezes W and trains a low-rank update: W' = W + BA, where B is 768×r and A is r×768, with r typically 4 or 8."
+              },
+              {
+                "type": "Code",
+                "props": {
+                  "language": "text"
+                },
+                "children": "Full fine-tuning:    589,824 parameters per matrix\nLoRA (r=4):          768×4 + 4×768 = 6,144 parameters\nLoRA (r=8):          768×8 + 8×768 = 12,288 parameters\n\nCompression ratio (r=4): 96:1\nCompression ratio (r=8): 48:1\n\nPerformance loss: often negligible!"
+              },
+              {
+                "type": "p",
+                "children": "The fact that r=4 often works is astonishing. It means the CHANGE in weights during fine-tuning lives in a 4-dimensional subspace out of 768. The fine-tuning task only needs to adjust the function along 4 directions in parameter space — everything else stays fixed."
+              },
+              {
+                "type": "Callout",
+                "props": {
+                  "type": "key-idea"
+                },
+                "children": [
+                  {
+                    "type": "p",
+                    "children": "Aghajanyan et al. (2021) formalized this as the 'intrinsic dimensionality' of fine-tuning. They showed that common NLP tasks have intrinsic dimensionality of a few hundred, even for models with hundreds of millions of parameters. The function change needed for a specific task occupies a tiny submanifold of the full parameter space. Most of those millions of parameters define the 'stage'; the task-specific adjustment is a small repositioning of the actors."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "DeepDive",
+            "props": {
+              "title": "SVD Reveals the Skeleton of a Weight Matrix"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "Singular Value Decomposition isn't just a compression technique — it reveals the GEOMETRIC SKELETON of a linear map. W = UΣVᵀ means: (1) rotate by Vᵀ (align with the 'input modes'), (2) scale each mode by its singular value σᵢ, (3) rotate by U (align with the 'output modes'). The singular values tell you how much each mode matters."
+              },
+              {
+                "type": "p",
+                "children": "If σ₁ = 10, σ₂ = 8, σ₃ = 0.1, σ₄ = 0.01, ..., then the matrix essentially operates in a 2D subspace. The other dimensions are multiplied by near-zero values — they might as well not exist. This is the mathematical basis for understanding WHEN compression works: it works when the singular values decay rapidly."
+              },
+              {
+                "type": "p",
+                "children": "Why do neural network weight matrices tend to have rapidly decaying singular values? Because gradient descent with weight decay is implicitly performing a form of nuclear norm regularization — it penalizes the sum of singular values. The optimizer is biased toward low-rank solutions, even without explicitly being told to find them."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "6. Exponentiation with Matrices"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "Here's an insight that connects to some of the deepest mathematics in physics: what does it mean to 'exponentiate' a matrix? In scalar arithmetic, e^x = 1 + x + x²/2! + x³/3! + ... is well-defined. Can we do the same with matrices?"
+          },
+          {
+            "type": "p",
+            "children": "Yes! The matrix exponential is defined as:"
+          },
+          {
+            "type": "Code",
+            "props": {
+              "language": "text"
+            },
+            "children": "e^A = I + A + A²/2! + A³/3! + A⁴/4! + ...\n\nwhere:\n- I is the identity matrix\n- A² = A × A (matrix multiplication)\n- The series converges for ALL square matrices A"
+          },
+          {
+            "type": "p",
+            "children": "But notice something: if A is n×n, then every term A^k is also n×n. The computation stays within the same dimensionality. This is fundamentally different from scalar exponentiation, where e^10 ≈ 22,026 — the output can be vastly different in magnitude from the input."
+          },
+          {
+            "type": "p",
+            "children": "The matrix exponential shows up everywhere in physics: quantum mechanics (time evolution e^{-iHt}), differential equations (solutions to dx/dt = Ax), Lie groups (connecting infinitesimal generators to finite transformations). It's the natural bridge between ADDITIVE structure (the Lie algebra, where you add matrices) and MULTIPLICATIVE structure (the Lie group, where you compose transformations)."
+          },
+          {
+            "type": "Callout",
+            "props": {
+              "type": "historical"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "Sophus Lie (1842-1899) developed the theory of continuous symmetry groups, showing that every 'smooth' family of transformations (rotations, scalings, etc.) can be understood through its infinitesimal generators — matrices that, when exponentiated, produce the finite transformations. This Lie group / Lie algebra correspondence is one of the most powerful ideas in mathematics. Neural networks that operate on structured data (molecules, point clouds, physical systems) increasingly use Lie group equivariance — building in the symmetry rather than hoping the network learns it."
+              }
+            ]
+          },
+          {
+            "type": "Section",
+            "props": {
+              "title": "Depth as Iterated Exponentiation"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "There's a deep connection between the matrix exponential and network depth. Consider what happens when you compose the same transformation A repeatedly:"
+              },
+              {
+                "type": "Code",
+                "props": {
+                  "language": "text"
+                },
+                "children": "1 application:   A·x\n2 applications:  A·A·x = A²·x\nn applications:  Aⁿ·x\n\nWith repeated squaring:\nA² = A·A          (1 multiplication)\nA⁴ = A²·A²        (2 multiplications)  \nA⁸ = A⁴·A⁴        (3 multiplications)\nA^(2^k)            (k multiplications)\n\nk layers of depth → 2^k effective multiplications"
+              },
+              {
+                "type": "p",
+                "children": "This is why depth creates exponential expressivity. Each additional layer (with nonlinearity) can DOUBLE the effective complexity of the function. A 10-layer network can represent functions that would require 2^10 = 1024 operations in a single layer. This is the formal version of the intuition that 'deep networks are exponentially more efficient than wide ones' (Telgarsky, 2016; Eldan & Shamir, 2016)."
+              },
+              {
+                "type": "p",
+                "children": "But here's the catch: this only works with nonlinearity between layers. Without activation functions, Aⁿ is still a linear map — it has the same expressive power as a single matrix (this is exactly the 'collapse theorem' from the earlier tutorial on why networks don't collapse). The nonlinearity is what makes the composition genuinely richer at each step."
+              }
+            ]
+          },
+          {
+            "type": "DeepDive",
+            "props": {
+              "title": "Neural ODEs: Continuous-Depth Networks"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "Neural ODEs (Chen et al., 2018) take this connection literally. Instead of discrete layers x_{l+1} = f(x_l), they model the continuous process dx/dt = f(x, t, θ). The 'layers' become continuous time steps, and the output is the solution to an ordinary differential equation."
+              },
+              {
+                "type": "p",
+                "children": "The connection to the matrix exponential is direct: if f(x, t, θ) = Ax (linear), then the solution is x(t) = e^{At}·x(0). A Neural ODE generalizes this to nonlinear f — it's like a continuous matrix exponential with activation functions mixed in at every infinitesimal time step."
+              },
+              {
+                "type": "p",
+                "children": "This gives continuous, differentiable control over 'depth' (by changing the integration time), adaptive computation (the ODE solver takes more steps in complex regions), and invertibility (just integrate backwards). It's one of the most elegant examples of 'richer math' improving neural network design."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "7. Fourier Representations: Frequencies Instead of Weights"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "What if, instead of storing weight matrices as dense grids of numbers, we stored them as sums of sinusoidal components? This is the Fourier perspective, and it connects to some of the most exciting developments in neural network architecture."
+          },
+          {
+            "type": "Section",
+            "props": {
+              "title": "Random Fourier Features"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "Rahimi and Recht (2007) showed that for any shift-invariant kernel K(x-y), you can approximate the kernel function using random Fourier features:"
+              },
+              {
+                "type": "Code",
+                "props": {
+                  "language": "text"
+                },
+                "children": "K(x-y) ≈ z(x)ᵀz(y)\n\nwhere z(x) = √(2/D) [cos(ω₁ᵀx + b₁), ..., cos(ωᴅᵀx + bᴅ)]\n\nω₁, ..., ωᴅ  sampled from the Fourier transform of K\nb₁, ..., bᴅ  sampled uniformly from [0, 2π]"
+              },
+              {
+                "type": "p",
+                "children": "This is remarkable: you can approximate an infinite-dimensional kernel with D random cosine features. The approximation improves as D grows, and it turns kernel methods from O(n³) (inverting an n×n kernel matrix) to O(nD) where D << n. It's random, explicit feature lifting — the kernel trick, de-tricked."
+              }
+            ]
+          },
+          {
+            "type": "Section",
+            "props": {
+              "title": "SIREN: Sinusoidal Representation Networks"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "SIREN (Sitzmann et al., 2020) takes a radical step: replace ReLU activations with sin(). Instead of y = ReLU(Wx + b), use y = sin(ωWx + b), where ω is a frequency parameter."
+              },
+              {
+                "type": "p",
+                "children": "Why does this matter? ReLU networks have a spectral bias — they learn low-frequency components first and struggle with high-frequency detail. This is why ReLU-based image generators produce blurry outputs that sharpen over training. sin() activations have NO spectral bias: every frequency is equally learnable from the start."
+              },
+              {
+                "type": "Code",
+                "props": {
+                  "language": "python"
+                },
+                "children": "import torch\nimport torch.nn as nn\n\nclass SirenLayer(nn.Module):\n    def __init__(self, in_features, out_features, omega_0=30.0):\n        super().__init__()\n        self.omega_0 = omega_0\n        self.linear = nn.Linear(in_features, out_features)\n        # Special initialization is crucial!\n        with torch.no_grad():\n            self.linear.weight.uniform_(\n                -1/in_features, 1/in_features\n            )\n    \n    def forward(self, x):\n        return torch.sin(self.omega_0 * self.linear(x))\n\n# A 5-layer SIREN with 256 hidden units can represent\n# a 512×512 image PERFECTLY — that's 262,144 pixel values\n# stored in ~200K network parameters, but with the ability\n# to query at ANY coordinate (continuous resolution!)"
+              },
+              {
+                "type": "Callout",
+                "props": {
+                  "type": "key-idea"
+                },
+                "children": [
+                  {
+                    "type": "p",
+                    "children": "The key equation: sin(ω(Wx + b)) = sin(ωWx + ωb). When this feeds into the NEXT sin() layer, you get sin(ω₂ · W₂ · sin(ω₁W₁x + ω₁b₁) + ω₂b₂). The composition of sin with sin creates sums and products of sinusoids at different frequencies — by the product-to-sum formula, sin(a)sin(b) = ½[cos(a-b) - cos(a+b)]. Each layer DOUBLES the number of frequency components. A 5-layer SIREN with k hidden units can represent O(k⁵) distinct frequency components."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "DeepDive",
+            "props": {
+              "title": "The Spectral Bias of ReLU Networks"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "Why do ReLU networks learn low frequencies first? The Neural Tangent Kernel theory gives the answer. The NTK of a ReLU network is a dot-product kernel whose eigenvalues decay as λₖ ~ k^{-(d+1)} where d is the input dimension and k is the frequency index. Higher frequencies correspond to smaller eigenvalues → slower learning."
+              },
+              {
+                "type": "p",
+                "children": "This means a ReLU network learning to fit sin(100x) trains ~10,000× slower than fitting sin(x). For images, this manifests as learning blurry approximations first and slowly adding detail — exactly what we observe in practice."
+              },
+              {
+                "type": "p",
+                "children": "Fourier feature positional encoding (Tancik et al., 2020) is a practical fix: transform inputs as γ(x) = [sin(2⁰πx), cos(2⁰πx), sin(2¹πx), cos(2¹πx), ..., sin(2^Lπx), cos(2^Lπx)]. This explicitly provides the high-frequency basis functions that the ReLU network would otherwise be slow to discover. It's the lifting trick again — but in frequency space."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "8. Kolmogorov-Arnold Networks: Learnable Activations, No Weight Matrices"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "If you asked 'what if we rethought the entire neuron model?' — the most radical answer so far is the Kolmogorov-Arnold Network (KAN), introduced by Liu et al. in 2024."
+          },
+          {
+            "type": "p",
+            "children": "Standard neural networks (MLPs) have a fixed architecture: learnable weight matrix → fixed activation function. The weights are parameters; the activation (ReLU, GELU, etc.) is a design choice, the same for every neuron."
+          },
+          {
+            "type": "p",
+            "children": "KANs flip this completely: fixed summation → learnable activation function on each edge. There are NO weight matrices. Instead, every connection between neurons has its own learnable univariate function, parameterized as a B-spline."
+          },
+          {
+            "type": "Code",
+            "props": {
+              "language": "text"
+            },
+            "children": "Standard MLP neuron:\n  output = σ(w₁x₁ + w₂x₂ + ... + wₙxₙ + b)\n  Fixed σ (e.g., ReLU), learnable wᵢ (scalars)\n\nKAN neuron:\n  output = φ₁(x₁) + φ₂(x₂) + ... + φₙ(xₙ)\n  Each φᵢ is a learnable B-spline function\n  No weight matrix — the functions ARE the parameters"
+          },
+          {
+            "type": "Callout",
+            "props": {
+              "type": "historical"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "KANs are based on the Kolmogorov-Arnold Representation Theorem (1957): ANY continuous function f(x₁,...,xₙ) on [0,1]ⁿ can be written as f(x₁,...,xₙ) = Σᵢ₌₀²ⁿ Φᵢ(Σⱼ₌₁ⁿ φᵢⱼ(xⱼ)), where φᵢⱼ and Φᵢ are univariate continuous functions. In other words: any multivariate function = compositions of univariate functions + addition. No multiplication needed! Andrey Kolmogorov proved this to solve Hilbert's 13th problem — settling a question that had been open since 1900."
+              }
+            ]
+          },
+          {
+            "type": "p",
+            "children": "The practical implications are startling:"
+          },
+          {
+            "type": "Code",
+            "props": {
+              "language": "text"
+            },
+            "children": "Task: Learn f(x,y) = exp(sin(πx) + y²)\n\nMLP (2 hidden layers, width 100):  ~10,000 parameters, 10⁻⁴ error\nKAN (2 layers, width 5):           ~200 parameters,    10⁻⁷ error\n\nThe KAN uses 50× fewer parameters and achieves 1000× lower error.\nWhy? Because the B-splines can DIRECTLY learn sin, exp, and squaring\nas univariate functions on edges, while the MLP must approximate\nthese with combinations of many ReLU units."
+          },
+          {
+            "type": "p",
+            "children": "The trade-off: B-spline evaluation is slower than matrix multiply per parameter. GPUs are optimized for dense linear algebra, not for evaluating 10,000 different B-spline functions in parallel. So KANs are slower per-parameter but need dramatically fewer parameters for functions with decomposable structure. Whether this trade-off is favorable depends on the task."
+          },
+          {
+            "type": "Analogy",
+            "children": [
+              {
+                "type": "p",
+                "children": "An MLP is like a digital synthesizer that builds complex sounds by summing many simple rectangular waves (ReLU). You need thousands of rectangles to approximate a smooth curve. A KAN is like an analog synthesizer that can produce any waveform directly on each oscillator. Fewer oscillators, richer sounds — but analog circuits are harder to mass-produce (harder to parallelize on GPUs)."
+              }
+            ]
+          },
+          {
+            "type": "Quiz",
+            "props": {
+              "question": "The Kolmogorov-Arnold theorem says any continuous multivariate function can be decomposed into univariate functions and addition. Why can't standard MLPs (with ReLU) also take advantage of this theorem?",
+              "options": [
+                "They can — MLPs are already a special case of the KA decomposition",
+                "ReLU is not a continuous function, violating the theorem's requirements",
+                "MLPs CAN approximate the KA decomposition, but they use learnable weights × fixed activation rather than learnable activations, so they need many more neurons to approximate each univariate function",
+                "The theorem only applies to functions on [0,1], not to general inputs"
+              ],
+              "answer": 2,
+              "explanation": "MLPs can in principle approximate any KA decomposition (they're universal approximators), but they do it inefficiently. Each univariate function φᵢⱼ in the KA decomposition might need 100 ReLU neurons to approximate, while a KAN directly parameterizes it with a B-spline using ~10 parameters. The representation choice matters enormously for efficiency, even when both approaches can eventually get the right answer."
+            }
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "9. Structured Matrices: Between Dense and Sparse"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "A dense n×n matrix stores n² parameters. But what if the matrix has structure — what if it can be described more compactly? This is the realm of STRUCTURED matrices: representations that encode linear transformations in O(n log n) or even O(n) parameters instead of O(n²)."
+          },
+          {
+            "type": "Section",
+            "props": {
+              "title": "The FFT: The Original Structured Matrix Success Story"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "The Discrete Fourier Transform (DFT) on n points can be represented as an n×n matrix F. Naively, multiplying F·x costs O(n²). But Cooley and Tukey (1965) showed that F can be FACTORED into log₂(n) sparse matrices, each with only O(n) nonzero entries:"
+              },
+              {
+                "type": "Code",
+                "props": {
+                  "language": "text"
+                },
+                "children": "F = B_log(n) × ... × B₂ × B₁ × P\n\nwhere:\n- P is a permutation matrix (rearranges entries, 0 cost)\n- Each Bₖ is a 'butterfly' matrix: sparse, O(n) nonzeros\n- Total multiply cost: O(n log n) instead of O(n²)\n\nFor n = 1024:\n- Dense matrix: 1,048,576 multiplications\n- FFT: 10,240 multiplications\n- Speedup: 102×\n\nFor n = 1,000,000:\n- Dense: 10¹² multiplications\n- FFT: 2×10⁷ multiplications  \n- Speedup: 50,000×"
+              },
+              {
+                "type": "Callout",
+                "props": {
+                  "type": "historical"
+                },
+                "children": [
+                  {
+                    "type": "p",
+                    "children": "The FFT algorithm is often called the most important algorithm of the 20th century. Cooley and Tukey published it in 1965, but Gauss had actually discovered it in 1805 — it was buried in his unpublished notes for 160 years! The algorithm exploits the STRUCTURE of the DFT matrix: its entries are powers of roots of unity, which factor into recursive patterns. The key insight is that structure = compressibility = computational savings."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "Section",
+            "props": {
+              "title": "Butterfly Matrices and Monarch Matrices"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "The natural question: what if we used butterfly-factored matrices AS WEIGHT MATRICES in neural networks? Instead of learning a dense 768×768 weight matrix (589,824 parameters), learn it as a product of log(768) ≈ 10 sparse butterfly factors (about 7,680 parameters each → ~77,000 total). That's an 8× compression with a structured inductive bias."
+              },
+              {
+                "type": "p",
+                "children": "Monarch matrices (Dao et al., 2022) generalize this idea. A Monarch matrix M is factored as M = LR where L and R are block-diagonal matrices with a permutation between them. This captures butterfly structure but is more GPU-friendly because block-diagonal matrices map well to batched matrix multiplies."
+              },
+              {
+                "type": "Code",
+                "props": {
+                  "language": "text"
+                },
+                "children": "Dense matrix:     O(n²) parameters, O(n²) compute\nButterfly matrix: O(n log n) parameters, O(n log n) compute\nMonarch matrix:   O(n^{3/2}) parameters, O(n^{3/2}) compute\nSparse matrix:    O(nnz) parameters, O(nnz) compute\nLow-rank (r):     O(nr) parameters, O(nr) compute\nDiagonal matrix:  O(n) parameters, O(n) compute\n\nAll of these are VALID weight matrix structures.\nThe question is which ones preserve model quality."
+              },
+              {
+                "type": "p",
+                "children": "Dao et al. showed that Monarch matrices can replace dense matrices in BERT-like models with modest accuracy loss and significant speedup. The structured factorization acts as a REGULARIZER — it constrains the model to learn functions with particular symmetry properties, which may actually improve generalization."
+              }
+            ]
+          },
+          {
+            "type": "DeepDive",
+            "props": {
+              "title": "Toeplitz Matrices: When Position Is Relative"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "A Toeplitz matrix has the same value along each diagonal: T[i,j] depends only on (i-j). It's fully specified by 2n-1 values instead of n². This structure encodes SHIFT INVARIANCE — the same operation regardless of position."
+              },
+              {
+                "type": "p",
+                "children": "Convolutions are Toeplitz matrices! When you apply a 1D convolution with kernel [a, b, c], the weight matrix is Toeplitz with those three values along three diagonals. CNNs exploit this: instead of O(n²) parameters for a dense layer, a convolutional layer uses O(k) parameters where k is the kernel size."
+              },
+              {
+                "type": "p",
+                "children": "The connection to Fourier: multiplication by a Toeplitz matrix is equivalent to elementwise multiplication in the Fourier domain (the convolution theorem). So Toeplitz matrix-vector products can be computed in O(n log n) via FFT. This is why signal processing and CNNs are so deeply connected."
+              }
+            ]
+          },
+          {
+            "type": "Quiz",
+            "props": {
+              "question": "A transformer's attention mechanism uses dense n×n matrices (where n is the sequence length). If you replaced these with butterfly-factored matrices, what would the complexity change to?",
+              "options": [
+                "O(n) — linear attention",
+                "O(n log n) — like the FFT",
+                "O(n√n) — Monarch complexity",
+                "It wouldn't work because attention needs the full n² matrix"
+              ],
+              "answer": 1,
+              "explanation": "Butterfly factorization reduces O(n²) to O(n log n). This is exactly the approach taken by FNet (Lee-Thorp et al., 2021) which replaces attention with FFT, and by various 'efficient attention' methods. The key finding: for many tasks, the full n² attention matrix has low effective rank, so structured approximations work surprisingly well."
+            }
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "10. Polynomial and Multiplicative Interactions"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "Standard neurons compute weighted sums: y = σ(w·x + b). This is a FIRST-ORDER interaction — each input contributes independently, scaled by its weight. But what if neurons could MULTIPLY inputs together?"
+          },
+          {
+            "type": "p",
+            "children": "Second-order interactions compute bilinear forms: y = xᵀWx, where W is a matrix. Instead of asking 'how much is feature i present?' (first-order), this asks 'how much are features i AND j simultaneously present?' (second-order). The output depends on PRODUCTS of inputs, not just sums."
+          },
+          {
+            "type": "Code",
+            "props": {
+              "language": "text"
+            },
+            "children": "First-order (MLP):     y = σ(w₁x₁ + w₂x₂ + ... + wₙxₙ)\n                       n parameters, detects individual features\n\nSecond-order (bilinear): y = Σᵢ Σⱼ Wᵢⱼ xᵢ xⱼ  \n                       n² parameters, detects feature COMBINATIONS\n\nExample: Does the input have BOTH feature 3 AND feature 7?\n  First-order: can only detect each separately\n  Second-order: W₃₇ directly measures their co-occurrence"
+          },
+          {
+            "type": "Callout",
+            "props": {
+              "type": "key-idea"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "Here's the revelation: ATTENTION IS A BILINEAR FORM. In self-attention, the attention score between positions i and j is: score = (xᵢWQ)ᵀ(xⱼWK) = xᵢᵀ(WQᵀWK)xⱼ. This is exactly xᵢᵀMxⱼ where M = WQᵀWK — a bilinear form. Attention can detect feature INTERACTIONS between tokens that MLPs (with their first-order interactions) fundamentally cannot do in a single layer. This is why attention was such a breakthrough: it introduced second-order interactions into the architecture."
+              }
+            ]
+          },
+          {
+            "type": "p",
+            "children": "This perspective explains a deep architectural asymmetry in transformers: attention handles RELATIONSHIPS between tokens (second-order), while MLPs handle transformations of individual tokens (first-order). They're complementary mathematical primitives, not redundant ones."
+          },
+          {
+            "type": "Section",
+            "props": {
+              "title": "Beyond Second Order: Tensor Products and Hypernetworks"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "Third-order interactions: y = Σᵢ Σⱼ Σₖ Tᵢⱼₖ xᵢ xⱼ xₖ, where T is a 3-tensor. This detects THREE-WAY interactions — 'features i AND j AND k are simultaneously present.' The cost: n³ parameters."
+              },
+              {
+                "type": "p",
+                "children": "Hypernetworks (Ha et al., 2016) take a different approach: one network generates the weights for another. This is an extreme form of multiplicative interaction — the 'hypernetwork' outputs depend on both the primary input AND the secondary input that parameterizes the weight-generating network."
+              },
+              {
+                "type": "p",
+                "children": "Polynomial networks (Chrysos et al., 2021) find a middle ground: instead of learning full tensors, they approximate higher-order interactions through compositions of lower-order ones. Πx = W₁(W₂x ⊙ W₃x) computes second-order interactions via element-wise products (⊙) without the n² cost of a full bilinear form."
+              }
+            ]
+          },
+          {
+            "type": "Analogy",
+            "children": [
+              {
+                "type": "p",
+                "children": "First-order: tasting each ingredient separately. 'The flour is fine, the sugar is fine, the eggs are fine.' Second-order: tasting PAIRS. 'Flour + sugar works, but sugar + lemon creates something new — sourness interacting with sweetness.' Third-order: the triple interaction of flour + sugar + lemon that produces a lemon cake — something none of the pairwise interactions would predict. Each higher order captures combinatorial effects invisible to lower orders."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "11. The Universality Trap"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "Here's the question that probably started this whole chain of inquiry: 'Am I forgetting that all operations can be represented with matrix arithmetic plus nonlinearity?' The universal approximation theorem (Cybenko, 1989; Hornik, 1991) says: yes, a sufficiently wide single hidden layer network can approximate any continuous function on a compact set to arbitrary precision."
+          },
+          {
+            "type": "p",
+            "children": "So why bother with KANs, structured matrices, Fourier features, or any of this? Because universality is a TRAP."
+          },
+          {
+            "type": "Callout",
+            "props": {
+              "type": "warning"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "The universal approximation theorem says nothing about EFFICIENCY. It guarantees existence ('some network can do this') not efficiency ('how big must that network be?'). A Turing machine can compute anything computable, but that doesn't make it efficient for matrix multiplication. A lookup table can represent any function, but that doesn't make it practical. Universality is a floor, not a ceiling."
+              }
+            ]
+          },
+          {
+            "type": "p",
+            "children": "The actual question isn't 'can matrix multiply + nonlinearity represent this function?' (yes, always) but 'how many parameters does matrix multiply + nonlinearity NEED versus a richer primitive?' And the answer varies enormously:"
+          },
+          {
+            "type": "Code",
+            "props": {
+              "language": "text"
+            },
+            "children": "Function: f(x,y) = sin(x) × cos(y)\n\nApproach                    Parameters    Error\n─────────────────────────────────────────────────\nReLU MLP (3 layers, w=256)  ~130,000     10⁻⁴\nSIREN (3 layers, w=32)      ~3,000       10⁻⁶\nKAN (2 layers, w=5)          ~150         10⁻⁸\nExact formula (known)          4          0\n\nSame function. Four orders of magnitude difference \nin parameters. Eight orders of magnitude in accuracy."
+          },
+          {
+            "type": "p",
+            "children": "The gap between universality and efficiency is where all the interesting research lives. Every structured architecture — CNNs, attention, graph networks, equivariant networks, KANs — is an answer to the question: 'for THIS class of functions, what mathematical primitive is more efficient than dense matrix multiply?'"
+          },
+          {
+            "type": "Example",
+            "props": {
+              "title": "The Turing Machine Analogy"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "Consider sorting n numbers. A Turing machine can do it — it's a universal computer. But the question 'what's the most efficient way to sort?' led to an entire field of algorithm design. Similarly, 'a neural network can approximate any function' is the starting point, not the ending point. The field of architecture design is the study of EFFICIENT approximation — finding the right computational primitives for the right function classes."
+              },
+              {
+                "type": "p",
+                "children": "Dense MLP is the bubble sort of function approximation: always correct, rarely optimal. The search for better architectures is the search for mergesort, quicksort, radix sort — each optimal for different input distributions."
+              }
+            ]
+          },
+          {
+            "type": "Quiz",
+            "props": {
+              "question": "The universal approximation theorem for width-bounded networks says you need width n+1 for inputs in ℝⁿ. What does the depth version say?",
+              "options": [
+                "You need at most n layers for inputs in ℝⁿ",
+                "With width n+4, ANY depth ≥ 2 suffices for universality",
+                "Depth is irrelevant — only width matters",
+                "For ReLU networks, width n+1 and depth O(log(1/ε)) suffice for ε-approximation"
+              ],
+              "answer": 1,
+              "explanation": "Lu et al. (2017) and Kidger & Lyons (2020) showed that ReLU networks with width n+4 (just slightly more than the input dimension) are universal approximators regardless of depth, as long as depth ≥ 2. Width and depth are somewhat interchangeable for universality — but they have very different efficiency characteristics. Deep narrow networks can represent functions that would require exponentially wide shallow networks."
+            }
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "12. Implicit Neural Representations: The Compression Insight at Full Power"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "Remember the insight that a continuous function is a vastly more compressed representation than its discrete matrix? Implicit Neural Representations (INRs) take this to its logical extreme: instead of storing data as arrays of numbers, store it as the weights of a tiny neural network that can GENERATE those numbers on demand."
+          },
+          {
+            "type": "Code",
+            "props": {
+              "language": "text"
+            },
+            "children": "Traditional representation:\n  Image: 1024×1024×3 = 3,145,728 values (float32 → 12 MB)\n  3D volume: 256³ = 16,777,216 values (float32 → 64 MB)\n  Video: 1920×1080×3×30fps×60s = 11.2 billion values\n\nImplicit neural representation:\n  Image: MLP(x,y) → (r,g,b), ~100K parameters (400 KB)\n  3D volume: MLP(x,y,z) → density, ~200K parameters (800 KB)\n  Video: MLP(x,y,t) → (r,g,b), ~500K parameters (2 MB)\n\nThe network IS the data. Query it at any coordinate."
+          },
+          {
+            "type": "p",
+            "children": "NeRF (Neural Radiance Fields, Mildenhall et al., 2020) is the most famous example. A small MLP takes a 3D position (x,y,z) and viewing direction (θ,φ) as input and outputs color and density. From a set of 2D photographs, NeRF learns a CONTINUOUS 3D scene representation — you can render the scene from any viewpoint, at any resolution, because the network encodes the scene as a continuous function rather than a discrete voxel grid."
+          },
+          {
+            "type": "Callout",
+            "props": {
+              "type": "historical"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "NeRF launched a revolution. Published in March 2020, it spawned over 1000 follow-up papers in three years. The original NeRF took ~1 day to train per scene on a single GPU. By 2023, instant-NGP (Müller et al., 2022) reduced this to 5 seconds using hash grid encoding — a hybrid between explicit (lookup table) and implicit (neural) representations. The encoding evolution went: pure MLP (slow, compact) → Fourier features (faster, same size) → hash grid + tiny MLP (real-time, slightly larger). The optimal point on the explicit-implicit spectrum depends on the use case."
+              }
+            ]
+          },
+          {
+            "type": "p",
+            "children": "The user's intuition about 'functional matrices being much smaller' is exactly the INR insight. A continuous function parameterized by a few thousand weights can encode millions of data points. The weights ARE the compressed data, and the network architecture IS the decompression algorithm."
+          },
+          {
+            "type": "Analogy",
+            "children": [
+              {
+                "type": "p",
+                "children": "A bitmap image is like storing every answer to the question 'what color is pixel (x,y)?' in a giant table. An implicit neural representation is like memorizing a RECIPE for the image — 'start with a gradient from blue to orange, add a bright spot at (200, 300), darken the corners, add texture with frequency 50...' The recipe is smaller than the table, and it generalizes: you can ask 'what color is pixel (100.5, 200.7)?' and get a meaningful answer even though no such pixel exists in the original grid."
+              }
+            ]
+          },
+          {
+            "type": "DeepDive",
+            "props": {
+              "title": "The Representation-Computation Trade-off"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "There's a fundamental trade-off between representation size and query cost:"
+              },
+              {
+                "type": "Code",
+                "props": {
+                  "language": "text"
+                },
+                "children": "Representation          Size        Query Cost    Flexibility\n──────────────────────────────────────────────────────────────\nLookup table (pixels)   O(n^d)      O(1)          None\nSparse grid + interp    O(k^d)      O(2^d)        Some\nHash grid + MLP         O(T + θ)    O(layers)     High\nPure MLP (INR)          O(θ)        O(layers)     Maximum\nAnalytic function       O(1)        O(eval)       Perfect"
+              },
+              {
+                "type": "p",
+                "children": "The explicit lookup table is huge but instant to query. The analytic function (if known) is maximally compact but requires evaluation. Neural representations sit in between — they compress the data by learning its generating function, at the cost of requiring a forward pass to decompress each query."
+              },
+              {
+                "type": "p",
+                "children": "This trade-off is universal. It's the same trade-off as precomputed tables vs. on-the-fly computation in traditional programming. Neural networks just gave us a new, remarkably general way to sit on the 'computed' side of the spectrum."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "13. Where This All Leads"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "We've traveled from a simple question — 'can a matrix represent sin(x²)?' — to the frontier of neural network design. Let's synthesize where this leads."
+          },
+          {
+            "type": "Section",
+            "props": {
+              "title": "The Hardware-Math Tension"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "There is a fundamental tension at the heart of modern AI between mathematical efficiency and hardware efficiency:"
+              },
+              {
+                "type": "Code",
+                "props": {
+                  "language": "text"
+                },
+                "children": "Mathematical ideal:     Use the MINIMUM parameters for the task\n                        → KANs, structured matrices, functional reps\n                        → fewer FLOPs, better generalization\n\nHardware reality:       GPUs are optimized for DENSE matrix multiply\n                        → NVIDIA tensor cores: 312 TFLOPS for dense matmul\n                        → Sparse/structured ops: often 10-100× slower per FLOP\n                        → Batched dense matmul is the only game in town\n\nResult: We use mathematically wasteful representations\n        because they run fast on available hardware."
+              },
+              {
+                "type": "p",
+                "children": "This is not an abstract concern. It's the reason language models have billions of parameters — not because the underlying functions require billions of degrees of freedom, but because dense matrix multiply is the operation our hardware does fast, and dense matrices use O(n²) parameters whether they need them or not."
+              }
+            ]
+          },
+          {
+            "type": "Section",
+            "props": {
+              "title": "Differentiable Programming: Beyond Fixed Architectures"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "The ultimate answer to 'what if neural networks used richer math?' is: let the math itself be learnable. Differentiable programming treats the entire program as a differentiable computation graph. Instead of fixing the architecture (layers of matmul + nonlinearity), you search over PROGRAMS — compositions of arbitrary differentiable primitives."
+              },
+              {
+                "type": "p",
+                "children": "Neural Architecture Search (NAS) automates this for standard building blocks: 'should this layer be a convolution, an attention head, or an MLP? With what hyperparameters?' Program synthesis goes further: 'should this computation be a polynomial, a Fourier series, a B-spline, or some combination?'"
+              },
+              {
+                "type": "p",
+                "children": "KANs are a step in this direction — the activation functions are learnable, not fixed. The next step: learning the COMPOSITION STRUCTURE itself. Not just 'what univariate functions go on the edges?' but 'what graph of operations produces the target function most efficiently?'"
+              }
+            ]
+          },
+          {
+            "type": "Section",
+            "props": {
+              "title": "The Map of Richer Primitives"
+            },
+            "children": [
+              {
+                "type": "Code",
+                "props": {
+                  "language": "text"
+                },
+                "children": "Primitive              What it buys you             Example\n────────────────────────────────────────────────────────────────\nDense matmul + ReLU    Universality, GPU speed      Standard MLP\nStructured matrices    O(n log n) instead of O(n²)  FFT, Monarch\nLow-rank factored      Parameter efficiency          LoRA, adapters\nSin activations        No spectral bias              SIREN\nLearnable activations  Function-matched primitives   KAN\nBilinear forms         Feature interactions           Attention\nTensor products        Higher-order interactions      Polynomial nets\nGated operations       Conditional computation        MoE, GLU\nEquivariant layers     Built-in symmetry              E(n)-GNNs\nImplicit reps          Data as functions              NeRF, INR\nContinuous depth       Adaptive computation           Neural ODEs\nProgram search         Optimal structure              NAS, synthesis"
+              },
+              {
+                "type": "p",
+                "children": "Each row is an answer to 'what if we used richer math?' Each trades universality and hardware efficiency for mathematical efficiency and inductive bias. The frontier of deep learning is figuring out which primitive is right for which problem."
+              }
+            ]
+          },
+          {
+            "type": "Callout",
+            "props": {
+              "type": "key-idea"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "Your chain of insights — from 'matrices can't capture nonlinear functions' to 'functions are more compressed than their matrices' to 'weights are parameters, not data' to 'there must be more efficient primitives' — is exactly the intellectual trajectory that the field has followed over the past decade. You were rediscovering kernel methods, implicit neural representations, low-rank adaptation, and the structured matrix revolution. The question 'what if neural networks used richer math?' is THE question driving the next generation of architecture design."
+              }
+            ]
+          },
+          {
+            "type": "Quiz",
+            "props": {
+              "question": "Which of these is NOT a reason to prefer dense matrix multiply despite its mathematical inefficiency?",
+              "options": [
+                "GPU tensor cores are designed specifically for dense matmul",
+                "Dense matrices can represent any linear map without structural assumptions",
+                "Dense matmul achieves the best generalization error on all tasks",
+                "Dense operations are easy to parallelize across thousands of cores"
+              ],
+              "answer": 2,
+              "explanation": "Dense matmul does NOT achieve the best generalization error on all tasks — in fact, structured architectures (CNNs for images, attention for sequences) typically generalize BETTER than dense MLPs because their inductive biases match the task structure. The real advantages of dense matmul are hardware efficiency (tensor cores), representational universality (no structural assumptions needed), and parallelizability. The future likely belongs to architectures that are both mathematically efficient AND hardware-friendly — which is why work on structured matrices that map well to GPU primitives (like Monarch matrices) is so important."
+            }
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "Epilogue: The Unreasonable Effectiveness of Asking 'What If?'"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "Every major advance in neural network architecture started with someone asking a version of the question you asked. 'What if neurons could look at other neurons' outputs before computing their own?' → Attention. 'What if each layer only modified the previous output instead of replacing it?' → Residual connections. 'What if the activation function were learnable?' → KANs. 'What if weights lived in a structured subspace?' → LoRA."
+          },
+          {
+            "type": "p",
+            "children": "The mathematical framework of dense matrix multiply + pointwise nonlinearity is not a law of nature. It's a convenient engineering choice that happened to work well on the hardware we had. As our understanding of what makes neural networks work deepens — and as hardware becomes more flexible — the space of 'mathematical primitives available for learning' will expand dramatically."
+          },
+          {
+            "type": "p",
+            "children": "The continuous function is more compressed than its matrix. The functional representation is more fundamental than the tabular one. The weight is a parameter, not a datum. These insights point in a consistent direction: toward architectures that are closer to the mathematical structure of the problems they solve, using primitives matched to the functions they need to learn."
+          },
+          {
+            "type": "p",
+            "children": "We're still in the early days of exploring this space. Dense matrix multiply is our hammer. The question is: what problems are secretly screws?"
+          }
+        ]
+      }
+    ]
+  }
+}
