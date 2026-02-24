@@ -150,6 +150,18 @@ const tutorials = [
     difficulty: 2,
   },
   {
+    id: 'brainstorm-25-mining-sae-dictionaries',
+    title: 'Mining SAE Dictionaries for Schankian Operators',
+    description: 'What if Anthropic\'s 34M monosemantic features already contain Schankian primitives? Search instead of train — a potential shortcut that validates the hypothesis AND gets operators for free.',
+    tags: ['SAE', 'operators', 'Schank', 'mechanistic interpretability', 'features', 'sparse autoencoders'],
+    icon: '⛏️',
+    gradient: 'from-amber-500 to-yellow-600',
+    shadowColor: 'shadow-amber-500/30',
+    glowColor: 'rgba(245, 158, 11, 0.4)',
+    readTime: '25 min',
+    difficulty: 3,
+  },
+  {
     id: 'brainstorm-66-thought-gestalts',
     title: 'Thought Gestalts — Sentence-Level Operators',
     description: 'How two-level transformers with thought states provide the perfect architecture for Schankian operators — plus the fractal three-level operator hierarchy.',

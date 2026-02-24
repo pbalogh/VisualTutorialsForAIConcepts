@@ -1,0 +1,1121 @@
+{
+  "id": "brainstorm-25-mining-sae-dictionaries",
+  "title": "Mining SAE Dictionaries for Schankian Operators",
+  "subtitle": "What If Anthropic Already Found Our Primitives?",
+  "readTime": "25 min",
+  "state": "published",
+  "content": {
+    "type": "Fragment",
+    "children": [
+      {
+        "type": "Callout",
+        "props": {
+          "type": "info"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": [
+              {
+                "type": "strong",
+                "children": "What if the operators we're trying to learn already exist inside large language models?"
+              },
+              " Anthropic's Sparse Autoencoders (SAEs) have extracted 34 million monosemantic features from Claude. Some of these features might already BE Schankian operators — HARM, TRANSFER, CAUSE — hiding in the dictionary, waiting to be identified. Instead of training operators from scratch, we could ",
+              {
+                "type": "em",
+                "children": "search"
+              },
+              " for them. This tutorial explores that tantalizing shortcut."
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "1. The Core Insight: Features as Operators"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "Sparse Autoencoders decompose neural network activations into interpretable, monosemantic features. Each feature fires for a specific concept. Some features are clearly noun-like ('Golden Gate Bridge'), but others capture relational and transformational concepts — exactly what Schankian operators describe."
+          },
+          {
+            "type": "p",
+            "children": "The hypothesis is simple but powerful: if Schank's ~14 primitive operators represent universal categories of state change, and if LLMs have learned to represent meaning well, then SAE features should include clusters that correspond to these operators."
+          },
+          {
+            "type": "Analogy",
+            "props": {
+              "title": "The Archaeological Dig Analogy"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "Imagine you theorize that an ancient civilization used exactly 14 types of tools. You could either (a) try to reconstruct the tools from scratch based on your theory, or (b) excavate an actual site and see if you find artifacts matching your predictions. SAE dictionary mining is option (b) — the LLM is the archaeological site, SAE features are the artifacts, and we're looking for Schankian tool-shapes among them."
+              }
+            ]
+          },
+          {
+            "type": "DeepDive",
+            "props": {
+              "title": "What Are Sparse Autoencoders?"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "An SAE is a simple neural network: encoder maps activations to a high-dimensional sparse code, decoder reconstructs. The key constraint is sparsity — only a few features activate for any input. This forces features to be monosemantic (one meaning each) rather than polysemantic (entangled meanings)."
+              },
+              {
+                "type": "p",
+                "children": "Mathematically: given activation vector x, the SAE computes:"
+              },
+              {
+                "type": "Code",
+                "props": {
+                  "language": "python"
+                },
+                "children": "# SAE forward pass\nz = ReLU(W_enc @ (x - b_dec) + b_enc)  # sparse code\nx_hat = W_dec @ z + b_dec                # reconstruction\n\n# z is sparse: most entries are 0\n# Each non-zero z_i means feature i is 'active'\n# W_dec[:, i] is the 'direction' of feature i in activation space"
+              },
+              {
+                "type": "p",
+                "children": "Anthropic's scaling monosemanticity work applied this to Claude 3 Sonnet's middle layers, extracting ~34 million features. Many are interpretable: there are features for the Golden Gate Bridge, for deception, for code bugs, for sycophancy. The question is: are there features for ATRANS, PTRANS, HARM?"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "2. Schank's Primitives: What We're Looking For"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "Roger Schank proposed that all actions can be decomposed into about 11-14 primitive operations. Let's review the key ones and think about what SAE features might correspond to each:"
+          },
+          {
+            "type": "ul",
+            "children": [
+              {
+                "type": "li",
+                "children": [
+                  {
+                    "type": "strong",
+                    "children": "ATRANS"
+                  },
+                  " — Transfer of abstract relationship (possession, ownership). 'Give', 'buy', 'steal', 'inherit' all involve ATRANS."
+                ]
+              },
+              {
+                "type": "li",
+                "children": [
+                  {
+                    "type": "strong",
+                    "children": "PTRANS"
+                  },
+                  " — Transfer of physical location. 'Go', 'fly', 'push', 'fall' all involve PTRANS."
+                ]
+              },
+              {
+                "type": "li",
+                "children": [
+                  {
+                    "type": "strong",
+                    "children": "MTRANS"
+                  },
+                  " — Transfer of mental information. 'Tell', 'read', 'see', 'hear' all involve MTRANS."
+                ]
+              },
+              {
+                "type": "li",
+                "children": [
+                  {
+                    "type": "strong",
+                    "children": "MBUILD"
+                  },
+                  " — Construction of new thoughts. 'Decide', 'conclude', 'imagine', 'plan' all involve MBUILD."
+                ]
+              },
+              {
+                "type": "li",
+                "children": [
+                  {
+                    "type": "strong",
+                    "children": "PROPEL"
+                  },
+                  " — Application of physical force. 'Kick', 'push', 'throw', 'punch' all involve PROPEL."
+                ]
+              },
+              {
+                "type": "li",
+                "children": [
+                  {
+                    "type": "strong",
+                    "children": "INGEST"
+                  },
+                  " — Taking something into the body. 'Eat', 'drink', 'breathe', 'smoke' all involve INGEST."
+                ]
+              },
+              {
+                "type": "li",
+                "children": [
+                  {
+                    "type": "strong",
+                    "children": "EXPEL"
+                  },
+                  " — Expelling from the body. 'Spit', 'exhale', 'vomit', 'cry' all involve EXPEL."
+                ]
+              },
+              {
+                "type": "li",
+                "children": [
+                  {
+                    "type": "strong",
+                    "children": "GRASP"
+                  },
+                  " — Grasping an object. 'Grab', 'hold', 'clutch', 'catch' all involve GRASP."
+                ]
+              },
+              {
+                "type": "li",
+                "children": [
+                  {
+                    "type": "strong",
+                    "children": "MOVE"
+                  },
+                  " — Movement of a body part. 'Wave', 'kick', 'nod', 'point' all involve MOVE."
+                ]
+              },
+              {
+                "type": "li",
+                "children": [
+                  {
+                    "type": "strong",
+                    "children": "ATTEND"
+                  },
+                  " — Focusing a sense organ. 'Look', 'listen', 'taste', 'smell' all involve ATTEND."
+                ]
+              },
+              {
+                "type": "li",
+                "children": [
+                  {
+                    "type": "strong",
+                    "children": "SPEAK"
+                  },
+                  " — Producing sounds. 'Say', 'sing', 'shout', 'whisper' all involve SPEAK."
+                ]
+              }
+            ]
+          },
+          {
+            "type": "Quiz",
+            "props": {
+              "question": "Why might SAE features be a better place to find Schankian operators than raw transformer activations?",
+              "options": [
+                "SAE features are larger vectors",
+                "SAE features are monosemantic — each captures one concept, reducing polysemantic entanglement",
+                "SAE features are always about actions",
+                "SAE features are hand-labeled by researchers"
+              ],
+              "correctIndex": 1,
+              "explanation": "Raw activations are polysemantic — a single neuron might respond to both 'transfer of possession' AND 'golden sunset.' SAEs disentangle these into separate monosemantic features, making it possible to find clean operator-like features."
+            }
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "3. The Mining Strategy"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "How do you search 34 million features for Schankian operators? You need a systematic strategy. Here's the pipeline:"
+          },
+          {
+            "type": "Section",
+            "props": {
+              "title": "Step 1: Seed Sentence Construction"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "For each Schank primitive, construct diverse seed sentences that clearly instantiate it:"
+              },
+              {
+                "type": "Code",
+                "props": {
+                  "language": "python"
+                },
+                "children": "seed_sentences = {\n    'ATRANS': [\n        'John gave Mary the book.',\n        'She sold her car to the dealer.',\n        'The thief stole the diamond.',\n        'He inherited his grandmother\\'s house.',\n        'The company transferred ownership to the buyer.',\n    ],\n    'PTRANS': [\n        'The ball rolled down the hill.',\n        'She walked to the store.',\n        'The bird flew south for winter.',\n        'He pushed the cart across the room.',\n        'The package was shipped to Tokyo.',\n    ],\n    'PROPEL': [\n        'She kicked the ball over the fence.',\n        'He punched the wall in frustration.',\n        'The wind pushed the boat forward.',\n        'She threw the javelin with all her might.',\n        'The explosion propelled debris into the air.',\n    ],\n    # ... similar for all primitives\n}"
+              },
+              {
+                "type": "p",
+                "children": "The key is diversity within each category: vary the agents, patients, instruments, and contexts so that the only common factor is the underlying operator."
+              }
+            ]
+          },
+          {
+            "type": "Section",
+            "props": {
+              "title": "Step 2: Activation Collection"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "Run each seed sentence through the LLM and collect SAE feature activations at the verb position (and surrounding tokens):"
+              },
+              {
+                "type": "Code",
+                "props": {
+                  "language": "python"
+                },
+                "children": "import torch\nfrom sae_lens import SAE  # hypothetical SAE toolkit\n\ndef collect_activations(model, sae, sentences, verb_positions):\n    \"\"\"Collect SAE feature activations at verb tokens.\"\"\"\n    all_features = []\n    for sent, vpos in zip(sentences, verb_positions):\n        tokens = model.tokenize(sent)\n        with torch.no_grad():\n            hidden = model.forward(tokens, output_hidden=True)\n            # Get activation at verb position from target layer\n            act = hidden[TARGET_LAYER][0, vpos, :]\n            # Run through SAE encoder\n            features = sae.encode(act)  # sparse feature vector\n            all_features.append(features)\n    return torch.stack(all_features)"
+              }
+            ]
+          },
+          {
+            "type": "Section",
+            "props": {
+              "title": "Step 3: Feature Intersection Analysis"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "For each operator, find features that consistently fire across all seed sentences of that type but NOT across seeds of other operators:"
+              },
+              {
+                "type": "Code",
+                "props": {
+                  "language": "python"
+                },
+                "children": "def find_operator_features(activations_by_op, threshold=0.8):\n    \"\"\"Find features specific to each operator.\"\"\"\n    op_features = {}\n    for op_name, acts in activations_by_op.items():\n        # Features active in >= threshold fraction of this op's sentences\n        active = (acts > 0).float().mean(dim=0) >= threshold\n        \n        # But NOT consistently active in other operators\n        other_acts = torch.cat([\n            a for name, a in activations_by_op.items() \n            if name != op_name\n        ])\n        other_active = (other_acts > 0).float().mean(dim=0) >= 0.3\n        \n        # Operator-specific features: active here, not elsewhere\n        specific = active & ~other_active\n        op_features[op_name] = specific.nonzero().squeeze()\n    \n    return op_features"
+              },
+              {
+                "type": "p",
+                "children": "This is essentially set intersection within an operator and set difference across operators. Features that survive both filters are candidate operator features."
+              }
+            ]
+          },
+          {
+            "type": "Analogy",
+            "props": {
+              "title": "The Cocktail Party Analogy"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "Imagine you're at a cocktail party trying to identify different languages being spoken. You can't understand any of them, but you notice: every time a group discusses giving something, certain sound patterns recur regardless of language. The sound patterns that appear across ALL 'giving' conversations but NONE of the 'moving' conversations are candidates for a universal 'transfer' primitive. SAE feature intersection works the same way — we're looking for the neural 'sounds' common to all instances of an operator."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "4. What We Might Find: Three Scenarios"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "The mining experiment has three possible outcomes, each scientifically valuable:"
+          },
+          {
+            "type": "Section",
+            "props": {
+              "title": "Scenario A: Clean Operator Features Exist ✅"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "We find monosemantic features that cleanly correspond to Schankian primitives. Feature #4,721,093 fires for 'give', 'sell', 'steal', 'donate' but not for 'walk', 'think', 'eat' — it's an ATRANS feature."
+              },
+              {
+                "type": "Callout",
+                "props": {
+                  "type": "success"
+                },
+                "children": [
+                  {
+                    "type": "p",
+                    "children": [
+                      {
+                        "type": "strong",
+                        "children": "Implication:"
+                      },
+                      " This would be stunning validation. It means LLMs have independently discovered the same primitive decomposition that Schank theorized. The operators aren't just a useful framework — they're emergent structure in learned representations. We get operators for free AND evidence of universality."
+                    ]
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "Section",
+            "props": {
+              "title": "Scenario B: Partial / Overlapping Features 🟡"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "We find features that partially overlap with operators but don't map cleanly. Maybe there's a 'physical force' feature that covers both PROPEL and parts of MOVE, or an 'information flow' feature that blends MTRANS and MBUILD."
+              },
+              {
+                "type": "Callout",
+                "props": {
+                  "type": "warning"
+                },
+                "children": [
+                  {
+                    "type": "p",
+                    "children": [
+                      {
+                        "type": "strong",
+                        "children": "Implication:"
+                      },
+                      " This suggests Schank's specific categories need refinement — the true primitives might have different boundaries than he proposed. The SAE features could reveal a more natural decomposition that we should adopt instead. Still hugely valuable."
+                    ]
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "Section",
+            "props": {
+              "title": "Scenario C: No Clean Operator Features 🔴"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "SAE features don't correspond to operators at all. Action semantics are distributed across many features with no clean decomposition into primitives."
+              },
+              {
+                "type": "Callout",
+                "props": {
+                  "type": "error"
+                },
+                "children": [
+                  {
+                    "type": "p",
+                    "children": [
+                      {
+                        "type": "strong",
+                        "children": "Implication:"
+                      },
+                      " Either operators aren't how LLMs represent action semantics (they found a different strategy), or SAEs at the current scale/layer don't capture this level of abstraction. We'd need to check different layers, different SAE sizes, or accept that operators may need to be explicitly trained."
+                    ]
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "Quiz",
+            "props": {
+              "question": "Which scenario would be MOST informative for refining our theory of semantic primitives?",
+              "options": [
+                "Scenario A — clean features prove the theory",
+                "Scenario B — partial overlap reveals where Schank's categories need refinement",
+                "Scenario C — no features means the theory is wrong",
+                "All scenarios are equally informative — each updates our understanding"
+              ],
+              "correctIndex": 3,
+              "explanation": "All three outcomes are scientifically valuable. Scenario A validates, B refines, C redirects. The experiment is designed so that any outcome teaches us something important about whether and how LLMs represent action primitives."
+            }
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "5. Beyond Naive Search: Feature Algebra"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "Individual features might not map to operators, but combinations might. This is where feature algebra becomes powerful:"
+          },
+          {
+            "type": "DeepDive",
+            "props": {
+              "title": "Feature Arithmetic for Operator Discovery"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "Just as word2vec showed king - man + woman ≈ queen, SAE features might support operator arithmetic:"
+              },
+              {
+                "type": "Code",
+                "props": {
+                  "language": "python"
+                },
+                "children": "# Hypothetical feature arithmetic\n# If 'give' activates features {A, B, C}\n# and 'steal' activates features {A, B, D}\n# then {A, B} might encode ATRANS (the shared transfer)\n# while C = 'voluntary' and D = 'non-consensual'\n\n# More sophisticated: use feature direction vectors\ngive_dir = sae.decoder[:, give_features].mean(dim=1)\nsteal_dir = sae.decoder[:, steal_features].mean(dim=1)\n\n# The shared component IS the operator direction\natrans_dir = (give_dir + steal_dir) / 2\n\n# The difference encodes modifiers\nvolition_dir = give_dir - steal_dir"
+              },
+              {
+                "type": "p",
+                "children": "This connects to our disentangled operator dimensions work (Brainstorm #12): the shared component is the operator, the differing components are modifier dimensions like volitionality, legality, or speed."
+              }
+            ]
+          },
+          {
+            "type": "Example",
+            "props": {
+              "title": "Worked Example: Decomposing ATRANS Variants"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "Let's trace through how feature algebra might decompose the ATRANS family:"
+              },
+              {
+                "type": "ul",
+                "children": [
+                  {
+                    "type": "li",
+                    "children": [
+                      {
+                        "type": "strong",
+                        "children": "give"
+                      },
+                      " = ATRANS + voluntary + direct + benevolent"
+                    ]
+                  },
+                  {
+                    "type": "li",
+                    "children": [
+                      {
+                        "type": "strong",
+                        "children": "steal"
+                      },
+                      " = ATRANS + involuntary + covert + malicious"
+                    ]
+                  },
+                  {
+                    "type": "li",
+                    "children": [
+                      {
+                        "type": "strong",
+                        "children": "sell"
+                      },
+                      " = ATRANS + voluntary + reciprocal + commercial"
+                    ]
+                  },
+                  {
+                    "type": "li",
+                    "children": [
+                      {
+                        "type": "strong",
+                        "children": "inherit"
+                      },
+                      " = ATRANS + involuntary + legal + death-triggered"
+                    ]
+                  },
+                  {
+                    "type": "li",
+                    "children": [
+                      {
+                        "type": "strong",
+                        "children": "tax"
+                      },
+                      " = ATRANS + involuntary + legal + authority-mandated"
+                    ]
+                  }
+                ]
+              },
+              {
+                "type": "p",
+                "children": "If SAE features cleanly separate these components, we can read off both the operator AND its modifiers directly from the feature activation pattern. The intersection of all five feature sets gives us the pure ATRANS features."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "6. Layer-by-Layer Analysis: Where Do Operators Live?"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "Not all layers of a transformer are equal. Earlier layers tend to capture syntax and local patterns; later layers capture abstract semantics. Operator features likely live in specific layers:"
+          },
+          {
+            "type": "Analogy",
+            "props": {
+              "title": "The Building Floors Analogy"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "Think of a transformer's layers like floors of a building. The ground floor (early layers) handles raw materials — word identity, part of speech, basic syntax. The middle floors process and transform — this is where verb meanings get composed with their arguments. The top floors deal in abstract plans — intent, discourse structure, pragmatics. Schankian operators are probably middle-floor residents: abstract enough to generalize across surface forms, concrete enough to track state changes."
+              }
+            ]
+          },
+          {
+            "type": "Code",
+            "props": {
+              "language": "python"
+            },
+            "children": "def layer_scan(model, sae_per_layer, seed_sentences):\n    \"\"\"Find which layers have the cleanest operator features.\"\"\"\n    results = {}\n    for layer_idx, sae in enumerate(sae_per_layer):\n        activations = collect_activations(\n            model, sae, seed_sentences, layer=layer_idx\n        )\n        op_features = find_operator_features(activations)\n        \n        # Score: how many operators have clean, specific features?\n        clean_ops = sum(\n            1 for feats in op_features.values() \n            if len(feats) > 0\n        )\n        specificity = mean_specificity(op_features, activations)\n        \n        results[layer_idx] = {\n            'clean_operators': clean_ops,\n            'specificity': specificity,\n            'feature_ids': op_features\n        }\n    \n    return results"
+          },
+          {
+            "type": "p",
+            "children": "The prediction: operator features will be most distinct in layers 40-70% through the network (for a 96-layer model like Claude 3 Sonnet, roughly layers 38-67). This is where semantic composition happens — early enough to be about individual events, late enough to be abstract."
+          },
+          {
+            "type": "Quiz",
+            "props": {
+              "question": "If we find clean ATRANS features at layer 45 but not at layer 10 or layer 90, what does this tell us?",
+              "options": [
+                "Layer 45 is broken",
+                "Operators are constructed through processing — they don't exist in the input and are consumed before the output",
+                "We should only use layer 45 for everything",
+                "The SAE at layer 45 is better trained"
+              ],
+              "correctIndex": 1,
+              "explanation": "This pattern would mean operators are intermediate representations — constructed from surface forms during processing, then consumed/transformed into higher-level representations (discourse structure, response planning). They're the 'working vocabulary' of semantic computation, not the input or output format."
+            }
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "7. Validation: How Do We Know We Found Real Operators?"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "Finding features that correlate with our seed sentences isn't enough. We need to validate that these features genuinely represent operator-level semantics:"
+          },
+          {
+            "type": "Section",
+            "props": {
+              "title": "Test 1: Novel Sentence Generalization"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "Do candidate ATRANS features fire for transfer sentences never seen during mining? Generate novel sentences with unusual agents and objects:"
+              },
+              {
+                "type": "Code",
+                "props": {
+                  "language": "python"
+                },
+                "children": "novel_atrans = [\n    'The alien bequeathed the crystal to the robot.',\n    'Parliament ceded the territory to the coalition.',\n    'The wizard forfeited his powers to the apprentice.',\n]\n\n# If our ATRANS features fire for these too,\n# they generalize beyond training examples"
+              }
+            ]
+          },
+          {
+            "type": "Section",
+            "props": {
+              "title": "Test 2: Metaphor Extension"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "The acid test: do operator features fire for metaphorical uses? 'She gave him a piece of her mind' involves metaphorical ATRANS (transfer of information via the GIVING frame). If the ATRANS feature fires here, it captures the deep structure, not just literal transfer."
+              }
+            ]
+          },
+          {
+            "type": "Section",
+            "props": {
+              "title": "Test 3: Cross-Lingual Consistency"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "For multilingual models: do the same features fire for equivalent sentences in different languages? 'John gave Mary the book' / 'Jean a donné le livre à Marie' / 'ジョンはメアリーに本をあげた' should all activate the same ATRANS features if operators are truly universal."
+              }
+            ]
+          },
+          {
+            "type": "Section",
+            "props": {
+              "title": "Test 4: Causal Intervention"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "The strongest test: artificially activate the candidate ATRANS feature and see if the model's behavior shifts toward transfer-related completions:"
+              },
+              {
+                "type": "Code",
+                "props": {
+                  "language": "python"
+                },
+                "children": "# Activation patching / steering\nprompt = 'The mysterious figure approached and...'\n\n# Without intervention: varied completions\n# With ATRANS feature amplified: completions favor\n# transfer actions ('handed over', 'gave', 'passed')\n\ndef steer_with_feature(model, sae, prompt, feature_id, strength=5.0):\n    \"\"\"Amplify a specific SAE feature during generation.\"\"\"\n    def hook(module, input, output):\n        # Decode current features\n        features = sae.encode(output[0][:, -1, :])\n        # Amplify target feature\n        features[:, feature_id] += strength\n        # Re-encode\n        modified = sae.decode(features)\n        output[0][:, -1, :] = modified\n        return output\n    \n    handle = model.layers[TARGET_LAYER].register_forward_hook(hook)\n    result = model.generate(prompt, max_tokens=20)\n    handle.remove()\n    return result"
+              },
+              {
+                "type": "p",
+                "children": "If amplifying the candidate feature reliably steers generation toward transfer-related actions, that's causal evidence it encodes ATRANS — not just correlation."
+              }
+            ]
+          },
+          {
+            "type": "Quiz",
+            "props": {
+              "question": "Why is the causal intervention test (Test 4) stronger evidence than the correlation tests (Tests 1-3)?",
+              "options": [
+                "It uses more compute",
+                "It shows the feature is on the causal pathway — the model actually USES it to generate transfer-related outputs",
+                "It tests more sentences",
+                "It doesn't require labeled data"
+              ],
+              "correctIndex": 1,
+              "explanation": "Correlation (feature fires when transfer happens) doesn't prove causation (feature causes transfer-related generation). The intervention test shows the feature is functionally involved in the model's action semantics, not just a passive correlate."
+            }
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "8. The Operator Topology: Relationships Between Features"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "If we find features for multiple operators, their geometric relationships in SAE space tell us about the structure of action semantics:"
+          },
+          {
+            "type": "DeepDive",
+            "props": {
+              "title": "Expected Geometric Structure"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "Schank's operators have natural groupings, and these should manifest as geometric structure among SAE features:"
+              },
+              {
+                "type": "ul",
+                "children": [
+                  {
+                    "type": "li",
+                    "children": [
+                      {
+                        "type": "strong",
+                        "children": "Transfer cluster:"
+                      },
+                      " ATRANS, PTRANS, MTRANS should be geometrically close — they all involve transfer, differing only in what is transferred (possession, location, information)."
+                    ]
+                  },
+                  {
+                    "type": "li",
+                    "children": [
+                      {
+                        "type": "strong",
+                        "children": "Physical cluster:"
+                      },
+                      " PROPEL, MOVE, GRASP should cluster — they all involve physical manipulation."
+                    ]
+                  },
+                  {
+                    "type": "li",
+                    "children": [
+                      {
+                        "type": "strong",
+                        "children": "Mental cluster:"
+                      },
+                      " MBUILD, MTRANS, ATTEND should cluster — they all involve mental processing."
+                    ]
+                  },
+                  {
+                    "type": "li",
+                    "children": [
+                      {
+                        "type": "strong",
+                        "children": "Body cluster:"
+                      },
+                      " INGEST, EXPEL should be close and perhaps mirror-symmetric — they're inverses."
+                    ]
+                  }
+                ]
+              },
+              {
+                "type": "p",
+                "children": "Computing cosine similarity between operator feature directions in the decoder weight matrix would reveal this structure. If the expected clustering appears, it's independent evidence that SAE features capture meaningful operator relationships."
+              }
+            ]
+          },
+          {
+            "type": "Example",
+            "props": {
+              "title": "Worked Example: Operator Similarity Matrix"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "Suppose we find candidate features for 8 operators. We compute pairwise cosine similarity of their decoder directions:"
+              },
+              {
+                "type": "Code",
+                "props": {
+                  "language": "python"
+                },
+                "children": "import numpy as np\n\n# Hypothetical similarity matrix (what we'd hope to see)\noperators = ['ATRANS','PTRANS','MTRANS','MBUILD','PROPEL','MOVE','INGEST','EXPEL']\nsim_matrix = np.array([\n#   ATR   PTR   MTR   MBD   PRP   MOV   ING   EXP\n  [1.00, 0.65, 0.70, 0.30, 0.15, 0.10, 0.05, 0.05],  # ATRANS\n  [0.65, 1.00, 0.40, 0.15, 0.55, 0.50, 0.10, 0.10],  # PTRANS\n  [0.70, 0.40, 1.00, 0.75, 0.10, 0.10, 0.05, 0.05],  # MTRANS\n  [0.30, 0.15, 0.75, 1.00, 0.05, 0.05, 0.05, 0.05],  # MBUILD\n  [0.15, 0.55, 0.10, 0.05, 1.00, 0.80, 0.20, 0.15],  # PROPEL\n  [0.10, 0.50, 0.10, 0.05, 0.80, 1.00, 0.25, 0.20],  # MOVE\n  [0.05, 0.10, 0.05, 0.05, 0.20, 0.25, 1.00, 0.70],  # INGEST\n  [0.05, 0.10, 0.05, 0.05, 0.15, 0.20, 0.70, 1.00],  # EXPEL\n])\n\n# Notice the block structure:\n# Transfer block (ATR, PTR, MTR) — high internal similarity\n# Mental block (MTR, MBD) — high similarity\n# Physical block (PRP, MOV) — high similarity\n# Body block (ING, EXP) — mirror pair"
+              },
+              {
+                "type": "p",
+                "children": "This block-diagonal structure, if observed, would confirm that the model organizes action semantics along the same dimensions Schank proposed — even though it was never told about his theory."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "9. Practical Considerations and Challenges"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "Before rushing to mine SAE dictionaries, there are important practical challenges to address:"
+          },
+          {
+            "type": "Callout",
+            "props": {
+              "type": "warning"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": [
+                  {
+                    "type": "strong",
+                    "children": "Challenge 1: Scale."
+                  },
+                  " 34 million features is enormous. Even with seed-based filtering, the search space is vast. We need efficient indexing — perhaps training a lightweight classifier on seed activations first, then scanning the full dictionary."
+                ]
+              }
+            ]
+          },
+          {
+            "type": "Callout",
+            "props": {
+              "type": "warning"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": [
+                  {
+                    "type": "strong",
+                    "children": "Challenge 2: Granularity Mismatch."
+                  },
+                  " SAE features might operate at a different level of abstraction than Schankian primitives. A feature might be too specific ('transfer of a physical book') or too abstract ('any change event'). We need to scan across SAEs trained at different sparsity levels."
+                ]
+              }
+            ]
+          },
+          {
+            "type": "Callout",
+            "props": {
+              "type": "warning"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": [
+                  {
+                    "type": "strong",
+                    "children": "Challenge 3: Feature Splitting."
+                  },
+                  " A single Schankian operator might be split across multiple SAE features at high dictionary sizes. ATRANS might become ATRANS-physical, ATRANS-digital, ATRANS-emotional at 34M features. We'd need to identify and re-merge these."
+                ]
+              }
+            ]
+          },
+          {
+            "type": "Callout",
+            "props": {
+              "type": "warning"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": [
+                  {
+                    "type": "strong",
+                    "children": "Challenge 4: Access."
+                  },
+                  " Anthropic's full 34M feature SAEs aren't publicly available with easy programmatic access. We may need to work with smaller open-source SAEs (e.g., on GPT-2, Pythia, or Llama) or use Anthropic's feature visualization tools manually."
+                ]
+              }
+            ]
+          },
+          {
+            "type": "DeepDive",
+            "props": {
+              "title": "Open-Source SAE Resources"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "Several open-source SAE projects make this research accessible:"
+              },
+              {
+                "type": "ul",
+                "children": [
+                  {
+                    "type": "li",
+                    "children": [
+                      {
+                        "type": "strong",
+                        "children": "SAELens"
+                      },
+                      " — EleutherAI's toolkit for training and analyzing SAEs on any model"
+                    ]
+                  },
+                  {
+                    "type": "li",
+                    "children": [
+                      {
+                        "type": "strong",
+                        "children": "TransformerLens"
+                      },
+                      " — Neel Nanda's library for mechanistic interpretability, with SAE integration"
+                    ]
+                  },
+                  {
+                    "type": "li",
+                    "children": [
+                      {
+                        "type": "strong",
+                        "children": "Neuronpedia"
+                      },
+                      " — Web interface for exploring SAE features with explanations and activation examples"
+                    ]
+                  },
+                  {
+                    "type": "li",
+                    "children": [
+                      {
+                        "type": "strong",
+                        "children": "Goodfire"
+                      },
+                      " — Commercial API for feature-based model steering"
+                    ]
+                  }
+                ]
+              },
+              {
+                "type": "p",
+                "children": "Starting with GPT-2 Small SAEs (available via SAELens with ~32K-131K features) is the pragmatic first step. If operator structure appears at this scale, it should be even cleaner in larger models."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "10. Connection to Other Brainstorms"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "This SAE mining approach connects deeply to several other ideas in our framework:"
+          },
+          {
+            "type": "ul",
+            "children": [
+              {
+                "type": "li",
+                "children": [
+                  {
+                    "type": "strong",
+                    "children": "Brainstorm #22 (Causal Interventions):"
+                  },
+                  " SAE feature steering IS causal intervention. Finding operator features directly enables the Interchange Intervention Accuracy tests proposed there."
+                ]
+              },
+              {
+                "type": "li",
+                "children": [
+                  {
+                    "type": "strong",
+                    "children": "Brainstorm #41 (Attention Motifs):"
+                  },
+                  " Operator SAE features should correlate with specific attention patterns. If ATRANS features are active, attention should flow from agent to recipient."
+                ]
+              },
+              {
+                "type": "li",
+                "children": [
+                  {
+                    "type": "strong",
+                    "children": "Brainstorm #58 (Delta-Guided Attention):"
+                  },
+                  " SAE features as attractor targets for disambiguation. Operator features could guide attention to resolve ambiguous verbs."
+                ]
+              },
+              {
+                "type": "li",
+                "children": [
+                  {
+                    "type": "strong",
+                    "children": "Brainstorm #67 (Operator Superposition):"
+                  },
+                  " If operators exist in superposition, SAE decomposition IS the measurement that collapses the superposition to a specific primitive."
+                ]
+              },
+              {
+                "type": "li",
+                "children": [
+                  {
+                    "type": "strong",
+                    "children": "Brainstorm #12 (Disentangled Dimensions):"
+                  },
+                  " SAE features might naturally provide the disentangled dimensions — operator type, polarity, volitionality — as separate features."
+                ]
+              }
+            ]
+          },
+          {
+            "type": "Callout",
+            "props": {
+              "type": "info"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": [
+                  {
+                    "type": "strong",
+                    "children": "The Meta-Point:"
+                  },
+                  " SAE mining isn't just a shortcut to get operators. It's a bridge between our theoretical framework and mechanistic interpretability. If operators exist as SAE features, every mech interp tool (circuit tracing, activation patching, feature visualization) becomes an operator analysis tool."
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "11. A Concrete Experiment Plan"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "Here's a step-by-step plan anyone could execute today with open-source tools:"
+          },
+          {
+            "type": "Code",
+            "props": {
+              "language": "python"
+            },
+            "children": "# Step-by-step experiment plan\n\n# 1. Setup\n# pip install sae-lens transformer-lens torch\n\n# 2. Load model + SAE\nfrom sae_lens import SAE\nfrom transformer_lens import HookedTransformer\n\nmodel = HookedTransformer.from_pretrained('gpt2-small')\nsae = SAE.from_pretrained('gpt2-small-res-jb', layer=6)  # mid-layer\n\n# 3. Create seed corpus (50+ sentences per operator)\nseeds = create_seed_corpus()  # As defined in Section 3\n\n# 4. Collect activations at verb positions\nactivations = {}\nfor op_name, sentences in seeds.items():\n    acts = []\n    for sent, vpos in sentences:\n        _, cache = model.run_with_cache(sent)\n        residual = cache['resid_post', 6][0, vpos]  # layer 6\n        features = sae.encode(residual)\n        acts.append(features)\n    activations[op_name] = torch.stack(acts)\n\n# 5. Find operator-specific features\nop_features = find_operator_features(activations)\n\n# 6. Validate on held-out sentences\nfor op_name, feat_ids in op_features.items():\n    novel_sents = generate_novel_sentences(op_name)\n    accuracy = test_features(model, sae, feat_ids, novel_sents)\n    print(f'{op_name}: {len(feat_ids)} features, '\n          f'{accuracy:.1%} novel accuracy')\n\n# 7. Cross-operator confusion matrix\nconfusion = compute_confusion_matrix(\n    model, sae, op_features, all_test_sentences\n)\nplot_confusion_matrix(confusion, operators)"
+          },
+          {
+            "type": "p",
+            "children": "This experiment could run on a single GPU in a few hours. The results — whether positive, negative, or mixed — would be a significant contribution to both mechanistic interpretability and computational linguistics."
+          },
+          {
+            "type": "Quiz",
+            "props": {
+              "question": "What is the MOST important control condition missing from this experiment plan?",
+              "options": [
+                "We need more seed sentences",
+                "We need a baseline: do random feature sets also 'predict' operators? (permutation test)",
+                "We need a bigger GPU",
+                "We need to test all 96 layers simultaneously"
+              ],
+              "correctIndex": 1,
+              "explanation": "Without a permutation baseline, we can't know if our results are significant. If random feature subsets predict operator labels with 60% accuracy just by chance, finding 65% accuracy with our method isn't meaningful. Always compare against a null model."
+            }
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "12. Why This Matters: The Bigger Picture"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "This brainstorm represents a potential paradigm shift in how we approach Schankian operator discovery:"
+          },
+          {
+            "type": "ul",
+            "children": [
+              {
+                "type": "li",
+                "children": [
+                  {
+                    "type": "strong",
+                    "children": "From construction to excavation:"
+                  },
+                  " Instead of building operators from theory, we discover them empirically from what LLMs have already learned."
+                ]
+              },
+              {
+                "type": "li",
+                "children": [
+                  {
+                    "type": "strong",
+                    "children": "From hypothesis to evidence:"
+                  },
+                  " We move from 'operators SHOULD exist' to 'operators DO exist (or don't) in trained models.'"
+                ]
+              },
+              {
+                "type": "li",
+                "children": [
+                  {
+                    "type": "strong",
+                    "children": "From training to analysis:"
+                  },
+                  " No expensive operator-learning pipeline needed — just analysis of existing SAE dictionaries."
+                ]
+              },
+              {
+                "type": "li",
+                "children": [
+                  {
+                    "type": "strong",
+                    "children": "From isolated to integrated:"
+                  },
+                  " Operators become part of the mechanistic interpretability toolkit, connecting to circuits, features, and causal analysis."
+                ]
+              }
+            ]
+          },
+          {
+            "type": "Callout",
+            "props": {
+              "type": "success"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": [
+                  {
+                    "type": "strong",
+                    "children": "The dream outcome:"
+                  },
+                  " You open Neuronpedia, search for 'transfer of possession,' and find Feature #4,721,093 with activation examples spanning 'give', 'sell', 'steal', 'bequeath', 'confiscate' across English, French, and Japanese. Schank was right. The LLM figured it out independently. And now we can see it, measure it, and steer it."
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}
