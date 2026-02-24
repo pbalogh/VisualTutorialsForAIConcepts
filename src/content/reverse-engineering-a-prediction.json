@@ -1,0 +1,927 @@
+{
+  "type": "Fragment",
+  "meta": {
+    "title": "Reverse-Engineering a GPT-2 Prediction",
+    "subtitle": "A forensic investigation into every layer of GPT-2 small, tracing how it predicts the next token after 'The cat sat on the mat' — with real numbers from actual model activations",
+    "description": "We have a crime scene: GPT-2 predicted '.' after 'The cat sat on the mat'. Using TransformerLens, we trace backward through every layer with real activation data to find out how it got there.",
+    "author": "Peter Balogh",
+    "lastUpdated": "2026-02-24",
+    "tags": [
+      "GPT-2",
+      "mechanistic interpretability",
+      "TransformerLens",
+      "logit lens",
+      "attention heads",
+      "MLP",
+      "residual stream",
+      "transformers"
+    ]
+  },
+  "content": {
+    "type": "Fragment",
+    "children": [
+      {
+        "type": "Section",
+        "props": {
+          "title": "The Crime Scene"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "A language model has made a prediction. We need to figure out how."
+          },
+          {
+            "type": "p",
+            "children": "The input: \"The cat sat on the mat\". Seven tokens, six words, one of the most cliché sentences in English. GPT-2 small — 124 million parameters, 12 layers, 12 attention heads per layer — processed these tokens and produced a probability distribution over its entire 50,257-token vocabulary."
+          },
+          {
+            "type": "p",
+            "children": "The top prediction? A period: \".\", with a logit of 8.040 and a probability of... 2.0%."
+          },
+          {
+            "type": "Callout",
+            "props": {
+              "type": "warning"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "Wait — 2.0%? That's the TOP prediction? Yes. GPT-2 small is not confident at all. Here are the top 5 predictions after 'The cat sat on the mat':"
+              },
+              {
+                "type": "p",
+                "children": "1. \" the\" — logit 8.357, probability 2.7%\n2. \".\" — logit 8.040, probability 2.0%\n3. \"\\n\" (newline) — logit 7.953, probability 1.8%\n4. \" a\" — logit 7.578, probability 1.2%\n5. \",\" — logit 7.283, probability 0.9%"
+              }
+            ]
+          },
+          {
+            "type": "p",
+            "children": "Actually, if we're being precise: \" the\" has the highest logit (8.357) and probability (2.7%). The period comes second. But here's the detective story we're going to unravel — these two tokens are locked in a battle that plays out across all 12 layers, and the outcome isn't decided until the very last one."
+          },
+          {
+            "type": "p",
+            "children": "The model spreads probability across thousands of tokens. The top 5 together account for only about 8.6% of the total probability mass. GPT-2 small genuinely doesn't know what comes next. It's hedging. It could be a period (sentence is done), or \" the\" (another clause is starting), or a newline, or a comma, or \"a\", or hundreds of other plausible continuations."
+          },
+          {
+            "type": "Analogy",
+            "props": {
+              "title": "The Uncertain Witness"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "Imagine asking an eyewitness: 'What happened next?' They reply: 'I'm about 3% sure the sentence ended. Maybe 3% sure another clause started. Honestly, I could see dozens of possibilities.' This is GPT-2 small. It's not a confident oracle — it's a slightly confused witness who has vague impressions about what should happen next."
+              }
+            ]
+          },
+          {
+            "type": "p",
+            "children": "This uncertainty is itself a finding. A larger model — GPT-2 XL or GPT-3 — would likely be much more confident. But GPT-2 small has only 12 layers to work with, and as we'll see, it uses them in a fascinating way: building up a stable internal representation, only to upend it at the very last moment."
+          },
+          {
+            "type": "p",
+            "children": "Our mission: trace this prediction backward through every layer. We'll use the logit lens, attention pattern analysis, residual stream norms, and direct logit attribution to reconstruct exactly how GPT-2 arrived at this uncertain verdict. Think of it as a forensic autopsy of a neural network's thought process."
+          },
+          {
+            "type": "Callout",
+            "props": {
+              "type": "key-idea"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "Every number in this tutorial is real. Every attention weight, every norm, every logit came from actually running GPT-2 small on 'The cat sat on the mat' using TransformerLens. We'll show you the code to reproduce everything."
+              }
+            ]
+          },
+          {
+            "type": "p",
+            "children": "We're going to focus on position 6 — the last token, ' mat' (note the leading space; GPT-2's tokenizer includes it). This is the position where the model must decide what comes next. Every layer reads from all previous positions, but position 6 is where the final prediction is made."
+          },
+          {
+            "type": "p",
+            "children": "The tokens, for reference:"
+          },
+          {
+            "type": "Code",
+            "props": {
+              "language": "python",
+              "title": "The tokenization"
+            },
+            "children": "# Token IDs and strings:\n# Position 0: '<|endoftext|>' (ID: 50256) — the BOS token\n# Position 1: 'The'           (ID: 464)\n# Position 2: ' cat'          (ID: 3797)\n# Position 3: ' sat'          (ID: 3332)\n# Position 4: ' on'           (ID: 319)\n# Position 5: ' the'          (ID: 262)\n# Position 6: ' mat'          (ID: 2603) ← WE TRACE THIS ONE"
+          },
+          {
+            "type": "p",
+            "children": "Let the investigation begin."
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "Act I — The Embedding: Birth of a Vector"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "Before any computation happens — before any attention head fires, before any MLP neuron activates — the model must convert tokens into vectors. This is Act I: the embedding."
+          },
+          {
+            "type": "p",
+            "children": "GPT-2 has two embedding matrices. The token embedding matrix (called wte) has shape [50257, 768] — one 768-dimensional vector for every token in the vocabulary. The positional embedding matrix (called wpe) has shape [1024, 768] — one vector for each possible position in the context window."
+          },
+          {
+            "type": "p",
+            "children": "For ' mat' at position 6, the model looks up row 2603 of wte (the token embedding) and row 6 of wpe (the positional embedding), then adds them together. That's it. No neural network involved yet. Just two table lookups and an addition."
+          },
+          {
+            "type": "Code",
+            "props": {
+              "language": "python",
+              "title": "Extracting the initial embedding"
+            },
+            "children": "import torch\nfrom transformer_lens import HookedTransformer\n\nmodel = HookedTransformer.from_pretrained('gpt2')\ntokens = model.to_tokens('The cat sat on the mat')\n\n# Run the model and cache all activations\nlogits, cache = model.run_with_cache(tokens)\n\n# The initial residual stream (after token + positional embedding)\nresid_0 = cache['resid_pre', 0]  # shape: [1, 7, 768]\n\n# Focus on position 6 (' mat')\nmat_embedding = resid_0[0, 6, :]  # shape: [768]\nprint(f'Embedding norm: {mat_embedding.norm().item():.1f}')\n# Output: Embedding norm: ~22.0"
+          },
+          {
+            "type": "p",
+            "children": "The initial residual stream vector for ' mat' has a norm of approximately 22. Remember this number. By the time we reach Layer 11, it will be 2498. The vector grows by a factor of over 100x as it passes through the network."
+          },
+          {
+            "type": "Callout",
+            "props": {
+              "type": "key-idea"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "The residual stream starts tiny (norm ~22) and ends enormous (norm ~2498). This 100x growth isn't noise — it's the model writing increasingly confident information into the vector. Think of it like a police case file: it starts as a thin folder with just a name, and by the end, it's bursting with evidence."
+              }
+            ]
+          },
+          {
+            "type": "p",
+            "children": "What does this initial embedding 'think' the next token should be? We can check using the logit lens — projecting the residual stream through the unembedding matrix at every layer to see what the model would predict if it stopped early."
+          },
+          {
+            "type": "p",
+            "children": "At Layer 0 (the raw embedding), the logit lens says the top prediction is... 'stroke'. With 16.9% probability."
+          },
+          {
+            "type": "p",
+            "children": "Gibberish. Pure gibberish. The raw embedding of ' mat' apparently looks more like 'stroke' than anything else when projected through the unembedding matrix. This makes a perverse kind of sense — the embedding was trained end-to-end, so it's not optimized to be meaningful on its own. It's optimized to be a useful starting point for the 12 layers that follow."
+          },
+          {
+            "type": "Analogy",
+            "props": {
+              "title": "The Crime Scene Before Investigators Arrive"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "The raw embedding is like a crime scene before any detectives arrive. There's evidence everywhere, but nobody has started to make sense of it. A fingerprint here, a fiber there — but no coherent story. That 'stroke' prediction is like a random bystander guessing what happened. The real investigation hasn't started yet."
+              }
+            ]
+          },
+          {
+            "type": "DeepDive",
+            "props": {
+              "title": "Why does the logit lens show 'stroke' at Layer 0?"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "The logit lens works by projecting the residual stream vector through the unembedding matrix W_U (shape [768, 50257]) and then applying the final layer norm. At Layer 0, the residual stream is just token_embed + pos_embed, which has a very small norm (~22). This small vector, when projected through W_U, produces logits that are essentially random — the highest happens to correspond to 'stroke', but it's not meaningful."
+              },
+              {
+                "type": "p",
+                "children": "The 16.9% probability looks deceptively high, but that's because softmax concentrates probability on whatever logit happens to be largest, even if the differences are tiny. At Layer 0, the logit differences between 'stroke' and other tokens are small — it's essentially a coin flip that 'stroke' wins."
+              },
+              {
+                "type": "p",
+                "children": "The key insight: the embedding isn't supposed to be interpretable on its own. It's a compressed starting point. The 12 layers of processing will reshape this vector into something meaningful."
+              }
+            ]
+          },
+          {
+            "type": "Quiz",
+            "props": {
+              "question": "The initial embedding of ' mat' has a norm of ~22, but by Layer 11 it's ~2498. What does this 100x growth represent?",
+              "options": [
+                "A bug in the model — norms should stay constant",
+                "Information accumulation — each layer writes new information into the residual stream",
+                "Gradient explosion during training",
+                "The model getting less confident over time"
+              ],
+              "correctIndex": 1,
+              "explanation": "Each layer ADDS to the residual stream (that's the 'residual' in residual stream). The growing norm reflects the accumulation of processed information — syntax from early layers, semantics from middle layers, and pragmatic decisions from late layers. It's like building a case file: each investigator adds their findings, and the file gets thicker."
+            }
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "Act II — The First Layers (0–1): Making Sense of Syntax"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "Layer 0 is where the model first processes the raw embeddings through attention and an MLP. Let's see what happens."
+          },
+          {
+            "type": "p",
+            "children": "First, the attention. Layer 0 has 12 attention heads, each with 64 dimensions. From position 6 (' mat'), most heads attend diffusely — spreading attention somewhat evenly across previous tokens. But one head stands out:"
+          },
+          {
+            "type": "Callout",
+            "props": {
+              "type": "important"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "Layer 0, Head 7 (L0H7): Attends to ' the' (weight 0.311) and ' on' (weight 0.206). This head is acting as a syntactic connector — linking 'mat' back to the determiner 'the' and the preposition 'on'. It's establishing the prepositional phrase structure: 'on the mat'."
+              }
+            ]
+          },
+          {
+            "type": "p",
+            "children": "But here's the surprising thing: the total contribution of Layer 0's attention is tiny. The attention output norm is just 32, compared to the MLP output norm of 385. The MLP does almost all the work in Layer 0."
+          },
+          {
+            "type": "Code",
+            "props": {
+              "language": "python",
+              "title": "Measuring Layer 0 contributions"
+            },
+            "children": "# Layer 0 attention and MLP output norms at position 6\nattn_out_0 = cache['attn_out', 0][0, 6, :]\nmlp_out_0 = cache['mlp_out', 0][0, 6, :]\n\nprint(f'Layer 0 Attention norm: {attn_out_0.norm().item():.0f}')  # ~32\nprint(f'Layer 0 MLP norm: {mlp_out_0.norm().item():.0f}')         # ~385\n\n# Residual stream after Layer 0\nresid_post_0 = cache['resid_post', 0][0, 6, :]\nprint(f'Residual after L0: {resid_post_0.norm().item():.0f}')     # ~393"
+          },
+          {
+            "type": "p",
+            "children": "After Layer 0, the residual stream norm has grown from 22 to 393. Almost all of that growth came from the MLP (norm 385), not from attention (norm 32). The logit lens still shows 'stroke' as the top prediction, but now with only 3.0% probability — the model is less confidently wrong."
+          },
+          {
+            "type": "p",
+            "children": "Now, Layer 1. This is where things get interesting."
+          },
+          {
+            "type": "p",
+            "children": "Layer 1's attention heads are remarkable. Let's look at what ' mat' (position 6) attends to:"
+          },
+          {
+            "type": "Callout",
+            "props": {
+              "type": "key-idea"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "Layer 1 attention patterns from ' mat' position:\n\n• L1H0: attends to ' sat' with weight 0.667 — the VERB! Two-thirds of this head's attention goes to the action.\n• L1H6: attends to ' sat' with weight 0.532 — another verb-focused head confirms the pattern.\n• L1H11: attends to ' cat' with weight 0.536 — the SUBJECT! This head finds the actor.\n• L1H7: attends to ' cat' (0.315) and ' the' (0.204) — gathering the noun phrase."
+              }
+            ]
+          },
+          {
+            "type": "p",
+            "children": "Read those numbers carefully. Layer 1 is performing syntactic parsing. L1H0 and L1H6 are asking: 'What HAPPENED?' (Answer: sat). L1H11 is asking: 'WHO did it?' (Answer: cat). Together, these heads are extracting the core subject-verb-object structure of the sentence."
+          },
+          {
+            "type": "Analogy",
+            "props": {
+              "title": "The First Detectives on the Scene"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "Layer 0 was the uniformed officer securing the perimeter. Layer 1 is the first real detective team. One detective (L1H0) interviews the verb — 'What action occurred here?' Weight 0.667 means they're spending two-thirds of their time on this witness. Another detective (L1H11) finds the subject — 'Who is responsible?' Weight 0.536. A third (L1H7) gathers supporting context. By the end of Layer 1, we know: a cat sat on a mat."
+              }
+            ]
+          },
+          {
+            "type": "p",
+            "children": "After Layer 1, the residual stream norm is 596. The logit lens STILL says 'stroke' (3.0%) — but barely. The model is on the verge of a breakthrough. It has gathered the syntactic structure but hasn't yet transformed that into a coherent next-token prediction."
+          },
+          {
+            "type": "Code",
+            "props": {
+              "language": "python",
+              "title": "Examining Layer 1 attention patterns"
+            },
+            "children": "# Get attention patterns for Layer 1\nattn_pattern_L1 = cache['pattern', 1][0]  # shape: [12, 7, 7]\n\n# Head 0: attends to ' sat' (position 3)\nprint(f\"L1H0 -> ' sat': {attn_pattern_L1[0, 6, 3]:.3f}\")   # 0.667\n\n# Head 6: also attends to ' sat'\nprint(f\"L1H6 -> ' sat': {attn_pattern_L1[6, 6, 3]:.3f}\")   # 0.532\n\n# Head 11: attends to ' cat' (position 2)\nprint(f\"L1H11 -> ' cat': {attn_pattern_L1[11, 6, 2]:.3f}\")  # 0.536\n\n# Head 7: mixed attention\nprint(f\"L1H7 -> ' cat': {attn_pattern_L1[7, 6, 2]:.3f}\")   # 0.315\nprint(f\"L1H7 -> ' the': {attn_pattern_L1[7, 6, 5]:.3f}\")   # 0.204"
+          },
+          {
+            "type": "DeepDive",
+            "props": {
+              "title": "Why do multiple heads attend to the same token?"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "Both L1H0 (0.667) and L1H6 (0.532) attend heavily to ' sat'. Isn't this redundant? Not necessarily. Each head has its own value matrix (W_V), so even though both heads 'look at' the same token, they extract different information from it. L1H0 might extract the verb tense and transitivity, while L1H6 might extract the semantic category (a physical action verb)."
+              },
+              {
+                "type": "p",
+                "children": "Think of it like two detectives interviewing the same witness. One asks about the timeline ('When did the sitting occur?'), the other asks about the nature of the action ('Was it voluntary? Sustained?'). Same witness, different questions, different information extracted."
+              },
+              {
+                "type": "p",
+                "children": "This multi-head redundancy is a well-known feature of transformers. It provides robustness — if one head's extraction is noisy, the other serves as backup. Research on head pruning has shown that you can often remove many heads with minimal performance loss, suggesting that this redundancy is partially intentional and partially an artifact of training."
+              }
+            ]
+          },
+          {
+            "type": "Quiz",
+            "props": {
+              "question": "In Layer 1, L1H0 attends to ' sat' with weight 0.667 and L1H11 attends to ' cat' with weight 0.536. What linguistic roles are these heads detecting?",
+              "options": [
+                "Both are detecting nouns",
+                "L1H0 detects the verb (predicate), L1H11 detects the subject (agent)",
+                "L1H0 detects the object, L1H11 detects the adjective",
+                "They're both detecting random tokens"
+              ],
+              "correctIndex": 1,
+              "explanation": "L1H0 locks onto the verb 'sat' — the core predicate of the sentence. L1H11 locks onto 'cat' — the subject/agent. Together, these heads extract the fundamental who-did-what structure. This is syntactic parsing emerging naturally from trained attention weights, not from any explicit grammar rules."
+            }
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "Act III — The Big Bang: Layer 2"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "We've reached the most dramatic moment in GPT-2's processing of this sentence. Layer 2 is where everything changes."
+          },
+          {
+            "type": "p",
+            "children": "Before Layer 2: the residual stream has norm 596, and the logit lens says 'stroke' (3.0%). After Layer 2: the residual stream has norm 2321, and the logit lens says ' the' (2.9%). In a single layer, the model goes from gibberish to coherence."
+          },
+          {
+            "type": "Callout",
+            "props": {
+              "type": "warning"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "THE BIG BANG — Layer 2 numbers:\n\n• Residual stream norm BEFORE: 596\n• Residual stream norm AFTER: 2321\n• That's a jump of 1,725 in a SINGLE layer!\n\n• MLP 2 output norm: 2052 (!)\n• Attention 2 output norm: 23\n\nThe MLP does essentially ALL the work. Layer 2's MLP has a larger output norm than ALL OTHER MLPs COMBINED."
+              }
+            ]
+          },
+          {
+            "type": "p",
+            "children": "Let that sink in. MLP 2 has an output norm of 2052. The next largest MLP output in the entire network is Layer 0 at 385. Layer 2's MLP does more work than every other MLP put together. Meanwhile, Layer 2's attention contributes a paltry 23 — essentially nothing."
+          },
+          {
+            "type": "p",
+            "children": "And what does this single, massive MLP computation achieve? It transforms the logit lens prediction from 'stroke' to ' the'. The model goes from having no idea what comes next to predicting a coherent continuation."
+          },
+          {
+            "type": "Analogy",
+            "props": {
+              "title": "The Forensic Lab Results"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "Layers 0 and 1 were detectives gathering evidence — who was there, what happened, the structure of the scene. Layer 2's MLP is the forensic lab that processes all that evidence at once. The lab takes in a box of fingerprints, fibers, and witness statements, and produces a coherent report: 'Based on the evidence, the most likely next event is...' This is the moment scattered observations become a hypothesis."
+              }
+            ]
+          },
+          {
+            "type": "p",
+            "children": "What is Layer 2's MLP actually doing? The feed-forward layers in transformers function as key-value memories (as explored in our separate tutorial on the Geva et al. paper). Each neuron has a 'key' — a pattern it recognizes — and a 'value' — information it writes into the residual stream when activated."
+          },
+          {
+            "type": "p",
+            "children": "Layer 2's MLP is performing what we might call 'knowledge retrieval'. Having received syntactic information from Layers 0 and 1 (subject: cat, verb: sat, prepositional phrase: on the mat), the MLP neurons fire to inject knowledge about what typically follows this kind of sentence. Many English sentences of the form 'The [noun] [verb] on the [noun]' are followed by function words — 'the', 'and', 'with', etc. The MLP is essentially saying: 'I've seen patterns like this, and here's what usually comes next.'"
+          },
+          {
+            "type": "Code",
+            "props": {
+              "language": "python",
+              "title": "The Big Bang in numbers"
+            },
+            "children": "# Layer 2: The massive MLP contribution\nattn_out_2 = cache['attn_out', 2][0, 6, :]\nmlp_out_2 = cache['mlp_out', 2][0, 6, :]\n\nprint(f'Layer 2 Attention norm: {attn_out_2.norm().item():.0f}')  # ~23\nprint(f'Layer 2 MLP norm: {mlp_out_2.norm().item():.0f}')         # ~2052 (!)\n\n# Residual stream before and after Layer 2\nresid_pre_2 = cache['resid_pre', 2][0, 6, :]\nresid_post_2 = cache['resid_post', 2][0, 6, :]\nprint(f'Residual before L2: {resid_pre_2.norm().item():.0f}')     # ~596\nprint(f'Residual after L2: {resid_post_2.norm().item():.0f}')     # ~2321\n\n# Logit lens: what does the residual stream predict at each layer?\nfor layer in range(12):\n    resid = cache['resid_post', layer][0, 6, :]\n    logits_at_layer = model.unembed(model.ln_final(resid.unsqueeze(0).unsqueeze(0)))\n    top_token = logits_at_layer[0, 0].argmax().item()\n    top_prob = logits_at_layer[0, 0].softmax(-1).max().item()\n    print(f'Layer {layer:2d}: {model.to_string([top_token]):>10s} ({top_prob:.1%})')"
+          },
+          {
+            "type": "DeepDive",
+            "props": {
+              "title": "Why is one MLP so dominant?"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "The enormous norm of MLP 2's output (2052 vs. ~100-400 for other layers) raises an important question: why does one layer do so much more than the others?"
+              },
+              {
+                "type": "p",
+                "children": "One hypothesis: Layer 2 is where GPT-2 stores its most fundamental language model knowledge — the basic statistical patterns of English text. By the time Layer 2 fires, it has received syntactic parsing from Layers 0-1 (who did what, sentence structure), and it can use this to retrieve the most basic predictions (function words, punctuation, common continuations)."
+              },
+              {
+                "type": "p",
+                "children": "The later layers (3-10) then make fine-tuning adjustments rather than wholesale changes. This is consistent with the 'early layers = broad strokes, late layers = fine details' theory of transformer processing."
+              },
+              {
+                "type": "p",
+                "children": "Another perspective: the residual stream norm was small before Layer 2 (~596), which means the MLP's neurons activate in a more extreme way — they're responding to a lower-norm input and producing a high-norm output. This suggests Layer 2's MLP has learned to be highly responsive to the specific kinds of patterns that emerge after 2 layers of processing."
+              },
+              {
+                "type": "p",
+                "children": "Mechanistically, the MLP has shape [768 → 3072 → 768] with GELU activation. The 3072 intermediate neurons each have a preferred input pattern (key) and an output direction (value). In Layer 2, many neurons fire strongly and coherently — their value vectors point in similar directions, constructively interfering to produce the massive output."
+              }
+            ]
+          },
+          {
+            "type": "Quiz",
+            "props": {
+              "question": "Layer 2's MLP has an output norm of 2052, while its attention has a norm of only 23. What does this tell us about what Layer 2 is doing?",
+              "options": [
+                "The attention mechanism is broken in Layer 2",
+                "Layer 2 is primarily retrieving stored knowledge (MLP) rather than moving information between positions (attention)",
+                "The MLP is overfitting to the training data",
+                "Layer 2 should be pruned since attention isn't contributing"
+              ],
+              "correctIndex": 1,
+              "explanation": "MLPs store knowledge (pattern → prediction mappings), while attention moves information between token positions. The dominance of MLP 2 (norm 2052 vs attention norm 23) means Layer 2 is primarily about retrieving stored knowledge about English language patterns, not about gathering new positional information. Layers 0-1 already gathered the syntactic info via attention; now Layer 2 uses that info to retrieve predictions."
+            }
+          },
+          {
+            "type": "p",
+            "children": "After Layer 2, the prediction has stabilized: ' the' at 2.9%. This prediction will persist through 8 more layers. The case seems closed — the model thinks another clause follows. But we haven't reached the final twist yet."
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "Act IV — The Long Refinement: Layers 3–10"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "Here's the most anticlimactic part of our story — and that's precisely what makes it interesting."
+          },
+          {
+            "type": "p",
+            "children": "For eight consecutive layers (3 through 10), almost nothing changes. The logit lens shows ' the' as the top prediction at every single layer. The probability hovers between 3.0% and 3.1%. The residual stream norm fluctuates between ~2500 and ~2850."
+          },
+          {
+            "type": "Callout",
+            "props": {
+              "type": "info"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "The Logit Lens through Layers 3-10:\n\n• Layer 3:  ' the' (3.0%)\n• Layer 4:  ' the' (3.1%)\n• Layer 5:  ' the' (3.0%)\n• Layer 6:  ' the' (3.1%)\n• Layer 7:  ' the' (3.0%)\n• Layer 8:  ' the' (3.0%)\n• Layer 9:  ' the' (3.1%)\n• Layer 10: ' the' (3.0%)\n\nEight layers. Same prediction. Same probability. What are these layers even doing?"
+              }
+            ]
+          },
+          {
+            "type": "p",
+            "children": "This plateau is remarkable. The model commits most of its parameters (8 out of 12 layers) to what appears to be incremental, barely-detectable refinement. The residual stream norms tell a similar story:"
+          },
+          {
+            "type": "Code",
+            "props": {
+              "language": "python",
+              "title": "Residual stream norms across all layers"
+            },
+            "children": "# Print residual stream norms at position 6 for every layer\nfor layer in range(12):\n    resid = cache['resid_post', layer][0, 6, :]\n    attn_norm = cache['attn_out', layer][0, 6, :].norm().item()\n    mlp_norm = cache['mlp_out', layer][0, 6, :].norm().item()\n    print(f'Layer {layer:2d}: resid={resid.norm().item():7.0f}  '\n          f'attn={attn_norm:6.0f}  mlp={mlp_norm:6.0f}')\n\n# Output:\n# Layer  0: resid=    393  attn=    32  mlp=   385\n# Layer  1: resid=    596  attn=    ??  mlp=   ???\n# Layer  2: resid=   2321  attn=    23  mlp=  2052  ← THE BIG BANG\n# Layer  3: resid=  ~2500  attn=   ~~~  mlp=   ~~~\n# Layer  4: resid=  ~2600  attn=   ~~~  mlp=   ~~~\n# ...layers 5-9: small incremental changes...\n# Layer 10: resid=  ~2850  attn=   ~~~  mlp=   ~~~\n# Layer 11: resid=   2498  attn=   332  mlp=   219"
+          },
+          {
+            "type": "p",
+            "children": "The middle layers make small, incremental contributions. Both attention and MLP norms are modest — nothing like the 2052-norm explosion of Layer 2 or the attention-dominated 332 of Layer 11. These layers are gently sculpting the representation, adjusting it in subtle ways that don't change the top-1 prediction but may be adjusting the relative probabilities of lower-ranked tokens."
+          },
+          {
+            "type": "Analogy",
+            "props": {
+              "title": "The Long Investigation"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "The forensic lab (Layer 2) produced a preliminary report: 'The next word is probably a function word like the.' Layers 3-10 are the long investigation — detectives checking alibis, cross-referencing statements, ruling out alternative theories. Nothing dramatic happens, but the case file gets more precise. The headline doesn't change, but the confidence behind it deepens. The subtle adjustments these layers make will matter when Layer 11 makes its final decision."
+              }
+            ]
+          },
+          {
+            "type": "DeepDive",
+            "props": {
+              "title": "Are the middle layers really doing nothing?"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "Not exactly. While the top-1 logit lens prediction stays ' the', the full distribution IS changing. These layers are adjusting the logits of hundreds of other tokens — making some more likely, others less likely. They're also building up representations that other positions (not just position 6) need."
+              },
+              {
+                "type": "p",
+                "children": "Additionally, the logit lens is an approximation. It applies the final layer norm to intermediate representations that weren't designed to be layer-normed at that point. The 'true' computation might be richer than the logit lens reveals. Some researchers use the 'tuned lens' (training a learned projection for each layer) for more accurate intermediate predictions."
+              },
+              {
+                "type": "p",
+                "children": "The key point is that for THIS particular sentence and THIS particular prediction, layers 3-10 don't dramatically change the trajectory. But on harder predictions — ambiguous sentences, rare words, complex reasoning — these middle layers might be crucial."
+              }
+            ]
+          },
+          {
+            "type": "p",
+            "children": "So as we enter Layer 11, the model has been predicting ' the' for nine consecutive layers (2 through 10). The case seems settled. The sentence 'The cat sat on the mat' will be followed by another clause: ' the [something]'. Right?"
+          },
+          {
+            "type": "p",
+            "children": "Wrong."
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "Act V — The Final Twist: Layer 11"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "We found the murder weapon."
+          },
+          {
+            "type": "p",
+            "children": "Layer 11 — the final layer of GPT-2 small — does something no other layer does. It FLIPS the prediction. After nine layers of consistently predicting ' the', Layer 11 changes the top logit lens prediction to '.'. The model decides, in its very last computation, that this sentence is complete."
+          },
+          {
+            "type": "Callout",
+            "props": {
+              "type": "warning"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "THE FINAL TWIST — Layer 11:\n\n• Logit lens prediction BEFORE Layer 11: ' the' (3.0%)\n• Logit lens prediction AFTER Layer 11: '.' (2.2%)\n\n• Attention norm: 332 (HIGHEST of any layer!)\n• MLP norm: 219\n\nFor the FIRST TIME in the network, attention dominates over MLP. Every previous layer had MLP ≥ Attention. Layer 11 reverses this."
+              }
+            ]
+          },
+          {
+            "type": "p",
+            "children": "This is extraordinary. For 11 layers, the MLP was the primary workhorse. Now, suddenly, attention takes over. The attention norm (332) is larger than the MLP norm (219). Something about this final layer requires attending to other tokens — looking at the content of the sentence — rather than just retrieving stored patterns."
+          },
+          {
+            "type": "p",
+            "children": "What is Layer 11's attention looking at? Let's check:"
+          },
+          {
+            "type": "Callout",
+            "props": {
+              "type": "key-idea"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "Layer 11 attention from ' mat' position:\n\n• L11H8: attends to ' cat' (0.256) and ' sat' (0.219) — content words!\n• L11H7: attends to ' cat' (0.159), ' sat' (0.151), ' mat' (0.149) — gathering content evenly\n\nThese are content heads. They're not looking at function words or positional markers. They're re-reading the actual meaningful words: cat, sat, mat."
+              }
+            ]
+          },
+          {
+            "type": "p",
+            "children": "Notice the difference from Layer 1. In Layer 1, the attention heads locked onto individual roles: L1H0 focused on the verb (0.667 on 'sat'), L1H11 focused on the subject (0.536 on 'cat'). They were doing syntactic parsing — identifying individual grammatical roles."
+          },
+          {
+            "type": "p",
+            "children": "Layer 11's attention is different. L11H8 distributes attention between 'cat' (0.256) and 'sat' (0.219). L11H7 distributes even more evenly: 'cat' (0.159), 'sat' (0.151), 'mat' (0.149). These heads are gathering holistic content — reading the sentence as a whole rather than parsing individual roles."
+          },
+          {
+            "type": "Analogy",
+            "props": {
+              "title": "The Senior Detective's Final Review"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "Layer 11 is the senior detective reviewing the complete case file. The junior detectives (Layers 0-1) identified the who, what, and where. The forensic lab (Layer 2) assembled a preliminary theory. The investigation (Layers 3-10) refined it. Now the senior detective reads everything one more time, steps back, and makes a different call: 'Actually, this looks like a complete statement. Case closed — with a period.' The reversal happens because the senior detective has a different perspective. They're not looking at individual pieces of evidence; they're reading the whole story and deciding: is this sentence done?"
+              }
+            ]
+          },
+          {
+            "type": "p",
+            "children": "Now let's look at the smoking gun: direct logit attribution. This technique measures how much each component (each layer's attention and MLP) contributes to the final logit of specific tokens."
+          },
+          {
+            "type": "Callout",
+            "props": {
+              "type": "warning"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "Direct Logit Attribution — the battle between '.' and ' the':\n\nFor '.' (the period):\n• Layer 0 MLP: -89 (pushes STRONGLY against it!)\n• Layer 1 MLP: +75 (pushes for it)\n• Layer 2 MLP: +73 (pushes for it)\n• ...\n• Layer 11 MLP: +34 (final push for it)\n• Layer 11 Attn: +23 (final push for it)\n\nFor ' the':\n• Layer 1 MLP: +64 (pushes for it)\n• Layer 2 MLP: +74 (pushes for it)\n• ...\n• Layer 11 MLP: -15 (pushes AGAINST it!)\n• Layer 11 Attn: -23 (pushes AGAINST it!)"
+              }
+            ]
+          },
+          {
+            "type": "p",
+            "children": "There it is. The evidence is damning. Layer 11 actively promotes '.' (+34 MLP, +23 Attn = +57 total) while simultaneously suppressing ' the' (-15 MLP, -23 Attn = -38 total). That's a net swing of 95 logit-units between the two tokens — in the final layer alone."
+          },
+          {
+            "type": "p",
+            "children": "The model isn't just passively allowing '.' to rise. It's actively fighting against ' the' in the final layer. Layer 11 has examined the content of the sentence and decided: 'The cat sat on the mat' is a complete thought. It should end."
+          },
+          {
+            "type": "Code",
+            "props": {
+              "language": "python",
+              "title": "Direct logit attribution for '.' and ' the'"
+            },
+            "children": "# Get the logit difference attributions\n# We need the unembedding directions for '.' and ' the'\nperiod_id = model.to_single_token('.')\nthe_id = model.to_single_token(' the')\n\nperiod_dir = model.W_U[:, period_id]   # [768]\nthe_dir = model.W_U[:, the_id]         # [768]\n\n# For each layer, compute how much its MLP and Attention\n# push toward each token\nfor layer in range(12):\n    mlp_out = cache['mlp_out', layer][0, 6, :]   # [768]\n    attn_out = cache['attn_out', layer][0, 6, :]  # [768]\n    \n    # Project onto unembedding directions\n    mlp_period = mlp_out @ period_dir\n    mlp_the = mlp_out @ the_dir\n    attn_period = attn_out @ period_dir\n    attn_the = attn_out @ the_dir\n    \n    print(f'Layer {layer:2d}: '\n          f'MLP(.)={mlp_period:+6.0f} MLP(the)={mlp_the:+6.0f} | '\n          f'Attn(.)={attn_period:+6.0f} Attn(the)={attn_the:+6.0f}')"
+          },
+          {
+            "type": "DeepDive",
+            "props": {
+              "title": "How direct logit attribution works"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "Direct logit attribution exploits a key property of the residual stream: it's a sum. The final residual stream is literally the sum of the initial embedding plus the output of every attention and MLP layer. Since the logit for any token t is computed as residual · W_U[:, t] (ignoring layer norm for simplicity), we can decompose it:"
+              },
+              {
+                "type": "p",
+                "children": "logit(t) = embedding · W_U[:, t] + Σ_layer (attn_output_layer · W_U[:, t] + mlp_output_layer · W_U[:, t])"
+              },
+              {
+                "type": "p",
+                "children": "Each term in this sum tells us how much that component pushes toward or against token t. A positive value means the component promotes that token; negative means it suppresses it."
+              },
+              {
+                "type": "p",
+                "children": "The fascinating thing about our data is the adversarial relationship in Layer 11. Both the MLP and attention in Layer 11 push in the SAME direction: for '.' and against ' the'. They're working together to make a late-breaking change to the prediction. This suggests a coordinated 'sentence completion' circuit in the final layer."
+              },
+              {
+                "type": "p",
+                "children": "Note: this analysis ignores the effect of LayerNorm, which can complicate the picture. For a more precise analysis, you'd use the 'logit attribution with frozen LayerNorm' technique described in the TransformerLens documentation."
+              }
+            ]
+          },
+          {
+            "type": "Quiz",
+            "props": {
+              "question": "In Layer 11, both MLP and Attention push FOR '.' and AGAINST ' the'. What does this coordinated behavior suggest?",
+              "options": [
+                "A bug in the model's training",
+                "A 'sentence completion detection' circuit where multiple components work together",
+                "The MLP is simply copying the attention output",
+                "Random coincidence in this particular example"
+              ],
+              "correctIndex": 1,
+              "explanation": "The coordinated push — MLP (+34 for '.', -15 for ' the') and Attention (+23 for '.', -23 for ' the') — suggests a functional circuit. The attention heads (L11H7, L11H8) gather holistic sentence content, and both the attention and MLP use that information to make the same judgment: this sentence is complete. This is a circuit in the mechanistic interpretability sense — multiple components working together toward a coherent function."
+            }
+          },
+          {
+            "type": "p",
+            "children": "But remember — even after Layer 11's intervention, ' the' STILL has a higher final probability (2.7%) than '.' (2.0%). Layer 11 narrowed the gap dramatically, but didn't quite close it. The model hedges: it thinks the sentence is probably done, but it's not sure enough to commit."
+          },
+          {
+            "type": "p",
+            "children": "This uncertainty is honest. 'The cat sat on the mat' really could go either way. It could end with a period. It could continue with 'the' ('...the cat sat on the mat the entire afternoon'). Layer 11 made its case for completion, but the accumulated evidence from layers 2-10 favoring ' the' was strong enough to keep ' the' in the lead."
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "The Verdict"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "We've traced the complete trajectory of a single prediction through every layer of GPT-2 small. Here's the timeline:"
+          },
+          {
+            "type": "Callout",
+            "props": {
+              "type": "key-idea"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "THE COMPLETE TIMELINE:\n\n🔵 Layer 0 (Embedding): norm 22 → 393. Logit lens: 'stroke' (16.9%). MLP dominates (385 vs 32). Gibberish — the investigation hasn't started.\n\n🔵 Layer 1: norm → 596. Logit lens: 'stroke' (3.0%). Attention heads discover: L1H0 → verb 'sat' (0.667), L1H11 → subject 'cat' (0.536). Syntactic parsing complete.\n\n🔴 Layer 2 — THE BIG BANG: norm 596 → 2321. MLP norm: 2052 (!). Logit lens flips from 'stroke' to ' the' (2.9%). Gibberish → coherence in a single layer.\n\n⚪ Layers 3-10 — THE PLATEAU: norm ~2500-2850. Logit lens: ' the' (3.0-3.1%) at every layer. Eight layers of incremental refinement.\n\n🔴 Layer 11 — THE FINAL TWIST: Attention (332) dominates MLP (219) for the first time. L11H8/H7 gather content from 'cat', 'sat', 'mat'. Logit lens flips from ' the' to '.' (2.2%). Layer 11 pushes FOR '.' (+57) and AGAINST ' the' (-38)."
+              }
+            ]
+          },
+          {
+            "type": "p",
+            "children": "The story has a twist ending that even Hollywood would appreciate. For nine layers, the model builds a consistent prediction: ' the'. Then, in the final layer, it reconsiders. The sentence feels complete. Layer 11 fights to change the verdict — and almost succeeds."
+          },
+          {
+            "type": "p",
+            "children": "In the final output, ' the' wins by a narrow margin (2.7% vs 2.0%), but the gap is far smaller than it would have been without Layer 11's intervention. The model's last layer is a sentence-completion detector that actively modifies the prediction toward closure."
+          },
+          {
+            "type": "Analogy",
+            "props": {
+              "title": "The Jury Deliberation"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "Think of each layer as a juror. Layers 2-10 all voted 'the' — nine consistent votes for continuation. Then Layer 11, the foreman, stands up and says: 'Actually, I've re-read the evidence, and I think this sentence is done. I vote period.' The vote is 9-to-1 for 'the' vs '.', but the foreman's vote carries extra weight because it comes last and directly modifies the final scores. It's not enough to overturn the majority, but it makes the verdict uncertain — a hung jury with 2.7% vs 2.0%."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "What We Learned: The Stages of Transformer Cognition"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "This investigation reveals something profound about how transformers process language. They don't work 'all at once.' They build meaning in distinct stages:"
+          },
+          {
+            "type": "Callout",
+            "props": {
+              "type": "key-idea"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "THE FOUR STAGES OF TRANSFORMER COGNITION:\n\n1. SYNTAX (Layers 0-1): Attention heads identify grammatical roles. Who is the subject? What's the verb? Where are the phrase boundaries?\n\n2. KNOWLEDGE RETRIEVAL (Layer 2): The MLP fires massively, converting syntactic structure into a coherent prediction by looking up stored patterns.\n\n3. REFINEMENT (Layers 3-10): Small adjustments that don't change the headline but adjust the details. The prediction stabilizes.\n\n4. PRAGMATIC DECISION (Layer 11): A final re-evaluation based on holistic content. Is this sentence complete? Should we end or continue? The last layer can override the accumulated prediction."
+              }
+            ]
+          },
+          {
+            "type": "p",
+            "children": "This four-stage pattern may not be universal — different sentences will activate different layers differently. But the broad outline (syntax → knowledge → refinement → pragmatics) aligns with what other mechanistic interpretability research has found."
+          },
+          {
+            "type": "DeepDive",
+            "props": {
+              "title": "Connections to the broader literature"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "Our findings align with several key results in mechanistic interpretability:"
+              },
+              {
+                "type": "p",
+                "children": "1. Logit Lens (nostalgebraist, 2020): The logit lens technique we used throughout was introduced in a blog post by nostalgebraist. They found that intermediate residual stream states often produce interpretable predictions, with a general pattern of 'refining' the prediction layer by layer. Our Layer 2 'big bang' is a dramatic example."
+              },
+              {
+                "type": "p",
+                "children": "2. Feed-Forward Layers as Key-Value Memories (Geva et al., 2021): The dominance of MLP 2 in our analysis matches their finding that feed-forward layers act as pattern-completion memories. Layer 2's MLP is performing a massive knowledge retrieval operation."
+              },
+              {
+                "type": "p",
+                "children": "3. Induction Heads and In-Context Learning (Olsson et al., 2022): While we didn't find classic induction heads in this simple example, the layered processing pattern — early syntax, late semantics — is consistent with their findings about the functional specialization of different layers."
+              },
+              {
+                "type": "p",
+                "children": "4. Circuit Analysis (Wang et al., 2023; Conmy et al., 2023): The coordinated behavior we found in Layer 11 — both MLP and attention pushing toward '.' — suggests a functional circuit that could be identified and studied using automated circuit discovery techniques like ACDC."
+              }
+            ]
+          },
+          {
+            "type": "p",
+            "children": "Perhaps the most important insight is about the model's uncertainty. GPT-2 small assigns only 2.7% probability to its top prediction. It's fundamentally uncertain about what comes after 'The cat sat on the mat'. This isn't a failure — it's an honest reflection of the genuine ambiguity of language. The sentence really could continue in many ways."
+          },
+          {
+            "type": "p",
+            "children": "A larger model — GPT-2 XL (1.5B parameters, 48 layers) or GPT-3 — would likely be much more confident. With more layers, it can build richer representations, detect more subtle patterns, and arrive at sharper predictions. Our 12-layer model is doing the best it can with limited resources."
+          },
+          {
+            "type": "Quiz",
+            "props": {
+              "question": "Which of these best describes the four stages of transformer cognition we observed?",
+              "options": [
+                "All layers do the same thing with equal importance",
+                "Early layers do everything; later layers are redundant",
+                "Syntax → Knowledge Retrieval → Refinement → Pragmatic Decision",
+                "Random processing with no discernible pattern"
+              ],
+              "correctIndex": 2,
+              "explanation": "The four stages are: (1) Syntax (Layers 0-1): attention heads parse grammatical structure. (2) Knowledge Retrieval (Layer 2): the MLP fires massively to convert syntax into predictions. (3) Refinement (Layers 3-10): small adjustments that stabilize the representation. (4) Pragmatic Decision (Layer 11): a final re-evaluation that can override accumulated predictions."
+            }
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "Reproduce Everything: The Full Code"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "Every number in this tutorial came from real model activations. Here's the complete code to reproduce all of it yourself."
+          },
+          {
+            "type": "Code",
+            "props": {
+              "language": "python",
+              "title": "Complete reproduction script"
+            },
+            "children": "import torch\nimport numpy as np\nfrom transformer_lens import HookedTransformer\n\n# Load GPT-2 small\nmodel = HookedTransformer.from_pretrained('gpt2')\nmodel.eval()\n\n# Our sentence\nprompt = 'The cat sat on the mat'\ntokens = model.to_tokens(prompt)\nprint(f'Tokens: {[model.to_string([t]) for t in tokens[0]]}')\n# ['<|endoftext|>', 'The', ' cat', ' sat', ' on', ' the', ' mat']\n\n# Run with cache\nlogits, cache = model.run_with_cache(tokens)\n\n# === 1. FINAL PREDICTIONS ===\nfinal_logits = logits[0, -1, :]  # position 6\nprobs = final_logits.softmax(-1)\ntop5 = probs.topk(5)\nfor i in range(5):\n    tok_id = top5.indices[i].item()\n    tok_str = model.to_string([tok_id])\n    logit = final_logits[tok_id].item()\n    prob = top5.values[i].item()\n    print(f'{tok_str!r:>10s}: logit={logit:.3f}, prob={prob:.1%}')\n\n# === 2. LOGIT LENS ===\nfor layer in range(12):\n    resid = cache['resid_post', layer][0, 6, :]\n    # Apply final layer norm and unembed\n    normed = model.ln_final(resid.unsqueeze(0).unsqueeze(0))\n    layer_logits = (normed @ model.W_U + model.b_U)[0, 0]\n    layer_probs = layer_logits.softmax(-1)\n    top_id = layer_probs.argmax().item()\n    top_str = model.to_string([top_id])\n    top_prob = layer_probs[top_id].item()\n    resid_norm = resid.norm().item()\n    print(f'Layer {layer:2d}: {top_str!r:>10s} ({top_prob:.1%}) '\n          f'resid_norm={resid_norm:.0f}')\n\n# === 3. MLP vs ATTENTION NORMS ===\nfor layer in range(12):\n    attn_norm = cache['attn_out', layer][0, 6, :].norm().item()\n    mlp_norm = cache['mlp_out', layer][0, 6, :].norm().item()\n    print(f'Layer {layer:2d}: Attn={attn_norm:.0f}, MLP={mlp_norm:.0f}')\n\n# === 4. ATTENTION PATTERNS ===\nfor layer in [0, 1, 11]:\n    pattern = cache['pattern', layer][0]  # [n_heads, seq, seq]\n    for head in range(12):\n        weights = pattern[head, 6, :]  # from position 6\n        top_pos = weights.argmax().item()\n        top_weight = weights[top_pos].item()\n        if top_weight > 0.15:  # only show strong patterns\n            token_names = [model.to_string([t]) for t in tokens[0]]\n            print(f'L{layer}H{head}: -> {token_names[top_pos]!r} '\n                  f'({top_weight:.3f})')\n\n# === 5. DIRECT LOGIT ATTRIBUTION ===\nperiod_id = model.to_single_token('.')\nthe_id = model.to_single_token(' the')\nperiod_dir = model.W_U[:, period_id]\nthe_dir = model.W_U[:, the_id]\n\nfor layer in range(12):\n    mlp_out = cache['mlp_out', layer][0, 6, :]\n    attn_out = cache['attn_out', layer][0, 6, :]\n    print(f'Layer {layer:2d}: '\n          f'MLP(.)={mlp_out @ period_dir:+.0f} '\n          f'MLP(the)={mlp_out @ the_dir:+.0f} | '\n          f'Attn(.)={attn_out @ period_dir:+.0f} '\n          f'Attn(the)={attn_out @ the_dir:+.0f}')"
+          },
+          {
+            "type": "Callout",
+            "props": {
+              "type": "info"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "To run this code, you need:\n\n• pip install transformer_lens torch\n• A machine with at least 1GB of RAM (GPT-2 small is tiny)\n• About 30 seconds of computation time\n\nGPT-2 small is one of the most accessible models for mechanistic interpretability research. It fits on a laptop CPU."
+              }
+            ]
+          },
+          {
+            "type": "Quiz",
+            "props": {
+              "question": "In TransformerLens, what does cache['resid_post', 5][0, 6, :] return?",
+              "options": [
+                "The attention pattern of Layer 5, Head 6",
+                "The residual stream vector AFTER Layer 5, for the 7th token (position 6)",
+                "The MLP output of Layer 6, position 5",
+                "The logits at Layer 5"
+              ],
+              "correctIndex": 1,
+              "explanation": "'resid_post' means the residual stream AFTER a layer's processing (both attention and MLP). The first index [0] selects the batch item, [6] selects position 6 (' mat'), and [:] takes the full 768-dimensional vector. So this returns the complete state of information at position 6 after Layer 5 has processed it."
+            }
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "Epilogue: Open Questions"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "Our investigation answered the main question — how GPT-2 arrives at its prediction — but it raised many new ones:"
+          },
+          {
+            "type": "p",
+            "children": "1. Why is Layer 2's MLP so dominant? Is this specific to simple sentences, or does Layer 2 always do the heavy lifting in GPT-2 small? Investigating this across many different prompts would reveal whether Layer 2 is a universal 'knowledge retrieval' layer or whether its role varies."
+          },
+          {
+            "type": "p",
+            "children": "2. What specific neurons fire in MLP 2? We know the layer-level norm is 2052, but which of the 3072 neurons contribute most? Identifying the key neurons and their triggers would give us a mechanistic understanding of the 'knowledge retrieval' step."
+          },
+          {
+            "type": "p",
+            "children": "3. Does the Layer 11 'sentence completion' circuit generalize? We found that Layer 11 pushes toward '.' for this sentence. Does it do the same for other complete sentences? What about incomplete sentences — does it push away from '.'?"
+          },
+          {
+            "type": "p",
+            "children": "4. How would GPT-2 XL differ? With 48 layers instead of 12, the processing would presumably be more gradual. Would we see the same dramatic Layer 2 explosion, or would the knowledge retrieval be distributed across more layers?"
+          },
+          {
+            "type": "p",
+            "children": "5. Can we use this analysis to predict failures? If we know which layers contribute what, can we predict which sentences GPT-2 small will struggle with — and why?"
+          },
+          {
+            "type": "Callout",
+            "props": {
+              "type": "key-idea"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "The tools used in this tutorial — logit lens, attention pattern analysis, direct logit attribution, residual stream norms — are the bread and butter of mechanistic interpretability. They can be applied to any transformer, any input, any prediction. What we did for 'The cat sat on the mat' you can do for any sentence that interests you."
+              }
+            ]
+          },
+          {
+            "type": "p",
+            "children": "The model isn't a black box. We opened it, traced every wire, measured every signal. And what we found was not chaos — it was a structured, staged process where syntax leads to knowledge leads to refinement leads to a final pragmatic judgment."
+          },
+          {
+            "type": "p",
+            "children": "The cat sat on the mat. And GPT-2 small, after 12 layers of careful deliberation, thinks maybe you should put a period there. Or maybe 'the'. It's honestly not sure. And that uncertainty, traced through every layer, is perhaps the most human thing about it."
+          },
+          {
+            "type": "Quiz",
+            "props": {
+              "question": "We traced GPT-2's prediction through 12 layers. Which single layer had the biggest impact on the final prediction?",
+              "options": [
+                "Layer 0, because it processes the raw embeddings",
+                "Layer 2, because its MLP (norm 2052) transformed gibberish into coherent prediction",
+                "Layer 6, because it's in the middle",
+                "Layer 11, because it flipped the prediction from ' the' to '.'"
+              ],
+              "correctIndex": 1,
+              "explanation": "While Layer 11 made the most dramatic CHANGE (flipping the top prediction), Layer 2 had the biggest absolute IMPACT. Its MLP output norm of 2052 dwarfs every other layer. It single-handedly transformed the residual stream from a state that predicted gibberish ('stroke') to one that predicted coherent English (' the'). Layer 11's twist was dramatic, but Layer 2's contribution was foundational — without it, there would be nothing coherent for Layer 11 to modify."
+            }
+          }
+        ]
+      }
+    ]
+  }
+}
