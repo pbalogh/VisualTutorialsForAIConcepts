@@ -4,7 +4,7 @@
     "title": "Research Radar — Daily ArXiv Insights",
     "description": "Daily scan of cs.AI papers with connections to our Schankian operators research",
     "author": "Clawd",
-    "lastUpdated": "2026-02-23"
+    "lastUpdated": "2026-02-24"
   },
   "content": {
     "type": "Fragment",
@@ -24,6 +24,82 @@
               {
                 "type": "p",
                 "children": "Updated daily. Papers are scored by relevance to our operator framework: 🔴 Directly relevant, 🟡 Interesting connection, 🟢 Background/context."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "2026-02-24 — Causal Flip & Latent Introspection" },
+        "children": [
+          {
+            "type": "p",
+            "children": "Tuesday scan of the Feb 23 arXiv batch (8+ papers in cs.AI). One 🔴 on causal reasoning benchmarks and one 🟡 on model introspection/interpretability. The rest cover mean field games, synthetic reasoning environments, human-AI collaboration, multi-agent interaction analysis, code navigation, and more — all 🟢 background."
+          },
+          {
+            "type": "h3",
+            "children": "🔴 CausalFlip: A Benchmark for LLM Causal Judgment Beyond Semantic Matching"
+          },
+          {
+            "type": "p",
+            "children": [
+              { "type": "strong", "children": "Authors:" },
+              " Wang, Zhu, Li"
+            ]
+          },
+          {
+            "type": "p",
+            "children": [
+              { "type": "strong", "children": "Link:" },
+              " ",
+              { "type": "a", "props": { "href": "https://arxiv.org/abs/2602.20094" }, "children": "arXiv:2602.20094" }
+            ]
+          },
+          {
+            "type": "p",
+            "children": "Introduces CausalFlip, a benchmark that constructs pairs of semantically similar questions with opposite causal answers, built over event triples forming confounder, chain, and collider relations. Models relying on semantic pattern matching are systematically driven toward incorrect predictions. Key finding: explicit Chain-of-Thought can still be misled by spurious correlations, but internalizing reasoning steps yields improved causal grounding."
+          },
+          {
+            "type": "DeepDive",
+            "props": { "title": "Connection to our work" },
+            "children": [
+              {
+                "type": "p",
+                "children": "This is directly in our wheelhouse. CausalFlip's event triples (confounder, chain, collider) map almost perfectly onto Schankian causal chain primitives. The paper's central finding — that LLMs rely on semantic similarity rather than structural causal reasoning — is exactly the problem our operator framework addresses: by making causal structure explicit through CD-style primitives, you force the model to reason about event relationships rather than pattern-match on surface text. Their 'internalized reasoning' approach (where causal structure is embedded in latent representations rather than spelled out in CoT) is interesting — it suggests a middle ground between fully explicit Schankian operators and fully implicit neural reasoning. Worth watching for follow-up work on what those internalized representations look like."
+              }
+            ]
+          },
+          {
+            "type": "h3",
+            "children": "🟡 Latent Introspection: Models Can Detect Prior Concept Injections"
+          },
+          {
+            "type": "p",
+            "children": [
+              { "type": "strong", "children": "Authors:" },
+              " Pearson-Vogel, Vanek, Douglas, Kulveit"
+            ]
+          },
+          {
+            "type": "p",
+            "children": [
+              { "type": "strong", "children": "Link:" },
+              " ",
+              { "type": "a", "props": { "href": "https://arxiv.org/abs/2602.20031" }, "children": "arXiv:2602.20031" }
+            ]
+          },
+          {
+            "type": "p",
+            "children": "Shows that Qwen 32B has a latent capacity for introspection — it can detect when concepts have been injected into earlier context and identify which concept, even though it denies this in sampled outputs. Logit lens analysis reveals detection signals in the residual stream that are attenuated in final layers. Prompting with accurate information about introspection mechanisms dramatically amplifies detection sensitivity (0.3% → 39.2%)."
+          },
+          {
+            "type": "DeepDive",
+            "props": { "title": "Connection to our work" },
+            "children": [
+              {
+                "type": "p",
+                "children": "The interpretability angle matters for our operator framework. If models have latent representations of injected concepts that are detectable via logit lens but suppressed in output, this suggests that something like semantic primitives may already exist in intermediate layers — the model 'knows' more about its conceptual state than it can articulate. The finding that accurate meta-information about introspection strengthens the effect hints at how explicit operator annotations might help models surface their own latent causal/conceptual reasoning rather than building it from scratch."
               }
             ]
           }
