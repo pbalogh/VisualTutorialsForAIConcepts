@@ -1,0 +1,1371 @@
+{
+  "type": "Fragment",
+  "meta": {
+    "title": "The Secret Life of Token Embeddings",
+    "subtitle": "From one-hot vectors to 768-dimensional learned representations — a complete history of how words become geometry",
+    "description": "A comprehensive deep dive into the history, theory, and state-of-the-art of token embeddings: how raw symbols get transformed into the dense vectors that power modern AI. From Firth's distributional hypothesis through Word2Vec, GloVe, ELMo, and modern transformer embeddings.",
+    "author": "Peter Balogh",
+    "lastUpdated": "2026-02-24",
+    "tags": [
+      "embeddings",
+      "word2vec",
+      "GloVe",
+      "transformers",
+      "NLP",
+      "deep learning",
+      "tokenization",
+      "representation learning"
+    ]
+  },
+  "content": {
+    "type": "Fragment",
+    "children": [
+      {
+        "type": "Section",
+        "props": {
+          "title": "Prologue: The Question Behind the Vectors"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "You keep hearing about 768-dimensional vectors. Every time you look inside GPT-2, there they are — these long lists of floating-point numbers, one per token, each with exactly 768 entries. They flow through the transformer like blood through arteries. They get added together, multiplied by matrices, normalized, projected, split into heads, recombined. But where do they come from?"
+          },
+          {
+            "type": "p",
+            "children": "Not the mechanical question — you know about the embedding lookup table. The deeper question: How did humanity arrive at the idea that the meaning of a word can be captured by a point in high-dimensional space? What sequence of insights, failed experiments, and conceptual breakthroughs led from 'words are arbitrary symbols' to 'words are vectors, and the geometry of those vectors encodes meaning'?"
+          },
+          {
+            "type": "p",
+            "children": "That's the story this tutorial tells. It's a story that starts in the 1950s with a British linguist's offhand remark, passes through information retrieval and linear algebra in the 1990s, explodes into the public consciousness with Word2Vec in 2013, and culminates in the embedding matrices of modern transformers. Along the way, the fundamental idea never changes: meaning is relationship, and relationships can be geometry."
+          },
+          {
+            "type": "Callout",
+            "props": {
+              "type": "key-idea"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "The central insight of all embedding methods, from LSA in 1990 to GPT-4 in 2023, is the same: you cannot define what a word means in isolation. You can only define what it means relative to other words. Embeddings are the mathematical formalization of this insight — they turn 'relative meaning' into 'relative position in space.'"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "Act I: The Pre-History — Before Embeddings"
+        },
+        "children": [
+          {
+            "type": "Section",
+            "props": {
+              "title": "1. One-Hot Vectors: The Naïve Approach"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "Before we could have embeddings, we needed to face a basic problem: computers work with numbers, and words are not numbers. How do you represent the word 'cat' as input to an algorithm?"
+              },
+              {
+                "type": "p",
+                "children": "The simplest answer is the one-hot vector. If your vocabulary has V words, represent each word as a vector of length V with a single 1 and V-1 zeros. 'Cat' might be [0, 0, 1, 0, 0, ...], 'dog' might be [0, 0, 0, 1, 0, ...]. Simple, unambiguous, clean."
+              },
+              {
+                "type": "p",
+                "children": "And completely useless for capturing meaning."
+              },
+              {
+                "type": "Code",
+                "props": {
+                  "language": "python"
+                },
+                "children": "import numpy as np\n\n# Vocabulary: [\"the\", \"cat\", \"sat\", \"dog\", \"ran\"]\none_hot_cat = np.array([0, 1, 0, 0, 0])  # \"cat\"\none_hot_dog = np.array([0, 0, 0, 1, 0])  # \"dog\"\none_hot_ran = np.array([0, 0, 0, 0, 1])  # \"ran\"\n\n# Cosine similarity between \"cat\" and \"dog\"\ncos_sim = np.dot(one_hot_cat, one_hot_dog)  # = 0\n# \"Cat\" is exactly as similar to \"dog\" as it is to \"ran\"!\n# Every word is equidistant from every other word."
+              },
+              {
+                "type": "Analogy",
+                "children": "One-hot vectors are like assigning every person on Earth a unique locker. Locker 4,392,017 is Alice; locker 4,392,018 is Bob. The locker numbers tell you nothing about whether Alice and Bob are siblings, neighbors, colleagues, or strangers. The numbering system is perfectly organized and perfectly meaningless."
+              },
+              {
+                "type": "p",
+                "children": "The two devastating problems with one-hot representations are: (1) they encode no similarity — 'cat' and 'kitten' are exactly as far apart as 'cat' and 'democracy' — and (2) they're absurdly wasteful. A vocabulary of 50,000 words requires 50,000-dimensional vectors with only one non-zero entry. That's 99.998% wasted space. These vectors are almost entirely zeros."
+              },
+              {
+                "type": "Callout",
+                "props": {
+                  "type": "warning"
+                },
+                "children": [
+                  {
+                    "type": "p",
+                    "children": "Don't dismiss one-hot vectors too quickly. They're still the starting point. When a transformer looks up a token embedding, what it's really doing is using a one-hot vector to index into a matrix. The embedding matrix IS the thing that transforms one-hot vectors into dense vectors. We'll return to this."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "Section",
+            "props": {
+              "title": "2. Bag of Words and TF-IDF: Counting Our Way to Meaning"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "If one-hot vectors represent individual words, the Bag of Words (BoW) model represents documents. Take a document, count how many times each word appears, and you have a vector. 'The cat sat on the mat' becomes a count vector where 'the' has count 2, 'cat' has count 1, and so on."
+              },
+              {
+                "type": "p",
+                "children": "This is better than nothing — at least two documents about cats will share non-zero entries for cat-related words. But raw counts have a problem: 'the' appears everywhere and tells you nothing about a document's topic, while 'mitochondria' is rare and highly informative."
+              },
+              {
+                "type": "p",
+                "children": "TF-IDF (Term Frequency–Inverse Document Frequency) fixes this by weighting words. A word that appears frequently in one document (high TF) but rarely across documents (high IDF) gets a high score. 'The' has high TF but near-zero IDF. 'Mitochondria' has moderate TF but very high IDF. The formula is simple but powerful:"
+              },
+              {
+                "type": "Code",
+                "props": {
+                  "language": "text"
+                },
+                "children": "TF-IDF(word, document) = TF(word, document) × log(N / DF(word))\n\nwhere:\n  TF  = count of word in document / total words in document\n  N   = total number of documents\n  DF  = number of documents containing the word\n  IDF = log(N / DF) — high for rare words, low for common ones"
+              },
+              {
+                "type": "p",
+                "children": "TF-IDF dominated information retrieval for decades. Google's early search engine used it (along with PageRank). It's still used today as a baseline. But it still produces sparse, high-dimensional vectors — one dimension per vocabulary word — and it still can't capture the fact that 'car' and 'automobile' mean the same thing."
+              },
+              {
+                "type": "p",
+                "children": "We needed something that could compress these enormous sparse vectors into small dense ones, preserving the relationships between words. We needed embeddings. And, as is often the case in science, the first person to get there came from an unexpected direction."
+              }
+            ]
+          },
+          {
+            "type": "Section",
+            "props": {
+              "title": "3. LSA/LSI: The First Real Embedding"
+            },
+            "children": [
+              {
+                "type": "Callout",
+                "props": {
+                  "type": "historical"
+                },
+                "children": [
+                  {
+                    "type": "p",
+                    "children": "In 1990, Scott Deerwester, Susan Dumais, and colleagues published 'Indexing by Latent Semantic Analysis.' They were trying to solve a problem in information retrieval — how do you find documents about 'cars' when the user searches for 'automobiles'? Their solution, Latent Semantic Analysis (LSA), turned out to be the first real word embedding method, though nobody called it that at the time."
+                  }
+                ]
+              },
+              {
+                "type": "p",
+                "children": "The idea behind LSA is elegant. Start with a term-document matrix: rows are words, columns are documents, entries are TF-IDF scores (or raw counts). This matrix is enormous and sparse. Now apply truncated Singular Value Decomposition (SVD) — keep only the top k singular values and their corresponding vectors."
+              },
+              {
+                "type": "DeepDive",
+                "props": {
+                  "title": "SVD and Dimensionality Reduction"
+                },
+                "children": [
+                  {
+                    "type": "p",
+                    "children": "Any matrix M (m×n) can be decomposed as M = UΣV^T, where U is m×m orthogonal, Σ is m×n diagonal with non-negative entries (the singular values), and V^T is n×n orthogonal. Truncated SVD keeps only the top k singular values, giving M ≈ U_k Σ_k V_k^T."
+                  },
+                  {
+                    "type": "p",
+                    "children": "The magic: U_k gives you a k-dimensional representation of each word (rows). V_k gives you a k-dimensional representation of each document (columns). These representations live in the SAME k-dimensional space — you can compare words to words, documents to documents, and even words to documents using cosine similarity."
+                  },
+                  {
+                    "type": "p",
+                    "children": "Crucially, k is small — typically 100-300. So you've gone from sparse 50,000-dimensional TF-IDF vectors to dense 300-dimensional vectors. And because SVD finds the directions of maximum variance, the dense vectors capture the most important patterns of co-occurrence. Words that appear in similar contexts end up with similar vectors, even if they never appear in the same document. 'Car' and 'automobile' converge."
+                  }
+                ]
+              },
+              {
+                "type": "Analogy",
+                "children": "LSA is like taking a high-resolution photograph and compressing it to a JPEG. You lose some detail (the rarely-occurring, idiosyncratic word-document associations), but you keep the essential structure (the major patterns of which words go with which topics). And just like JPEG compression can sometimes make an image look better by removing noise, LSA can sometimes improve retrieval by removing the noise of spurious word associations."
+              },
+              {
+                "type": "p",
+                "children": "LSA had a good run — it was state-of-the-art for information retrieval through the 1990s and into the 2000s. But it had significant limitations. It's a linear method — it can't capture nonlinear relationships between words. It treats documents as bags of words, ignoring word order. And it requires computing the SVD of the entire term-document matrix, which doesn't scale well. The real breakthrough required a different theoretical foundation, one that had been waiting in linguistics for four decades."
+              },
+              {
+                "type": "Quiz",
+                "props": {
+                  "question": "What is the key innovation of LSA/LSI over raw TF-IDF vectors?",
+                  "options": [
+                    "It uses neural networks to learn word representations",
+                    "It applies truncated SVD to compress sparse vectors into dense ones that capture latent semantic relationships",
+                    "It considers word order within documents",
+                    "It uses backpropagation to optimize word vectors"
+                  ],
+                  "correctIndex": 1,
+                  "explanation": "LSA applies truncated SVD to the term-document matrix, compressing sparse TF-IDF vectors into dense, low-dimensional vectors. Words that appear in similar contexts get similar vectors, even if they never co-occur directly. There are no neural networks involved — it's pure linear algebra. But it's arguably the first real 'embedding' of words into a continuous vector space."
+                }
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "Act II: The Distributional Hypothesis — The Theoretical Foundation"
+        },
+        "children": [
+          {
+            "type": "Callout",
+            "props": {
+              "type": "historical"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "In 1957, the British linguist J.R. Firth wrote what may be the most-quoted sentence in all of computational linguistics: 'You shall know a word by the company it keeps.' He was articulating what we now call the distributional hypothesis — the idea that words with similar meanings appear in similar contexts. This was not a computational insight; Firth was a theoretical linguist. But his aphorism became the philosophical bedrock of the entire embeddings revolution."
+              }
+            ]
+          },
+          {
+            "type": "p",
+            "children": "The distributional hypothesis had been floating around linguistics since at least Zellig Harris in the 1950s. Harris's version was more precise: words that occur in the same linguistic environments (same syntactic contexts) tend to have similar meanings. 'Doctor' and 'physician' appear in many of the same contexts ('The ___ examined the patient'), so they must mean something similar."
+          },
+          {
+            "type": "p",
+            "children": "This seems obvious in retrospect. But it's actually a radical claim. It says that meaning is not some Platonic essence locked inside a word — meaning IS the pattern of contexts in which a word appears. There is nothing more to the meaning of 'bank' than the distribution of words that surround it. If you know all the contexts in which 'bank' appears, you know what 'bank' means."
+          },
+          {
+            "type": "Callout",
+            "props": {
+              "type": "key-idea"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "The distributional hypothesis is the reason embeddings work at all. Every embedding method — from LSA to Word2Vec to BERT — is just a different way of formalizing 'words that appear in similar contexts get similar vectors.' The methods differ enormously in how they define 'context,' how they measure 'similarity,' and how they compute the vectors. But the core idea is Firth's."
+              }
+            ]
+          },
+          {
+            "type": "Section",
+            "props": {
+              "title": "Co-occurrence Matrices and PMI"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "The most direct way to operationalize the distributional hypothesis is to build a word-word co-occurrence matrix. Define a context window (say, 5 words to the left and right). Scan through your entire corpus. Every time word i appears within 5 words of word j, increment entry (i, j) in the matrix."
+              },
+              {
+                "type": "p",
+                "children": "Raw co-occurrence counts have the same problem as raw term frequencies: common words dominate everything. 'The' co-occurs frequently with every word, but that tells you nothing. The fix is Pointwise Mutual Information (PMI):"
+              },
+              {
+                "type": "Code",
+                "props": {
+                  "language": "text"
+                },
+                "children": "PMI(word_i, word_j) = log₂( P(i,j) / (P(i) × P(j)) )\n\nwhere:\n  P(i,j)  = probability that i and j co-occur\n  P(i)    = probability of seeing i in any context\n  P(j)    = probability of seeing j in any context\n\nIf two words co-occur more than chance would predict → PMI > 0\nIf two words co-occur less than chance would predict → PMI < 0\nIf independent → PMI = 0\n\nIn practice, we use PPMI (Positive PMI) — replace negative values with 0."
+              },
+              {
+                "type": "p",
+                "children": "A PPMI matrix is still sparse and high-dimensional (V × V, where V is the vocabulary size — potentially 100,000 × 100,000). But it encodes genuine semantic information. Apply SVD to this PPMI matrix, and you get dense word vectors that capture semantic similarity. In fact, a landmark 2014 paper by Levy and Goldberg showed that Word2Vec's Skip-gram model with negative sampling is implicitly factorizing a shifted PMI matrix. The neural approach and the count-based approach were doing the same thing all along."
+              },
+              {
+                "type": "Analogy",
+                "children": "A co-occurrence matrix is like a social network graph. You could describe each person by listing every other person they've been seen with — that's the sparse, high-dimensional representation. Or you could describe each person by their 'type' — introvert/extrovert, young/old, tech/humanities — a dense, low-dimensional representation that captures the important patterns. Embeddings are the second approach, derived from the first."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "Act III: Neural Language Models Begin — Bengio 2003"
+        },
+        "children": [
+          {
+            "type": "Callout",
+            "props": {
+              "type": "historical"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "In 2003, Yoshua Bengio, Réjean Ducharme, Pascal Vincent, and Christian Jauvin published 'A Neural Probabilistic Language Model' in the Journal of Machine Learning Research. This paper introduced an idea so fundamental that it still forms the core of how modern transformers work: a learned lookup table that maps each word to a dense vector, trained jointly with a neural network that predicts the next word."
+              }
+            ]
+          },
+          {
+            "type": "p",
+            "children": "Bengio's insight was deceptively simple. The problem he was trying to solve was language modeling — predicting the probability of the next word given the previous words. The standard approach in 2003 was n-gram models (count how often 'the cat sat' is followed by 'on', divide by how often 'the cat sat' appears). These worked, but they suffered from the curse of dimensionality: most n-grams never appear in training data, so you can't estimate their probabilities."
+          },
+          {
+            "type": "p",
+            "children": "Bengio's solution: give each word a dense vector representation — say, 30 or 60 dimensions — and feed these vectors into a neural network that predicts the next word. The word vectors and the network parameters are trained together via backpropagation. The key insight is that similar words will end up with similar vectors, because the network learns that it can use 'cat' vectors and 'dog' vectors interchangeably in many contexts. If the model has seen 'the cat sat on the,' it can generalize to 'the dog sat on the' — even if this exact phrase never appeared in training."
+          },
+          {
+            "type": "DeepDive",
+            "props": {
+              "title": "The Bengio Architecture"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "The architecture is almost comically simple by today's standards. Given n previous words (say, n=4):"
+              },
+              {
+                "type": "Code",
+                "props": {
+                  "language": "text"
+                },
+                "children": "Input:  4 words, each represented as a one-hot vector (dim = |V|)\n  ↓\nLookup Table C: shared matrix (|V| × d), maps each word to its d-dim vector\n  ↓\nConcatenate: 4 word vectors → one vector of dimension 4d\n  ↓\nHidden Layer: tanh(W × concat + b)   — one hidden layer\n  ↓\nOutput Layer: softmax over |V| words  — probability of next word\n  ↓\nLoss: negative log-likelihood of the correct next word\n  ↓\nBackpropagate: update W, b, AND the lookup table C"
+              },
+              {
+                "type": "p",
+                "children": "The lookup table C is the embedding matrix. Every word in the vocabulary gets a row in C. When you look up the embedding for word w, you're taking row w from C — which is mathematically identical to multiplying C^T by the one-hot vector for w. This 'lookup table equals matrix multiplication by one-hot vector' identity is still how embeddings work in modern transformers."
+              },
+              {
+                "type": "p",
+                "children": "The paper reported results with d = 30, 60, and 100. The vocabulary was 17,964 words. Training on a 14-million-word corpus took weeks on a single CPU. Today's models use d = 768 to 12,288 with vocabularies of 30,000 to 250,000, trained on trillions of tokens across thousands of GPUs. The architecture changed; the lookup table idea didn't."
+              }
+            ]
+          },
+          {
+            "type": "Callout",
+            "props": {
+              "type": "key-idea"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "Bengio 2003 established two principles that still govern modern AI: (1) Word representations should be learned, not designed — let the data decide what the vectors should be. (2) The representations should be learned jointly with the task — the embedding matrix and the language model are trained together, each shaping the other. The embeddings are not pre-computed features; they are parameters of the model."
+              }
+            ]
+          },
+          {
+            "type": "p",
+            "children": "For almost a decade, Bengio's approach remained a niche interest. The vectors were good, but the training was slow. N-gram models were faster and, with enough data and clever smoothing, competitive. The field needed someone to make neural word embeddings fast. Embarrassingly fast. Fast enough to train on all of Google News in a day."
+          },
+          {
+            "type": "Quiz",
+            "props": {
+              "question": "What was the key innovation of Bengio et al. 2003 compared to earlier approaches like LSA?",
+              "options": [
+                "It used a much larger vocabulary",
+                "It used SVD instead of neural networks",
+                "It learned word vectors jointly with a neural language model via backpropagation",
+                "It was the first method to use dense rather than sparse vectors"
+              ],
+              "correctIndex": 2,
+              "explanation": "While LSA also produced dense vectors, Bengio's innovation was to learn the vectors as parameters of a neural network optimized for language modeling. The embeddings weren't derived from a static co-occurrence matrix — they were trained end-to-end alongside the prediction task. This meant the vectors were specifically optimized to be useful for predicting the next word, which turns out to be an excellent way to learn semantic representations."
+            }
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "Act IV: Word2Vec — The Big Bang"
+        },
+        "children": [
+          {
+            "type": "Callout",
+            "props": {
+              "type": "historical"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "In January 2013, Tomáš Mikolov, Kai Chen, Greg Corrado, and Jeffrey Dean at Google published 'Efficient Estimation of Word Representations in Vector Space.' In October, Mikolov followed up with 'Distributed Representations of Words and Phrases and their Compositionality.' Together, these two papers — introducing Word2Vec — changed the trajectory of NLP. They didn't invent the idea of word embeddings. What they did was make them absurdly easy to compute, shockingly effective, and intoxicatingly fun to explore."
+              }
+            ]
+          },
+          {
+            "type": "p",
+            "children": "Word2Vec's central trick was to strip away everything except the embedding learning. Bengio had a full neural language model — hidden layers, softmax output, the works. Mikolov asked: what if we throw away the neural network and keep only the lookup table? What if the embedding IS the model?"
+          },
+          {
+            "type": "p",
+            "children": "This sounds insane. How can you learn anything useful with no hidden layers? The answer is that you can, if you set up the right training objective. Word2Vec proposed two:"
+          },
+          {
+            "type": "Section",
+            "props": {
+              "title": "CBOW (Continuous Bag of Words)"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "Given the context words around a target word, predict the target. For the sentence 'the cat sat on the mat' with a window size of 2, to predict 'sat', CBOW takes the vectors for ['cat', 'on'] (or ['the', 'cat', 'on', 'the'] with window=2 on each side), averages them, and uses the result to predict 'sat'."
+              },
+              {
+                "type": "Code",
+                "props": {
+                  "language": "text"
+                },
+                "children": "CBOW Architecture:\n\nContext words: [w_{t-2}, w_{t-1}, w_{t+1}, w_{t+2}]\n  ↓\nLookup in embedding matrix W (|V| × d)\n  ↓\nAverage the context vectors → single d-dimensional vector\n  ↓\nMultiply by output matrix W' (d × |V|)\n  ↓\nSoftmax → probability distribution over vocabulary\n  ↓\nTrain to maximize P(w_t | context)"
+              }
+            ]
+          },
+          {
+            "type": "Section",
+            "props": {
+              "title": "Skip-gram"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "The reverse: given a target word, predict the context words. For 'sat', predict that 'cat' and 'on' (and 'the' and 'the') appear nearby. This turns out to work better for rare words, because each training example generates multiple prediction tasks."
+              },
+              {
+                "type": "Code",
+                "props": {
+                  "language": "text"
+                },
+                "children": "Skip-gram Architecture:\n\nTarget word: w_t\n  ↓\nLookup in embedding matrix W (|V| × d)\n  ↓\nFor each context position i in [-window, +window]:\n  Multiply w_t's vector by output matrix W' (d × |V|)\n  ↓\n  Softmax → probability distribution over vocabulary\n  ↓\n  Train to maximize P(w_{t+i} | w_t)"
+              },
+              {
+                "type": "p",
+                "children": "Notice what's missing: there are no hidden layers. No nonlinearity (except the softmax). The entire model is two matrices: W (input embeddings) and W' (output embeddings). The learned word vectors are just the rows of W. This is why it's so fast — there's almost nothing to compute."
+              }
+            ]
+          },
+          {
+            "type": "Section",
+            "props": {
+              "title": "Negative Sampling: Making It Practical"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "Even with this stripped-down architecture, the softmax over the full vocabulary is expensive. If V = 100,000, every training step requires computing 100,000 dot products. Mikolov's second paper introduced negative sampling, which turns the problem from 'predict which word appears in context' to 'classify whether a word-context pair is real or fake'."
+              },
+              {
+                "type": "DeepDive",
+                "props": {
+                  "title": "The Negative Sampling Objective"
+                },
+                "children": [
+                  {
+                    "type": "p",
+                    "children": "Instead of a V-way softmax, negative sampling uses a binary classifier. For each real (word, context) pair from the corpus, sample k 'negative' pairs by replacing the context word with random words. Train a logistic classifier to distinguish real pairs from fake ones."
+                  },
+                  {
+                    "type": "Code",
+                    "props": {
+                      "language": "text"
+                    },
+                    "children": "Objective (for one word-context pair (w, c)):\n\nL = log σ(v_w · v'_c) + Σᵢ₌₁ᵏ E[log σ(-v_w · v'_nᵢ)]\n\nwhere:\n  v_w   = input embedding of target word\n  v'_c  = output embedding of context word\n  v'_nᵢ = output embedding of i-th negative sample\n  σ     = sigmoid function\n  k     = number of negative samples (typically 5-15)\n\nInstead of normalizing over all |V| words (softmax),\nwe only compute k+1 dot products per training step."
+                  },
+                  {
+                    "type": "p",
+                    "children": "Negative samples are drawn from a smoothed unigram distribution: P(w) ∝ count(w)^0.75. The 0.75 exponent slightly upweights rare words relative to their frequency, giving them more representation in the negative samples. This was found empirically — there's no strong theoretical justification, but it works."
+                  },
+                  {
+                    "type": "p",
+                    "children": "Levy and Goldberg (2014) proved that Skip-gram with negative sampling is implicitly factorizing a word-context PMI matrix, shifted by log(k). This revealed that Word2Vec wasn't doing something fundamentally different from count-based methods like LSA — it was just doing it more efficiently and with a different implicit weighting scheme."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "Section",
+            "props": {
+              "title": "The King–Queen Analogy and Linear Substructure"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "The result that launched a thousand blog posts: vector('King') - vector('Man') + vector('Woman') ≈ vector('Queen'). The embedding space learned by Word2Vec exhibits striking linear regularities. The vector from 'man' to 'woman' is approximately the same as the vector from 'king' to 'queen', from 'uncle' to 'aunt', from 'he' to 'she'."
+              },
+              {
+                "type": "Code",
+                "props": {
+                  "language": "python"
+                },
+                "children": "# Famous Word2Vec analogies (actual results from Google News vectors)\n\n# Gender\nking - man + woman ≈ queen\nbrother - man + woman ≈ sister\n\n# Tense\nwalking - walked + swam ≈ swimming\n\n# Country-Capital\nParis - France + Italy ≈ Rome\nTokyo - Japan + Germany ≈ Berlin\n\n# Comparative-Superlative  \nbig - bigger + tallest ≈ tall  # (approximately)"
+              },
+              {
+                "type": "p",
+                "children": "This was electrifying. It suggested that Word2Vec wasn't just clustering similar words — it was discovering that semantic relationships correspond to directions in the vector space. Gender is a direction. Tense is a direction. Country-to-capital is a direction. The space has meaningful geometry."
+              },
+              {
+                "type": "Callout",
+                "props": {
+                  "type": "warning"
+                },
+                "children": [
+                  {
+                    "type": "p",
+                    "children": "The analogy results are real but somewhat cherry-picked. Word2Vec analogy accuracy on standard benchmarks is around 60-75%, not 95%+. Many analogies fail, especially for less common words. The 'linear substructure' is a genuine phenomenon, but it's an approximation, not a law. Later work showed that some analogy successes can be explained by simpler word frequency effects."
+                  }
+                ]
+              },
+              {
+                "type": "p",
+                "children": "Word2Vec's practical impact was enormous. Before 2013, training word embeddings required significant computational resources and expertise. After Word2Vec, anyone with a laptop and a text file could train embeddings in hours. Mikolov released pre-trained vectors trained on 100 billion words of Google News — 3 million word vectors in 300 dimensions. NLP researchers immediately started using Word2Vec embeddings as input features for every task imaginable: sentiment analysis, named entity recognition, machine translation, question answering. The era of 'pre-trained representations' had begun."
+              },
+              {
+                "type": "Quiz",
+                "props": {
+                  "question": "Why is Word2Vec's Skip-gram model so much faster to train than Bengio's 2003 neural language model?",
+                  "options": [
+                    "It uses a GPU instead of a CPU",
+                    "It has no hidden layers — the model is just two matrices — and uses negative sampling instead of a full softmax",
+                    "It uses a smaller vocabulary",
+                    "It processes sentences rather than individual words"
+                  ],
+                  "correctIndex": 1,
+                  "explanation": "Word2Vec's genius was architectural minimalism. By removing hidden layers and replacing the expensive |V|-way softmax with negative sampling (only k+1 dot products per step), it reduced the computational cost by orders of magnitude. The model is literally just two matrices: input embeddings W and output embeddings W'. This allowed training on billions of words on a single machine in a day."
+                }
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "Act V: GloVe — Unifying Counts and Predictions"
+        },
+        "children": [
+          {
+            "type": "Callout",
+            "props": {
+              "type": "historical"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "In 2014, Jeffrey Pennington, Richard Socher, and Christopher Manning at Stanford published 'GloVe: Global Vectors for Word Representation.' Their argument was that Word2Vec and count-based methods (like LSA) each had complementary strengths, and a method that combined both would be superior."
+              }
+            ]
+          },
+          {
+            "type": "p",
+            "children": "GloVe's key insight: Word2Vec's skip-gram processes the corpus one window at a time, never using the global co-occurrence statistics directly. LSA uses the global statistics (via the full co-occurrence matrix) but is limited to linear decomposition. GloVe directly constructs and factorizes the co-occurrence matrix, but with a carefully designed objective function."
+          },
+          {
+            "type": "DeepDive",
+            "props": {
+              "title": "The GloVe Objective Function"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "GloVe starts with the word-word co-occurrence matrix X, where X_ij = number of times word j appears in the context of word i. The objective is:"
+              },
+              {
+                "type": "Code",
+                "props": {
+                  "language": "text"
+                },
+                "children": "J = Σᵢ,ⱼ f(Xᵢⱼ) × (wᵢ · w̃ⱼ + bᵢ + b̃ⱼ - log Xᵢⱼ)²\n\nwhere:\n  wᵢ    = embedding vector for word i\n  w̃ⱼ    = separate context vector for word j\n  bᵢ, b̃ⱼ = bias terms\n  f(x)  = weighting function that caps at x_max (typically 100):\n           f(x) = (x/x_max)^α if x < x_max, else 1\n           (α is typically 0.75)\n\nThe model learns to make the dot product wᵢ · w̃ⱼ\napproximate log(Xᵢⱼ) — the log co-occurrence count."
+              },
+              {
+                "type": "p",
+                "children": "The weighting function f(x) is crucial: it downweights extremely common co-occurrences (like 'the' + 'of') that would otherwise dominate the objective. The constraint that the dot product approximates the log count means GloVe is explicitly trying to encode co-occurrence statistics in the geometry of the embedding space."
+              }
+            ]
+          },
+          {
+            "type": "p",
+            "children": "In practice, GloVe and Word2Vec produce very similar embeddings. The Stanford team released pre-trained GloVe vectors (trained on Common Crawl with 840 billion tokens) in 50, 100, 200, and 300 dimensions. These became as ubiquitous as Word2Vec vectors in downstream NLP applications. The debate over which was 'better' consumed much of the 2014-2016 NLP community, until everyone realized the answer was 'it depends on the task, and the differences are small.'"
+          },
+          {
+            "type": "p",
+            "children": "Both Word2Vec and GloVe share a fundamental limitation, one that would drive the next revolution: every word gets exactly one vector. 'Bank' (financial institution) and 'bank' (river bank) have the same vector — some unhappy compromise between their two meanings. For polysemous words, the embedding is a blurred average of all their uses. We'll return to this problem soon."
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "Act VI: FastText — Going Subword"
+        },
+        "children": [
+          {
+            "type": "Callout",
+            "props": {
+              "type": "historical"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "In 2016, Piotr Bojanowski, Edouard Grave, Armand Joulin, and Tomáš Mikolov (now at Facebook AI Research) published 'Enriching Word Vectors with Subword Information.' FastText extended Word2Vec by representing each word not as a single atomic unit, but as a bag of character n-grams."
+              }
+            ]
+          },
+          {
+            "type": "p",
+            "children": "Word2Vec and GloVe assign vectors to whole words. If a word doesn't appear in training data, it gets no vector at all — the dreaded out-of-vocabulary (OOV) problem. And even words that DO appear don't share information with morphologically related words. 'Running', 'runs', 'runner', and 'ran' get independent vectors, even though they share a root."
+          },
+          {
+            "type": "p",
+            "children": "FastText's fix: represent each word as the sum of its character n-gram vectors. The word 'running' (with special boundary markers) would be decomposed into character n-grams like: <ru, run, unn, nni, nin, ing, ng>. Each n-gram gets its own learned vector, and the word's vector is the sum of all its n-gram vectors plus a vector for the whole word (if it's in the vocabulary)."
+          },
+          {
+            "type": "Code",
+            "props": {
+              "language": "text"
+            },
+            "children": "# FastText representation of \"running\" (using 3-grams)\n\nWord: running\nWith boundaries: <running>\n\nCharacter 3-grams:\n  <ru, run, unn, nni, nin, ing, ng>\n\nWord vector = v(running) + Σ v(n-gram)\n            = v(running) + v(<ru) + v(run) + v(unn) + ... + v(ng>)\n\n# For an OOV word like \"lunning\":\n# No whole-word vector, but character n-grams still work:\n# <lu, lun, unn, nni, nin, ing, ng>\n# Shares n-grams with \"running\" → gets a similar vector!"
+          },
+          {
+            "type": "p",
+            "children": "This was a game-changer for morphologically rich languages like Finnish, Turkish, and Arabic, where a single root can generate hundreds of inflected forms. It also meant that FastText could handle misspellings, neologisms, and technical jargon that never appeared in training data. 'Covid' and 'Covid-19' would get reasonable vectors even if trained before 2020, because they'd share n-grams with known words."
+          },
+          {
+            "type": "p",
+            "children": "FastText was also a spiritual precursor to the subword tokenization methods (BPE, WordPiece) that would become standard in transformers. The idea that sub-word units are the right level of representation — not too fine-grained like characters, not too coarse like whole words — would prove enduring."
+          },
+          {
+            "type": "Quiz",
+            "props": {
+              "question": "What key problem does FastText solve that Word2Vec and GloVe cannot?",
+              "options": [
+                "It produces context-dependent embeddings for polysemous words",
+                "It can generate embeddings for out-of-vocabulary words by composing character n-gram vectors",
+                "It handles multiple languages simultaneously",
+                "It uses attention mechanisms to weight context words"
+              ],
+              "correctIndex": 1,
+              "explanation": "FastText decomposes words into character n-grams, each with its own learned vector. A word's embedding is the sum of its n-gram vectors. This means that even words never seen during training (OOV words) get reasonable vectors, because they share n-grams with known words. Note that FastText still gives one vector per word TYPE — it does not solve the polysemy problem (same word, different meanings in different contexts). That would require contextualized embeddings."
+            }
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "Act VII: The Contextualization Revolution"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "By 2017, the NLP community had a well-stocked toolbox of word embeddings. Word2Vec, GloVe, FastText — pick your favorite, pre-train on a big corpus (or download pre-trained vectors), and use them as fixed input features for whatever task you cared about. This workflow, called 'feature extraction,' worked well. But it had a glaring blindspot."
+          },
+          {
+            "type": "p",
+            "children": "Consider these two sentences:"
+          },
+          {
+            "type": "Code",
+            "props": {
+              "language": "text"
+            },
+            "children": "1. \"I deposited money in the bank.\"\n2. \"I sat on the bank of the river.\""
+          },
+          {
+            "type": "p",
+            "children": "In Word2Vec, GloVe, and FastText, the word 'bank' has exactly one vector, regardless of context. That vector is some weighted average of the financial-institution meaning and the river-edge meaning (and perhaps the billiards meaning, and the airplane-banking meaning, and...). This is the polysemy problem, and it goes deeper than 'bank' — almost every common word has multiple senses."
+          },
+          {
+            "type": "Callout",
+            "props": {
+              "type": "key-idea"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "The fundamental limitation of Word2Vec/GloVe/FastText: they produce TYPE-level embeddings (one vector per word type in the vocabulary), not TOKEN-level embeddings (one vector per word occurrence in context). The contextualization revolution was the shift from type-level to token-level: each occurrence of a word should get its own vector, shaped by its context."
+              }
+            ]
+          },
+          {
+            "type": "Analogy",
+            "children": "Type-level embeddings are like giving every actor a single headshot. It captures something about them, but it can't show them playing different roles. Token-level (contextualized) embeddings are like stills from actual movies — the same actor looks completely different as a villain vs. a romantic lead, and the still captures which role they're playing right now."
+          },
+          {
+            "type": "Section",
+            "props": {
+              "title": "ELMo (2018): Deep Contextualized Word Representations"
+            },
+            "children": [
+              {
+                "type": "Callout",
+                "props": {
+                  "type": "historical"
+                },
+                "children": [
+                  {
+                    "type": "p",
+                    "children": "In February 2018, Matthew Peters et al. at the Allen Institute for AI published 'Deep contextualized word representations,' introducing ELMo (Embeddings from Language Models). The paper's central contribution: instead of using static word vectors, run a deep bidirectional LSTM language model over the sentence and use the internal states as word representations. Each word's representation now depends on the entire sentence."
+                  }
+                ]
+              },
+              {
+                "type": "p",
+                "children": "ELMo works by training a two-layer bidirectional LSTM (biLSTM) language model. The forward LSTM predicts the next word; the backward LSTM predicts the previous word. For each word in a sentence, ELMo produces three representations: the initial character-based embedding (layer 0), the first LSTM layer output (layer 1), and the second LSTM layer output (layer 2)."
+              },
+              {
+                "type": "p",
+                "children": "The key discovery: different layers capture different types of information. Layer 1 captures mostly syntactic information (POS tags, parse structure). Layer 2 captures mostly semantic information (word sense, semantic role). ELMo's final representation is a task-specific weighted average of all three layers — the weights are learned during fine-tuning."
+              },
+              {
+                "type": "DeepDive",
+                "props": {
+                  "title": "ELMo Layer Representations"
+                },
+                "children": [
+                  {
+                    "type": "Code",
+                    "props": {
+                      "language": "text"
+                    },
+                    "children": "ELMo representation for word k in sentence:\n\nELMo_k = γ × Σⱼ₌₀² sⱼ × hⱼ,ₖ\n\nwhere:\n  hⱼ,ₖ = output of layer j at position k\n         (j=0: char-CNN embedding, j=1: LSTM layer 1, j=2: LSTM layer 2)\n  sⱼ   = learned scalar weight for layer j (softmax-normalized)\n  γ    = learned scalar scaling factor\n\nFor POS tagging tasks, s₁ (syntax layer) gets highest weight.\nFor word sense disambiguation, s₂ (semantic layer) gets highest weight.\nThe model learns to mix layers as needed."
+                  },
+                  {
+                    "type": "p",
+                    "children": "This was the first strong evidence that different layers of a deep network capture qualitatively different types of linguistic information — an insight that would be confirmed and extended in transformer models like BERT."
+                  }
+                ]
+              },
+              {
+                "type": "p",
+                "children": "ELMo improved state-of-the-art on six NLP benchmarks, often by large margins. But it was quickly superseded by an even more powerful architecture: the transformer. Within a year, BERT would make ELMo's biLSTM approach look quaint. But ELMo's core ideas — contextualized representations, using all layers, pre-train-then-fine-tune — survived and thrived."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "Act VIII: Transformer Embeddings — The Modern Architecture"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "Now we arrive at the embeddings you actually encounter when you peer inside GPT-2, BERT, Llama, or any modern transformer. And here's the beautiful irony: the initial embedding mechanism is almost identical to what Bengio proposed in 2003. It's a lookup table. Twenty years of progress in the embedding space, and we're still using a learned lookup table."
+          },
+          {
+            "type": "p",
+            "children": "But the lookup table is now just the first step. In Bengio's model, the embeddings fed directly into a shallow neural network. In a transformer, the embeddings feed into dozens of attention layers that contextualize them beyond anything Bengio could have imagined. The initial embedding is the raw material; the transformer is the factory that processes it."
+          },
+          {
+            "type": "Section",
+            "props": {
+              "title": "The Three Components of Transformer Input Embeddings"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "A transformer's input embedding for each token is typically the sum of two or three separate embeddings:"
+              },
+              {
+                "type": "Section",
+                "props": {
+                  "title": "1. Token Embeddings (The Lookup Table)"
+                },
+                "children": [
+                  {
+                    "type": "p",
+                    "children": "A matrix W_E of shape (vocab_size × d_model). Each row is the learned embedding vector for one token in the vocabulary. To get the embedding for token ID 4827, you take row 4827 of W_E. That's it. No computation, no function evaluation — just a table lookup."
+                  },
+                  {
+                    "type": "Code",
+                    "props": {
+                      "language": "python"
+                    },
+                    "children": "import torch\n\n# GPT-2 small: vocab_size=50257, d_model=768\nW_E = model.transformer.wte.weight  # shape: (50257, 768)\n\n# Get embedding for token 4827\ntoken_embedding = W_E[4827]  # shape: (768,)\n\n# This is mathematically identical to:\none_hot = torch.zeros(50257)\none_hot[4827] = 1.0\ntoken_embedding = one_hot @ W_E  # matrix multiplication by one-hot"
+                  },
+                  {
+                    "type": "p",
+                    "children": "These 768 numbers are learned parameters — they start as random values and are adjusted by backpropagation during training. After training, they encode something about the 'meaning' of the token — but in a highly compressed, distributed way that doesn't lend itself to simple interpretation."
+                  }
+                ]
+              },
+              {
+                "type": "Section",
+                "props": {
+                  "title": "2. Positional Embeddings"
+                },
+                "children": [
+                  {
+                    "type": "p",
+                    "children": "A critical problem: the token embedding for 'cat' is the same whether it appears at position 0 or position 500. But position matters enormously — 'The cat chased the dog' means something very different from 'The dog chased the cat.' The model needs to know WHERE each token is."
+                  },
+                  {
+                    "type": "p",
+                    "children": "GPT-2 solves this with a second lookup table W_P of shape (max_positions × d_model). For GPT-2, this is (1024 × 768) — it supports sequences up to 1024 tokens. Position 0 gets one vector, position 1 gets another, and so on. These are also learned parameters."
+                  },
+                  {
+                    "type": "p",
+                    "children": "The original 'Attention Is All You Need' paper (Vaswani et al. 2017) used fixed sinusoidal positional encodings instead of learned ones:"
+                  },
+                  {
+                    "type": "Code",
+                    "props": {
+                      "language": "text"
+                    },
+                    "children": "PE(pos, 2i)   = sin(pos / 10000^(2i/d_model))\nPE(pos, 2i+1) = cos(pos / 10000^(2i/d_model))\n\nEach dimension gets a sinusoid of different frequency.\nDimension 0-1: high frequency (changes rapidly with position)\nDimension 766-767: low frequency (changes slowly)\n\nThe theory: this lets the model attend to relative positions,\nbecause PE(pos+k) can be expressed as a linear function of PE(pos)."
+                  },
+                  {
+                    "type": "p",
+                    "children": "GPT-2 and BERT both chose learned positional embeddings over sinusoidal ones. The original paper hypothesized that sinusoidal encodings would generalize better to longer sequences, but this advantage was modest in practice. We'll discuss modern alternatives (RoPE, ALiBi) later."
+                  }
+                ]
+              },
+              {
+                "type": "Section",
+                "props": {
+                  "title": "3. Segment Embeddings (BERT only)"
+                },
+                "children": [
+                  {
+                    "type": "p",
+                    "children": "BERT adds a third component: segment embeddings that distinguish between the first and second sentence in a sentence-pair input. This is a tiny lookup table with just 2 entries (segment A and segment B), each of dimension 768. GPT-2 doesn't use segment embeddings."
+                  }
+                ]
+              },
+              {
+                "type": "Section",
+                "props": {
+                  "title": "Putting It All Together"
+                },
+                "children": [
+                  {
+                    "type": "Code",
+                    "props": {
+                      "language": "text"
+                    },
+                    "children": "# GPT-2 input embedding:\n\ninput_embedding[t] = W_E[token_id[t]] + W_P[position[t]]\n\n# BERT input embedding:\n\ninput_embedding[t] = W_E[token_id[t]] + W_P[position[t]] + W_S[segment_id[t]]\n\n# Both: result is a single 768-dimensional vector per token.\n# This is what enters the first transformer layer."
+                  },
+                  {
+                    "type": "p",
+                    "children": "Notice the staggering simplicity: the entire 'embedding' step is two table lookups and an addition. No neural network layers. No nonlinearities. No attention. The initial embedding of each token is completely independent of every other token in the sequence. All contextualization — all awareness of what the other tokens are — comes from the transformer layers that follow."
+                  },
+                  {
+                    "type": "Callout",
+                    "props": {
+                      "type": "key-idea"
+                    },
+                    "children": [
+                      {
+                        "type": "p",
+                        "children": "The initial token embeddings in a transformer are NOT contextualized. They carry no information about context whatsoever. The token embedding for 'bank' is the same whether the next word is 'account' or 'river.' Contextualization is the job of the attention layers. The embedding table provides the raw semantic material; the transformer sculpts it into context-specific representations."
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "Section",
+            "props": {
+              "title": "How Embeddings Get Trained"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "The embedding matrix is just a block of parameters, updated by backpropagation like everything else in the model. During training, the gradient flows backward from the loss function, through all the transformer layers, and arrives at the embedding table. The gradient for each token's embedding is the sum of all the gradients that flowed back to that token through the various layers."
+              },
+              {
+                "type": "p",
+                "children": "There's an efficiency detail worth noting: in a given training batch, only a tiny fraction of the vocabulary's tokens actually appear. If your batch contains 2048 tokens from a vocabulary of 50,257, at most 2048 rows of the embedding matrix receive gradient updates. Rare tokens — those that appear infrequently in training data — accumulate fewer gradient updates and tend to have less well-learned embeddings. This is one reason why models sometimes struggle with rare words."
+              }
+            ]
+          },
+          {
+            "type": "Quiz",
+            "props": {
+              "question": "In GPT-2, what is the input to the first transformer layer for a token at position 7?",
+              "options": [
+                "The one-hot vector for the token",
+                "The token embedding only (looked up from W_E)",
+                "The sum of the token embedding (from W_E) and the positional embedding (from W_P)",
+                "The output of a bidirectional LSTM applied to the token's context"
+              ],
+              "correctIndex": 2,
+              "explanation": "GPT-2's input embedding is the sum of two looked-up vectors: the token embedding W_E[token_id] and the positional embedding W_P[7]. This sum — a single 768-dimensional vector — is what enters the first transformer layer. There's no LSTM, no attention, no nonlinearity at this stage. Just two table lookups and an element-wise addition."
+            }
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "Act IX: Subword Tokenization — Choosing the Vocabulary"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "Before we can look up an embedding, we need to decide what tokens are in the vocabulary. This turns out to be a surprisingly consequential design decision. The vocabulary determines the rows of the embedding matrix — it defines the set of atomic units the model works with."
+          },
+          {
+            "type": "p",
+            "children": "There are three natural levels of tokenization: characters, words, and subwords. Each has trade-offs."
+          },
+          {
+            "type": "Section",
+            "props": {
+              "title": "Characters"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "A vocabulary of ~256 entries (or ~65,536 for full Unicode). No OOV problem — every text is representable. But sequences become very long ('artificial' = 10 tokens), making attention expensive (cost is quadratic in sequence length). And characters carry minimal semantic information — the model must learn to compose character meanings into word meanings, which wastes model capacity."
+              }
+            ]
+          },
+          {
+            "type": "Section",
+            "props": {
+              "title": "Words"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "A vocabulary of 50,000-500,000 entries. Sequences are short and semantically dense. But the OOV problem is severe — any word not in the vocabulary can't be represented. And the embedding matrix is huge: 500,000 × 768 = 384 million parameters, just for the lookup table."
+              }
+            ]
+          },
+          {
+            "type": "Section",
+            "props": {
+              "title": "Subwords: The Goldilocks Zone"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "Modern transformers use subword tokenization — vocabularies of 30,000-100,000 entries that include whole common words, common word pieces, and individual characters as fallback. This gives manageable sequence lengths, no OOV problem, and reasonable vocabulary sizes."
+              },
+              {
+                "type": "p",
+                "children": "The three main subword tokenization algorithms:"
+              }
+            ]
+          },
+          {
+            "type": "Section",
+            "props": {
+              "title": "BPE (Byte Pair Encoding)"
+            },
+            "children": [
+              {
+                "type": "Callout",
+                "props": {
+                  "type": "historical"
+                },
+                "children": [
+                  {
+                    "type": "p",
+                    "children": "BPE was originally a data compression algorithm from 1994 (Philip Gage). In 2016, Rico Sennrich, Barry Haddow, and Alexandra Birch adapted it for NLP in their paper 'Neural Machine Translation of Rare Words with Subword Units.' It's used by GPT-2, GPT-3, GPT-4, and most GPT-family models."
+                  }
+                ]
+              },
+              {
+                "type": "p",
+                "children": "BPE training starts with a vocabulary of individual characters (or bytes, in GPT-2's case). It then iteratively finds the most frequent pair of adjacent tokens in the training corpus, merges them into a new token, and adds it to the vocabulary. Repeat until the vocabulary reaches the desired size."
+              },
+              {
+                "type": "Code",
+                "props": {
+                  "language": "text"
+                },
+                "children": "BPE Training Example:\n\nCorpus: \"low\" (5×), \"lower\" (2×), \"newest\" (6×), \"widest\" (3×)\n\nInitial vocab: {l, o, w, e, r, n, s, t, i, d}\n\nStep 1: Most frequent pair = (e, s) → merge to \"es\"\n        New vocab adds: \"es\"\n        \"newest\" → n, e, w, es, t\n\nStep 2: Most frequent pair = (es, t) → merge to \"est\"\n        New vocab adds: \"est\"\n        \"newest\" → n, e, w, est\n\nStep 3: Most frequent pair = (l, o) → merge to \"lo\"\n        ...\n\nContinue until vocab reaches target size (e.g., 50,257 for GPT-2)"
+              }
+            ]
+          },
+          {
+            "type": "Section",
+            "props": {
+              "title": "WordPiece"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "Used by BERT. Similar to BPE, but instead of merging the most frequent pair, WordPiece merges the pair that maximizes the likelihood of the training data. In practice, the difference from BPE is small. WordPiece tokens that continue a word are prefixed with '##' — so 'unhappiness' might become ['un', '##happi', '##ness']."
+              }
+            ]
+          },
+          {
+            "type": "Section",
+            "props": {
+              "title": "SentencePiece and Unigram"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "SentencePiece (Kudo & Richardson, 2018) treats the input as raw Unicode (no pre-tokenization), making it language-agnostic. It supports both BPE and a Unigram model. The Unigram model starts with a large vocabulary and iteratively removes tokens that least reduce the corpus likelihood — the opposite direction from BPE. Used by T5, Llama, and many multilingual models."
+              }
+            ]
+          },
+          {
+            "type": "Quiz",
+            "props": {
+              "question": "Why did modern transformers settle on subword tokenization instead of character-level or word-level?",
+              "options": [
+                "Subwords are easier to implement than characters or words",
+                "Subwords balance vocabulary size, sequence length, and OOV coverage — common words stay whole, rare words decompose into known pieces",
+                "Characters are too short for attention to work effectively",
+                "Word-level tokenization was never tried"
+              ],
+              "correctIndex": 1,
+              "explanation": "Subword tokenization hits the sweet spot: vocabularies of 30-100K tokens keep the embedding matrix manageable, sequences are short enough for efficient attention, and the fallback to character-level pieces means ANY text can be encoded (no OOV). Common words like 'the' get their own token; rare words like 'pneumonoultramicroscopicsilicovolcanoconiosis' get decomposed into familiar pieces. It's the Goldilocks solution."
+            }
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "Act X: The Embedding Matrix as a Learned Object"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "We've been talking about embedding matrices as abstract tables of numbers. But what do these vectors actually look like? What geometric structure does the embedding space have?"
+          },
+          {
+            "type": "Section",
+            "props": {
+              "title": "Geometric Structure"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "If you take the embedding matrix from a trained model and project it to 2D using t-SNE or UMAP, you see clear clustering. Nouns cluster together. Verbs cluster together. Within the noun cluster, animals cluster together, countries cluster together, professions cluster together. The embedding space has a rich, hierarchical structure that mirrors human semantic categories."
+              },
+              {
+                "type": "p",
+                "children": "But the structure goes deeper than clusters. The Word2Vec analogy results showed that relationships between words correspond to directions in the space. More recent work has found that the embedding spaces of large language models contain approximate linear subspaces corresponding to grammatical features (tense, number, gender) and semantic features (sentiment, formality, concreteness)."
+              }
+            ]
+          },
+          {
+            "type": "Section",
+            "props": {
+              "title": "The Anisotropy Problem"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "A curious and troubling property of transformer embeddings: they tend to be anisotropic — the vectors don't uniformly fill the space, but instead cluster in a narrow cone. Most word embeddings have high cosine similarity with each other, which means cosine similarity is a poor measure of semantic relatedness."
+              },
+              {
+                "type": "DeepDive",
+                "props": {
+                  "title": "Anisotropy in Embedding Spaces"
+                },
+                "children": [
+                  {
+                    "type": "p",
+                    "children": "If you randomly pick two word embeddings from GPT-2 and compute their cosine similarity, you'll get an average around 0.5-0.7 rather than the ~0.0 you'd expect if vectors were uniformly distributed. This is because the embeddings occupy a low-dimensional subspace of the full 768-dimensional space, and within that subspace, they tend to point in similar directions."
+                  },
+                  {
+                    "type": "p",
+                    "children": "This anisotropy has practical consequences: it makes nearest-neighbor search less meaningful (most words are 'near' most other words) and complicates techniques that assume a uniform distribution. Several post-hoc corrections have been proposed, including centering (subtracting the mean vector), whitening (applying PCA and normalizing each dimension), and the 'all-but-the-top' method (removing the top few principal components)."
+                  },
+                  {
+                    "type": "p",
+                    "children": "Why does anisotropy arise? One theory: the model's output layer (which converts embedding-space vectors back to vocabulary-space logits) creates pressure for the embeddings to live in a space where the softmax can cleanly distinguish between tokens. This pushes embeddings away from the origin and into a cone. Another theory: it's related to word frequency — frequent tokens get more gradient updates and drift in a shared direction."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "Section",
+            "props": {
+              "title": "What Individual Dimensions Mean (or Don't)"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "A natural question: what does dimension 247 of a word embedding 'mean'? In most cases, nothing interpretable. Embedding dimensions are not like named features ('is_noun', 'is_positive', 'refers_to_animal'). They're distributed representations — information is spread across many dimensions, and each dimension participates in encoding many features."
+              },
+              {
+                "type": "p",
+                "children": "This is sometimes called the superposition hypothesis: the model stores more features than it has dimensions by using overlapping, interference-tolerant patterns — like holograms, where every part of the plate encodes the whole image. A 768-dimensional space can encode far more than 768 independent features, at the cost of some noise and interference."
+              },
+              {
+                "type": "Analogy",
+                "children": "Individual embedding dimensions are like individual ingredients in a complex perfume. No single ingredient is 'the floral note' or 'the musk note.' The floral character emerges from the interaction of dozens of ingredients in specific ratios. You can't point to one ingredient and say 'that's what makes it smell like roses.' Similarly, you can't point to dimension 247 and say 'that's what makes this word a noun.'"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "Act XI: Modern SOTA and Open Questions"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "The embedding landscape hasn't stood still. Several innovations since the original transformer paper (2017) have changed how modern models handle embeddings."
+          },
+          {
+            "type": "Section",
+            "props": {
+              "title": "Rotary Position Embeddings (RoPE)"
+            },
+            "children": [
+              {
+                "type": "Callout",
+                "props": {
+                  "type": "historical"
+                },
+                "children": [
+                  {
+                    "type": "p",
+                    "children": "In 2021, Jianlin Su et al. introduced Rotary Position Embeddings (RoPE) in 'RoFormer: Enhanced Transformer with Rotary Position Embedding.' RoPE is now used by Llama, Llama 2, Mistral, and most modern open-source LLMs. It represents a fundamental rethinking of how position information enters the transformer."
+                  }
+                ]
+              },
+              {
+                "type": "p",
+                "children": "The key insight: instead of ADDING a positional embedding to the token embedding (as GPT-2 and BERT do), RoPE ROTATES the token embedding in 2D subspaces. Each pair of dimensions (0-1, 2-3, 4-5, ...) gets rotated by an angle that depends on the position and the dimension pair."
+              },
+              {
+                "type": "DeepDive",
+                "props": {
+                  "title": "How RoPE Works"
+                },
+                "children": [
+                  {
+                    "type": "p",
+                    "children": "RoPE applies a rotation matrix to the query and key vectors (NOT the value vectors) in the attention mechanism. For a token at position m, dimensions (2i, 2i+1) are rotated by angle m × θᵢ, where θᵢ = 10000^(-2i/d)."
+                  },
+                  {
+                    "type": "Code",
+                    "props": {
+                      "language": "text"
+                    },
+                    "children": "For position m, dimension pair (2i, 2i+1):\n\n[q'₂ᵢ  ]   [cos(mθᵢ)  -sin(mθᵢ)] [q₂ᵢ  ]\n[q'₂ᵢ₊₁] = [sin(mθᵢ)   cos(mθᵢ)] [q₂ᵢ₊₁]\n\nwhere θᵢ = 10000^(-2i/d)\n\nKey property: the dot product q'_m · k'_n depends only on\nthe RELATIVE position (m - n), not the absolute positions.\nThis is because rotation matrices have the property:\nR(m)^T × R(n) = R(n - m)"
+                  },
+                  {
+                    "type": "p",
+                    "children": "This elegant property means RoPE naturally encodes relative positions without any explicit relative position mechanism. It also extrapolates to longer sequences better than learned positional embeddings (with some tricks like position interpolation or NTK-aware scaling). The sinusoidal frequencies across dimension pairs give the model both fine-grained positional resolution (high-frequency pairs) and coarse positional sense (low-frequency pairs)."
+                  }
+                ]
+              },
+              {
+                "type": "p",
+                "children": "RoPE has largely replaced both learned and sinusoidal positional embeddings in modern LLMs. Its ability to generalize to longer sequences (beyond the training context length) via interpolation techniques is a major practical advantage."
+              }
+            ]
+          },
+          {
+            "type": "Section",
+            "props": {
+              "title": "ALiBi (Attention with Linear Biases)"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "An alternative to RoPE proposed by Press et al. (2022). Instead of modifying the embeddings or the QK vectors, ALiBi adds a linear penalty to the attention scores based on the distance between tokens. Farther tokens get lower attention scores, with the slope varying by attention head. Used by BLOOM and MPT models."
+              },
+              {
+                "type": "Code",
+                "props": {
+                  "language": "text"
+                },
+                "children": "ALiBi attention score for query at position i, key at position j:\n\nscore(i,j) = q_i · k_j - m × |i - j|\n\nwhere m is a head-specific slope (set geometrically, not learned)\nHeads have slopes: 1/2, 1/4, 1/8, 1/16, ... (powers of 1/2)"
+              },
+              {
+                "type": "p",
+                "children": "ALiBi's advantage: there's nothing to learn, nothing to add to the embeddings, nothing to rotate. It's just a bias term in the attention computation. It generalizes to longer sequences reasonably well and is simple to implement."
+              }
+            ]
+          },
+          {
+            "type": "Section",
+            "props": {
+              "title": "Tied Embeddings (Weight Tying)"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "Most language models have two large matrices involving the vocabulary: the input embedding matrix W_E (vocab_size × d_model) and the output 'unembedding' matrix W_U (d_model × vocab_size) that converts the final hidden state back to logits over the vocabulary. In many models (including GPT-2), these are tied: W_U = W_E^T."
+              },
+              {
+                "type": "p",
+                "children": "Weight tying halves the parameter count for these matrices and acts as a regularizer — it forces the input and output representations to be consistent. If the model learns that 'cat' should have a particular input embedding, the same vector is used to recognize 'cat' in the output. This works surprisingly well, though some modern models (like Llama) untie the matrices for additional flexibility."
+              }
+            ]
+          },
+          {
+            "type": "Section",
+            "props": {
+              "title": "Multimodal Embeddings: Beyond Words"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "The embedding paradigm has extended beyond text. CLIP (Contrastive Language-Image Pre-training, OpenAI 2021) learns to embed images and text into the same vector space, so that an image of a cat and the text 'a photo of a cat' have similar embeddings. This is done by training an image encoder and a text encoder jointly, using a contrastive loss that pulls matching image-text pairs together and pushes non-matching pairs apart."
+              },
+              {
+                "type": "p",
+                "children": "The implications are profound: if images and text live in the same embedding space, you can search for images using text queries, generate images from text descriptions, and build systems that reason jointly about vision and language. The embedding space becomes a lingua franca between modalities."
+              }
+            ]
+          },
+          {
+            "type": "Section",
+            "props": {
+              "title": "Sentence and Document Embeddings"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "Word2Vec gave us word vectors. Can we get sentence vectors? Document vectors? The journey from word embeddings to text embeddings has its own rich history:"
+              },
+              {
+                "type": "ul",
+                "children": [
+                  {
+                    "type": "li",
+                    "children": "Doc2Vec (2014): Extended Word2Vec with a 'paragraph vector' trained alongside word vectors."
+                  },
+                  {
+                    "type": "li",
+                    "children": "InferSent (2017): Used a supervised NLI model to learn sentence representations."
+                  },
+                  {
+                    "type": "li",
+                    "children": "Sentence-BERT (2019): Fine-tuned BERT with siamese networks for sentence similarity."
+                  },
+                  {
+                    "type": "li",
+                    "children": "Modern embedding models (2023-2024): Models like OpenAI's text-embedding-3, Cohere's embed-v3, and open-source models like E5 and GTE produce high-quality text embeddings for RAG, search, and classification. These typically take the [CLS] token output or mean-pool across all token outputs of a fine-tuned transformer."
+                  }
+                ]
+              },
+              {
+                "type": "p",
+                "children": "The embedding dimensions have grown: modern sentence embedding models typically use 768 to 3072 dimensions. Matryoshka Representation Learning (Kusupati et al., 2022) allows using the first k dimensions of a longer embedding vector without retraining, letting users trade off quality for efficiency."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "Act XII: The Numbers — Concrete Embedding Dimensions"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "Let's ground all of this theory in concrete numbers. The embedding matrix is one of the largest parameter blocks in any transformer. Here are the real numbers for well-known models:"
+          },
+          {
+            "type": "Code",
+            "props": {
+              "language": "text"
+            },
+            "children": "Model           Vocab Size    d_model    Embedding Params    Total Params    Embed %\n─────────────────────────────────────────────────────────────────────────────────────\nGPT-2 Small     50,257        768        38.6M               124M            31.1%\nGPT-2 Medium    50,257        1,024      51.5M               345M            14.9%\nGPT-2 Large     50,257        1,280      64.3M               774M             8.3%\nGPT-2 XL        50,257        1,600      80.4M               1,558M           5.2%\nBERT-base       30,522        768        23.4M               110M            21.3%\nBERT-large      30,522        1,024      31.3M               340M             9.2%\nGPT-3           50,257        12,288     617.2M              175,000M         0.4%\nLlama 2 7B      32,000        4,096      131.1M              6,738M           1.9%\nLlama 2 70B     32,000        8,192      262.1M              68,977M          0.4%\nMistral 7B      32,000        4,096      131.1M              7,242M           1.8%"
+          },
+          {
+            "type": "Callout",
+            "props": {
+              "type": "key-idea"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "Notice the trend: for small models, the embedding matrix is a huge fraction of total parameters (31% for GPT-2 Small!). For large models, it becomes a tiny fraction (0.4% for GPT-3). This is because the embedding matrix scales as vocab_size × d_model, while the rest of the model scales as n_layers × d_model². As models get deeper, the non-embedding parameters dominate. This has implications for efficiency: embedding tables can be compressed aggressively in large models without much quality loss."
+              }
+            ]
+          },
+          {
+            "type": "p",
+            "children": "If GPT-2 uses weight tying (W_U = W_E^T), then the 38.6M embedding parameters are shared between input and output. Without tying, you'd have 77.2M parameters just for the embedding and unembedding matrices — 62% of a 124M-parameter model! Tying is not just elegant; it's economical."
+          },
+          {
+            "type": "DeepDive",
+            "props": {
+              "title": "Why 768? The Scaling Laws for Embedding Dimensions"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "Why is GPT-2 Small's d_model exactly 768? Why not 500, or 1000, or 2048?"
+              },
+              {
+                "type": "p",
+                "children": "The answer involves both practical and theoretical considerations. Practically, d_model must be divisible by the number of attention heads (12 in GPT-2 Small), giving d_head = 64. Powers of 2 and their multiples are efficient on GPUs. 768 = 12 × 64, which is 3 × 256."
+              },
+              {
+                "type": "p",
+                "children": "Theoretically, Kaplan et al.'s scaling laws (2020) suggest that optimal model width (d_model) scales roughly as the cube root of total parameters. A 124M-parameter model should have d_model ≈ 500-800, which is consistent with GPT-2's 768. A 175B-parameter model should have d_model ≈ 5600-12000, consistent with GPT-3's 12,288."
+              },
+              {
+                "type": "p",
+                "children": "More recent work suggests that the optimal embedding dimension might be smaller than d_model — the embedding matrix could use fewer dimensions and project up to d_model. This is what models like Albert do: Albert uses a 128-dimensional embedding space, then projects to 768 dimensions for the transformer layers. This reduces the embedding parameter count from 23.4M to 3.9M with minimal quality loss."
+              }
+            ]
+          },
+          {
+            "type": "Quiz",
+            "props": {
+              "question": "In GPT-2 Small (124M parameters), approximately what percentage of the model's parameters are in the token embedding matrix?",
+              "options": [
+                "About 1%",
+                "About 10%",
+                "About 31%",
+                "About 50%"
+              ],
+              "correctIndex": 2,
+              "explanation": "GPT-2 Small's embedding matrix has 50,257 × 768 = 38,597,376 parameters, which is about 31% of the model's 124M total parameters. This is a strikingly large fraction! With weight tying (sharing the embedding and unembedding matrices), these 38.6M params are used twice — once to convert tokens to vectors and once to convert vectors back to token probabilities. In larger models like GPT-3, the embedding fraction drops to ~0.4% because the transformer layers grow much faster than the embedding table."
+            }
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "Epilogue: From Firth to Transformers — The Thread"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "Let's trace the thread that connects everything. In 1957, Firth says meaning is context. In 1990, LSA operationalizes this with SVD on co-occurrence data. In 2003, Bengio learns embeddings with a neural network. In 2013, Mikolov makes it fast and discovers linear structure. In 2014, Pennington unifies count-based and predictive methods. In 2018, Peters makes embeddings context-dependent. In 2017-2018, Vaswani, Devlin, and Radford build transformers that start with a lookup table and contextualize through attention."
+          },
+          {
+            "type": "p",
+            "children": "The 768-dimensional vector you see in GPT-2 is the product of this entire history. It starts as a row in a lookup table (Bengio's idea), trained on next-token prediction (a language modeling objective going back to Shannon), encoding distributional information (Firth's insight), represented as a dense vector in learned dimensions (the legacy of LSA), built from subword tokens (the BPE lineage), positioned by learned positional embeddings (or rotated by RoPE), and then transformed through attention layers into context-specific representations (the ELMo/BERT revolution)."
+          },
+          {
+            "type": "p",
+            "children": "The next time you look at a 768-dimensional embedding vector, know that you're looking at the culmination of seventy years of thinking about one question: How do you turn a word — an arbitrary, socially-constructed symbol — into a mathematical object that a machine can reason with? The answer, it turns out, is geometry. Meaning is position. Relationships are directions. Context is transformation. And it all starts with a table lookup."
+          },
+          {
+            "type": "Callout",
+            "props": {
+              "type": "tip"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "Want to explore embedding spaces yourself? Try: (1) Load pre-trained Word2Vec or GloVe vectors with gensim. (2) Use the Embedding Projector at projector.tensorflow.org to visualize high-dimensional embeddings in 3D. (3) Extract GPT-2's embedding matrix with HuggingFace Transformers: model.transformer.wte.weight gives you a (50257, 768) tensor. Cluster it, project it, probe it — the geometry is waiting."
+              }
+            ]
+          },
+          {
+            "type": "Quiz",
+            "props": {
+              "question": "Which of the following correctly traces the historical evolution of word representations?",
+              "options": [
+                "Word2Vec → One-hot → LSA → BERT → GloVe",
+                "One-hot → TF-IDF → LSA → Word2Vec → GloVe → ELMo → Transformer embeddings",
+                "Transformers → ELMo → Word2Vec → One-hot → Bag of Words",
+                "LSA → One-hot → GloVe → FastText → RoPE → BERT"
+              ],
+              "correctIndex": 1,
+              "explanation": "The correct chronological order is: One-hot/BoW (classical) → TF-IDF (1970s-80s) → LSA/LSI (1990) → Word2Vec (2013) → GloVe (2014) → FastText (2016) → ELMo (2018) → Transformer embeddings (BERT/GPT-2, 2018-2019). Each built on the insights of its predecessors: sparse → dense (LSA), static → fast-and-good (Word2Vec), uncontextualized → contextualized (ELMo/BERT), RNN → attention (transformers)."
+            }
+          }
+        ]
+      }
+    ]
+  }
+}
