@@ -1,0 +1,1229 @@
+{
+  "type": "Fragment",
+  "meta": {
+    "title": "Why Neural Networks Don't Collapse Into a Single Matrix",
+    "subtitle": "The geometry of nonlinearity — how activation functions fold space, break linearity, and make depth meaningful",
+    "description": "A deep, visual, intuitive exploration of why stacking linear layers without activation functions collapses into a single matrix multiplication — and what it is about ReLU, sigmoid, and their cousins that creates a categorical difference. Folding paper, origami, XOR, and the piecewise linear perspective.",
+    "author": "Peter Balogh",
+    "lastUpdated": "2026-02-24",
+    "tags": [
+      "neural networks",
+      "linear algebra",
+      "activation functions",
+      "ReLU",
+      "nonlinearity",
+      "deep learning",
+      "fundamentals"
+    ]
+  },
+  "content": {
+    "type": "Fragment",
+    "children": [
+      {
+        "type": "Section",
+        "props": {
+          "title": "Prologue: The Question That Sounds Stupid Until It Doesn't"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "Here is a question that every student of deep learning asks at some point, usually in a whisper, as if it might be too naive to voice aloud: If a neural network is just layers of matrix multiplications, why can't you multiply all the matrices together and get a single matrix that does the same thing?"
+          },
+          {
+            "type": "p",
+            "children": "The answer you'll find in most textbooks is quick, almost dismissive: \"Because activation functions introduce nonlinearity.\" And that's true. But it's true in the way that \"because gravity\" is the answer to why things fall. Technically correct. Utterly unsatisfying. It names the mechanism without explaining the meaning."
+          },
+          {
+            "type": "p",
+            "children": "What we really want to know is: what IS it about nonlinearity that creates a categorical difference? Why does inserting a function like ReLU(x) = max(0, x) — a function so simple it barely deserves a name — transform a stack of linear operations from a mathematically impotent chain into a universal function approximator? What changes, geometrically, conceptually, fundamentally?"
+          },
+          {
+            "type": "p",
+            "children": "This tutorial is about that question. We're going to start with the collapse theorem — the proof that without nonlinearity, depth is an illusion — and work our way to a deep geometric understanding of what activation functions actually do to space itself. By the end, you'll understand nonlinearity not as a technical requirement but as a physical act: the folding of space."
+          },
+          {
+            "type": "Callout",
+            "props": {
+              "type": "key-idea"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "The central metaphor of this tutorial: activation functions FOLD space. A linear transformation can stretch, rotate, reflect, and shear — but it cannot fold. And folding is everything. Without folds, you have origami paper sitting flat on a table. With folds, you can make a crane."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "Act I: The Collapse Theorem"
+        },
+        "children": [
+          {
+            "type": "Section",
+            "props": {
+              "title": "1. The Embarrassing Truth About Deep Linear Networks"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "Let's build a neural network. A deep one. Say, five layers. Each layer has a weight matrix and takes the output of the previous layer as input. No activation functions — just pure matrix multiplication:"
+              },
+              {
+                "type": "Code",
+                "props": {
+                  "language": "text"
+                },
+                "children": "Layer 1:  h₁ = W₁ · x\nLayer 2:  h₂ = W₂ · h₁\nLayer 3:  h₃ = W₃ · h₂\nLayer 4:  h₄ = W₄ · h₃\nLayer 5:  y  = W₅ · h₄"
+              },
+              {
+                "type": "p",
+                "children": "This looks impressive. Five layers! Surely five transformations composed together must be more powerful than one? Let's substitute and find out:"
+              },
+              {
+                "type": "Code",
+                "props": {
+                  "language": "text"
+                },
+                "children": "y = W₅ · (W₄ · (W₃ · (W₂ · (W₁ · x))))\n  = W₅ · W₄ · W₃ · W₂ · W₁ · x\n  = (W₅ · W₄ · W₃ · W₂ · W₁) · x\n  = M · x"
+              },
+              {
+                "type": "p",
+                "children": "Where M = W₅ · W₄ · W₃ · W₂ · W₁ is just... a single matrix. Matrix multiplication is associative. You can parenthesize it however you want, and the result is the same. Five layers, fifty layers, five hundred layers — without activation functions, they all collapse into one matrix multiply."
+              },
+              {
+                "type": "Callout",
+                "props": {
+                  "type": "warning"
+                },
+                "children": [
+                  {
+                    "type": "p",
+                    "children": "This isn't a simplification or an approximation. It's exact. A 500-layer linear network computes EXACTLY the same function as a single-layer linear network. All those parameters, all that depth — pure theater."
+                  }
+                ]
+              },
+              {
+                "type": "p",
+                "children": "This is the collapse theorem, and it's devastating. It says that depth, by itself, adds nothing. A hundred-layer linear network has the same representational power as a single matrix multiplication. You could train a thousand-layer deep linear network with gradient descent and whatever you learn could be expressed by a single layer."
+              },
+              {
+                "type": "p",
+                "children": "The same argument applies if you include biases. With bias terms, each layer computes h = W · x + b, which is an affine transformation rather than a linear one. But composing affine transformations still gives you an affine transformation — one matrix multiply and one addition. Depth is still an illusion."
+              },
+              {
+                "type": "DeepDive",
+                "props": {
+                  "title": "What about biases? A quick proof"
+                },
+                "children": [
+                  {
+                    "type": "p",
+                    "children": "Suppose layer 1 computes h₁ = W₁x + b₁ and layer 2 computes y = W₂h₁ + b₂. Then:"
+                  },
+                  {
+                    "type": "Code",
+                    "props": {
+                      "language": "text"
+                    },
+                    "children": "y = W₂(W₁x + b₁) + b₂\n  = W₂W₁x + W₂b₁ + b₂\n  = Mx + c\n\nwhere M = W₂W₁ and c = W₂b₁ + b₂"
+                  },
+                  {
+                    "type": "p",
+                    "children": "Still a single affine transformation. Adding biases doesn't save you. The composition of any number of affine transformations is one affine transformation. Depth without nonlinearity is a mirage."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "Quiz",
+            "props": {
+              "question": "You train a 10-layer neural network with no activation functions. Your colleague trains a 1-layer network on the same task. Who has more representational power?",
+              "options": [
+                "The 10-layer network — more layers means more capacity",
+                "Neither — they can represent exactly the same functions",
+                "The 1-layer network — fewer parameters means better generalization",
+                "It depends on the width of the layers"
+              ],
+              "correctIndex": 1,
+              "explanation": "Without activation functions, all linear layers collapse into a single matrix multiplication. The 10-layer network computes M = W₁₀ · W₉ · ... · W₁, which is just a single matrix. Both networks can represent exactly the same set of functions: linear (or affine, if biases are included) transformations."
+            }
+          },
+          {
+            "type": "Analogy",
+            "props": {
+              "title": "The travel metaphor"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "Imagine you're driving from New York to Los Angeles. You plan an elaborate route: New York → Chicago → Denver → Las Vegas → Los Angeles. Four segments! But if every segment is on a straight highway (a \"linear\" path through the country), then you could have just driven in a straight line from New York to LA. The intermediate stops added no information. You could describe your entire journey as one vector: \"go 2,450 miles southwest.\" Multiple straight-line segments compose into one straight-line segment. That's what linear layers do."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "Act II: What Linear Transformations Can Do (And Why It's Not Enough)"
+        },
+        "children": [
+          {
+            "type": "Section",
+            "props": {
+              "title": "2. The Repertoire of Linearity"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "Before we understand what's missing, let's appreciate what linear transformations CAN do. A matrix multiplication Mx can perform some genuinely impressive operations on your data:"
+              },
+              {
+                "type": "ul",
+                "children": [
+                  {
+                    "type": "li",
+                    "children": "Rotation — spin the entire space around the origin. Think of rotating an image 30 degrees."
+                  },
+                  {
+                    "type": "li",
+                    "children": "Reflection — mirror the space across a line or plane. Flip left and right."
+                  },
+                  {
+                    "type": "li",
+                    "children": "Scaling — stretch or compress along any axis. Make everything twice as wide."
+                  },
+                  {
+                    "type": "li",
+                    "children": "Shearing — tilt the space, like pushing the top of a deck of cards sideways while holding the bottom."
+                  },
+                  {
+                    "type": "li",
+                    "children": "Projection — collapse a dimension entirely, like casting a 3D shadow onto a wall."
+                  },
+                  {
+                    "type": "li",
+                    "children": "Any combination of the above — rotation followed by scaling followed by shearing, all in one matrix."
+                  }
+                ]
+              },
+              {
+                "type": "p",
+                "children": "That's quite a toolkit. You can rotate data to align features. You can scale dimensions to emphasize what matters. You can project high-dimensional data onto lower-dimensional subspaces. These are powerful, useful operations. So why aren't they enough?"
+              },
+              {
+                "type": "Callout",
+                "props": {
+                  "type": "key-idea"
+                },
+                "children": [
+                  {
+                    "type": "p",
+                    "children": "The iron law of linearity: straight lines stay straight, parallel lines stay parallel, and the origin stays fixed. A linear map can stretch and twist, but it can never BEND. Imagine a rubber sheet stretched flat on a table. You can pull it, rotate it, stretch it — but you cannot fold it. That's what linearity feels like."
+                  }
+                ]
+              },
+              {
+                "type": "p",
+                "children": "Here's a more precise way to state the limitation. If you have a function f(x) that is linear, then for any two inputs a and b and any scalar t:"
+              },
+              {
+                "type": "Code",
+                "props": {
+                  "language": "text"
+                },
+                "children": "f(t·a + (1-t)·b) = t·f(a) + (1-t)·f(b)"
+              },
+              {
+                "type": "p",
+                "children": "This says: if you pick two points and draw a line between them, the function maps that line to another line. No curves. No bends. No kinks. The image of a straight line is always a straight line. And if you think about what a decision boundary is — it's a line (or plane, or hyperplane) that separates two classes — you start to see the constraint. A linear function can only draw flat, straight boundaries."
+              },
+              {
+                "type": "p",
+                "children": "Even more profoundly: in a linear map, the SPACE between points is preserved proportionally. If point C is halfway between points A and B in the input, then f(C) is halfway between f(A) and f(B) in the output. You can't move the middle without moving the endpoints. Everything is... locked together."
+              }
+            ]
+          },
+          {
+            "type": "Section",
+            "props": {
+              "title": "3. What Linearity Cannot Do: The XOR Problem"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "In 1969, Marvin Minsky and Seymour Papert published a book called \"Perceptrons\" that nearly killed neural network research for a decade. Their devastating observation was simple: a single-layer perceptron cannot compute XOR."
+              },
+              {
+                "type": "Callout",
+                "props": {
+                  "type": "historical"
+                },
+                "children": [
+                  {
+                    "type": "p",
+                    "children": "Minsky & Papert's \"Perceptrons\" (1969) showed that single-layer networks couldn't solve XOR — and by implication, any problem requiring nonlinear boundaries. The book's impact was so profound that funding for neural network research dried up almost completely. The field entered what's now called the \"AI Winter,\" which lasted until the backpropagation revolution of the 1980s. A single mathematical observation, weaponized by academic politics, froze an entire field for over a decade."
+                  }
+                ]
+              },
+              {
+                "type": "p",
+                "children": "Here's the XOR problem. You have four points in 2D:"
+              },
+              {
+                "type": "Code",
+                "props": {
+                  "language": "text"
+                },
+                "children": "Input: (0,0) → Output: 0  (Class A)\nInput: (0,1) → Output: 1  (Class B)\nInput: (1,0) → Output: 1  (Class B)\nInput: (1,1) → Output: 0  (Class A)"
+              },
+              {
+                "type": "p",
+                "children": "Draw these on a plane. The (0,0) and (1,1) points are Class A. The (0,1) and (1,0) points are Class B. Now try to draw a single straight line that separates the A's from the B's."
+              },
+              {
+                "type": "p",
+                "children": "You can't. The classes are arranged like opposite corners of a square. Any line that puts (0,1) on one side and (0,0) on the other will also separate (1,0) from (1,1) — putting one A and one B on each side. The classes are interleaved. They're \"linearly inseparable.\""
+              },
+              {
+                "type": "p",
+                "children": "This is not a weird edge case. In the real world, most interesting classification problems are linearly inseparable. Is this email spam? Is this image a cat? Is this sentence positive or negative? The features that determine the answer almost never fall on opposite sides of a single flat boundary. Real decision boundaries curve, loop, branch, and fold."
+              },
+              {
+                "type": "Analogy",
+                "props": {
+                  "title": "The chessboard analogy"
+                },
+                "children": [
+                  {
+                    "type": "p",
+                    "children": "XOR is like trying to separate the black squares from the white squares on a chessboard using a single straight cut. No matter how you position your scissors, you'll always have both colors on each side. The pattern is fundamentally interleaved — it requires curves, not lines, to separate."
+                  }
+                ]
+              },
+              {
+                "type": "p",
+                "children": "And it goes deeper than classification. A linear function from ℝ² to ℝ¹ is just a tilted plane floating in 3D space. It can slope up, slope down, slope sideways — but it's always flat. It can never create a bump, a valley, a hill, or a ridge. The entire output landscape is one monotone tilt. You literally cannot represent \"the output is high when EITHER of two conditions holds but not both\" with a flat plane. That's XOR. And it's everywhere."
+              }
+            ]
+          },
+          {
+            "type": "Quiz",
+            "props": {
+              "question": "Which of the following tasks COULD be solved by a single linear transformation (no activation function)?",
+              "options": [
+                "XOR gate: output 1 when exactly one input is 1",
+                "AND gate: output 1 only when both inputs are 1",
+                "Classifying points inside vs. outside a circle",
+                "Converting Celsius to Fahrenheit"
+              ],
+              "correctIndex": 3,
+              "explanation": "Converting Celsius to Fahrenheit is F = 1.8·C + 32, a simple affine transformation. AND is linearly separable (you can draw a line separating (1,1) from the others), but technically requires a threshold/step function — it's a linear classifier, not a pure linear transformation of the input to the output. XOR is famously linearly inseparable. A circle boundary is curved and nonlinear. Only the temperature conversion is purely linear/affine."
+            }
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "Act III: Enter ReLU — The Simplest Fold"
+        },
+        "children": [
+          {
+            "type": "Section",
+            "props": {
+              "title": "4. The Most Important Function in Deep Learning"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "Here it is. The function that changed everything:"
+              },
+              {
+                "type": "Code",
+                "props": {
+                  "language": "text"
+                },
+                "children": "ReLU(x) = max(0, x)\n\n         = x,  if x ≥ 0\n         = 0,  if x < 0"
+              },
+              {
+                "type": "p",
+                "children": "That's it. If the input is positive, pass it through unchanged. If it's negative, output zero. A child could understand it. A calculator could compute it. It's barely a function at all — it's more like a rule: \"delete the negative parts.\""
+              },
+              {
+                "type": "p",
+                "children": "And yet this trivial operation, inserted between matrix multiplications, is what makes deep learning work. Not sophisticated mathematical machinery. Not elegant theoretical constructions. Just: clamp the negatives to zero."
+              },
+              {
+                "type": "p",
+                "children": "To understand why, we need to think geometrically. Forget the formula for a moment and think about what ReLU does to SPACE."
+              },
+              {
+                "type": "Callout",
+                "props": {
+                  "type": "key-idea"
+                },
+                "children": [
+                  {
+                    "type": "p",
+                    "children": "ReLU FOLDS space. Imagine a sheet of paper lying flat. Now fold it along a crease so that everything on one side gets flattened down to the crease line. That's what ReLU does to one dimension of your data: everything on the negative side gets folded onto zero, while the positive side stays where it is. This fold — this crease — is the fundamental geometric operation that breaks linearity."
+                  }
+                ]
+              },
+              {
+                "type": "p",
+                "children": "Let's see this concretely. Consider a 2D input space where one dimension represents feature x₁ and the other represents feature x₂. Before ReLU, a point at (-3, 5) is at (-3, 5). After applying ReLU to the first dimension, it's at (0, 5). The negative coordinate got folded to zero. A point at (3, 5) stays at (3, 5) — the positive side is unchanged."
+              },
+              {
+                "type": "p",
+                "children": "Now think about what happened geometrically. All the points that were in the left half-plane (x₁ < 0) got pushed onto the y-axis. Points that were spread out across the negative side are now all piled up on the boundary. The left half of the space has been COLLAPSED onto the crease line."
+              },
+              {
+                "type": "p",
+                "children": "But here's the crucial thing: the right half is completely untouched. ReLU doesn't affect positive values AT ALL. So we have a space that is faithfully preserved on one side and completely collapsed on the other. Two points that were on opposite sides of zero — say (-2, 5) and (2, 5) — which were far apart before the fold, are now MUCH closer together. The fold changed the geometry of the space."
+              },
+              {
+                "type": "p",
+                "children": "And a changed geometry means a changed relationship between points. Points that were far apart are now close. Points that were interleaved can become separated. The rigid structure of linearity — where proportional distances are always preserved — is broken."
+              },
+              {
+                "type": "Analogy",
+                "props": {
+                  "title": "Paper folding, literally"
+                },
+                "children": [
+                  {
+                    "type": "p",
+                    "children": "Take a piece of paper. Draw two dots on it — one near the top left, one near the bottom right. They're far apart. Now fold the paper in half. Suddenly those dots might be right on top of each other. The fold didn't move the dots; it changed the geometry of the space they live in. That's exactly what ReLU does to a neural network's internal representation. Each ReLU is a fold, and after enough folds, points that seemed inseparable become trivially distinguishable."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "Section",
+            "props": {
+              "title": "5. Solving XOR With One Fold"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "Let's go back to XOR and see how a fold solves it. Remember: (0,0) and (1,1) are Class A, while (0,1) and (1,0) are Class B. No line can separate them."
+              },
+              {
+                "type": "p",
+                "children": "But watch what happens with one hidden layer and ReLU. We'll use two hidden neurons:"
+              },
+              {
+                "type": "Code",
+                "props": {
+                  "language": "text"
+                },
+                "children": "Hidden neuron 1:  h₁ = ReLU(x₁ + x₂ - 0.5)\nHidden neuron 2:  h₂ = ReLU(-x₁ - x₂ + 1.5)\n\nOutput: y = h₁ + h₂ - 1"
+              },
+              {
+                "type": "p",
+                "children": "Let's trace through each input:"
+              },
+              {
+                "type": "Code",
+                "props": {
+                  "language": "text"
+                },
+                "children": "(0,0): h₁ = ReLU(-0.5) = 0,   h₂ = ReLU(1.5) = 1.5  → y = 0 + 1.5 - 1 = 0.5  ✓ (>0, Class A-ish)\n(0,1): h₁ = ReLU(0.5)  = 0.5, h₂ = ReLU(0.5) = 0.5  → y = 0.5 + 0.5 - 1 = 0  (boundary)\n(1,0): h₁ = ReLU(0.5)  = 0.5, h₂ = ReLU(0.5) = 0.5  → y = 0.5 + 0.5 - 1 = 0  (boundary)\n(1,1): h₁ = ReLU(1.5)  = 1.5, h₂ = ReLU(-0.5) = 0   → y = 1.5 + 0 - 1 = 0.5  ✓ (>0, Class A-ish)"
+              },
+              {
+                "type": "p",
+                "children": "Okay, that particular set of weights doesn't perfectly solve it, but it illustrates the mechanism. Here's the geometric story: the first hidden neuron draws a line (x₁ + x₂ = 0.5) and folds everything below it onto the line. The second hidden neuron draws another line (x₁ + x₂ = 1.5) and folds everything above it onto that line. Together, the two folds transform the 2D space so that the XOR classes become separable."
+              },
+              {
+                "type": "p",
+                "children": "Think of it as folding a piece of paper twice: once near one diagonal, once near the other. After both folds, points that were at opposite corners of the square (the XOR pattern) end up on the same side. The linear inseparability was a property of the UNFOLDED space. In the FOLDED space, a simple line can separate the classes."
+              },
+              {
+                "type": "Callout",
+                "props": {
+                  "type": "key-idea"
+                },
+                "children": [
+                  {
+                    "type": "p",
+                    "children": "The hidden layer doesn't solve XOR by finding a clever boundary in the original space. It solves it by TRANSFORMING the space — folding it — so that a simple boundary works in the new, folded space. This is the deep insight: neural networks don't find complex boundaries; they simplify the geometry until simple boundaries suffice."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "Quiz",
+            "props": {
+              "question": "What does ReLU do geometrically to the input space?",
+              "options": [
+                "Rotates the space by 90 degrees",
+                "Folds the space along a hyperplane, collapsing the negative side to zero",
+                "Stretches the positive region and compresses the negative region",
+                "Randomly permutes the dimensions"
+              ],
+              "correctIndex": 1,
+              "explanation": "ReLU(x) = max(0, x) takes everything on the negative side and maps it to zero — geometrically, this is a fold along the zero hyperplane. The positive side is preserved exactly. The negative side is collapsed (folded) onto the boundary. This fold is what breaks linearity."
+            }
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "Act IV: Many Folds — From Origami to Universal Approximation"
+        },
+        "children": [
+          {
+            "type": "Section",
+            "props": {
+              "title": "6. One Fold Isn't Enough, But Many Folds Are Everything"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "A single ReLU creates one fold — one crease in the fabric of input space. That's enough to solve XOR, but what about harder problems? What about classifying images, parsing language, predicting protein structures?"
+              },
+              {
+                "type": "p",
+                "children": "Here's where it gets beautiful. Each neuron in a hidden layer creates one fold. A layer of 256 neurons creates 256 simultaneous folds. And then the next layer folds the ALREADY FOLDED space 256 more times. And the next layer folds that. The folds compose, and the complexity of what you can represent grows explosively."
+              },
+              {
+                "type": "Analogy",
+                "props": {
+                  "title": "The origami principle"
+                },
+                "children": [
+                  {
+                    "type": "p",
+                    "children": "A flat sheet of paper has no structure. One fold gives you a greeting card. Two folds give you a paper airplane's wing. But a master origami artist, with nothing but folds — no cuts, no glue, just folds — can create a dragon, a rose, a human figure. Each fold is simple. The composition of folds is boundless. Neural networks are computational origami: each layer folds the space, and the composition of many simple folds creates arbitrarily complex geometry."
+                  }
+                ]
+              },
+              {
+                "type": "p",
+                "children": "This is not metaphor. It's mathematics. In 1989, George Cybenko proved what's now called the Universal Approximation Theorem: a neural network with a single hidden layer and a nonlinear activation function can approximate any continuous function to arbitrary accuracy, given enough neurons."
+              },
+              {
+                "type": "Callout",
+                "props": {
+                  "type": "historical"
+                },
+                "children": [
+                  {
+                    "type": "p",
+                    "children": "Cybenko's Universal Approximation Theorem (1989) was a thunderclap. It proved that neural networks with just ONE hidden layer could, in principle, approximate any continuous function. The catch? \"In principle\" meant you might need an astronomically large number of neurons. The theorem guaranteed existence but said nothing about efficiency. It took decades to understand that DEPTH was the key to making approximation practical — and that understanding required the piecewise linear perspective we'll develop in the next section."
+                  }
+                ]
+              },
+              {
+                "type": "p",
+                "children": "But Cybenko's theorem was about width — a single layer with enough neurons. What about depth? Why do we use deep networks instead of enormously wide shallow ones?"
+              },
+              {
+                "type": "p",
+                "children": "The answer lies in the composition of folds. A single layer creates folds that are all \"parallel\" in a sense — they all fold the original input space. But a second layer folds the ALREADY FOLDED space. This is like doing origami: your second fold interacts with your first fold in ways that create compound structures. The crease from the second fold runs across the creases from the first fold, creating corners, pockets, and shapes that no number of parallel first folds could produce."
+              },
+              {
+                "type": "p",
+                "children": "Mathematically: a single hidden layer with n neurons creates at most n folds, carving the input space into at most 2ⁿ regions (though typically fewer). But a two-layer network with n neurons in each layer can create up to n² regions. Three layers: up to n³ regions. k layers: up to nᵏ regions. Depth gives you exponential expressivity with polynomial parameters."
+              },
+              {
+                "type": "DeepDive",
+                "props": {
+                  "title": "The exponential advantage of depth"
+                },
+                "children": [
+                  {
+                    "type": "p",
+                    "children": "Consider a function that's like a mountain range — lots of peaks and valleys. A shallow network (one hidden layer) with n neurons can create at most O(n) \"pieces\" (linear regions) in 1D. To approximate a function with k peaks, you need k pieces, so you need O(k) neurons."
+                  },
+                  {
+                    "type": "p",
+                    "children": "But a deep network with L layers of width n can create up to O(nᴸ) pieces. So with L=3 layers of just 10 neurons each, you can have up to 1,000 pieces — you'd need 1,000 neurons in a single hidden layer to match that. With 5 layers: 100,000 pieces from just 50 neurons. Depth is exponentially more parameter-efficient than width."
+                  },
+                  {
+                    "type": "p",
+                    "children": "This is why deep learning is DEEP learning. It's not that shallow networks can't represent the same functions — Cybenko proved they can. It's that deep networks can represent them with exponentially fewer parameters. And fewer parameters means easier optimization, better generalization, and less data needed."
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "Act V: The Piecewise Linear Perspective"
+        },
+        "children": [
+          {
+            "type": "Section",
+            "props": {
+              "title": "7. The Key Conceptual Breakthrough"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "Here is perhaps the most illuminating way to think about what ReLU networks actually compute. It's the insight that ties everything together."
+              },
+              {
+                "type": "p",
+                "children": "A neural network with ReLU activations computes a PIECEWISE LINEAR function. Not a linear function. Not a general nonlinear function. Something in between: a function that is locally linear everywhere, but globally nonlinear because different linear functions apply in different regions."
+              },
+              {
+                "type": "Callout",
+                "props": {
+                  "type": "key-idea"
+                },
+                "children": [
+                  {
+                    "type": "p",
+                    "children": "A ReLU network is a massive collection of linear functions, each valid in its own region of input space. WHICH linear function applies depends on WHERE you are. The network is literally a different matrix multiplication depending on which neurons are active — and which neurons are active depends on the input. It's not one matrix. It's thousands of matrices, selected by the input itself."
+                  }
+                ]
+              },
+              {
+                "type": "p",
+                "children": "Here's how to see this. Consider a single neuron: z = ReLU(w·x + b). There are two cases:"
+              },
+              {
+                "type": "ul",
+                "children": [
+                  {
+                    "type": "li",
+                    "children": "If w·x + b ≥ 0: the neuron is ON. It outputs w·x + b, which is linear in x."
+                  },
+                  {
+                    "type": "li",
+                    "children": "If w·x + b < 0: the neuron is OFF. It outputs 0, which is also (trivially) linear in x."
+                  }
+                ]
+              },
+              {
+                "type": "p",
+                "children": "In EITHER case, the neuron computes a linear function of x. The nonlinearity comes from the SWITCH between these two linear functions — the boundary where w·x + b = 0."
+              },
+              {
+                "type": "p",
+                "children": "Now scale this up to a full network. Every ReLU neuron is either ON or OFF for a given input. The pattern of on/off states across all neurons — let's call it the ACTIVATION PATTERN — defines a specific region of input space. And within that region, the entire network computes a purely linear function, because every neuron is applying one fixed linear function (either \"pass through\" or \"output zero\")."
+              },
+              {
+                "type": "p",
+                "children": "Move to a different region — flip one neuron from ON to OFF — and you get a DIFFERENT linear function. The weight matrix changes. The bias changes. It's a completely different affine transformation."
+              },
+              {
+                "type": "Example",
+                "props": {
+                  "title": "A tiny network with four regions"
+                },
+                "children": [
+                  {
+                    "type": "p",
+                    "children": "Consider a network with one hidden layer of 2 neurons processing a 1D input x:"
+                  },
+                  {
+                    "type": "Code",
+                    "props": {
+                      "language": "text"
+                    },
+                    "children": "h₁ = ReLU(x - 1)    // ON when x > 1\nh₂ = ReLU(-x + 3)   // ON when x < 3\ny = h₁ - h₂ + 2"
+                  },
+                  {
+                    "type": "p",
+                    "children": "There are four possible activation patterns, creating four regions:"
+                  },
+                  {
+                    "type": "Code",
+                    "props": {
+                      "language": "text"
+                    },
+                    "children": "Region 1: x ≤ 1      → h₁=OFF, h₂=ON  → y = 0 - (-x+3) + 2 = x - 1\nRegion 2: 1 < x < 3  → h₁=ON,  h₂=ON  → y = (x-1) - (-x+3) + 2 = 2x - 2\nRegion 3: x ≥ 3      → h₁=ON,  h₂=OFF → y = (x-1) - 0 + 2 = x + 1\n(Region 4: h₁=OFF, h₂=OFF → unreachable with these weights)"
+                  },
+                  {
+                    "type": "p",
+                    "children": "Three different linear functions! In region 1, the slope is 1. In region 2, it's 2. In region 3, it's back to 1. The output is piecewise linear — linear within each region, but the slope changes at the boundaries. This tiny network can already represent \"bent\" shapes that a single linear function never could."
+                  }
+                ]
+              },
+              {
+                "type": "p",
+                "children": "This is the deep insight. A ReLU network doesn't compute a single fixed transformation. It computes a different transformation for every region of input space. It's an input-dependent matrix multiplication. And THAT is something no single matrix can replicate, because a single matrix applies the same transformation everywhere."
+              }
+            ]
+          },
+          {
+            "type": "Quiz",
+            "props": {
+              "question": "A ReLU network has 3 hidden layers with 10 neurons each. What is the MAXIMUM number of distinct linear regions it could partition the input space into?",
+              "options": [
+                "30 (10 + 10 + 10)",
+                "1,000 (10 × 10 × 10)",
+                "1,024 (2¹⁰)",
+                "2³⁰ (about 1 billion)"
+              ],
+              "correctIndex": 1,
+              "explanation": "The maximum number of linear regions grows polynomially with width and exponentially with depth. For a network with L layers of width n, the upper bound is approximately O(nᴸ). With 3 layers of 10 neurons, that's roughly 10³ = 1,000 regions. (The exact formula is more complex, involving binomial coefficients, but 1,000 captures the right order.) Note that 2³⁰ would be the maximum if each neuron's on/off choice were independent across all layers, but they're not — the activation pattern of layer 2 depends on layer 1's output."
+            }
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "Act VI: Visualizing the Decision Boundary"
+        },
+        "children": [
+          {
+            "type": "Section",
+            "props": {
+              "title": "8. Building Complexity Through Successive Folds"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "Let's trace how decision boundaries evolve as we add layers and activation functions. Imagine we're classifying 2D points into two classes — think of a scatter plot where red dots and blue dots are mixed together."
+              },
+              {
+                "type": "p",
+                "children": "With a single linear layer (no activation function): The decision boundary is a straight line. That's it. One line, dividing the plane into two half-planes. If the red and blue dots aren't separable by a line, you're out of luck."
+              },
+              {
+                "type": "p",
+                "children": "With one hidden layer + ReLU: Each hidden neuron creates a fold line in the input space. With, say, 4 hidden neurons, you have 4 folds. The decision boundary in the original space becomes a BENT line — a polyline made of straight segments that change direction at each fold. You can create wedge-shaped regions, V-shaped boundaries, zigzag patterns."
+              },
+              {
+                "type": "p",
+                "children": "With two hidden layers + ReLU: The second layer folds the ALREADY FOLDED space. This is where it gets wild. The boundary can now form CLOSED regions — a triangle, a polygon, an enclosed area. You can surround a cluster of points. You can create islands and peninsulas in the decision landscape."
+              },
+              {
+                "type": "p",
+                "children": "With a deep network: Arbitrarily complex boundaries. Curves (approximated by many tiny straight segments), spirals, disconnected regions, fractal-like patterns. Each additional layer of folds composes with all previous folds, creating exponentially richer geometry."
+              },
+              {
+                "type": "Analogy",
+                "props": {
+                  "title": "The paper-cutting trick"
+                },
+                "children": [
+                  {
+                    "type": "p",
+                    "children": "Remember the paper snowflake trick from elementary school? You fold a piece of paper multiple times, make ONE straight cut, then unfold — and you have a complex, symmetrical pattern. A single cut on folded paper creates a complex shape when unfolded. That's what ReLU layers do: each layer folds the space, and then the final linear layer makes one \"straight cut\" (a hyperplane decision boundary). But because the space has been folded many times, that straight cut in the folded space corresponds to a wildly complex boundary in the original, unfolded space."
+                  }
+                ]
+              },
+              {
+                "type": "DeepDive",
+                "props": {
+                  "title": "The fold-and-cut theorem"
+                },
+                "children": [
+                  {
+                    "type": "p",
+                    "children": "There's actually a theorem in mathematics called the Fold-and-Cut Theorem (proved by Erik Demaine and others in 1999) that states: any shape made of straight line segments can be cut from a flat sheet of paper by folding it flat and making a single complete straight cut. ANY shape. A star, the letter Q, a silhouette of Abraham Lincoln. As long as it's made of straight segments, it can be done."
+                  },
+                  {
+                    "type": "p",
+                    "children": "This is strikingly analogous to what ReLU networks do. The folds (ReLU activations) and the final cut (the output layer's linear decision boundary) can, in principle, carve out any polyhedral decision region. And since any smooth curve can be approximated by straight segments... you get the Universal Approximation Theorem again, but now with a beautiful geometric proof."
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "Act VII: Beyond ReLU — Other Ways to Bend Space"
+        },
+        "children": [
+          {
+            "type": "Section",
+            "props": {
+              "title": "9. A Taxonomy of Bends"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "ReLU is the simplest fold, but it's not the only one. Different activation functions bend space in different ways, and the choice matters — not for whether the network CAN learn (they're all universal approximators) but for HOW WELL it learns."
+              },
+              {
+                "type": "p",
+                "children": "Sigmoid: σ(x) = 1/(1 + e⁻ˣ). This is the classic, the original. Instead of a sharp fold at zero, it creates a smooth S-curve. Geometrically, it's like bending a sheet of metal rather than creasing paper — the transition from \"off\" to \"on\" is gradual, not abrupt. The output is always between 0 and 1, which means it compresses the entire real line into a bounded interval."
+              },
+              {
+                "type": "p",
+                "children": "Tanh: tanh(x) = (eˣ - e⁻ˣ)/(eˣ + e⁻ˣ). Like sigmoid, but centered at zero and ranging from -1 to +1. Same smooth bend, different range. For decades, tanh was the default choice because its zero-centered output made optimization easier."
+              },
+              {
+                "type": "p",
+                "children": "GELU: GELU(x) = x · Φ(x), where Φ is the Gaussian CDF. This is what GPT and BERT use. It's like ReLU but with a soft transition — instead of a sharp crease, the fold has a slight curve at the boundary. Very small negative values can leak through a tiny amount, but large negatives are still zeroed out. Think of it as ReLU with rounded corners."
+              },
+              {
+                "type": "p",
+                "children": "Leaky ReLU: LeakyReLU(x) = max(0.01x, x). Instead of folding the negative side flat onto zero, it folds it ALMOST flat — the negative side still has a tiny slope. This prevents the \"dead neuron\" problem where ReLU neurons that always output zero can never recover."
+              },
+              {
+                "type": "DeepDive",
+                "props": {
+                  "title": "The vanishing gradient problem and the ReLU revolution"
+                },
+                "children": [
+                  {
+                    "type": "p",
+                    "children": "For decades, sigmoid and tanh were the standard activation functions. They worked fine for shallow networks, but as networks got deeper, a devastating problem emerged: the vanishing gradient."
+                  },
+                  {
+                    "type": "p",
+                    "children": "Here's why: sigmoid's maximum derivative is 0.25 (at x=0). During backpropagation, gradients multiply through layers. If each layer multiplies the gradient by at most 0.25, then after 10 layers the gradient has been multiplied by 0.25¹⁰ ≈ 0.000001. After 20 layers: 0.25²⁰ ≈ 10⁻¹². The gradient effectively vanishes. The early layers never learn because the error signal can't reach them."
+                  },
+                  {
+                    "type": "p",
+                    "children": "ReLU's gradient is either 0 or 1. When a neuron is active, the gradient passes through UNCHANGED. This means gradients can flow through many layers without shrinking. The signal reaches the early layers intact. This seemingly trivial property — that the derivative is just 1 for positive inputs — is what made training deep networks practical."
+                  },
+                  {
+                    "type": "Callout",
+                    "props": {
+                      "type": "historical"
+                    },
+                    "children": [
+                      {
+                        "type": "p",
+                        "children": "The ReLU revolution began around 2010-2012. Glorot, Bordes, and Bengio (2011) showed that ReLU networks could be trained much more effectively. Krizhevsky, Sutskever, and Hinton's AlexNet (2012) — the network that sparked the deep learning explosion — used ReLU throughout. In hindsight, the shift from sigmoid to ReLU was as important as the shift to GPUs. A simpler, sharper fold turned out to be better than a smooth, elegant curve — not because it was more expressive, but because it was more trainable."
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "Quiz",
+            "props": {
+              "question": "Why did ReLU largely replace sigmoid as the default activation function for deep networks?",
+              "options": [
+                "ReLU can represent more complex functions than sigmoid",
+                "ReLU's gradient doesn't vanish in deep networks, making training much more effective",
+                "ReLU uses less memory than sigmoid",
+                "Sigmoid can't create nonlinear decision boundaries"
+              ],
+              "correctIndex": 1,
+              "explanation": "Both ReLU and sigmoid are universal approximators — they can represent the same set of functions given enough neurons. The crucial advantage of ReLU is its gradient: for positive inputs, the gradient is exactly 1, which means gradients don't shrink as they flow backward through many layers. Sigmoid's gradient is at most 0.25, causing exponential gradient decay in deep networks (the vanishing gradient problem). This made deep sigmoid networks nearly impossible to train, while deep ReLU networks trained effectively."
+            }
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "Act VIII: Biases — Placing the Folds"
+        },
+        "children": [
+          {
+            "type": "Section",
+            "props": {
+              "title": "10. Where to Crease the Paper"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "We've been talking about folds, but we've glossed over a crucial question: WHERE does the fold happen? Without biases, the answer is: always through the origin. The hyperplane w·x = 0 always passes through zero. Every fold creases through the center of the coordinate system."
+              },
+              {
+                "type": "p",
+                "children": "That's a severe limitation. Imagine doing origami, but every fold must pass through the center of the paper. You could make symmetric shapes, but anything off-center would be impossible."
+              },
+              {
+                "type": "p",
+                "children": "Biases fix this. The neuron z = ReLU(w·x + b) folds along the hyperplane w·x + b = 0, which is SHIFTED by b. The bias term b lets you place the fold anywhere in the space. Positive b shifts it one direction; negative b shifts it the other."
+              },
+              {
+                "type": "Analogy",
+                "props": {
+                  "title": "The adjustable ruler"
+                },
+                "children": [
+                  {
+                    "type": "p",
+                    "children": "Think of each neuron as a ruler you're using to crease paper. The weight vector w determines the ANGLE of the crease — horizontal, diagonal, vertical. The bias b determines the POSITION — how far from the center you place the ruler before folding. Without bias, every crease goes through the center. With bias, each neuron independently chooses where to fold. This means different neurons can \"care about\" different regions of the input space: one might fold at x₁ = 3, another at x₁ = -7, another at x₂ = 0.5."
+                  }
+                ]
+              },
+              {
+                "type": "p",
+                "children": "This is essential for expressiveness. Consider trying to approximate a bump function — something that's zero everywhere except in a small interval. You need TWO folds: one on the left side of the bump and one on the right. Those folds need to be at different positions. Without biases, both folds would pass through the origin and you couldn't form a bump at, say, x = 5."
+              },
+              {
+                "type": "p",
+                "children": "In the piecewise linear picture: biases determine WHERE the boundaries between linear regions are located. Weights determine WHAT linear function applies in each region. Together, they give you complete control over both the partition of space and the function applied in each piece."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "Act IX: The Masking Interpretation"
+        },
+        "children": [
+          {
+            "type": "Section",
+            "props": {
+              "title": "11. ReLU as a Binary Mask"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "There's another way to understand what ReLU does, and it connects directly to the intuition about \"masking some signals and emphasizing others\" that motivated this whole exploration."
+              },
+              {
+                "type": "p",
+                "children": "Think of each ReLU neuron as a switch — a gate that's either OPEN (mask = 1, signal passes through) or CLOSED (mask = 0, signal blocked). For a given input, each neuron is either on or off. A layer of 256 neurons creates a binary pattern of 256 switches: some open, some closed."
+              },
+              {
+                "type": "Code",
+                "props": {
+                  "language": "text"
+                },
+                "children": "Input x₁ arrives → neurons fire → mask pattern: [1, 0, 1, 1, 0, 0, 1, 0, ...]\nInput x₂ arrives → neurons fire → mask pattern: [0, 1, 1, 0, 0, 1, 1, 1, ...]\n\nDifferent inputs → different masks → different effective networks!"
+              },
+              {
+                "type": "p",
+                "children": "This is the masking interpretation of ReLU. The activation function doesn't just introduce nonlinearity in the abstract — it creates a data-dependent mask. Different inputs activate different neurons, which means different signals are passed and different signals are blocked. The network selectively attends to different features depending on the input."
+              },
+              {
+                "type": "Callout",
+                "props": {
+                  "type": "key-idea"
+                },
+                "children": [
+                  {
+                    "type": "p",
+                    "children": "A ReLU network is a massive conditional: \"If you're in THIS region of input space, apply THIS linear transformation. If you're in THAT region, apply THAT one.\" The masking pattern IS the conditional. Different inputs create different masks, and different masks mean different effective weight matrices. The network isn't one function — it's an exponential family of functions, with the input itself selecting which member to apply."
+                  }
+                ]
+              },
+              {
+                "type": "p",
+                "children": "This explains something profound about neural networks that the simple \"nonlinearity\" answer misses. It's not just that the function is nonlinear. It's that the network is effectively a DIFFERENT network for every input region. When you have 256 neurons, you have up to 2²⁵⁶ possible masking patterns — that's more patterns than atoms in the universe. Each pattern corresponds to a different effective linear map. A single matrix multiplication gives you ONE linear map. A ReLU network gives you an astronomical number of them, dynamically selected by the input."
+              },
+              {
+                "type": "p",
+                "children": "This is why the \"just multiply the matrices together\" argument fails. You CAN'T multiply the matrices together, because there's no single set of matrices to multiply. The matrices CHANGE depending on the input. The activation function is the mechanism that makes the transformation input-dependent. Without it, every input sees the same transformation. With it, every region of input space can have its own custom-tailored transformation."
+              },
+              {
+                "type": "DeepDive",
+                "props": {
+                  "title": "The masking view connects to attention"
+                },
+                "children": [
+                  {
+                    "type": "p",
+                    "children": "If the masking interpretation sounds familiar, it should. The attention mechanism in transformers is, at its core, a data-dependent masking operation. Attention weights determine which keys are \"attended to\" (mask ≈ 1) and which are ignored (mask ≈ 0). The softmax activation makes these weights input-dependent."
+                  },
+                  {
+                    "type": "p",
+                    "children": "In fact, you can view the entire evolution of neural network architectures through the lens of \"increasingly sophisticated masking.\" Perceptrons: no masking. ReLU networks: binary masking (on/off per neuron). Attention: continuous masking with learned, context-dependent weights. Mixture-of-experts: masking at the module level (which expert to route to). The story of deep learning is the story of increasingly nuanced ways to say \"pay attention to THIS, ignore THAT\" — and the key insight is that WHAT to attend to depends on the input."
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "Act X: Composition vs. Collapse — Why It Can't Be Undone"
+        },
+        "children": [
+          {
+            "type": "Section",
+            "props": {
+              "title": "12. The Irreversibility of Folding"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "Let's now address the central question with full precision. A linear network computes:"
+              },
+              {
+                "type": "Code",
+                "props": {
+                  "language": "text"
+                },
+                "children": "y = W₃ · W₂ · W₁ · x = M · x"
+              },
+              {
+                "type": "p",
+                "children": "This collapses because matrix multiplication composes: the composition of linear functions is linear."
+              },
+              {
+                "type": "p",
+                "children": "A ReLU network computes:"
+              },
+              {
+                "type": "Code",
+                "props": {
+                  "language": "text"
+                },
+                "children": "y = W₃ · ReLU(W₂ · ReLU(W₁ · x))"
+              },
+              {
+                "type": "p",
+                "children": "This DOESN'T collapse because the composition of (linear + nonlinear) functions is not linear. But let's be more specific about WHY."
+              },
+              {
+                "type": "p",
+                "children": "The first layer applies W₁ to the input, then ReLU folds the result. Now, critically, different inputs land on different sides of the fold. Some dimensions that were positive for input A might be negative for input B. After the fold, these inputs have been treated DIFFERENTLY — A kept its value, B got zeroed out. This information about \"which side of the fold\" is baked into the intermediate representation."
+              },
+              {
+                "type": "p",
+                "children": "The second layer, W₂, now operates on this folded representation. It can't \"unfold\" it — it doesn't know which values are zero because they were originally negative (and got folded) versus which values are zero because they were genuinely zero. The folding destroyed information about the original sign, and that destruction is what prevents collapse."
+              },
+              {
+                "type": "Analogy",
+                "props": {
+                  "title": "The map-folding analogy"
+                },
+                "children": [
+                  {
+                    "type": "p",
+                    "children": "Imagine you're giving someone directions. \"Drive 10 miles north. Then fold the map in half. Then drive 10 miles north.\" The second \"10 miles north\" is no longer the same direction as the first, because north on the folded map points somewhere completely different than north on the unfolded map. You can't simplify these instructions to \"drive 20 miles north\" — the fold changed what \"north\" means. Each layer of a neural network is like: apply a linear transformation (drive in a direction), then fold the map (apply ReLU). The folds make subsequent linear transformations operate in a CHANGED space."
+                  }
+                ]
+              },
+              {
+                "type": "p",
+                "children": "Here's the mathematical core: linearity means f(αa + βb) = αf(a) + βf(b). ReLU violates this. Take a = 1, b = -1, α = β = 1. Then:"
+              },
+              {
+                "type": "Code",
+                "props": {
+                  "language": "text"
+                },
+                "children": "ReLU(1·1 + 1·(-1)) = ReLU(0) = 0\n\n1·ReLU(1) + 1·ReLU(-1) = 1·1 + 1·0 = 1\n\n0 ≠ 1.  Linearity violated."
+              },
+              {
+                "type": "p",
+                "children": "Because ReLU violates linearity, the composition W₂ · ReLU · W₁ is NOT the same as any single matrix M applied to the input. The function you get depends on which neurons fire, which depends on the input. No single matrix can replicate this behavior because a matrix must do the same thing to every input."
+              }
+            ]
+          },
+          {
+            "type": "Quiz",
+            "props": {
+              "question": "Why can't you \"undo\" the effect of ReLU by composing it with another linear layer?",
+              "options": [
+                "ReLU is too computationally expensive to invert",
+                "ReLU destroys information (negative values become zero), so a subsequent linear layer can't recover what was lost",
+                "ReLU changes the dimensionality of the data",
+                "Linear layers can only rotate data, not scale it"
+              ],
+              "correctIndex": 1,
+              "explanation": "ReLU maps all negative values to zero. A linear layer operating on the result can't distinguish between a value that was originally zero and one that was originally -5 (both are now 0). This information destruction is irreversible — no matrix multiplication can recover lost information. This is precisely why the composition can't collapse into a single matrix: the fold changes the representation in an input-dependent way that no fixed linear map can replicate."
+            }
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "Act XI: The Deep Insight — Why Depth Beats Width"
+        },
+        "children": [
+          {
+            "type": "Section",
+            "props": {
+              "title": "13. Compositional Folding and Exponential Expressivity"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "We've established that nonlinearity prevents collapse and enables rich function approximation. But there's a deeper question: why DEEP networks? If one hidden layer with enough neurons can approximate anything (Cybenko's theorem), why bother with 96-layer transformers?"
+              },
+              {
+                "type": "p",
+                "children": "The answer is efficiency, and it comes down to the difference between PARALLEL folds and COMPOSED folds."
+              },
+              {
+                "type": "p",
+                "children": "A wide, shallow network (one hidden layer with many neurons) creates many folds, but they're all folds of the ORIGINAL input space. Each fold is independent — a crease along one direction, independent of all other creases. This is like making many parallel cuts in a piece of paper: no matter how many cuts you make, if they're all parallel, the complexity of the resulting shape is limited."
+              },
+              {
+                "type": "p",
+                "children": "A deep network creates folds of ALREADY FOLDED space. The second layer's folds interact with the first layer's folds. A fold that crosses an existing fold creates a corner. A fold that runs along an existing fold deepens it. This is like origami: each fold changes the meaning of subsequent folds, creating compound structures impossible to achieve with any number of parallel folds."
+              },
+              {
+                "type": "Example",
+                "props": {
+                  "title": "Parallel vs. composed folds in 2D"
+                },
+                "children": [
+                  {
+                    "type": "p",
+                    "children": "Suppose you want to create a square-shaped decision region in 2D. With a shallow network: you need 4 neurons (one for each edge of the square). Each creates one fold, giving you 4 linear boundaries that form the square. You used 4 neurons."
+                  },
+                  {
+                    "type": "p",
+                    "children": "Now suppose you want a shape with 16 edges (a more complex polygon). With a shallow network: 16 neurons. With a two-layer network: you could use 4 neurons in the first layer (creating 4 basic folds) and 4 in the second layer (composing those folds into more complex boundaries). 8 neurons total, but capable of creating up to 4 × 4 = 16 regions."
+                  },
+                  {
+                    "type": "p",
+                    "children": "For a shape with 1000 edges? Shallow: 1000 neurons. Deep (3 layers of 10): 30 neurons, capable of 10³ = 1000 regions. The efficiency gap grows exponentially with the desired complexity."
+                  }
+                ]
+              },
+              {
+                "type": "DeepDive",
+                "props": {
+                  "title": "Montufar et al.'s counting argument"
+                },
+                "children": [
+                  {
+                    "type": "p",
+                    "children": "In their 2014 paper \"On the Number of Linear Regions of Deep Neural Networks,\" Montufar, Pascanu, Cho, and Bengio proved a beautiful result. A ReLU network with L layers of width n operating on d-dimensional input can create:"
+                  },
+                  {
+                    "type": "Code",
+                    "props": {
+                      "language": "text"
+                    },
+                    "children": "At least (⌊n/d⌋)^(d(L-1)) · Σ(k=0 to n) C(n,k) linear regions"
+                  },
+                  {
+                    "type": "p",
+                    "children": "The key insight: the number of regions grows EXPONENTIALLY with depth (L appears in the exponent) but only POLYNOMIALLY with width (n). This means adding one more layer can be worth more than doubling the width. A network with 10 layers of 100 neurons has far more expressivity than a network with 1 layer of 1000 neurons — even though the latter has the same total number of neurons."
+                  },
+                  {
+                    "type": "p",
+                    "children": "This is the mathematical foundation for why \"deep\" learning works. Depth is not just an engineering choice — it's an exponential multiplier on representational capacity."
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "Act XII: Connection to Transformers"
+        },
+        "children": [
+          {
+            "type": "Section",
+            "props": {
+              "title": "14. Every Nonlinearity Is Load-Bearing"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "Let's bring this back to the architecture that dominates modern AI: the transformer. A transformer block has several components, and EVERY nonlinear operation is there to prevent collapse. Remove any one of them, and layers start collapsing into each other."
+              },
+              {
+                "type": "p",
+                "children": "The MLP (feed-forward) layers: These use GELU (in GPT) or ReLU (in earlier architectures). Without this activation, the MLP's two linear layers (the \"up projection\" and \"down projection\") would collapse into a single matrix. The GELU creates the folds we've been discussing. Each MLP block computes a piecewise-linear-ish function that acts differently on different inputs."
+              },
+              {
+                "type": "p",
+                "children": "Softmax in attention: The attention mechanism computes attention scores and then applies softmax to get weights. Softmax is nonlinear — it exponentiates and normalizes. Without it, the attention computation Q·Kᵀ·V would just be a series of matrix multiplications that collapse. Softmax makes the attention weights input-dependent in a nonlinear way: it creates sharp peaks (focusing on one or a few tokens) rather than flat distributions."
+              },
+              {
+                "type": "p",
+                "children": "LayerNorm: Normalizing by mean and standard deviation is a nonlinear operation (it involves division by a data-dependent quantity). LayerNorm prevents the residual stream from growing without bound and introduces another input-dependent nonlinearity."
+              },
+              {
+                "type": "Callout",
+                "props": {
+                  "type": "key-idea"
+                },
+                "children": [
+                  {
+                    "type": "p",
+                    "children": "In a 96-layer GPT-4-class transformer, remove all the activation functions (GELU in MLPs, softmax in attention, LayerNorm), and what remains is just a sequence of matrix multiplications and additions. All 96 layers would collapse into a single affine transformation. One matrix multiply. The entire model — billions of parameters, months of training — would be equivalent to a lookup table with a linear index. Every nonlinearity in the transformer is load-bearing."
+                  }
+                ]
+              },
+              {
+                "type": "p",
+                "children": "There's something especially interesting about attention's nonlinearity. The softmax in attention doesn't just prevent collapse — it creates a data-dependent linear map. The attention matrix A = softmax(QKᵀ/√d) changes with every input sequence. Different sentences produce different attention patterns, which means different effective weight matrices. This is like our masking interpretation on steroids: not just individual neurons switching on and off, but entire attention patterns reconfiguring based on the input."
+              },
+              {
+                "type": "p",
+                "children": "This is why transformers are so powerful. They don't just fold space (like ReLU in MLPs). They also REWIRE connections dynamically (through attention). The combination of static folds (GELU) and dynamic routing (softmax attention) creates a system where every layer is genuinely different from every other layer — not just in its parameters, but in its effective computation."
+              }
+            ]
+          },
+          {
+            "type": "Quiz",
+            "props": {
+              "question": "Which of the following operations in a transformer does NOT introduce nonlinearity?",
+              "options": [
+                "GELU activation in the MLP",
+                "Matrix multiplication of Q, K, and V projections",
+                "Softmax in the attention mechanism",
+                "LayerNorm"
+              ],
+              "correctIndex": 1,
+              "explanation": "The Q, K, and V projections are pure linear transformations (matrix multiplications). They don't introduce nonlinearity. GELU, softmax, and LayerNorm are all nonlinear operations. This is why the Q/K/V projections alone aren't enough — without softmax, the attention computation would collapse into a single linear map."
+            }
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "Epilogue: The Poetry of the Fold"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "Let's come back to where we started: the question that sounds stupid until it doesn't. Why can't you just multiply all the matrices together?"
+          },
+          {
+            "type": "p",
+            "children": "Because between each matrix, the space is FOLDED. And once you fold space, the meaning of \"multiply by a matrix\" changes. The next matrix operates on folded space, not flat space. It transforms a crumpled, creased, origami landscape — not a pristine sheet. And you can't uncrumple the paper to get back to a single flat transformation."
+          },
+          {
+            "type": "p",
+            "children": "A neural network without activation functions is a flat sheet of paper lying on a table. You can rotate it, stretch it, even flip it over. But it's always flat. A neural network WITH activation functions is origami. Each layer is a fold. And with enough folds, you can create anything."
+          },
+          {
+            "type": "p",
+            "children": "That's the category change. Not a quantitative difference (\"more complex functions\") but a qualitative one (\"an entirely different kind of computation\"). A linear network, no matter how deep, computes ONE function for ALL inputs. A nonlinear network computes a DIFFERENT function for each region of input space. It's not a slightly better function approximator — it's a fundamentally different kind of machine."
+          },
+          {
+            "type": "p",
+            "children": "Minsky and Papert saw the limitation in 1969. Cybenko proved the potential in 1989. Glorot and Bengio figured out the right kind of fold in 2011. And by 2024, networks with hundreds of layers, each folding and refolding space in billions of dimensions, are writing poetry, proving theorems, and generating images from text."
+          },
+          {
+            "type": "p",
+            "children": "All because someone thought to fold the paper."
+          },
+          {
+            "type": "Callout",
+            "props": {
+              "type": "key-idea"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "The difference between a linear network and a nonlinear network is the difference between a flat sheet of paper and origami. The difference between a shallow network and a deep network is the difference between one fold and a thousand. And the difference between \"this can't even compute XOR\" and \"this can write Shakespeare\" is nothing more than folds — enough folds, in the right places, composed in the right order. That's the geometry of intelligence."
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}
