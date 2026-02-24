@@ -1,0 +1,598 @@
+{
+  "id": "where-grammar-lives",
+  "title": "Where Grammar Lives: Syntactic Transition Priors in MLP Vectors",
+  "subtitle": "We matched MLP input and output vectors across tokens in GPT-2 and found something unexpected: the displacement vectors encode syntactic transition probabilities — not semantic content, not token identity, but grammar itself.",
+  "author": "Peter Balogh",
+  "lastUpdated": "2026-02-24",
+  "readTime": "25 min",
+  "tags": ["GPT-2", "MLP", "mechanistic interpretability", "POS", "syntax", "TransformerLens", "displacement vectors", "transition probabilities"],
+  "state": {},
+  "content": {
+    "type": "Fragment",
+    "children": [
+      {
+        "type": "Section",
+        "props": {
+          "title": "The Question"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "Every transformer MLP takes in a vector and spits out a different vector. The difference between them — the displacement — is the MLP's 'opinion' about that token. But what IS that opinion?"
+          },
+          {
+            "type": "p",
+            "children": "Most interpretability work focuses on what MLPs amplify or suppress in the residual stream. We asked a different question: if you take one token's MLP output and find the most similar MLP input across ALL tokens, what do you get? Is there sequential structure hiding in these vectors?"
+          },
+          {
+            "type": "p",
+            "children": "The answer floored us. The displacement vectors don't encode semantics. They don't encode token identity. They encode grammar — specifically, syntactic transition probabilities. The MLP is whispering: 'after a preposition, expect a determiner.'"
+          },
+          {
+            "type": "Analogy",
+            "props": {
+              "title": "The Assembly Line Metaphor"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "Think of each MLP as a worker on an assembly line. The worker receives a partially-built widget (the input vector), does some work on it, and passes it forward (the output vector). The displacement is the work itself — the twist of the wrench, the dab of glue. We're studying the work, not the widget. And it turns out the work encodes what the NEXT worker should expect to receive."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "The Setup"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "We ran 90 diverse English sentences through GPT-2 Small using TransformerLens, extracting 1,133 tokens total. For each token at each of three layers (0, 5, and 11), we grabbed:"
+          },
+          {
+            "type": "p",
+            "children": "• The MLP pre-activation vector (input) — what the residual stream hands to the MLP\n• The MLP post-activation vector (output) — what the MLP hands back\n• The displacement = output − input — the MLP's contribution"
+          },
+          {
+            "type": "p",
+            "children": "Why three layers? Layer 0 is the first MLP the token embedding ever encounters. Layer 5 is mid-network. Layer 11 is the final MLP before the unembedding. If there's grammatical structure in these displacements, we want to see how it evolves."
+          },
+          {
+            "type": "Callout",
+            "props": {
+              "type": "note"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "Each vector lives in GPT-2's 768-dimensional residual stream space. The displacement is also 768-dimensional — it's the direction and magnitude of the MLP's push on the residual stream."
+              }
+            ]
+          },
+          {
+            "type": "p",
+            "children": "Every token was also tagged with its part of speech (POS): DET (the, a), PREP (on, in, of), NOUN, VERB, ADJ, AUX (is, was, has), PRON (he, she, it), CONJ (and, but), and a catch-all CONTENT category for open-class words. This POS labeling is what let us see the grammar."
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "The Mean Problem"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "Our first attempt was naive. We computed cosine similarities between all displacement vectors and got... mush. Everything looked similar to everything else. Cosine similarities were uniformly high."
+          },
+          {
+            "type": "p",
+            "children": "The culprit: a dominant mean direction. When you average all 1,133 displacement vectors, you get a single strong direction that accounts for most of the variance. This is the 'average MLP effect' — the generic push that every token gets, regardless of identity. It swamps the interesting stuff."
+          },
+          {
+            "type": "Analogy",
+            "props": {
+              "title": "The Wind Analogy"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "Imagine you're studying how different birds fly. But there's a 50 mph wind blowing east. Every bird is being pushed east. If you measure their trajectories, they all look similar — eastward. The fix is obvious: subtract the wind. Now you can see the eagle soaring, the hummingbird hovering, the swallow diving. The mean displacement is the wind. Subtract it, and the individual flight patterns emerge."
+              }
+            ]
+          },
+          {
+            "type": "p",
+            "children": "The fix: compute the mean displacement vector across all tokens, then subtract it from every individual displacement. Now each vector represents only the token-specific deviation from the average MLP behavior."
+          },
+          {
+            "type": "Callout",
+            "props": {
+              "type": "warning"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "This mean-subtraction step is critical. Without it, PCA finds nothing interesting, cosine matching is meaningless, and the entire analysis collapses into a single dominant direction. If you're doing displacement analysis on ANY transformer component, subtract the mean first."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "PCA Reveals Grammar"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "With the mean subtracted, we applied PCA to the displacement vectors at Layer 0. The results were immediate and striking."
+          },
+          {
+            "type": "p",
+            "children": "PC1 captures 25.5% of the variance — a massive amount for a 768-dimensional space. And what does it separate? Function words from content words. Determiners ('the', 'a'), prepositions ('on', 'in', 'of'), and auxiliaries ('is', 'was') cluster on the negative end. Nouns ('cat', 'dog', 'house'), verbs ('ran', 'built'), and adjectives cluster positive."
+          },
+          {
+            "type": "Callout",
+            "props": {
+              "type": "insight"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "The single most important axis of variation in MLP displacements is the function/content word distinction. A quarter of everything the MLP does, token by token, is navigating this boundary."
+              }
+            ]
+          },
+          {
+            "type": "p",
+            "children": "PC2 (9.9% variance) separates sentence-initial tokens from mid-sentence tokens. The MLP knows where you are in the sentence — not because position is encoded in the displacement directly, but because the grammatical expectations differ at position 1 versus position 15."
+          },
+          {
+            "type": "p",
+            "children": "PC3 (5.6% variance) is subtler: it distinguishes narrative/animate content (people, actions, stories) from abstract content (concepts, quantities, relations). Even within content words, the MLP carves grammatically-relevant distinctions."
+          },
+          {
+            "type": "DeepDive",
+            "props": {
+              "title": "What 'Function vs. Content' Means for MLPs"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "In linguistics, function words (the, is, of, and) are the scaffolding of sentences — they carry grammatical information but little semantic content. Content words (cat, run, beautiful) carry meaning. This is a centuries-old distinction."
+              },
+              {
+                "type": "p",
+                "children": "But why would an MLP care? Here's the key insight: function words and content words have radically different TRANSITION statistics. After 'the', you almost always get a noun or adjective. After 'ran', you might get a preposition, an adverb, a period — much more varied. The MLP's displacement along PC1 isn't encoding a linguistic theory. It's encoding a prediction about what comes next."
+              },
+              {
+                "type": "p",
+                "children": "Function words are high-constraint contexts (few likely successors). Content words are low-constraint contexts (many possible successors). PC1 is a constraint axis — how tightly does this token constrain the next one?"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "The Discriminative Fraction"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "Not all layers are equally grammatical. We measured the 'discriminative fraction' — how much of the displacement variance is explained by POS category — at each layer."
+          },
+          {
+            "type": "p",
+            "children": "Layer 0: 41.5% discriminative. Nearly half of the MLP's displacement at the first layer is explained by part-of-speech alone. That's enormous."
+          },
+          {
+            "type": "p",
+            "children": "Layer 5: 9.6%. The grammatical signal is still there, but the MLP is now doing other work — probably more semantic, more contextual."
+          },
+          {
+            "type": "p",
+            "children": "Layer 11: 4.3%. By the final layer, POS barely registers in the displacement. The MLP has moved on to fine-grained prediction."
+          },
+          {
+            "type": "Callout",
+            "props": {
+              "type": "insight"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "The MLP's grammatical work is front-loaded. Layer 0 does the heavy lifting of establishing syntactic category, and later layers progressively shift to other concerns. This is consistent with the 'syntax early, semantics late' pattern found in probing studies."
+              }
+            ]
+          },
+          {
+            "type": "Analogy",
+            "props": {
+              "title": "Building a House"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "Layer 0 is the foundation and framing — you establish the structural category of each element (is this a load-bearing wall or a window?). Layer 5 is the electrical and plumbing — functional systems that depend on structure but go beyond it. Layer 11 is the paint and furniture — the final details that make the house specific. You don't pour foundations on the last day."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "Endpoint Matching: Following the Arrows"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "Here's where it gets wild. We took each token's MLP output vector and asked: which token's MLP input vector is most similar to this output? We're essentially following the arrows — if the MLP pushes 'on' to a certain place, whose input lives near that place?"
+          },
+          {
+            "type": "p",
+            "children": "We used a combined similarity metric: 70% endpoint cosine similarity (comparing the output of token A to the input of token B) plus 30% direction cosine similarity (comparing displacement directions). This balances 'where does it point?' with 'how does it move?'"
+          },
+          {
+            "type": "p",
+            "children": "The results:"
+          },
+          {
+            "type": "p",
+            "children": "Next-token accuracy: 6%. That sounds low until you realize the chance baseline is 0.1% (1 out of 1,133 tokens). We're hitting the actual next token 60 times more often than random. Not bad for a purely geometric matching with no language model involved."
+          },
+          {
+            "type": "p",
+            "children": "Same-POS accuracy: 85%. When we match a token's output to some other token's input, the matched token has the same part of speech as the true next token 85% of the time. The MLP output is landing in the right grammatical neighborhood."
+          },
+          {
+            "type": "Callout",
+            "props": {
+              "type": "insight"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "But the most revealing statistic: 41% of all matches are PREP→DET. Prepositions like 'on', 'in', 'of' get matched to determiners like 'the', 'a'. This isn't random — it's the single most common syntactic bigram in English. The MLP's geometry has internalized the grammar of English prepositional phrases."
+              }
+            ]
+          },
+          {
+            "type": "Example",
+            "props": {
+              "title": "Tracing a Match"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "Token: 'on' (PREP, sentence: 'The cat sat on the mat')\nMLP output at Layer 5 → cosine match → MLP input of 'the' (DET, from a DIFFERENT sentence)\n\nThe MLP pushes 'on' toward a region of vector space where determiners live as inputs. It's not matching the specific word 'the' — it's matching the grammatical category DET. The MLP has encoded: after a preposition, expect a determiner."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "The Transition Matrix"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "To go beyond individual matches, we built POS-to-POS transition matrices from the displacement similarities. For every pair of POS categories (X, Y), we computed: how similar are X's MLP outputs to Y's MLP inputs, on average? Positive means 'X's output points toward Y's input region.' Negative means 'X's output points AWAY from Y's input region.'"
+          },
+          {
+            "type": "p",
+            "children": "The transition matrix tells us which grammatical transitions the MLP encodes as natural (positive) and which it encodes as unlikely (negative)."
+          },
+          {
+            "type": "p",
+            "children": "Here are the key findings across layers:"
+          },
+          {
+            "type": "p",
+            "children": "PREP→DET: The strongest signal. Starts at +0.19 at Layer 0 and STRENGTHENS to +0.58 at Layers 5 and 11. The network becomes increasingly confident that prepositions should be followed by determiners. This is the 'of the', 'in the', 'on a' pattern — the backbone of English noun phrases."
+          },
+          {
+            "type": "p",
+            "children": "DET→CONTENT: Anti-correlated at -0.08 by Layer 11. This is surprising — determiners DO precede content words (nouns, adjectives). But the MLP suppresses this transition in displacement space. Why? Possibly because the specific content word after 'the' is highly variable and context-dependent, so the MLP doesn't try to predict it geometrically."
+          },
+          {
+            "type": "p",
+            "children": "Other strong positive transitions:\n• DET→DET (+0.35 at L5): 'the' → 'the' patterns (e.g., across clause boundaries)\n• AUX→AUX (+0.31 at L5): auxiliary chains like 'has been'\n• PRON→AUX (+0.28 at L5): 'he is', 'she was', 'they have'\n• CONJ→DET (+0.42 at L5): 'and the', 'but a'\n• PREP→DET (+0.58 at L5): the dominant pattern"
+          },
+          {
+            "type": "Callout",
+            "props": {
+              "type": "note"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "Notice the pattern: the strongest transitions are all function→function word patterns. The MLP geometry primarily encodes the transitions BETWEEN grammatical scaffolding words. Content words are more variable and harder to predict categorically."
+              }
+            ]
+          },
+          {
+            "type": "DeepDive",
+            "props": {
+              "title": "Reading the Transition Matrix"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "Think of the transition matrix as a heat map. Rows are 'source POS' (whose MLP output are we looking at?) and columns are 'target POS' (whose MLP input are we comparing to?). Bright cells mean the MLP output of the source POS points toward the input region of the target POS."
+              },
+              {
+                "type": "p",
+                "children": "At Layer 0, the matrix is warm but diffuse — many moderate positive values. By Layer 5, it sharpens dramatically: PREP→DET becomes a hot spot, function→function transitions strengthen, and function→content transitions weaken or go negative. By Layer 11, the matrix is sparse — only the strongest transitions survive, and some cells have flipped sign entirely."
+              },
+              {
+                "type": "p",
+                "children": "This progressive sharpening tells us the network refines its syntactic priors layer by layer. It starts with broad grammatical categories and converges on specific transition patterns."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "The Polarity Flip"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "Something genuinely strange happens between Layer 0 and Layer 11. Remember that PC1 at Layer 0 separates function words (negative) from content words (positive)? At Layer 11, this polarity REVERSES. Content words project negative on the dominant PCA axis, and function words project positive."
+          },
+          {
+            "type": "p",
+            "children": "The MLP doesn't just maintain the function/content distinction — it flips it. Somewhere in the middle layers, the network redefines what it means to be a function word versus a content word, at least in terms of displacement geometry."
+          },
+          {
+            "type": "DeepDive",
+            "props": {
+              "title": "Why Would the Network Flip Polarity?"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "One hypothesis: early layers need to identify what grammatical category a token belongs to (input classification), while later layers need to prepare for what comes next (output prediction). These are complementary tasks, and complementary tasks often have inverted geometric signatures."
+              },
+              {
+                "type": "p",
+                "children": "At Layer 0, a function word gets a negative displacement because the MLP is saying 'this IS a function word — move it toward the function word region.' At Layer 11, a function word gets a positive displacement because the MLP is saying 'the thing AFTER a function word should be a content word — push toward content territory.'"
+              },
+              {
+                "type": "p",
+                "children": "If this interpretation is correct, the polarity flip is the network switching from 'what am I?' to 'what comes next?' — from classification to prediction. And that switch happens progressively across layers."
+              }
+            ]
+          },
+          {
+            "type": "Callout",
+            "props": {
+              "type": "insight"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "The polarity flip may be one of the cleanest geometric signatures of the transition from encoding to prediction in a transformer. Layer 0 MLPs classify. Layer 11 MLPs anticipate. The displacement vectors tell us when the switch happens."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "Cross-POS Alliances"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "Not all POS categories move independently in displacement space. Some categories have correlated displacement directions — they form alliances. Others have anti-correlated displacements — they're in opposition."
+          },
+          {
+            "type": "p",
+            "children": "The alliances tell us which grammatical categories the MLP treats as 'moving together' — receiving similar displacement vectors and therefore playing similar roles in the transition structure."
+          },
+          {
+            "type": "p",
+            "children": "Strongest alliances (positive displacement correlation):\n• CONJ × DET: +0.360 — conjunctions and determiners move in the same direction\n• CONJ × PREP: +0.342 — conjunctions and prepositions are allied\n• AUX × DET: +0.305 — auxiliaries and determiners move together"
+          },
+          {
+            "type": "p",
+            "children": "Strongest oppositions (negative displacement correlation):\n• DET × NOUN/VERB: -0.249 — determiners and content words move in opposite directions\n• CONJ × CONTENT: -0.167 — conjunctions oppose content words"
+          },
+          {
+            "type": "Analogy",
+            "props": {
+              "title": "The Grammar Coalition"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "Picture a political map. On one side, you have the Function Word Coalition: determiners, prepositions, conjunctions, and auxiliaries. They vote together, move together, and reinforce each other's positions. On the other side, the Content Word Bloc: nouns, verbs, adjectives. These two groups are in perpetual opposition — when one moves right in displacement space, the other moves left."
+              },
+              {
+                "type": "p",
+                "children": "This isn't a design decision. Nobody told GPT-2 about function words. The coalition emerged from training on text — because function words genuinely DO behave as a coalition in natural language. They co-occur, they predict each other, and they jointly scaffold the content words that fill in meaning."
+              }
+            ]
+          },
+          {
+            "type": "Callout",
+            "props": {
+              "type": "insight"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "The alliance between CONJ and DET (+0.360) makes linguistic sense: 'and the', 'but the', 'or a' are extremely common bigrams. The MLP has learned that conjunctions and determiners play similar structural roles — they're both 'expect a noun phrase next' signals."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "Semantic Subclusters in Content Words"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "The POS-level analysis treats all content words as one category. But within that category, semantic subclusters emerge in the displacement vectors. The MLP doesn't just know 'this is a content word' — it knows what KIND of content word."
+          },
+          {
+            "type": "p",
+            "children": "We measured within-cluster cosine similarity for semantic groups of content words:"
+          },
+          {
+            "type": "p",
+            "children": "• TIME words (yesterday, always, soon): within-cluster similarity = 0.288\n• MOTION/ACTION words (ran, jumped, built): 0.271\n• ANIMATE words (cat, dog, girl, teacher): 0.214\n• PLACE words (house, garden, street): 0.182"
+          },
+          {
+            "type": "p",
+            "children": "TIME and MOTION/ACTION words have the tightest clusters. This makes sense — temporal words have very constrained transition statistics (after 'yesterday' you almost always get a past-tense verb), and motion verbs strongly predict directional prepositions ('ran to', 'jumped over'). The MLP displacement captures these predictions."
+          },
+          {
+            "type": "p",
+            "children": "We also found strong position effects. The word 'the' at positions 1-2 (sentence-initial) versus position 9+ has a cosine similarity of only +0.120 between their displacement vectors. Same word, same POS, but the MLP treats sentence-initial 'the' as a fundamentally different grammatical event than mid-sentence 'the'. Because it IS — sentence-initial 'the' typically introduces a subject, while later 'the' introduces objects or prepositional complements."
+          },
+          {
+            "type": "Callout",
+            "props": {
+              "type": "note"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "The position sensitivity of displacements means the MLP isn't just encoding static POS categories. It's encoding context-dependent grammatical roles. 'The' as subject-introducer and 'the' as object-introducer get pushed in different directions."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "What This Means"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "Let's step back. What have we actually found?"
+          },
+          {
+            "type": "p",
+            "children": "MLPs in GPT-2 don't just transform individual token vectors. Their displacement vectors — the specific push they apply to each token — encode a syntactic transition prior. Given that I just processed a preposition, the displacement points toward the input region where determiners live. Given that I just processed a pronoun, the displacement points toward auxiliaries."
+          },
+          {
+            "type": "p",
+            "children": "This is grammar, implemented as geometry."
+          },
+          {
+            "type": "p",
+            "children": "The implications are significant:"
+          },
+          {
+            "type": "p",
+            "children": "1. MLPs are not just 'key-value memories' or 'knowledge stores.' They're active participants in syntactic processing. Their displacements carry grammatical transition information that downstream components can read.\n\n2. The grammatical signal is front-loaded (41.5% at Layer 0, 4.3% at Layer 11), suggesting that early MLPs establish syntactic scaffolding that later layers build upon.\n\n3. The function/content word distinction is the dominant axis — not token frequency, not semantic similarity, but grammatical category. The transformer has rediscovered a fundamental linguistic distinction through pure next-token prediction.\n\n4. The polarity flip between early and late layers suggests a transition from classification ('what am I?') to prediction ('what comes next?'), with the same geometric axis serving both purposes."
+          },
+          {
+            "type": "Callout",
+            "props": {
+              "type": "insight"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "The displacement vectors are a previously unexamined channel of information in transformers. Attention heads have been studied extensively. Residual stream directions have been probed. But the specific direction an MLP pushes a token — and how that direction relates to other tokens' inputs — appears to be a rich carrier of syntactic structure. Grammar doesn't live in any single component. It lives in the geometry of MLP displacements."
+              }
+            ]
+          },
+          {
+            "type": "Analogy",
+            "props": {
+              "title": "Rivers and Riverbeds"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "If the residual stream is a river, the MLP displacements are the riverbed — the hidden topography that shapes the flow. The water (token representations) follows paths carved by the terrain (displacement geometry). And that terrain isn't random. It's been shaped by millions of sentences into channels that correspond to the transition structure of English grammar. Prepositions carve channels that lead to determiners. Pronouns carve channels that lead to auxiliaries. The grammar IS the landscape."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "Test Your Understanding"
+        },
+        "children": [
+          {
+            "type": "Quiz",
+            "props": {
+              "questions": [
+                {
+                  "question": "Why is it necessary to subtract the mean displacement vector before analyzing MLP displacements?",
+                  "options": [
+                    "The mean displacement dominates cosine similarities, making all tokens look similar and hiding token-specific structure",
+                    "The mean displacement contains errors that need to be corrected",
+                    "Subtracting the mean makes the vectors shorter and easier to compute with",
+                    "The mean displacement only affects Layer 0 and can be ignored at other layers"
+                  ],
+                  "correct": 0,
+                  "explanation": "The mean displacement is a single bulk direction shared by all tokens — the 'average MLP effect.' It dominates cosine similarities, making everything look similar. Subtracting it reveals the token-specific deviations that encode grammatical structure."
+                },
+                {
+                  "question": "What does PC1 of the mean-subtracted displacement vectors at Layer 0 primarily separate?",
+                  "options": [
+                    "Common words from rare words",
+                    "Function words (the, a, on) from content words (cat, dog, house)",
+                    "Nouns from verbs",
+                    "Short words from long words"
+                  ],
+                  "correct": 1,
+                  "explanation": "PC1 captures 25.5% of variance and cleanly separates function words (determiners, prepositions, auxiliaries) from content words (nouns, verbs, adjectives). This is the dominant axis of variation in MLP displacement space."
+                },
+                {
+                  "question": "What happens to the discriminative fraction (POS signal in displacements) across layers?",
+                  "options": [
+                    "It increases from Layer 0 to Layer 11",
+                    "It stays roughly constant across all layers",
+                    "It drops sharply: 41.5% at Layer 0, 9.6% at Layer 5, 4.3% at Layer 11",
+                    "It peaks at Layer 5 then decreases"
+                  ],
+                  "correct": 2,
+                  "explanation": "The grammatical signal in MLP displacements is heavily front-loaded. Layer 0 carries 41.5% discriminative signal, dropping to 9.6% at Layer 5 and just 4.3% at Layer 11. Early MLPs do the heavy grammatical lifting."
+                },
+                {
+                  "question": "When matching MLP outputs to inputs across tokens, 41% of matches follow which POS transition?",
+                  "options": [
+                    "NOUN → VERB",
+                    "DET → NOUN",
+                    "PREP → DET",
+                    "VERB → ADV"
+                  ],
+                  "correct": 2,
+                  "explanation": "41% of endpoint matches are PREP→DET (e.g., 'on' → 'the'). This is the strongest signal in the displacement geometry and reflects the fact that preposition-determiner is one of the most common and predictable syntactic bigrams in English."
+                }
+              ]
+            }
+          }
+        ]
+      }
+    ]
+  }
+}

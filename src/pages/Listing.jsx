@@ -126,6 +126,18 @@ function CreateTutorialModal({ isOpen, onClose }) {
 
 const tutorials = [
   {
+    id: 'where-grammar-lives',
+    title: 'Where Grammar Lives: Syntactic Transition Priors in MLP Vectors',
+    description: 'We matched MLP input/output vectors across tokens in GPT-2 and found something unexpected: displacement vectors encode syntactic transition probabilities — not semantic content, but grammar itself.',
+    tags: ['GPT-2', 'MLP', 'mechanistic interpretability', 'POS', 'syntax', 'displacement vectors'],
+    icon: '🗺️',
+    gradient: 'from-emerald-500 to-teal-600',
+    shadowColor: 'shadow-emerald-500/30',
+    glowColor: 'rgba(16, 185, 129, 0.4)',
+    readTime: '25 min',
+    difficulty: 3,
+  },
+  {
     id: 'first-three-minutes-of-a-transformer',
     title: 'The First Three Minutes of a Transformer',
     description: 'Everything that happens to raw text before Layer 1 — BPE tokenization, the embedding matrix, positional encoding, and the vector that enters GPT-2.',
