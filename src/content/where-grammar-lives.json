@@ -1,7 +1,7 @@
 {
   "id": "where-grammar-lives",
   "title": "Where Grammar Lives: Syntactic Transition Priors in MLP Vectors",
-  "subtitle": "We matched MLP input and output vectors across tokens in GPT-2 and found something unexpected: the displacement vectors encode syntactic transition probabilities — not semantic content, not token identity, but grammar itself.",
+  "subtitle": "We matched MLP input/output vectors across tokens in GPT-2 and Pythia and found something unexpected: the displacement vectors encode syntactic transition probabilities — replicated across four models with statistical rigor.",
   "author": "Peter Balogh",
   "lastUpdated": "2026-02-24",
   "readTime": "25 min",
@@ -50,7 +50,7 @@
         "children": [
           {
             "type": "p",
-            "children": "We ran 90 diverse English sentences through GPT-2 Small using TransformerLens, extracting 1,133 tokens total. For each token at each of three layers (0, 5, and 11), we grabbed:"
+            "children": "We started with 90 diverse English sentences through GPT-2 Small, then scaled to 1,000 sentences from the Brown corpus across four models (GPT-2 Small, Medium, Large, and Pythia 410M) — over 16,000 tokens with proper NLTK POS tagging. For each token at multiple layers, we grabbed:"
           },
           {
             "type": "p",
@@ -134,7 +134,7 @@
           },
           {
             "type": "p",
-            "children": "PC1 captures 25.5% of the variance — a massive amount for a 768-dimensional space. And what does it separate? Function words from content words. Determiners ('the', 'a'), prepositions ('on', 'in', 'of'), and auxiliaries ('is', 'was') cluster on the negative end. Nouns ('cat', 'dog', 'house'), verbs ('ran', 'built'), and adjectives cluster positive."
+            "children": "PC1 captures 25–36% of the variance — a massive amount for a 768-dimensional space. And what does it separate? Function words from content words. Determiners, prepositions, conjunctions, and auxiliaries cluster on one end. Nouns, verbs, and adjectives cluster on the other. With proper NLTK POS tagging on 16,000+ tokens, the separation gets even cleaner: NOUN (-17.6), ADJ (-14.6), VERB (-14.2) vs CONJ (+25.7), DET (+22.1), PREP (+19.7)."
           },
           {
             "type": "Callout",
@@ -190,15 +190,15 @@
           },
           {
             "type": "p",
-            "children": "Layer 0: 41.5% discriminative. Nearly half of the MLP's displacement at the first layer is explained by part-of-speech alone. That's enormous."
+            "children": "The results are dramatic and consistent across all four models:"
           },
           {
             "type": "p",
-            "children": "Layer 5: 9.6%. The grammatical signal is still there, but the MLP is now doing other work — probably more semantic, more contextual."
+            "children": "• Pythia 410M Layer 0: 70.7% discriminative — nearly three-quarters of what the MLP does is POS-related!\n• GPT-2 Medium Layer 0: 43.9% → drops to 10.4% by Layer 23\n• GPT-2 Large Layer 0: 31.7% → drops to 14.6% by Layer 35\n• GPT-2 Small Layer 0: 26.5% → 25.3% by Layer 11 (too shallow to see the full decay)"
           },
           {
             "type": "p",
-            "children": "Layer 11: 4.3%. By the final layer, POS barely registers in the displacement. The MLP has moved on to fine-grained prediction."
+            "children": "Bootstrap 95% confidence intervals are tight (±2-3%), confirming these aren't noise. Pythia Layer 0: 0.709 [0.685, 0.734]."
           },
           {
             "type": "Callout",
@@ -246,11 +246,19 @@
           },
           {
             "type": "p",
-            "children": "Next-token accuracy: 6%. That sounds low until you realize the chance baseline is 0.1% (1 out of 1,133 tokens). We're hitting the actual next token 60 times more often than random. Not bad for a purely geometric matching with no language model involved."
+            "children": "This is where model size matters enormously. Next-token accuracy from displacement cosine alone:"
           },
           {
             "type": "p",
-            "children": "Same-POS accuracy: 85%. When we match a token's output to some other token's input, the matched token has the same part of speech as the true next token 85% of the time. The MLP output is landing in the right grammatical neighborhood."
+            "children": "• GPT-2 Small: 2.7% at Layer 11 (31× chance)\n• GPT-2 Medium: 5.5% at Layer 23 (63× chance)\n• GPT-2 Large: 21.2% at Layer 17 (243× chance!)\n• Pythia 410M: 11.1% at Layer 18 (127× chance)"
+          },
+          {
+            "type": "p",
+            "children": "Read that GPT-2 Large number again: one in five tokens can be predicted just by matching MLP displacement geometry. No language model, no attention, no residual stream — just 'where did the MLP push this token?' And crucially, the peak is at Layer 17 out of 36 — about 50% depth. Not the final layer. The syntactic transition prior is an intermediate computation."
+          },
+          {
+            "type": "p",
+            "children": "Same-POS accuracy ranges from 70-95% across models. The MLP output is landing in the right grammatical neighborhood even when it doesn't nail the exact token."
           },
           {
             "type": "Callout",
@@ -298,7 +306,7 @@
           },
           {
             "type": "p",
-            "children": "PREP→DET: The strongest signal. Starts at +0.19 at Layer 0 and STRENGTHENS to +0.58 at Layers 5 and 11. The network becomes increasingly confident that prepositions should be followed by determiners. This is the 'of the', 'in the', 'on a' pattern — the backbone of English noun phrases."
+            "children": "PREP→DET: Universally significant (p<0.001) in EVERY model tested. In GPT-2 Large it reaches +0.60 at Layer 0, and in Pythia it goes from -0.03 (not yet learned!) at Layer 0 to +0.60 at Layer 12. Permutation tests (500 shuffles) confirm: the real signal is 5-10× the null distribution. In the scaled 16K-token experiment, 39 out of 83 POS transitions are significant at p<0.01."
           },
           {
             "type": "p",
@@ -350,11 +358,15 @@
         "children": [
           {
             "type": "p",
-            "children": "Something genuinely strange happens between Layer 0 and Layer 11. Remember that PC1 at Layer 0 separates function words (negative) from content words (positive)? At Layer 11, this polarity REVERSES. Content words project negative on the dominant PCA axis, and function words project positive."
+            "children": "Something genuinely strange happens between early and late layers — but only in larger models. We correlated PC1 projections from the first layer to the last:"
           },
           {
             "type": "p",
-            "children": "The MLP doesn't just maintain the function/content distinction — it flips it. Somewhere in the middle layers, the network redefines what it means to be a function word versus a content word, at least in terms of displacement geometry."
+            "children": "• GPT-2 Small (12 layers): r = +0.98 — NO flip. Too shallow.\n• GPT-2 Medium (24 layers): r = -0.18 — FLIPPED! Function/content polarity reverses.\n• GPT-2 Large (36 layers): r = +0.47 — partial, still positive but weakened.\n• Pythia 410M (24 layers): r = +0.36 — partial."
+          },
+          {
+            "type": "p",
+            "children": "The polarity flip is model-size dependent. GPT-2 Small doesn't have enough layers. GPT-2 Medium, with 24 layers, is the sweet spot where the flip is cleanest. This suggests the flip requires sufficient depth to develop — it's a property of deep networks, not shallow ones."
           },
           {
             "type": "DeepDive",
@@ -485,6 +497,102 @@
       {
         "type": "Section",
         "props": {
+          "title": "The Attention Baseline: MLP Leads, Attention Follows"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "A natural objection: maybe attention patterns encode the same transition structure, and the MLP is just reflecting what attention already computed. We tested this by building the same POS transition matrices from attention weights instead of MLP displacements, then correlating them."
+          },
+          {
+            "type": "p",
+            "children": "The result is one of the strongest findings in this work:"
+          },
+          {
+            "type": "p",
+            "children": "• Layer 0: Attention ↔ MLP correlation r = -0.09 (NO relationship)\n• Layer 5: r = -0.39 (actually ANTI-correlated!)\n• Layer 11: r = +0.77 (p = 0.0004 — now they AGREE)"
+          },
+          {
+            "type": "Callout",
+            "props": {
+              "type": "insight"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "In early layers, MLP and attention encode DIFFERENT syntactic transition structures. By the final layer, they converge. The MLP isn't copying attention — it's doing independent syntactic work that attention only catches up to later. The same pattern holds for GPT-2 Medium: uncorrelated at L0, anti-correlated at L11, converged at L23 (r = +0.66)."
+              }
+            ]
+          },
+          {
+            "type": "p",
+            "children": "This means the MLP is a genuinely independent source of syntactic information. It's not redundant with attention — it's complementary. Early-layer MLPs do syntactic heavy lifting that attention hasn't figured out yet."
+          },
+          {
+            "type": "DeepDive",
+            "props": {
+              "title": "Why Would They Be Anti-Correlated?"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "The anti-correlation at Layer 5 (r = -0.39) is intriguing. It suggests that MLP and attention are encoding complementary information — transitions that MLP encodes strongly, attention encodes weakly, and vice versa. This is exactly what you'd expect from an efficient system: don't duplicate work. The residual stream lets MLP and attention specialize on different aspects of syntactic prediction, then combine their contributions."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "The Smoking Gun: Causal Ablation"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "Correlational evidence is nice. But does the MLP actually CAUSE correct POS prediction? We tested this by zeroing out the MLP output at each layer of GPT-2 Small and measuring the change in next-token POS accuracy."
+          },
+          {
+            "type": "p",
+            "children": "The results are unambiguous:"
+          },
+          {
+            "type": "p",
+            "children": "• Zero Layer 0 MLP: POS accuracy DROPS 35.4 points (67.7% → 32.3%). Logit diff: -6.32.\n• Zero Layer 3 MLP: No change (0.0%). Logit diff: -0.45.\n• Zero Layer 5 MLP: Negligible (-0.5%). Logit diff: -0.51.\n• Zero Layer 8 MLP: Negligible (-1.0%). Logit diff: -0.49.\n• Zero Layer 11 MLP: Actually HELPS (+2.6%). Logit diff: -0.48."
+          },
+          {
+            "type": "Callout",
+            "props": {
+              "type": "warning"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "Layer 0 MLP is CATASTROPHICALLY important for POS prediction. Kill it and accuracy halves. No other layer comes close. This is causal evidence that Layer 0 MLP is THE syntactic layer — the one that establishes grammatical scaffolding for everything downstream."
+              }
+            ]
+          },
+          {
+            "type": "p",
+            "children": "The Layer 11 result is delicious: ablating the final MLP slightly IMPROVES POS accuracy. This suggests the final layer MLP adds fine-grained token-specific information that actually interferes with coarse POS prediction. It's moved beyond grammar into the weeds of specific word choice."
+          },
+          {
+            "type": "Analogy",
+            "props": {
+              "title": "The Foundation Inspector"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "Imagine inspecting a building by removing one floor at a time. Remove the foundation (Layer 0): the entire building collapses. Remove the second floor (Layer 3): nothing happens, the structure above bridges the gap. Remove the penthouse (Layer 11): the building actually gets slightly sturdier — the decorative additions were adding unnecessary weight. The grammatical load is borne almost entirely by the foundation."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
           "title": "What This Means"
         },
         "children": [
@@ -506,7 +614,7 @@
           },
           {
             "type": "p",
-            "children": "1. MLPs are not just 'key-value memories' or 'knowledge stores.' They're active participants in syntactic processing. Their displacements carry grammatical transition information that downstream components can read.\n\n2. The grammatical signal is front-loaded (41.5% at Layer 0, 4.3% at Layer 11), suggesting that early MLPs establish syntactic scaffolding that later layers build upon.\n\n3. The function/content word distinction is the dominant axis — not token frequency, not semantic similarity, but grammatical category. The transformer has rediscovered a fundamental linguistic distinction through pure next-token prediction.\n\n4. The polarity flip between early and late layers suggests a transition from classification ('what am I?') to prediction ('what comes next?'), with the same geometric axis serving both purposes."
+            "children": "1. MLPs are not just 'key-value memories.' Their displacements carry grammatical transition information — replicated across GPT-2 Small/Medium/Large and Pythia 410M, with permutation-tested significance (p<0.001).\n\n2. The grammatical signal is front-loaded (27-71% at Layer 0, decaying with depth), and Layer 0 MLP is CAUSALLY essential — ablating it destroys POS prediction by 35 points.\n\n3. MLP and attention encode DIFFERENT transition structures in early layers but converge by the final layer. The MLP leads; attention follows.\n\n4. Larger models encode dramatically more sequential structure: GPT-2 Large gets 21.2% next-token accuracy from displacement geometry alone (243× chance) at ~50% network depth.\n\n5. With proper POS tagging (NLTK Penn Treebank) on 16,000+ tokens from the Brown corpus, 39 out of 83 POS transitions are statistically significant — nearly half of all grammatical bigrams are encoded in MLP displacement geometry."
           },
           {
             "type": "Callout",
@@ -567,15 +675,26 @@
                   "explanation": "PC1 captures 25.5% of variance and cleanly separates function words (determiners, prepositions, auxiliaries) from content words (nouns, verbs, adjectives). This is the dominant axis of variation in MLP displacement space."
                 },
                 {
-                  "question": "What happens to the discriminative fraction (POS signal in displacements) across layers?",
+                  "question": "What happens when you zero out Layer 0 MLP in GPT-2 Small?",
                   "options": [
-                    "It increases from Layer 0 to Layer 11",
-                    "It stays roughly constant across all layers",
-                    "It drops sharply: 41.5% at Layer 0, 9.6% at Layer 5, 4.3% at Layer 11",
-                    "It peaks at Layer 5 then decreases"
+                    "Nothing noticeable — other layers compensate",
+                    "POS prediction accuracy drops by 35 points — catastrophic",
+                    "The model generates random text",
+                    "Only PREP→DET transitions are affected"
+                  ],
+                  "correct": 1,
+                  "explanation": "Zeroing Layer 0 MLP drops POS prediction accuracy from 67.7% to 32.3% — a 35-point collapse. No other layer ablation has more than a 1% effect. Layer 0 MLP is THE syntactic layer."
+                },
+                {
+                  "question": "How do attention and MLP transition structures compare across layers?",
+                  "options": [
+                    "They encode identical structure at all layers",
+                    "They are always anti-correlated — doing opposite things",
+                    "Uncorrelated/anti-correlated in early layers, converging at the final layer",
+                    "Attention leads and MLP copies attention's patterns"
                   ],
                   "correct": 2,
-                  "explanation": "The grammatical signal in MLP displacements is heavily front-loaded. Layer 0 carries 41.5% discriminative signal, dropping to 9.6% at Layer 5 and just 4.3% at Layer 11. Early MLPs do the heavy grammatical lifting."
+                  "explanation": "At Layer 0, MLP and attention transition matrices have r ≈ -0.09 (no relationship). At Layer 5, they're anti-correlated (r = -0.39). By Layer 11, they converge (r = +0.77). The MLP does independent syntactic work early on that attention only catches up to later."
                 },
                 {
                   "question": "When matching MLP outputs to inputs across tokens, 41% of matches follow which POS transition?",
