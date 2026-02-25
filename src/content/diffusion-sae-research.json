@@ -929,6 +929,132 @@
           },
           {
             "type": "DeepDive",
+            "title": "[Feb 24] DSL: Discrete Stochastic Localization for Self-Correcting DLMs (Feb 18, 2026)",
+            "children": [
+              {
+                "type": "p",
+                "children": [
+                  {
+                    "type": "strong",
+                    "children": [
+                      "Paper:"
+                    ]
+                  },
+                  " Wu et al., 'Discrete Stochastic Localization for Non-autoregressive Generation' (arXiv:2602.16169, Feb 18, 2026)"
+                ]
+              },
+              {
+                "type": "p",
+                "children": [
+                  {
+                    "type": "strong",
+                    "children": [
+                      "Key insight:"
+                    ]
+                  },
+                  " Trains a single SNR-invariant denoiser across a continuum of corruption levels, bridging draft noise and mask-style endpoint corruption within one Diffusion Transformer. Achieves ~4x fewer denoiser evaluations than MDLM+ReMDM baseline while matching quality. Shows improved self-correction and uncertainty calibration."
+                ]
+              },
+              {
+                "type": "p",
+                "children": [
+                  {
+                    "type": "strong",
+                    "children": [
+                      "Relevance:"
+                    ]
+                  },
+                  " ⭐⭐ PRACTICAL FOR IDEAS 3 & 4. The SNR-invariant denoiser operates across ALL corruption levels with a single model — meaning SAE feature guidance could be applied uniformly regardless of noise level, simplifying our dictionary-guided denoising (Idea 4). The self-correction capability is especially relevant: if SAE-guided corrections introduce small errors, DSL's self-correction mechanism could recover from them. The 4x step reduction also means SAE guidance per-step overhead is less costly."
+                ]
+              }
+            ]
+          },
+          {
+            "type": "DeepDive",
+            "title": "[Feb 24] P2: Path Planning for MDM Sampling — Planning + Denoising Decomposition (ICLR 2026)",
+            "children": [
+              {
+                "type": "p",
+                "children": [
+                  {
+                    "type": "strong",
+                    "children": [
+                      "Paper:"
+                    ]
+                  },
+                  " 'Path Planning for Diffusion Language Model Sampling' (OpenReview #11824, ICLR 2026 submission)"
+                ]
+              },
+              {
+                "type": "p",
+                "children": [
+                  {
+                    "type": "strong",
+                    "children": [
+                      "Key insight:"
+                    ]
+                  },
+                  " Decomposes each MDM generation step into two sub-stages: a PLANNER selects which tokens to update, and a DENOISER fills them in. Critically, this enables REFINING already-unmasked tokens — something standard MDMs cannot do. Proves an expanded ELBO on log-likelihood. Massive gains: +22% protein foldability, +68% story ROUGE, +33% code pass@1."
+                ]
+              },
+              {
+                "type": "p",
+                "children": [
+                  {
+                    "type": "strong",
+                    "children": [
+                      "Relevance:"
+                    ]
+                  },
+                  " ⭐⭐⭐ DIRECT FRAMEWORK FOR IDEAS 3 & 4. The planning-denoising decomposition is exactly where SAE features plug in: the PLANNER could use SAE feature analysis to decide which tokens need updating (those whose SAE features don't match target), and the DENOISER could be guided by SAE dictionary constraints. The token refinement capability enables iterative SAE-guided correction — unmask tokens, check their SAE features, remask/refine misaligned ones. Complements Where-to-Unmask and LoMDM with a more general framework."
+                ]
+              }
+            ]
+          },
+          {
+            "type": "DeepDive",
+            "title": "[Feb 24] GRPO for MDM Unmasking: RL-Learned Scheduling with Guarantees (ICLR 2026)",
+            "children": [
+              {
+                "type": "p",
+                "children": [
+                  {
+                    "type": "strong",
+                    "children": [
+                      "Paper:"
+                    ]
+                  },
+                  " 'Improving Discrete Diffusion Unmasking Policies Beyond Explicit Reference Policies' (OpenReview #5629, ICLR 2026 submission)"
+                ]
+              },
+              {
+                "type": "p",
+                "children": [
+                  {
+                    "type": "strong",
+                    "children": [
+                      "Key insight:"
+                    ]
+                  },
+                  " Casts MDM denoising as a KL-regularized MDP and uses GRPO to learn an optimal unmasking policy. Proves convergence guarantees — the learned policy generates samples closer to the data distribution than heuristic schedules. On Sudoku (where order is critical): +22% over random, +12% over max-confidence."
+                ]
+              },
+              {
+                "type": "p",
+                "children": [
+                  {
+                    "type": "strong",
+                    "children": [
+                      "Relevance:"
+                    ]
+                  },
+                  " ⭐⭐ COMPLEMENTS IDEA 3. Another approach to learned generation ordering (alongside LoMDM, Where-to-Unmask). The KL-regularized MDP formulation is theoretically clean and could be extended: add SAE feature matching as a reward signal → the RL policy learns to unmask in an order that maximizes SAE feature coherence. The convergence guarantees would carry over, giving theoretical backing to SAE-aware scheduling."
+                ]
+              }
+            ]
+          },
+          {
+            "type": "DeepDive",
             "title": "[Feb 23] STAR-LDM: Latent Diffusion Planning for Language Generation (COLM 2026 submission)",
             "children": [
               {
@@ -3144,6 +3270,30 @@
                         ]
                       },
                       " (Kim et al., Feb 18, 2026, arXiv:2602.16813) \u2014 Flow-based Language Model via continuous denoising over one-hot encodings. One-step generation exceeds 8-step discrete diffusion quality. Challenges discrete diffusion assumption."
+                    ]
+                  },
+                  {
+                    "type": "li",
+                    "children": [
+                      {
+                        "type": "strong",
+                        "children": [
+                          "DSL"
+                        ]
+                      },
+                      " (Wu et al., Feb 18, 2026, arXiv:2602.16169) \u2014 Discrete Stochastic Localization. SNR-invariant denoiser across corruption continuum. 4x fewer steps than MDLM+ReMDM. Enables self-correction."
+                    ]
+                  },
+                  {
+                    "type": "li",
+                    "children": [
+                      {
+                        "type": "strong",
+                        "children": [
+                          "P2"
+                        ]
+                      },
+                      " (ICLR 2026, OpenReview #11824) \u2014 Path Planning for MDM sampling. Decomposes steps into planning + denoising. Enables token refinement. +33% code pass@1, +68% story ROUGE."
                     ]
                   }
                 ]
