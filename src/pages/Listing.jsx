@@ -530,6 +530,18 @@ const tutorials = [
     difficulty: 2,
   },
   {
+    id: 'brainstorm-44-periodic-table-of-operators',
+    title: 'The Periodic Table of Operators',
+    description: 'Organizing semantic primitives by domain × transformation type — and predicting undiscovered operators from gaps, validated by cross-linguistic universals',
+    tags: ['schankian', 'taxonomy', 'cross-linguistic', 'NSM', 'operator discovery'],
+    icon: '🧪',
+    gradient: 'from-amber-500 to-orange-600',
+    shadowColor: 'shadow-amber-500/30',
+    glowColor: 'rgba(245, 158, 11, 0.4)',
+    readTime: '20 min',
+    difficulty: 2,
+  },
+  {
     id: 'brainstorm-36-eigenoperators',
     title: 'Eigenoperators and Semantic Attractors',
     description: 'What eigenvectors of operator matrices reveal about dimensions of meaning — PCA on operators, fixed-point attractors, and embedding compression',

@@ -1,0 +1,356 @@
+{
+  "id": "brainstorm-44-periodic-table-of-operators",
+  "title": "The Periodic Table of Operators",
+  "subtitle": "Organizing semantic primitives by domain and transformation type — and predicting what's missing",
+  "readTime": "20 min",
+  "state": {},
+  "content": {
+    "type": "Fragment",
+    "children": [
+      {
+        "type": "Callout",
+        "props": { "type": "info" },
+        "children": "What if semantic primitives could be organized like chemical elements — by domain and transformation type — so that gaps in the table predict undiscovered operators? This tutorial explores the Periodic Table of Operators: a systematic classification that connects to Wierzbicka's Natural Semantic Metalanguage and cross-linguistic universals."
+      },
+      {
+        "type": "Section",
+        "props": { "title": "1. The Analogy: Mendeleev's Insight" },
+        "children": [
+          {
+            "type": "p",
+            "children": "In 1869, Mendeleev organized chemical elements by atomic weight and properties, creating the periodic table. The genius wasn't just classification — it was that gaps in the table predicted undiscovered elements. He predicted gallium, scandium, and germanium before they were found."
+          },
+          {
+            "type": "Analogy",
+            "props": {
+              "left": "Chemical Elements",
+              "right": "Semantic Operators",
+              "pairs": [
+                ["Atomic number → rows", "Domain (physical/mental/social) → rows"],
+                ["Chemical properties → columns", "Transformation type (transfer/create/destroy) → columns"],
+                ["Noble gases (inert)", "State operators (no change)"],
+                ["Reactive metals", "High-agency operators (PROPEL, HARM)"],
+                ["Predicted gallium from gap", "Predict missing operators from gaps"]
+              ]
+            }
+          },
+          {
+            "type": "p",
+            "children": "Can we do the same for meaning? If we organize Schankian operators along two axes — the domain they operate in and the type of transformation they perform — do patterns emerge? Do gaps predict missing primitives?"
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "2. The Two Axes" },
+        "children": [
+          {
+            "type": "h3",
+            "children": "Axis 1: Domain (What kind of thing changes?)"
+          },
+          {
+            "type": "p",
+            "children": "Events happen in different domains of reality. A physical movement is fundamentally different from a mental shift or a social exchange. We identify four primary domains:"
+          },
+          {
+            "type": "Example",
+            "props": { "title": "The Four Domains" },
+            "children": [
+              {
+                "type": "p",
+                "children": "🏗️ Physical — Objects move, break, combine, change location or form"
+              },
+              {
+                "type": "p",
+                "children": "🧠 Mental — Thoughts form, beliefs shift, knowledge transfers"
+              },
+              {
+                "type": "p",
+                "children": "🤝 Social — Ownership changes, obligations form, relationships shift"
+              },
+              {
+                "type": "p",
+                "children": "❤️ Emotional — Feelings arise, moods shift, desires form or dissolve"
+              }
+            ]
+          },
+          {
+            "type": "h3",
+            "children": "Axis 2: Transformation Type (What kind of change?)"
+          },
+          {
+            "type": "p",
+            "children": "Independently of domain, transformations fall into a small set of types. Things can be transferred, created, destroyed, modified, or perceived:"
+          },
+          {
+            "type": "Example",
+            "props": { "title": "Five Transformation Types" },
+            "children": [
+              {
+                "type": "p",
+                "children": "↔️ Transfer — Something moves from A to B (location, ownership, information)"
+              },
+              {
+                "type": "p",
+                "children": "✨ Creation — Something new comes into existence"
+              },
+              {
+                "type": "p",
+                "children": "💥 Destruction — Something ceases to exist or function"
+              },
+              {
+                "type": "p",
+                "children": "🔧 Modification — Something changes properties but persists"
+              },
+              {
+                "type": "p",
+                "children": "👁️ Perception — An agent becomes aware of something (no change to the thing itself)"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "3. The Table Itself" },
+        "children": [
+          {
+            "type": "Callout",
+            "props": { "type": "tip" },
+            "children": "Each cell in this 4×5 grid is a potential operator. Some are well-known Schankian primitives. Others are gaps — predictions of operators that should exist."
+          },
+          {
+            "type": "InteractiveDemo",
+            "props": {
+              "title": "🧪 The Periodic Table of Semantic Operators",
+              "id": "periodic-table-demo",
+              "height": 520,
+              "code": "function PeriodicTable() {\n  const [selected, setSelected] = React.useState(null);\n  const domains = ['Physical', 'Mental', 'Social', 'Emotional'];\n  const transforms = ['Transfer', 'Creation', 'Destruction', 'Modification', 'Perception'];\n  const domainIcons = ['🏗️','🧠','🤝','❤️'];\n  const transIcons = ['↔️','✨','💥','🔧','👁️'];\n  const table = {\n    'Physical-Transfer': { op: 'PTRANS', ex: 'John walked to the store', color: '#3b82f6' },\n    'Physical-Creation': { op: 'BUILD', ex: 'She assembled the shelf', color: '#22c55e' },\n    'Physical-Destruction': { op: 'BREAK', ex: 'The vase shattered', color: '#ef4444' },\n    'Physical-Modification': { op: 'PROPEL', ex: 'He kicked the ball harder', color: '#f59e0b' },\n    'Physical-Perception': { op: 'ATTEND', ex: 'She saw the bird', color: '#8b5cf6' },\n    'Mental-Transfer': { op: 'MTRANS', ex: 'The teacher explained gravity', color: '#3b82f6' },\n    'Mental-Creation': { op: 'MBUILD', ex: 'She formed a hypothesis', color: '#22c55e' },\n    'Mental-Destruction': { op: 'FORGET?', ex: 'He forgot the password', color: '#ef4444', gap: true },\n    'Mental-Modification': { op: 'REFRAME', ex: 'She changed her mind', color: '#f59e0b', gap: true },\n    'Mental-Perception': { op: 'REALIZE', ex: 'He suddenly understood', color: '#8b5cf6', gap: true },\n    'Social-Transfer': { op: 'ATRANS', ex: 'She gave him the book', color: '#3b82f6' },\n    'Social-Creation': { op: 'BOND?', ex: 'They became friends', color: '#22c55e', gap: true },\n    'Social-Destruction': { op: 'SEVER?', ex: 'She ended the partnership', color: '#ef4444', gap: true },\n    'Social-Modification': { op: 'OBLIGATE?', ex: 'He promised to help', color: '#f59e0b', gap: true },\n    'Social-Perception': { op: 'RECOGNIZE', ex: 'She acknowledged his rank', color: '#8b5cf6', gap: true },\n    'Emotional-Transfer': { op: 'EMOTE?', ex: 'His joy was contagious', color: '#3b82f6', gap: true },\n    'Emotional-Creation': { op: 'AROUSE', ex: 'The news excited her', color: '#22c55e', gap: true },\n    'Emotional-Destruction': { op: 'CALM?', ex: 'The music soothed him', color: '#ef4444', gap: true },\n    'Emotional-Modification': { op: 'SHIFT?', ex: 'Anger turned to pity', color: '#f59e0b', gap: true },\n    'Emotional-Perception': { op: 'EMPATHIZE?', ex: 'She felt his sadness', color: '#8b5cf6', gap: true },\n  };\n  const sel = selected ? table[selected] : null;\n  return React.createElement('div', { style: { fontFamily: 'system-ui', color: '#e2e8f0', padding: 12 } },\n    React.createElement('div', { style: { display: 'grid', gridTemplateColumns: '90px repeat(5, 1fr)', gap: 4 } },\n      React.createElement('div', { style: { padding: 4 } }),\n      ...transforms.map((t, i) => React.createElement('div', { key: t, style: { textAlign: 'center', fontSize: 11, fontWeight: 600, padding: '4px 2px', color: '#94a3b8' } }, transIcons[i] + ' ' + t)),\n      ...domains.flatMap((d, di) => [\n        React.createElement('div', { key: d, style: { fontSize: 12, fontWeight: 600, display: 'flex', alignItems: 'center', gap: 4, color: '#cbd5e1' } }, domainIcons[di] + ' ' + d),\n        ...transforms.map((t, ti) => {\n          const key = d + '-' + t;\n          const cell = table[key];\n          const isSelected = selected === key;\n          return React.createElement('button', {\n            key, onClick: () => setSelected(isSelected ? null : key),\n            style: {\n              padding: '6px 4px', borderRadius: 8, border: isSelected ? '2px solid #fff' : cell.gap ? '2px dashed rgba(255,255,255,0.3)' : '2px solid ' + cell.color,\n              background: isSelected ? cell.color + '40' : cell.gap ? 'rgba(255,255,255,0.05)' : cell.color + '20',\n              cursor: 'pointer', textAlign: 'center', transition: 'all 0.2s'\n            }\n          },\n            React.createElement('div', { style: { fontSize: 13, fontWeight: 700, color: cell.gap ? '#94a3b8' : cell.color } }, cell.op),\n            cell.gap && React.createElement('div', { style: { fontSize: 9, color: '#64748b', marginTop: 2 } }, '(predicted)')\n          );\n        })\n      ])\n    ),\n    React.createElement('div', { style: { marginTop: 16, display: 'flex', gap: 16, fontSize: 12 } },\n      React.createElement('span', { style: { display: 'flex', alignItems: 'center', gap: 4 } }, React.createElement('span', { style: { width: 12, height: 12, border: '2px solid #3b82f6', borderRadius: 4, display: 'inline-block' } }), ' Known'),\n      React.createElement('span', { style: { display: 'flex', alignItems: 'center', gap: 4 } }, React.createElement('span', { style: { width: 12, height: 12, border: '2px dashed rgba(255,255,255,0.3)', borderRadius: 4, display: 'inline-block' } }), ' Predicted gap')\n    ),\n    sel && React.createElement('div', { style: { marginTop: 12, padding: 12, background: 'rgba(255,255,255,0.08)', borderRadius: 8, borderLeft: '3px solid ' + sel.color } },\n      React.createElement('div', { style: { fontWeight: 700, fontSize: 15, color: sel.color } }, sel.op + (sel.gap ? ' (predicted)' : '')),\n      React.createElement('div', { style: { fontSize: 13, marginTop: 4, color: '#cbd5e1' } }, '\"' + sel.ex + '\"'),\n      sel.gap && React.createElement('div', { style: { fontSize: 12, marginTop: 6, color: '#94a3b8', fontStyle: 'italic' } }, 'This cell represents a gap in Schank\\'s original primitives — a transformation type that exists in this domain but wasn\\'t explicitly named.')\n    )\n  );\n}\nrender(React.createElement(PeriodicTable));"
+            }
+          },
+          {
+            "type": "p",
+            "children": "Click any cell to explore it. Notice: Schank's original primitives cluster heavily in the Physical and Mental-Transfer cells. The Social and Emotional domains are mostly gaps — predicted operators that should exist but weren't formalized."
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "4. The Gap Predictions" },
+        "children": [
+          {
+            "type": "p",
+            "children": "The most exciting part of a periodic table isn't what's filled in — it's what's missing. Each gap is a hypothesis: a semantic transformation that should be expressible as a primitive operator."
+          },
+          {
+            "type": "DeepDive",
+            "props": {
+              "title": "Why are Emotional operators missing from Schank?",
+              "id": "emotional-gap"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "Schank's Conceptual Dependency theory (1972) was designed for story understanding — tracking physical objects, information flow, and social transactions. Emotions were treated as side-effects rather than first-class transformations."
+              },
+              {
+                "type": "p",
+                "children": "But emotions DO transform states: anger changes decision-making, empathy transfers emotional states between agents, grief destroys motivation. A complete operator set needs emotional primitives."
+              },
+              {
+                "type": "p",
+                "children": "Wierzbicka's Natural Semantic Metalanguage (NSM) includes FEEL and WANT as semantic primes — evidence that emotional operators are linguistically universal."
+              }
+            ]
+          },
+          {
+            "type": "Example",
+            "props": { "title": "Three Predicted Operators in Detail" },
+            "children": [
+              {
+                "type": "p",
+                "children": "BOND? (Social-Creation): When two agents form a new relationship — friendship, alliance, marriage. The social graph gains an edge. No existing Schankian primitive captures this; ATRANS handles transfer of existing things, not creation of new connections."
+              },
+              {
+                "type": "p",
+                "children": "SHIFT? (Emotional-Modification): When an emotion transforms into another — anger softening into pity, excitement curdling into anxiety. The emotion persists but changes character. Distinct from creation (AROUSE) or destruction (CALM)."
+              },
+              {
+                "type": "p",
+                "children": "FORGET? (Mental-Destruction): The inverse of MBUILD. Knowledge or belief is lost or becomes inaccessible. Schank had no primitive for this — a striking gap given how central forgetting is to narrative (secrets, amnesia, deception)."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "5. Cross-Linguistic Validation" },
+        "children": [
+          {
+            "type": "p",
+            "children": "If the periodic table captures real structure, its operators should appear across all human languages. Two independent research programs provide evidence:"
+          },
+          {
+            "type": "Callout",
+            "props": { "type": "tip" },
+            "children": "Wierzbicka's NSM identifies 64 semantic primes — concepts expressible in every known language. Many map directly to our table cells: MOVE (Physical-Transfer), KNOW (Mental-Perception), WANT (Emotional-Creation of desire), DO (Physical-Modification)."
+          },
+          {
+            "type": "p",
+            "children": "A 2016 PNAS study analyzed 81 languages and found that certain semantic domains (body, kinship, spatial relations) have universal structure — the same conceptual neighborhoods appear regardless of language family. Our table's domain axis aligns with these cross-linguistic clusters."
+          },
+          {
+            "type": "DeepDive",
+            "props": {
+              "title": "NSM's 64 primes vs. our table's ~20 cells — what's the relationship?",
+              "id": "nsm-comparison"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "NSM primes include more than just operators — they include substantives (I, YOU, SOMETHING), determiners (THIS, THE SAME), and evaluators (GOOD, BAD). If we filter to just the action/transformation primes, we get roughly: DO, HAPPEN, MOVE, SAY, THINK, KNOW, WANT, FEEL, SEE, HEAR, LIVE, DIE, MAKE, TOUCH."
+              },
+              {
+                "type": "p",
+                "children": "That's 14 primes — strikingly close to Schank's original ~14 primitives, and they map well onto our table. This convergence from two completely independent methodologies (Schank's AI-driven analysis vs. Wierzbicka's cross-linguistic fieldwork) is strong evidence that the table captures real structure."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "6. Using the Table for Operator Discovery" },
+        "children": [
+          {
+            "type": "p",
+            "children": "The periodic table isn't just taxonomy — it's a tool for discovering new operators. Here's the methodology:"
+          },
+          {
+            "type": "InteractiveDemo",
+            "props": {
+              "title": "🔍 Gap-Driven Discovery: Fill in a predicted operator",
+              "id": "gap-discovery-demo",
+              "height": 380,
+              "code": "function GapDiscovery() {\n  const [step, setStep] = React.useState(0);\n  const steps = [\n    { label: '1. Identify gap', desc: 'Social-Destruction cell is empty. What operator destroys a social relationship?', highlight: 'SEVER?' },\n    { label: '2. Collect evidence', desc: 'Verbs: divorce, betray, excommunicate, fire, unfriend, disown, break up. All destroy a social link between agents.', highlight: 'Verb cluster' },\n    { label: '3. Check cross-linguistically', desc: 'Does every language have words for relationship-ending? Yes — this concept is universal. NSM: \"something bad happened between X and Y\"', highlight: 'Universal ✓' },\n    { label: '4. Define operator', desc: 'SEVER(Agent, Relationship, Co-Agent) → Relationship ceases to exist. Precondition: active social bond. Effect: social graph edge removed.', highlight: 'SEVER defined' },\n    { label: '5. Validate', desc: 'Does SEVER compose? BOND then SEVER = temporary alliance. SEVER then BOND = reconciliation. Yes — it composes naturally.', highlight: 'Composable ✓' }\n  ];\n  const s = steps[step];\n  return React.createElement('div', { style: { fontFamily: 'system-ui', color: '#e2e8f0', padding: 16 } },\n    React.createElement('div', { style: { display: 'flex', gap: 8, marginBottom: 16 } },\n      steps.map((st, i) => React.createElement('button', {\n        key: i, onClick: () => setStep(i),\n        style: { padding: '6px 12px', borderRadius: 20, fontSize: 12, fontWeight: i === step ? 700 : 400, border: 'none', cursor: 'pointer', background: i === step ? '#6366f1' : 'rgba(255,255,255,0.1)', color: i === step ? '#fff' : '#94a3b8', transition: 'all 0.2s' }\n      }, 'Step ' + (i + 1)))\n    ),\n    React.createElement('div', { style: { background: 'rgba(255,255,255,0.08)', borderRadius: 12, padding: 20 } },\n      React.createElement('div', { style: { fontSize: 14, fontWeight: 700, color: '#a78bfa', marginBottom: 8 } }, s.label),\n      React.createElement('div', { style: { fontSize: 14, lineHeight: 1.6 } }, s.desc),\n      React.createElement('div', { style: { marginTop: 12, display: 'inline-block', padding: '4px 12px', borderRadius: 8, background: '#6366f130', color: '#a78bfa', fontSize: 13, fontWeight: 600 } }, s.highlight)\n    ),\n    React.createElement('div', { style: { display: 'flex', justifyContent: 'space-between', marginTop: 16 } },\n      React.createElement('button', { onClick: () => setStep(Math.max(0, step - 1)), disabled: step === 0, style: { padding: '8px 16px', borderRadius: 8, border: 'none', cursor: step === 0 ? 'default' : 'pointer', background: step === 0 ? 'rgba(255,255,255,0.05)' : 'rgba(255,255,255,0.1)', color: step === 0 ? '#475569' : '#e2e8f0' } }, '← Back'),\n      React.createElement('button', { onClick: () => setStep(Math.min(steps.length - 1, step + 1)), disabled: step === steps.length - 1, style: { padding: '8px 16px', borderRadius: 8, border: 'none', cursor: step === steps.length - 1 ? 'default' : 'pointer', background: step === steps.length - 1 ? 'rgba(255,255,255,0.05)' : '#6366f1', color: step === steps.length - 1 ? '#475569' : '#fff' } }, 'Next →')\n    )\n  );\n}\nrender(React.createElement(GapDiscovery));"
+            }
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "7. Implications for Learned Operators" },
+        "children": [
+          {
+            "type": "p",
+            "children": "If we train a neural system to discover operators from data (as proposed throughout our research), the periodic table provides concrete predictions:"
+          },
+          {
+            "type": "Callout",
+            "props": { "type": "warning" },
+            "children": "Prediction: A well-trained operator discovery system should find roughly 4 × 5 = 20 operator clusters, organized along domain and transformation-type axes. If it finds significantly fewer, it's under-differentiating. If significantly more, it may be overfitting to surface forms."
+          },
+          {
+            "type": "Example",
+            "props": { "title": "Testing the Table with Embeddings" },
+            "children": [
+              {
+                "type": "p",
+                "children": "1. Train operator embeddings on a large event corpus"
+              },
+              {
+                "type": "p",
+                "children": "2. Apply PCA or UMAP to the learned operator space"
+              },
+              {
+                "type": "p",
+                "children": "3. Check: Do operators cluster into domain groups along one axis?"
+              },
+              {
+                "type": "p",
+                "children": "4. Check: Do transformation types form a second orthogonal axis?"
+              },
+              {
+                "type": "p",
+                "children": "5. Check: Are the 'gap' regions populated by learned operators that Schank missed?"
+              },
+              {
+                "type": "p",
+                "children": "If all three checks pass, the periodic table is validated as a structural prediction about semantic space."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "8. Quiz: Test Your Understanding" },
+        "children": [
+          {
+            "type": "Quiz",
+            "props": {
+              "questions": [
+                {
+                  "question": "What makes the periodic table analogy powerful for operator discovery?",
+                  "options": [
+                    "It provides a catchy name for the framework",
+                    "Gaps in the table predict undiscovered operators",
+                    "It proves operators are chemical in nature",
+                    "It reduces the number of operators needed"
+                  ],
+                  "correct": 1,
+                  "explanation": "Like Mendeleev predicting gallium from gaps in his table, empty cells in our domain × transformation grid predict semantic operators that should exist but haven't been formalized."
+                },
+                {
+                  "question": "Which domain is LEAST covered by Schank's original primitives?",
+                  "options": [
+                    "Physical",
+                    "Mental",
+                    "Social",
+                    "Emotional"
+                  ],
+                  "correct": 3,
+                  "explanation": "Schank's CD theory focused on physical actions and information flow. Emotional transformations were treated as side-effects, leaving the entire Emotional row as predicted gaps."
+                },
+                {
+                  "question": "How does Wierzbicka's NSM relate to the periodic table?",
+                  "options": [
+                    "NSM disproves the need for operators",
+                    "NSM's ~14 action primes converge with our ~20 cells from a completely independent methodology",
+                    "NSM proves exactly 64 operators are needed",
+                    "NSM only applies to Indo-European languages"
+                  ],
+                  "correct": 1,
+                  "explanation": "NSM's cross-linguistic fieldwork identified universal semantic primes independently of Schank's AI research. The convergence of both approaches on ~14-20 fundamental action/transformation concepts strongly validates the periodic table structure."
+                },
+                {
+                  "question": "A trained operator discovery system finds only 8 clusters. What does the table predict?",
+                  "options": [
+                    "The system is optimal — 8 is the true number",
+                    "The system is over-differentiating domains",
+                    "The system is under-differentiating — it's collapsing distinct transformation types",
+                    "The system needs more parameters"
+                  ],
+                  "correct": 2,
+                  "explanation": "The table predicts ~20 operators (4 domains × 5 types). Finding only 8 suggests the system is merging operators that should be distinct — perhaps collapsing all emotional transformations into one cluster, or failing to distinguish creation from modification."
+                }
+              ]
+            }
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "Connections" },
+        "children": [
+          {
+            "type": "Callout",
+            "props": { "type": "info" },
+            "children": "This periodic table framework connects to several other brainstorm entries: Entry #45 (MDL) provides the compression test for whether the table has the right number of cells. Entry #12 (Disentangled Dimensions) suggests domain and transformation type should be independent learned dimensions. Entry #47 (Renormalization Group) views operators as fixed points — the table predicts which fixed points should exist. Entry #39 (Information Bottleneck) discovers primitives via compression — the table predicts what compression should find."
+          }
+        ]
+      }
+    ]
+  }
+}
