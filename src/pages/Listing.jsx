@@ -1,8 +1,9 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react'
+import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { Container } from '../components/SharedUI.jsx'
 import { API_BASE } from '../config.js'
 import { useSearchIndex } from '../hooks/useSearchIndex.js'
+import tutorialTimestamps from 'virtual:tutorial-timestamps'
 
 // Modal for creating a new tutorial
 function CreateTutorialModal({ isOpen, onClose }) {
@@ -1101,8 +1102,10 @@ const heroStyles = `
 `
 
 // Compact list item for list view
-function TutorialListItem({ tutorial }) {
+function TutorialListItem({ tutorial, showDate = false }) {
   const linkPath = tutorial.isApp ? `/${tutorial.id}` : `/tutorial/${tutorial.id}`
+  const ts = tutorialTimestamps[tutorial.id]
+  const dateStr = ts ? new Date(ts).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : null
   
   return (
     <Link to={linkPath} className="group block no-underline">
@@ -1125,6 +1128,9 @@ function TutorialListItem({ tutorial }) {
             <h3 className="text-sm font-semibold text-gray-900 group-hover:text-indigo-600 transition-colors truncate">
               {tutorial.title}
             </h3>
+            {showDate && dateStr && (
+              <span className="text-xs text-indigo-400 flex-shrink-0">{dateStr}</span>
+            )}
             <span className="text-xs text-gray-400 flex-shrink-0">{tutorial.readTime}</span>
             <span className="text-xs text-amber-400 flex-shrink-0">{difficultyStars(tutorial.difficulty)}</span>
           </div>
@@ -1150,6 +1156,27 @@ function TutorialListItem({ tutorial }) {
         </svg>
       </div>
     </Link>
+  )
+}
+
+// Sort dropdown
+function SortDropdown({ value, onChange }) {
+  return (
+    <select
+      value={value}
+      onChange={e => onChange(e.target.value)}
+      className="px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm text-gray-600
+        focus:ring-2 focus:ring-indigo-500 focus:border-transparent shadow-sm
+        hover:shadow-md transition-all duration-200 cursor-pointer"
+    >
+      <option value="default">Default order</option>
+      <option value="newest">Newest first</option>
+      <option value="oldest">Oldest first</option>
+      <option value="alpha">A → Z</option>
+      <option value="alpha-desc">Z → A</option>
+      <option value="difficulty-asc">Easiest first</option>
+      <option value="difficulty-desc">Hardest first</option>
+    </select>
   )
 }
 
@@ -1292,12 +1319,42 @@ function SearchResults({ results, query }) {
 export default function Listing() {
   const [showCreateModal, setShowCreateModal] = useState(false)
   const [viewMode, setViewMode] = useState('grid')
+  const [sortMode, setSortMode] = useState('default')
   const [allTutorials, setAllTutorials] = useState(tutorials)
   const [searchQuery, setSearchQuery] = useState('')
   const searchInputRef = useRef(null)
   const { search, isBuilding } = useSearchIndex(allTutorials)
   const searchResults = searchQuery.trim() ? search(searchQuery) : []
   const isSearchActive = searchQuery.trim().length > 0
+
+  // Sort tutorials
+  const sortedTutorials = useMemo(() => {
+    const arr = [...allTutorials]
+    switch (sortMode) {
+      case 'newest':
+        return arr.sort((a, b) => {
+          const ta = tutorialTimestamps[a.id] || ''
+          const tb = tutorialTimestamps[b.id] || ''
+          return tb.localeCompare(ta)
+        })
+      case 'oldest':
+        return arr.sort((a, b) => {
+          const ta = tutorialTimestamps[a.id] || ''
+          const tb = tutorialTimestamps[b.id] || ''
+          return ta.localeCompare(tb)
+        })
+      case 'alpha':
+        return arr.sort((a, b) => a.title.localeCompare(b.title))
+      case 'alpha-desc':
+        return arr.sort((a, b) => b.title.localeCompare(a.title))
+      case 'difficulty-asc':
+        return arr.sort((a, b) => (a.difficulty || 0) - (b.difficulty || 0))
+      case 'difficulty-desc':
+        return arr.sort((a, b) => (b.difficulty || 0) - (a.difficulty || 0))
+      default:
+        return arr
+    }
+  }, [allTutorials, sortMode])
 
   // Keyboard shortcut: Cmd+K or /
   useEffect(() => {
@@ -1475,25 +1532,26 @@ export default function Listing() {
           <SearchResults results={searchResults} query={searchQuery} />
         ) : (
         <>
-        {/* View toggle */}
-        <div className="flex justify-end mb-4">
+        {/* Sort + View toggle */}
+        <div className="flex items-center justify-between mb-4">
+          <SortDropdown value={sortMode} onChange={setSortMode} />
           <ViewToggle mode={viewMode} onChange={setViewMode} />
         </div>
         
         {viewMode === 'grid' ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {allTutorials.map((tutorial, i) => (
+            {sortedTutorials.map((tutorial, i) => (
               <TutorialCard 
                 key={tutorial.id} 
                 tutorial={tutorial}
-                featured={i === 0}
+                featured={i === 0 && sortMode === 'default'}
               />
             ))}
           </div>
         ) : (
           <div className="flex flex-col gap-2">
-            {allTutorials.map((tutorial) => (
-              <TutorialListItem key={tutorial.id} tutorial={tutorial} />
+            {sortedTutorials.map((tutorial) => (
+              <TutorialListItem key={tutorial.id} tutorial={tutorial} showDate={sortMode === 'newest' || sortMode === 'oldest'} />
             ))}
           </div>
         )}
