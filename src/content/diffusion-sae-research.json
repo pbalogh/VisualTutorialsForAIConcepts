@@ -3879,6 +3879,104 @@
       },
       {
         "type": "Section",
+        "title": "📡 Feb 25, 2026: Research Sweep — 3 New Findings",
+        "children": [
+          {
+            "type": "DeepDive",
+            "title": "[Feb 25] SAeUron: Interpretable Concept Unlearning in Diffusion Models with SAEs (ICML 2025)",
+            "children": [
+              {
+                "type": "p",
+                "children": [
+                  " Cywiński & Deja, 'SAeUron: Interpretable Concept Unlearning in Diffusion Models with Sparse Autoencoders' (arXiv:2501.18052, ICML 2025)"
+                ]
+              },
+              {
+                "type": "p",
+                "children": [
+                  " SAeUron trains SAEs on image diffusion model activations and identifies specific SAE features corresponding to concepts (e.g., 'nudity', 'violence'). By zeroing those features, they achieve concept erasure that is robust to adversarial attacks — unlike other methods. A single SAE can remove multiple concepts simultaneously. Code and checkpoints available."
+                ]
+              },
+              {
+                "type": "p",
+                "children": [
+                  " ⭐⭐⭐ DIRECT VALIDATION of Ideas 2 & 4 in the image domain. SAeUron proves that individual SAE features causally control concept presence in diffusion generation. The inverse of erasure is enhancement — exactly what Feature Steering (Idea 2) proposes. For Dictionary-Guided Denoising (Idea 4), SAeUron's finding that features are robustly causal (surviving adversarial attacks) means SAE-based guidance would be reliable, not just correlational. The multi-concept capability via a single SAE aligns with our vision of a unified SAE dictionary guiding diverse generation properties."
+                ]
+              },
+              {
+                "type": "p",
+                "children": [
+                  {
+                    "type": "strong",
+                    "children": ["Transfer to text:"]
+                  },
+                  " SAeUron operates on U-Net activations in image diffusion. For text DLMs (transformer-based), the same approach would use SAEs on transformer hidden states — which CorrSteer and DLM-Scope already do for LLMs/DLMs respectively. The pipeline is: train SAE → identify causal features → steer during generation."
+                ]
+              }
+            ]
+          },
+          {
+            "type": "DeepDive",
+            "title": "[Feb 25] CD4LM: Consistency Distillation for Diffusion Language Models (Jan 2026)",
+            "children": [
+              {
+                "type": "p",
+                "children": [
+                  " Liang et al., 'CD4LM: Consistency Distillation and aDaptive Decoding for Diffusion Language Models' (arXiv:2601.02236, Jan 5, 2026)"
+                ]
+              },
+              {
+                "type": "p",
+                "children": [
+                  " CD4LM decouples DLM training from inference via Discrete-Space Consistency Distillation (DSCD) and Confidence-Adaptive Decoding (CAD). Achieves up to 14x faster inference without sacrificing quality. The student learns to map noisy states directly to clean outputs in fewer steps, while CAD adaptively decides which tokens to finalize based on confidence."
+                ]
+              },
+              {
+                "type": "p",
+                "children": [
+                  " ⭐⭐ Relevant to Idea 4 (Dictionary-Guided Denoising). Fewer denoising steps means each step carries more weight — SAE guidance per step becomes more impactful. The Confidence-Adaptive Decoding is interesting: tokens are finalized when confidence is high. SAE feature coherence could serve as an additional confidence signal — if SAE features align into a coherent concept, that's a sign the token is ready to be finalized."
+                ]
+              },
+              {
+                "type": "p",
+                "children": [
+                  {
+                    "type": "strong",
+                    "children": ["Connection to Idea 3:"]
+                  },
+                  " CAD's per-token adaptive scheduling is a form of semantically-aware scheduling. SAE features could inform which tokens are 'semantically settled' vs still needing refinement."
+                ]
+              }
+            ]
+          },
+          {
+            "type": "DeepDive",
+            "title": "[Feb 25] Sparse-LaViDa: Sparse Multimodal Discrete Diffusion at 10.4B Scale (Dec 2025)",
+            "children": [
+              {
+                "type": "p",
+                "children": [
+                  " Li et al., 'Sparse-LaViDa: Sparse Multimodal Discrete Diffusion Language Models' (arXiv:2512.14008, Dec 16, 2025)"
+                ]
+              },
+              {
+                "type": "p",
+                "children": [
+                  " Sparse-LaViDa dynamically truncates unnecessary masked tokens at each inference step to accelerate MDM sampling. Built on LaViDa-O, a 10.4B unified diffusion model supporting image understanding, text-to-image, and image editing. The key insight: not all masked positions need attention at every step — sparse computation focuses on the 'active frontier'."
+                ]
+              },
+              {
+                "type": "p",
+                "children": [
+                  " ⭐⭐ Relevant to Idea 3 (Semantically-Aware Noise Schedules). Sparse-LaViDa's dynamic token truncation is an implicit form of adaptive scheduling — tokens that are 'easy' get less compute. SAE features could make this explicit: tokens whose SAE feature activations are already coherent could be deprioritized, while tokens in semantically ambiguous states get more denoising attention. The multimodal setting (text + image) is also relevant: SAE features could bridge modalities in the shared latent space."
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
         "title": "Next Steps",
         "children": [
           {
