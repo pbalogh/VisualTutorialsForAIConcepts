@@ -173,7 +173,106 @@
               },
               {
                 "type": "p",
-                "children": "The difference from kernel methods is that neural networks learn φ (the feature map) from data, while SVMs use a fixed φ chosen by the engineer. This is both the power and the mystery of deep learning: the network discovers which nonlinear features matter, rather than having them specified in advance."
+                "children": [
+                  "The difference from kernel methods is that neural networks learn φ (the feature map)",
+                  {
+                    "type": "FootnoteRef",
+                    "props": {
+                      "id": "source-ann-1772045187446-rtg6xn",
+                      "targetId": "ann-1772045187446-rtg6xn",
+                      "type": "branch"
+                    }
+                  },
+                  " from data, while SVMs use a fixed φ chosen by the engineer. This is both the power and the mystery of deep learning: the network discovers which nonlinear features matter, rather than having them specified in advance."
+                ]
+              },
+              {
+                "type": "DeepDive",
+                "props": {
+                  "title": "Deep Dive: φ (the feature map)",
+                  "defaultOpen": true,
+                  "id": "ann-1772045187446-rtg6xn",
+                  "sourceId": "source-ann-1772045187446-rtg6xn"
+                },
+                "children": [
+                  {
+                    "type": "p",
+                    "children": "φ (phi) is the function that transforms your raw input into a new representation where the problem becomes easier to solve. In this tutorial's context, it's the critical bridge between raw data (like pixel values or words) and the space where a simple linear classifier can actually draw a decision boundary. The passage is making a profound point: in kernel SVMs, a human engineer picks φ in advance (by choosing a kernel), but in neural networks, φ IS the network — everything except the final layer — and it's learned automatically from data."
+                  },
+                  {
+                    "type": "Example",
+                    "props": {
+                      "title": "Example: φ in action — classifying XOR"
+                    },
+                    "children": [
+                      {
+                        "type": "p",
+                        "children": "Suppose your data has two classes arranged in an XOR pattern — no straight line can separate them in the original (x₁, x₂) space."
+                      },
+                      {
+                        "type": "ComparisonTable",
+                        "props": {
+                          "headers": [
+                            "Approach",
+                            "What φ does",
+                            "Who decides φ?"
+                          ],
+                          "rows": [
+                            [
+                              "Raw input (no φ)",
+                              "Nothing — stays in (x₁, x₂). Linear classifier fails.",
+                              "N/A"
+                            ],
+                            [
+                              "SVM with RBF kernel",
+                              "Maps to infinite-dim space where points become separable. φ(x) is fixed by the kernel formula.",
+                              "The engineer"
+                            ],
+                            [
+                              "Neural network (1 hidden layer)",
+                              "Learns something like φ(x) = (ReLU(w₁·x + b₁), ReLU(w₂·x + b₂)). In this new space, a line works.",
+                              "The data (via backpropagation)"
+                            ]
+                          ]
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "type": "Analogy",
+                    "children": "Think of φ as a translator between languages. An SVM is like using a phrasebook written by an expert — it covers common situations well, but it's fixed. A neural network is like dropping someone into a foreign country and letting them learn the language naturally. They might discover idioms and shortcuts no phrasebook author would think of — but you can't easily explain *why* they chose those particular phrases. That's the 'power and mystery' the passage refers to."
+                  },
+                  {
+                    "type": "DefinitionList",
+                    "props": {
+                      "items": [
+                        {
+                          "term": "φ(x) in a neural network",
+                          "definition": "The output of all layers except the last one. The final layer is just a linear classifier operating on the learned representation φ(x)."
+                        },
+                        {
+                          "term": "φ(x) in a kernel SVM",
+                          "definition": "An implicit mapping defined by the kernel function K(x, y) = ⟨φ(x), φ(y)⟩. You never compute φ directly — that's the kernel trick."
+                        },
+                        {
+                          "term": "Why φ matters so much",
+                          "definition": "A good φ makes the problem linearly separable. The entire difficulty of machine learning can be framed as finding the right φ."
+                        },
+                        {
+                          "term": "Representation learning",
+                          "definition": "The modern term for what neural networks do: learning φ from data rather than engineering it by hand."
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "type": "Callout",
+                    "props": {
+                      "type": "tip"
+                    },
+                    "children": "Here's the actionable insight: when someone says a deep network has 'learned good representations,' they mean it found a powerful φ. When you freeze a pretrained model and train only the last layer (transfer learning), you're reusing someone else's φ. And when fine-tuning works with very little data, it's because φ already maps inputs to a space where your new classes are nearly separable — you're just nudging the final boundary."
+                  }
+                ]
               },
               {
                 "type": "DeepDive",
