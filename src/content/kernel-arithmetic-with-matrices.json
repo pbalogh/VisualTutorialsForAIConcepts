@@ -1,0 +1,589 @@
+{
+  "id": "kernel-arithmetic-with-matrices",
+  "title": "Kernel Arithmetic with Matrices",
+  "subtitle": "How far can linear algebra go when the problem is nonlinear? Feature lifting, the kernel trick, and the surprising walls you hit — with toy examples you can compute by hand",
+  "readTime": "35 min",
+  "state": "kernel_matrices",
+  "content": {
+    "type": "Fragment",
+    "children": [
+      {
+        "type": "Section",
+        "props": { "title": "The Setup: Linear Maps Are Cheap" },
+        "children": [
+          {
+            "type": "p",
+            "children": "A matrix is a machine that takes a vector in and spits a vector out. If your input is x = [x₁, x₂] and your output is y = [y₁, y₂], then a 2×2 matrix M gives you y = Mx. This is a linear map: it can rotate, scale, shear, and project — but it can NEVER curve."
+          },
+          {
+            "type": "p",
+            "children": "The question that drives this entire tutorial: what happens when the real relationship between input and output IS curved? Can we still use matrices — the fastest, most elegant tools in all of computation — to handle nonlinear problems?"
+          },
+          {
+            "type": "p",
+            "children": "Spoiler: yes, partially, and the limits are fascinating."
+          }
+        ]
+      },
+
+      {
+        "type": "Section",
+        "props": { "title": "Warmup: A Linear Problem" },
+        "children": [
+          {
+            "type": "p",
+            "children": "Let's start with something a matrix CAN do perfectly. Suppose we have a mystery function that maps 2D inputs to 2D outputs:"
+          },
+          {
+            "type": "Example",
+            "props": {
+              "title": "A perfectly linear relationship",
+              "content": "[1, 0] → [2, 1]\n[0, 1] → [1, 3]\n[1, 1] → [3, 4]\n[2, 0] → [4, 2]\n\nCan we find a matrix M such that Mx = y for all these pairs?\n\nM = [[2, 1],\n     [1, 3]]\n\nCheck: M · [1, 0] = [2, 1] ✓\n       M · [0, 1] = [1, 3] ✓\n       M · [1, 1] = [3, 4] ✓  (= [2+1, 1+3])\n       M · [2, 0] = [4, 2] ✓\n\nPerfect fit. We only needed the first two pairs to determine M (two unknowns per row, two equations). The other pairs are automatically correct because the relationship IS linear."
+            }
+          },
+          {
+            "type": "p",
+            "children": "This is the dream scenario. The real world is rarely this kind."
+          }
+        ]
+      },
+
+      {
+        "type": "Section",
+        "props": { "title": "A Nonlinear Problem: The Matrix Fails" },
+        "children": [
+          {
+            "type": "p",
+            "children": "Now consider a function with a curve in it:"
+          },
+          {
+            "type": "Example",
+            "props": {
+              "title": "y = x² can't be a matrix",
+              "content": "Suppose we want to approximate f(x) = x² using a linear map y = mx.\n\nData points: x=1→y=1, x=2→y=4, x=3→y=9\n\nBest linear fit (least squares): m ≈ 2.86\n  f(1) ≈ 2.86 (want 1) — off by 1.86\n  f(2) ≈ 5.71 (want 4) — off by 1.71\n  f(3) ≈ 8.57 (want 9) — off by 0.43\n\nThe line cuts through the parabola but can't follow the curve. No single slope works because the 'slope' of x² changes at every point — that's what nonlinear MEANS."
+            }
+          },
+          {
+            "type": "Callout",
+            "props": {
+              "type": "info",
+              "title": "Why matrices are linear",
+              "content": "A matrix M satisfies M(ax + by) = aMx + bMy. This means doubling the input MUST double the output. But for f(x) = x², doubling the input QUADRUPLES the output. No matrix can do that. This isn't a failure of finding the right matrix — it's a mathematical impossibility."
+            }
+          }
+        ]
+      },
+
+      {
+        "type": "Section",
+        "props": { "title": "The Big Idea: Feature Lifting" },
+        "children": [
+          {
+            "type": "p",
+            "children": "Here's the trick that makes kernel methods work. We can't represent y = x² as a linear function of x. But we CAN represent it as a linear function of x²! This sounds circular until you realize what it means practically:"
+          },
+          {
+            "type": "Steps",
+            "props": {
+              "items": [
+                "Take your input x",
+                "Compute a bunch of nonlinear features: φ(x) = [x, x², x³, sin(x), ...]",
+                "Now find a LINEAR map (matrix) from φ(x) to y",
+                "The matrix part is easy — pseudoinverse, closed form, done",
+                "All the nonlinear power is in your choice of φ"
+              ]
+            }
+          },
+          {
+            "type": "Example",
+            "props": {
+              "title": "Feature lifting: x² becomes linear",
+              "content": "Goal: approximate f(x) = x² with a matrix.\n\nStep 1 — Lift: instead of input [x], use φ(x) = [x, x²]\nStep 2 — Now find weights [w₁, w₂] such that w₁·x + w₂·x² ≈ x²\n\nSolution: w₁ = 0, w₂ = 1. Done!\n\nWhat about f(x) = x² + 3x - 2?\n  φ(x) = [1, x, x²]\n  Weights: [-2, 3, 1]\n  → -2(1) + 3(x) + 1(x²) = x² + 3x - 2 ✓\n\nWe turned a nonlinear function into a LINEAR combination of nonlinear FEATURES. The matrix just picks the right weights."
+            }
+          },
+          {
+            "type": "Callout",
+            "props": {
+              "type": "success",
+              "title": "The conceptual leap",
+              "content": "Feature lifting doesn't make the problem linear — it makes it linear IN A HIGHER-DIMENSIONAL SPACE. You're trading dimensionality for linearity. A curve in 2D is a straight line in 3D if you pick the right third dimension."
+            }
+          }
+        ]
+      },
+
+      {
+        "type": "Section",
+        "props": { "title": "Toy Example: XOR" },
+        "children": [
+          {
+            "type": "p",
+            "children": "The classic example of a nonlinear problem that feature lifting solves. XOR is the function where (0,0)→0, (0,1)→1, (1,0)→1, (1,1)→0. No line can separate the 1s from the 0s."
+          },
+          {
+            "type": "Example",
+            "props": {
+              "title": "XOR with feature lifting",
+              "content": "Linear attempt: find w₁, w₂, b such that w₁x₁ + w₂x₂ + b ≈ y\n\n  (0,0) → 0: b ≈ 0\n  (0,1) → 1: w₂ + b ≈ 1\n  (1,0) → 1: w₁ + b ≈ 1\n  (1,1) → 0: w₁ + w₂ + b ≈ 0\n\n  From first two: b=0, w₂=1. From third: w₁=1.\n  But then w₁+w₂+b = 2 ≠ 0. IMPOSSIBLE.\n\nNow lift: φ(x₁,x₂) = [x₁, x₂, x₁·x₂]\n\n  Find w₁, w₂, w₃, b such that w₁x₁ + w₂x₂ + w₃(x₁x₂) + b ≈ y\n\n  (0,0) → 0: b = 0\n  (0,1) → 1: w₂ = 1\n  (1,0) → 1: w₁ = 1\n  (1,1) → 0: 1 + 1 + w₃ = 0 → w₃ = -2\n\n  Solution: y = x₁ + x₂ - 2(x₁x₂) ✓\n\nOne cross-term was all it took. The product x₁x₂ creates a new dimension where XOR IS linearly separable."
+            }
+          }
+        ]
+      },
+
+      {
+        "type": "Section",
+        "props": { "title": "The Pseudoinverse: Finding the Best Matrix" },
+        "children": [
+          {
+            "type": "p",
+            "children": "Once you've chosen your features, finding the best linear map is a solved problem. Given N input-output pairs packed into matrices X (inputs) and Y (outputs), you want M such that MX ≈ Y."
+          },
+          {
+            "type": "DefinitionList",
+            "props": {
+              "items": [
+                {
+                  "term": "The Normal Equation",
+                  "definition": "M = Y Xᵀ (X Xᵀ)⁻¹  — this is the least-squares optimal M. It minimizes the total squared error across all your data points. No iterative optimization needed; it's a closed-form formula."
+                },
+                {
+                  "term": "The Moore-Penrose Pseudoinverse",
+                  "definition": "X⁺ = Xᵀ(XXᵀ)⁻¹ — a generalization of matrix inverse that works even when X isn't square or invertible. M = YX⁺ gives the minimum-norm least-squares solution."
+                },
+                {
+                  "term": "Ridge Regression",
+                  "definition": "M = Y Xᵀ (X Xᵀ + λI)⁻¹ — adds a small penalty λ to prevent overfitting when you have many features. The λI term makes the matrix invertible even when features are correlated or redundant."
+                }
+              ]
+            }
+          },
+          {
+            "type": "Example",
+            "props": {
+              "title": "Pseudoinverse by hand (2×2)",
+              "content": "Input-output pairs: [1,0]→[3], [0,1]→[5], [1,1]→[8]\n\nX = [[1, 0],    Y = [[3],\n     [0, 1],         [5],\n     [1, 1]]         [8]]\n\nXᵀX = [[2, 1],   XᵀY = [[11],\n       [1, 2]]          [13]]\n\n(XᵀX)⁻¹ = (1/3)[[2, -1],\n                  [-1, 2]]\n\nM = (XᵀX)⁻¹ XᵀY = (1/3)[[2·11-13], = (1/3)[[9],  = [[3],\n                          [-11+26]]         [15]]    [5]]\n\nSo y ≈ 3x₁ + 5x₂. Check: f(1,1) = 8 ✓\n\nThe pseudoinverse found the exact answer because the data is consistent. If the [1,1] pair had been [1,1]→[7], it would find the best COMPROMISE."
+            }
+          }
+        ]
+      },
+
+      {
+        "type": "Section",
+        "props": { "title": "Feature Zoo: What Nonlinear Features Can You Use?" },
+        "children": [
+          {
+            "type": "p",
+            "children": "The power of this approach depends entirely on which features you include in φ(x). Here's the zoo:"
+          },
+          {
+            "type": "DefinitionList",
+            "props": {
+              "items": [
+                {
+                  "term": "Polynomial features",
+                  "definition": "x², x³, x₁x₂, x₁²x₂, ... — Can represent any polynomial function. The degree-d polynomial kernel on n inputs has O(nᵈ) features, which explodes fast. Degree 2 on 768 dims = ~300,000 features!"
+                },
+                {
+                  "term": "Trigonometric features",
+                  "definition": "sin(x), cos(x), sin(2x), ... — Capture periodic patterns. Via Fourier theory, enough sin/cos terms can approximate ANY function. But you need to pick the right frequencies."
+                },
+                {
+                  "term": "Activation-inspired features",
+                  "definition": "ReLU(x) = max(0,x), sigmoid(x), tanh(x), GELU(x) — Borrowed from neural networks. If you know the target uses GELU internally, including GELU(x) as a feature gives the matrix a head start."
+                },
+                {
+                  "term": "Radial Basis Functions (RBF)",
+                  "definition": "exp(-||x - cᵢ||²/2σ²) — One feature per 'center' cᵢ. Each feature measures distance to a prototype. With enough centers, can approximate anything. This is what SVMs with RBF kernels do."
+                },
+                {
+                  "term": "Random Fourier Features",
+                  "definition": "cos(ωᵀx + b) where ω is random — Bochner's theorem: these approximate the RBF kernel in expectation. You get the power of infinite-dimensional RBF with finite features. Beautiful theory."
+                },
+                {
+                  "term": "Interaction features",
+                  "definition": "x₁·x₂, x₁·x₃, ... — Capture how dimensions combine. Essential when the output depends on RELATIONSHIPS between input dimensions, not just individual values."
+                }
+              ]
+            }
+          },
+          {
+            "type": "Callout",
+            "props": {
+              "type": "warning",
+              "title": "The curse of dimensionality",
+              "content": "More features = more expressive power IN THEORY. But with N data points, you can only reliably fit ~N parameters. Beyond that, you're fitting noise. Adding 19,200 features to chase a 1.3% improvement doesn't work — we proved it experimentally."
+            }
+          }
+        ]
+      },
+
+      {
+        "type": "Section",
+        "props": { "title": "The Kernel Trick: Never Build the Matrix" },
+        "children": [
+          {
+            "type": "p",
+            "children": "Here's where it gets clever. Sometimes φ(x) is enormous — or even infinite-dimensional. Building the actual feature matrix would be impossible. But you don't need to."
+          },
+          {
+            "type": "p",
+            "children": "The key insight: the pseudoinverse solution M = Y Φᵀ(Φ Φᵀ)⁻¹ only ever accesses the features through dot products φ(xᵢ)ᵀφ(xⱼ). If you can compute this dot product WITHOUT explicitly constructing φ, you can work in the lifted space implicitly."
+          },
+          {
+            "type": "Example",
+            "props": {
+              "title": "The polynomial kernel trick",
+              "content": "Consider φ(x) for degree-2 features on x = [x₁, x₂]:\n  φ(x) = [x₁², √2·x₁x₂, x₂², √2·x₁, √2·x₂, 1]\n\nThis is 6-dimensional. The dot product φ(x)ᵀφ(z) = ?\n\nIt turns out: φ(x)ᵀφ(z) = (xᵀz + 1)²\n\nLet's verify with x=[1,2], z=[3,1]:\n  xᵀz + 1 = 3 + 2 + 1 = 6\n  (xᵀz + 1)² = 36\n\n  φ(x) = [1, 2√2, 4, √2, 2√2, 1]\n  φ(z) = [9, 3√2, 1, 3√2, √2, 1]\n  φ(x)ᵀφ(z) = 9 + 12 + 4 + 6 + 4 + 1 = 36 ✓\n\nThe kernel function k(x,z) = (xᵀz + 1)² computes the 6D dot product using only the 2D inputs. For degree d on n dims, this saves computing O(nᵈ) features."
+            }
+          },
+          {
+            "type": "Callout",
+            "props": {
+              "type": "info",
+              "title": "Common kernel functions",
+              "content": "• Linear: k(x,z) = xᵀz — no lifting, just the raw dot product\n• Polynomial: k(x,z) = (xᵀz + c)ᵈ — implicitly lifts to all monomials up to degree d\n• RBF/Gaussian: k(x,z) = exp(-||x-z||²/2σ²) — implicitly lifts to INFINITE dimensions\n• Laplacian: k(x,z) = exp(-||x-z||/σ) — like RBF but sharper\n\nThe RBF kernel is the most remarkable: it works in an infinite-dimensional feature space, yet you compute it with a single exponential."
+            }
+          }
+        ]
+      },
+
+      {
+        "type": "Section",
+        "props": { "title": "Worked Example: Kernel Ridge Regression" },
+        "children": [
+          {
+            "type": "p",
+            "children": "Let's solve a complete nonlinear regression problem using the kernel trick, step by step, with numbers small enough to verify by hand."
+          },
+          {
+            "type": "Example",
+            "props": {
+              "title": "Fitting y = sin(x) with 4 data points",
+              "content": "Data: x₁=0→y₁=0, x₂=π/2→y₂=1, x₃=π→y₃=0, x₄=3π/2→y₄=-1\n\nUsing RBF kernel with σ=1:\n  k(xᵢ,xⱼ) = exp(-|xᵢ-xⱼ|²/2)\n\nKernel matrix K (4×4):\n  K[i,j] = k(xᵢ,xⱼ)\n\n  K ≈ [[1.000, 0.085, 0.000, 0.000],\n       [0.085, 1.000, 0.085, 0.000],\n       [0.000, 0.085, 1.000, 0.085],\n       [0.000, 0.000, 0.085, 1.000]]\n\nSolve (K + λI)α = y with λ=0.01:\n  α ≈ [0.008, 1.006, 0.008, -1.006]\n\nPredict new point x*:\n  f(x*) = Σᵢ αᵢ k(x*, xᵢ)\n  f(π/4) = 0.008·k(π/4,0) + 1.006·k(π/4,π/2) + ... ≈ 0.71\n  True sin(π/4) = 0.707 ✓\n\nThe prediction is a weighted sum of RBF bumps centered at each training point. The kernel matrix never explicitly constructs the infinite-dimensional feature vectors."
+            }
+          }
+        ]
+      },
+
+      {
+        "type": "Section",
+        "props": { "title": "When Feature Lifting Works Brilliantly" },
+        "children": [
+          {
+            "type": "p",
+            "children": "Feature lifting shines when you know (or can guess) the functional form of the nonlinearity. If the true function is a polynomial, polynomial features recover it exactly. If it's periodic, trig features nail it. The method is at its best when your features MATCH the target's structure."
+          },
+          {
+            "type": "InteractiveDemo",
+            "props": {
+              "title": "Match the nonlinearity",
+              "prompt": "For each target function, which feature set would give a PERFECT fit with a linear map?",
+              "scenarios": [
+                {
+                  "input": "f(x) = 3x² - 2x + 1",
+                  "reveal": "**Polynomial features [1, x, x²]** — exactly three features, and the weights are [1, -2, 3]. Any polynomial of degree d needs exactly the monomials up to degree d."
+                },
+                {
+                  "input": "f(x₁, x₂) = x₁ · x₂",
+                  "reveal": "**Interaction feature [x₁x₂]** — just one additional feature beyond the raw inputs. This is why polynomial kernels include cross-terms: they capture multiplicative relationships between dimensions."
+                },
+                {
+                  "input": "f(x) = max(0, x)  (ReLU)",
+                  "reveal": "**Features [x, |x|]** — because ReLU(x) = (x + |x|)/2. Two features, exact recovery. You can also use [max(0,x)] directly, but that's cheating — you already HAVE the function."
+                },
+                {
+                  "input": "f(x) = GELU(x) = x · Φ(x)  where Φ is the Gaussian CDF",
+                  "reveal": "**Features [x·erf(x/√2), erf(x/√2), x]** — since GELU = 0.5x(1 + erf(x/√2)). But erf is itself non-elementary, so in practice you'd use [x·σ(1.702x)] as an approximation. The point: GELU is inherently transcendental and doesn't live in any finite polynomial feature space."
+                }
+              ]
+            }
+          }
+        ]
+      },
+
+      {
+        "type": "Section",
+        "props": { "title": "When Feature Lifting Hits a Wall" },
+        "children": [
+          {
+            "type": "p",
+            "children": "Here's where things get interesting — and where our MLP0 experiments become relevant. Feature lifting fails or struggles in three specific situations:"
+          },
+          {
+            "type": "DeepDive",
+            "props": {
+              "title": "Wall #1: The Nonlinearity is Diffuse",
+              "content": "If the nonlinear part of your function is spread across ALL dimensions roughly equally, no finite set of features can efficiently capture it. This is exactly what we found with GPT-2's MLP0:\n\n• A linear map captures 91.5% of MLP0's behavior (by cosine similarity)\n• Adding GELU-inspired features boosts this to 92.8%\n• Adding 25 different nonlinear transforms: 92.8%\n• Adding 19,200 kitchen-sink features: 89.5% (WORSE — overfitting!)\n\nThe remaining 7% isn't concentrated in a few correctable dimensions. It's a thin film of nonlinearity smeared across all 768 output dimensions. Each dimension has its own little nonlinear wiggle, and they're all different."
+            }
+          },
+          {
+            "type": "DeepDive",
+            "props": {
+              "title": "Wall #2: Cross-Dimensional Interactions",
+              "content": "Element-wise features like x², sin(x), GELU(x) transform each dimension independently. But neural networks compute interactions BETWEEN dimensions — that's what the weight matrices do.\n\nMLP0 takes 768 inputs, projects to 3072 hidden units (mixing dimensions), applies GELU, then projects back to 768. The nonlinearity acts on MIXTURES of input dimensions, not individual ones.\n\nTo capture this with features, you'd need interaction terms like x₁·x₂, x₁·x₃, ... — but that's 768×767/2 ≈ 295,000 pair features alone. With 15,000 training samples, you'd be fitting 20× more parameters than data points."
+            }
+          },
+          {
+            "type": "DeepDive",
+            "props": {
+              "title": "Wall #3: The Law of Large Numbers Shield",
+              "content": "This is the subtlest and most beautiful wall. MLP0 projects through 3072 hidden neurons, each with its own nonlinear response. When projected back to 768 dimensions, each output dimension is a SUM of ~3072 individually-nonlinear terms.\n\nBy the law of large numbers, the sum of many weakly-correlated nonlinear functions looks increasingly LINEAR. The nonlinear fluctuations cancel out across neurons.\n\nThis is why MLP0 is 91.5% linear despite GELU distorting 93% of the hidden units: the distortion is real per-neuron, but the projection AVERAGES it out. You can't kernel-approximate what's already been averaged into near-linearity."
+            }
+          },
+          {
+            "type": "Analogy",
+            "left": {
+              "title": "Individual Neurons",
+              "items": [
+                "Each of 3072 neurons is highly nonlinear",
+                "GELU distorts 93% of activations",
+                "Each neuron responds to a specific input pattern",
+                "The nonlinearity is sharp and pronounced",
+                "Like individual voters with strong opinions"
+              ]
+            },
+            "right": {
+              "title": "Projected Output",
+              "items": [
+                "The sum of 3072 neurons looks nearly linear",
+                "91.5% of output variance is linear",
+                "The output reflects averaged responses",
+                "The nonlinearity is smooth and diffuse",
+                "Like election results that look like smooth trends"
+              ]
+            }
+          }
+        ]
+      },
+
+      {
+        "type": "Section",
+        "props": { "title": "Random Fourier Features: The Theorist's Best Shot" },
+        "children": [
+          {
+            "type": "p",
+            "children": "If any feature lifting strategy could capture arbitrary nonlinearities, it would be Random Fourier Features (RFF). Based on Bochner's theorem, they approximate the RBF kernel — which operates in an infinite-dimensional feature space — using a finite random projection."
+          },
+          {
+            "type": "Example",
+            "props": {
+              "title": "How Random Fourier Features work",
+              "content": "The RBF kernel k(x,z) = exp(-||x-z||²/2σ²) has an infinite feature map.\n\nBochner's theorem says this kernel equals:\n  k(x,z) = E[cos(ωᵀx + b) · cos(ωᵀz + b)]\n\nwhere ω ~ N(0, I/σ²) and b ~ Uniform(0, 2π).\n\nSo: sample D random ω vectors and biases, compute:\n  φ(x) = √(2/D) · [cos(ω₁ᵀx + b₁), ..., cos(ωDᵀx + bD)]\n\nThen φ(x)ᵀφ(z) ≈ k(x,z), and the approximation improves as D → ∞.\n\nThis is elegant: you get universal function approximation with a LINEAR model on random features. But 'universal' is an asymptotic guarantee — in practice, D needs to be enormous for high-dimensional inputs."
+            }
+          },
+          {
+            "type": "Callout",
+            "props": {
+              "type": "warning",
+              "title": "RFF on MLP0: the reality check",
+              "content": "We tested Random Fourier Features with D = 768, 1536, and 3072, across bandwidths σ = 0.5, 1, 2, 5. None beat the simple 'x + erf(x)' feature set. The problem: 768-dimensional input space needs MANY random projections to cover the relevant directions, and with limited training data, the random features mostly capture noise."
+            }
+          }
+        ]
+      },
+
+      {
+        "type": "Section",
+        "props": { "title": "The Dimensionality Tradeoff: A Fundamental Limit" },
+        "children": [
+          {
+            "type": "p",
+            "children": "There's a deep reason why throwing more features at the problem doesn't help. It's not just overfitting — it's about the geometry of high-dimensional spaces."
+          },
+          {
+            "type": "Example",
+            "props": {
+              "title": "The critical ratio: features vs. data points",
+              "content": "With N data points and P features:\n\n• P << N (few features, lots of data):\n  Underfitting risk. Your features might not span the target function.\n  But the fit is reliable — each parameter is well-constrained.\n\n• P ≈ N (features ≈ data):\n  The 'interpolation threshold.' The model can fit training data\n  perfectly, but may not generalize. This is the classical danger zone.\n\n• P >> N (many features, little data):\n  Overfitting certainty. With more parameters than constraints,\n  infinitely many solutions exist. Ridge regression helps by picking\n  the minimum-norm solution, but you're still fitting noise.\n\nFor MLP0: P = 19,200 kitchen-sink features, N = 15,000 tokens.\n  P/N = 1.28 — right in the danger zone.\n  Compare: P = 1,536 (x + erf), N = 15,000.\n  P/N = 0.10 — safely underdetermined. And it wins."
+            }
+          },
+          {
+            "type": "p",
+            "children": "This is why the kitchen sink approach — throw every feature you can think of — is actually counterproductive. You want the SMALLEST feature set that captures the dominant nonlinearity. Every extra feature that doesn't help actively hurts."
+          }
+        ]
+      },
+
+      {
+        "type": "Section",
+        "props": { "title": "Polynomial Features and the Combinatorial Explosion" },
+        "children": [
+          {
+            "type": "p",
+            "children": "Polynomial features are the most natural extension of linear models, and they illustrate the dimensionality curse beautifully."
+          },
+          {
+            "type": "Example",
+            "props": {
+              "title": "Feature count explosion",
+              "content": "For n input dimensions and polynomial degree d:\n\nDegree 1 (linear):     n features\nDegree 2 (quadratic):  n + n(n+1)/2 features\nDegree 3 (cubic):      n + n(n+1)/2 + n(n+1)(n+2)/6 features\n\nFor n = 768 (GPT-2 embedding dimension):\n  Degree 1:     768 features\n  Degree 2:     768 + 295,296 = 296,064 features\n  Degree 3:     296,064 + 75,987,456 ≈ 76 MILLION features\n\nWith 15,000 data points, even degree 2 is hopelessly overdetermined.\n\nThe workaround: project to PCA space first (768 → 16 dims),\nthen compute degree-2 features (16 + 136 = 152 features).\nBut PCA throws away information, so you're approximating an\napproximation. Still, this often works surprisingly well — the\ntop PCA components carry most of the signal."
+            }
+          }
+        ]
+      },
+
+      {
+        "type": "Section",
+        "props": { "title": "What Neural Networks Do Differently" },
+        "children": [
+          {
+            "type": "p",
+            "children": "After all this, you might ask: if kernel methods hit these walls, how do neural networks handle nonlinearity so well? The answer reveals what's really going on."
+          },
+          {
+            "type": "Analogy",
+            "left": {
+              "title": "Kernel / Feature Lifting",
+              "items": [
+                "Choose features BEFORE seeing data",
+                "Features are fixed (φ is hand-designed)",
+                "Linear map on top (closed-form solution)",
+                "More features → overfitting risk",
+                "Works great when you know the form",
+                "One-shot: compute pseudoinverse, done"
+              ]
+            },
+            "right": {
+              "title": "Neural Network",
+              "items": [
+                "LEARN features from the data",
+                "Features are adaptive (trained by gradient descent)",
+                "Nonlinear maps at every layer",
+                "More layers → deeper feature hierarchy",
+                "Works even when the form is unknown",
+                "Iterative: many passes through the data"
+              ]
+            }
+          },
+          {
+            "type": "p",
+            "children": "The crucial difference: neural networks learn WHICH nonlinear features to compute. MLP0 doesn't use a generic φ — it has trained W_in to project inputs into exactly the 3072 directions where GELU's nonlinearity is most useful for predicting the next token. Those 3072 learned features are worth more than 19,200 generic ones."
+          },
+          {
+            "type": "Callout",
+            "props": {
+              "type": "info",
+              "title": "The Representer Theorem connection",
+              "content": "There's a deep result called the Representer Theorem that says: for any kernel method with a regularization penalty, the optimal solution can be written as a linear combination of kernel evaluations at the training points. This means kernel methods are, in a sense, MEMORIZING the training set and interpolating. Neural networks, by contrast, learn compressed RULES that generalize beyond the training distribution. Both approaches work, but they scale differently."
+            }
+          }
+        ]
+      },
+
+      {
+        "type": "Section",
+        "props": { "title": "The Frontiers: Where Research Lives" },
+        "children": [
+          {
+            "type": "p",
+            "children": "The boundary between kernel methods and neural networks is one of the most active areas in ML theory. Here are the open questions:"
+          },
+          {
+            "type": "DeepDive",
+            "props": {
+              "title": "Neural Tangent Kernels (NTK)",
+              "content": "In 2018, Jacot et al. showed that infinitely-wide neural networks behave EXACTLY like kernel methods, with a specific kernel called the Neural Tangent Kernel. This means:\n\n• Wide networks = kernel regression with a data-dependent kernel\n• The kernel captures what the network 'wants' to be linear in\n• Training dynamics become simple (convex optimization)\n\nBut real networks are finite-width, and the deviation from the NTK regime is precisely where their power comes from. The NTK theory explains what networks can do 'for free' (the linear part) and highlights what requires actual feature learning (the nonlinear part)."
+            }
+          },
+          {
+            "type": "DeepDive",
+            "props": {
+              "title": "Learned Kernels / Deep Kernel Learning",
+              "content": "What if you let a neural network learn the FEATURES, then use a kernel method on top? This is Deep Kernel Learning:\n\n1. Train a neural network to map inputs to a learned representation\n2. Apply a Gaussian process (kernel method) on the learned features\n3. Get uncertainty estimates (from the GP) on learned features (from the NN)\n\nThis combines the best of both worlds: adaptive features + principled uncertainty. The catch: you still need to train the neural network, so it's not cheaper — just more principled at the output layer."
+            }
+          },
+          {
+            "type": "DeepDive",
+            "props": {
+              "title": "Structured State Spaces and Linear Attention",
+              "content": "The newest frontier: architectures like Mamba and linear attention that are explicitly LINEAR in their state updates. These models ask: how much of a transformer's power comes from nonlinear attention, and how much can be captured by carefully designed linear recurrences?\n\nEarly results: surprisingly much. Linear attention with the right state space structure can match transformers on many tasks, especially those that don't require precise copying or retrieval. The nonlinear part of attention — the softmax — may be doing less than we thought, just as GELU in MLP0 contributes less than expected."
+            }
+          }
+        ]
+      },
+
+      {
+        "type": "Section",
+        "props": { "title": "Summary: The Kernel Arithmetic Hierarchy" },
+        "children": [
+          {
+            "type": "Steps",
+            "props": {
+              "items": [
+                "LEVEL 0 — Pure linear map (matrix multiply): captures linear relationships exactly. Free, fast, closed-form. For MLP0: 91.5% of the job.",
+                "LEVEL 1 — Hand-crafted features (x + erf + swish): captures known nonlinear forms. Still closed-form, minimal extra cost. For MLP0: 92.8% (+1.3%).",
+                "LEVEL 2 — Combinatorial features (all pairs, polynomials): captures interactions. Hits dimensionality walls fast. For MLP0: no improvement (overfitting).",
+                "LEVEL 3 — Random features (RFF): theoretically universal. Practically limited by data. For MLP0: no improvement.",
+                "LEVEL 4 — Learned features (neural networks): adapts to the data. Requires training. This is what MLP0 IS — 3072 learned features, each GELU-activated.",
+                "The gap between Level 1 and Level 4 is the ~7% that represents the IRREDUCIBLE nonlinear content of MLP0: cross-dimensional interactions that only learned, data-specific features can capture."
+              ]
+            }
+          }
+        ]
+      },
+
+      {
+        "type": "Quiz",
+        "props": {
+          "questions": [
+            {
+              "question": "Why can't a matrix represent f(x) = x²?",
+              "options": [
+                "Matrices can only handle vectors, not scalars",
+                "A matrix must satisfy M(2x) = 2Mx, but f(2x) = 4f(x)",
+                "You need at least a 3×3 matrix",
+                "x² isn't differentiable"
+              ],
+              "correct": 1,
+              "explanation": "Linearity requires M(αx) = αMx. For x², doubling the input quadruples the output. No matrix can do this because it would violate the fundamental linearity constraint."
+            },
+            {
+              "question": "What does feature lifting actually do?",
+              "options": [
+                "Makes the function smoother",
+                "Reduces the number of parameters",
+                "Moves the problem to a higher-dimensional space where it IS linear",
+                "Compresses the input data"
+              ],
+              "correct": 2,
+              "explanation": "Feature lifting transforms x → φ(x) = [x, x², sin(x), ...]. In this higher-dimensional space, the target function can be expressed as a LINEAR combination of features. You trade dimensionality for linearity."
+            },
+            {
+              "question": "Why did the 19,200-feature 'kitchen sink' perform WORSE than 1,536 features on MLP0?",
+              "options": [
+                "The features were computed incorrectly",
+                "More features than data points leads to overfitting",
+                "The computer ran out of memory",
+                "Some features cancel each other out"
+              ],
+              "correct": 1,
+              "explanation": "With P ≈ 19,200 features and N ≈ 15,000 data points, P/N > 1. The model can fit training data perfectly while capturing noise. Ridge regularization helps but can't fully compensate. Fewer, better-chosen features generalize better."
+            },
+            {
+              "question": "MLP0 is 91.5% linear despite GELU distorting 93% of hidden units. Why?",
+              "options": [
+                "GELU is approximately linear in most ranges",
+                "The weight matrices cancel out the nonlinearity",
+                "The sum of many weakly-correlated nonlinear functions looks linear (law of large numbers)",
+                "The training data is mostly linear"
+              ],
+              "correct": 2,
+              "explanation": "Each of 3072 hidden neurons is individually nonlinear, but when projected back to 768 dims, each output is a SUM of many neurons. The individual nonlinear fluctuations average out, leaving a nearly-linear aggregate — just as averaging many biased coins gives a smooth probability."
+            },
+            {
+              "question": "What's the key advantage of neural networks over kernel methods?",
+              "options": [
+                "Neural networks are faster to train",
+                "Neural networks use less memory",
+                "Neural networks LEARN which features to compute from data",
+                "Neural networks don't need regularization"
+              ],
+              "correct": 2,
+              "explanation": "Kernel methods use fixed, pre-chosen feature maps. Neural networks learn their feature representations through training. MLP0's 3072 learned projections are more useful than 19,200 generic nonlinear features because they're optimized for the actual data distribution."
+            }
+          ]
+        }
+      }
+    ]
+  }
+}
