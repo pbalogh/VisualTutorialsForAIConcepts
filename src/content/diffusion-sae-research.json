@@ -4009,6 +4009,44 @@
       },
       {
         "type": "Section",
+        "title": "📡 Feb 26, 2026 (1pm): VDLM, Semantic Bottleneck & Simplified USDM Training",
+        "children": [
+          {
+            "type": "p",
+            "content": "🔴 **VDLM: Variable Diffusion LMs via Robust Latent-to-Text Rendering** (arXiv:2602.15870, Jan 27 2026): Separates semantic planning from text rendering — applies LLaDA-style masked diffusion over *semantic variable embeddings* for iterative refinement in latent space, then uses a Vec2Text renderer to decode. Post-trains the planner with embedding-space RL rewards, avoiding text decoding inside the RL loop. Competitive on 9 benchmarks spanning reasoning, math, and code."
+          },
+          {
+            "type": "DeepDive",
+            "title": "Why VDLM Matters for Our Research",
+            "children": [
+              {
+                "type": "p",
+                "content": "VDLM is a strong validation of Idea 1 (Structured Latent Spaces). Their architecture explicitly separates diffusion planning in embedding space from text rendering — exactly the modular design we envision. The key insight: you can do RL post-training entirely in embedding space without decoding to text. For our SAE-guided approach, this suggests: (1) diffuse in SAE feature space for planning, (2) use a separate renderer to produce text. Their Vec2Text + embedding perturbations for robustness is relevant to Idea 4 — the renderer must be robust to noisy/approximate latent representations, just as our dictionary-guided denoising would produce approximate feature activations."
+              }
+            ]
+          },
+          {
+            "type": "p",
+            "content": "🟡 **A Hidden Semantic Bottleneck in Conditional Embeddings of Diffusion Transformers** (arXiv:2602.21596, ICLR 2026): Conditional embeddings in DiTs show extreme angular similarity (>99%) and semantic information concentrates in a small subset of dimensions. Pruning 2/3 of embedding dimensions preserves or improves generation quality."
+          },
+          {
+            "type": "DeepDive",
+            "title": "Semantic Bottleneck & SAE Sparsity",
+            "children": [
+              {
+                "type": "p",
+                "content": "This directly supports the premise behind all four ideas: diffusion models already learn naturally sparse, low-dimensional conditional representations. If semantic info concentrates in few dimensions, SAE decomposition should be particularly effective — SAEs are designed to find exactly these sparse, meaningful directions. For Idea 1, this suggests the structured latent space may need fewer SAE features than expected. For Idea 3 (noise schedules), the 'head' vs 'tail' dimension distinction maps to destroying low-information dimensions first."
+              }
+            ]
+          },
+          {
+            "type": "p",
+            "content": "🟢 **Simple Denoising Diffusion Language Models** (arXiv:2510.22926, Oct 2025, updated Feb 2026): Simplifies Uniform State Diffusion Model (USDM) training with a denoising-only loss that optimizes only noise-replaced tokens, plus a regularization term. Scales to larger models. Infrastructure paper supporting Idea 4 — simpler training losses make it easier to add SAE-guided constraints."
+          }
+        ]
+      },
+      {
+        "type": "Section",
         "title": "Next Steps",
         "children": [
           {
