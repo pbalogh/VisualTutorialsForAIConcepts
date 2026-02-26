@@ -187,6 +187,18 @@ const tutorials = [
     difficulty: 3,
   },
   {
+    id: 'brainstorm-39-information-bottleneck',
+    title: 'Information Bottleneck as Operator Discovery',
+    description: 'How compression reveals semantic primitives — squeeze event descriptions through a bottleneck and what survives IS the Schankian operator. No labels needed.',
+    tags: ['information theory', 'compression', 'operators', 'Schank', 'IB', 'unsupervised'],
+    icon: '🔬',
+    gradient: 'from-cyan-500 to-blue-600',
+    shadowColor: 'shadow-cyan-500/30',
+    glowColor: 'rgba(6, 182, 212, 0.4)',
+    readTime: '25 min',
+    difficulty: 3,
+  },
+  {
     id: 'brainstorm-62-moe-routing-operators',
     title: 'Operators as Semantic Expert Modules',
     description: 'How Mixture-of-Experts routing is structurally identical to Schankian primitive selection — constrain experts to ~14 and rediscover semantic primitives.',

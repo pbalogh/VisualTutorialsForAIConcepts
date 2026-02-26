@@ -1,0 +1,434 @@
+{
+  "id": "brainstorm-39-information-bottleneck",
+  "title": "Information Bottleneck as Operator Discovery",
+  "subtitle": "How compression reveals semantic primitives — squeeze event descriptions and what survives IS the operator",
+  "readTime": "25 min",
+  "state": {
+    "beta": 1.0,
+    "compressionLevel": "medium",
+    "selectedEvent": 0,
+    "quizScore": 0,
+    "showBottleneck": false
+  },
+  "content": {
+    "type": "Fragment",
+    "children": [
+      {
+        "type": "Callout",
+        "props": { "type": "info" },
+        "children": "This tutorial explores the Information Bottleneck (IB) principle — a mathematical framework for optimal compression — and shows how squeezing event descriptions through a bottleneck can automatically discover Schankian operators. No labels needed: the bottleneck discovers primitives by itself."
+      },
+
+      {
+        "type": "Section",
+        "props": { "title": "1. The Core Intuition: Compression Reveals Structure" },
+        "children": [
+          {
+            "type": "p",
+            "children": "Imagine describing an event to someone through a very narrow pipe. You can only send a few bits. What survives?"
+          },
+          {
+            "type": "Example",
+            "props": {
+              "title": "Compression in Action",
+              "language": "text"
+            },
+            "children": "Full description:\n  \"The assassin fired his high-powered rifle from the hotel balcony,\n   striking the president in the chest.\"\n\nMedium compression (β = 1.0):\n  \"Someone shot the president with a gun.\"\n\nHigh compression (β = 0.1):\n  \"PROPEL(projectile → person) → HARM(person)\"\n\nMaximum compression:\n  \"HARM(agent, patient)\""
+          },
+          {
+            "type": "p",
+            "children": "At each level of compression, irrelevant details (hotel, balcony, rifle type) are stripped away. What remains is the CAUSAL CORE — the operator. This isn't just hand-waving: the Information Bottleneck provides a rigorous mathematical framework for exactly this process."
+          },
+          {
+            "type": "Analogy",
+            "props": {
+              "concept": "Information Bottleneck",
+              "analogy": "A diamond cutter chips away stone to reveal the gem inside"
+            },
+            "children": "The diamond was always there — the cutting just removed what wasn't essential. Similarly, the Schankian operator was always in the event description. The IB bottleneck removes everything except the causal transformation that actually matters."
+          }
+        ]
+      },
+
+      {
+        "type": "Section",
+        "props": { "title": "2. The Mathematics: IB in 5 Minutes" },
+        "children": [
+          {
+            "type": "p",
+            "children": "The IB principle (Tishby et al., 1999) finds a compressed representation T of input X that preserves maximal information about target Y."
+          },
+          {
+            "type": "DefinitionList",
+            "props": {
+              "items": [
+                {
+                  "term": "X — Input",
+                  "definition": "The full event description ('The assassin shot the president from the balcony')"
+                },
+                {
+                  "term": "Y — Target",
+                  "definition": "The state changes that result (patient → harmed, agent → committed-violence)"
+                },
+                {
+                  "term": "T — Bottleneck",
+                  "definition": "The compressed representation — ideally, a Schankian operator"
+                },
+                {
+                  "term": "β — Trade-off parameter",
+                  "definition": "Controls compression vs. prediction. Low β = extreme compression. High β = preserve everything."
+                }
+              ]
+            }
+          },
+          {
+            "type": "Example",
+            "props": {
+              "title": "The IB Objective Function",
+              "language": "python"
+            },
+            "children": "# The IB objective:\n# minimize  I(X; T) - β · I(T; Y)\n#\n# I(X; T) = mutual information between input and bottleneck\n#           (how much detail T retains about X)\n# I(T; Y) = mutual information between bottleneck and target\n#           (how well T predicts state changes)\n#\n# β controls the trade-off:\n#   β → 0: T retains almost nothing (too compressed)\n#   β → ∞: T retains everything (no compression)\n#   β ≈ 1: Sweet spot — T retains ONLY what predicts Y\n\nimport numpy as np\n\ndef ib_objective(I_XT, I_TY, beta):\n    \"\"\"Lower is better: compress X while predicting Y.\"\"\"\n    return I_XT - beta * I_TY"
+          },
+          {
+            "type": "DeepDive",
+            "props": {
+              "title": "Why mutual information and not just accuracy?",
+              "id": "why-mi"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "Mutual information captures ALL statistical dependence, not just linear correlation. If the operator is a nonlinear function of the input — which it almost certainly is — accuracy of a linear probe would miss it. Mutual information doesn't. It's also directly connected to compression: I(X; T) is literally the minimum number of bits needed to describe X given T."
+              },
+              {
+                "type": "p",
+                "children": "This connects to Kolmogorov complexity and MDL (Entry 45): the IB curve IS the rate-distortion curve, and the MDL principle says the best model is always ≥ R(D). Three frameworks, one answer."
+              }
+            ]
+          }
+        ]
+      },
+
+      {
+        "type": "Section",
+        "props": { "title": "3. Interactive: The β Slider" },
+        "children": [
+          {
+            "type": "p",
+            "children": "The β parameter is the key control. Let's see what happens as we vary it across different event descriptions."
+          },
+          {
+            "type": "InteractiveDemo",
+            "props": {
+              "title": "🎚️ Compression Level Explorer",
+              "stateKey": "beta",
+              "inputs": [
+                {
+                  "type": "slider",
+                  "key": "beta",
+                  "label": "β (compression ↔ prediction)",
+                  "min": 0,
+                  "max": 2,
+                  "step": 0.1,
+                  "defaultValue": 1.0
+                },
+                {
+                  "type": "select",
+                  "key": "selectedEvent",
+                  "label": "Event description",
+                  "options": [
+                    { "value": 0, "label": "Assassin shot the president with a rifle" },
+                    { "value": 1, "label": "Mary gave John the heavy textbook" },
+                    { "value": 2, "label": "The teacher explained quantum mechanics to the students" },
+                    { "value": 3, "label": "The surgeon carefully removed the tumor" }
+                  ]
+                }
+              ],
+              "computeFn": "(() => {\n  const events = [\n    {\n      full: 'The assassin fired his high-powered rifle from the hotel balcony, striking the president in the chest.',\n      mid: 'Someone shot the president → PROPEL(projectile, person)',\n      compressed: 'HARM(agent, patient)',\n      operator: 'PROPEL → HARM',\n      stateChange: 'patient: alive → harmed; agent: hidden → exposed'\n    },\n    {\n      full: 'Mary reached across the oak dining table and handed John the heavy organic chemistry textbook.',\n      mid: 'Mary gave John a book → ATRANS(object, source, dest)',\n      compressed: 'ATRANS(agent, patient, object)',\n      operator: 'ATRANS',\n      stateChange: 'Mary: +book → -book; John: -book → +book'\n    },\n    {\n      full: 'The physics teacher stood at the whiteboard and explained the double-slit experiment to 30 confused undergrads.',\n      mid: 'Teacher told students about physics → MTRANS(info, source, dest)',\n      compressed: 'MTRANS(agent, patient, info)',\n      operator: 'MTRANS',\n      stateChange: 'students: ¬know(topic) → know(topic)'\n    },\n    {\n      full: 'The experienced neurosurgeon carefully used a laser scalpel to excise the 3cm glioblastoma from the frontal lobe.',\n      mid: 'Surgeon removed tumor → MOVE(object) + HARM(tumor)',\n      compressed: 'MOVE(agent, object, source)',\n      operator: 'MOVE + HARM',\n      stateChange: 'patient: has(tumor) → ¬has(tumor)'\n    }\n  ];\n  const e = events[state.selectedEvent || 0];\n  const b = state.beta || 1.0;\n  let display, label;\n  if (b < 0.5) {\n    display = e.compressed;\n    label = 'Maximum compression — pure operator';\n  } else if (b < 1.2) {\n    display = e.mid;\n    label = 'Balanced — operator + key roles';\n  } else {\n    display = e.full;\n    label = 'Low compression — full description';\n  }\n  return `β = ${b.toFixed(1)} → ${label}\\n\\n📝 ${display}\\n\\n🔧 Operator: ${e.operator}\\n📊 State change: ${e.stateChange}\\n\\n💡 Notice: regardless of β, the OPERATOR stays the same.\\nCompression strips surface details, not causal structure.`;\n})()",
+              "display": "pre"
+            }
+          },
+          {
+            "type": "Callout",
+            "props": { "type": "key-insight" },
+            "children": "The key insight: as β decreases, surface details vanish but the OPERATOR persists. 'Assassin fired rifle from balcony' and 'person hurt person' map to the same operator HARM. The operator IS the incompressible core."
+          }
+        ]
+      },
+
+      {
+        "type": "Section",
+        "props": { "title": "4. From Theory to Architecture: The Variational IB" },
+        "children": [
+          {
+            "type": "p",
+            "children": "The original IB requires knowing the joint distribution p(X, Y) — impractical for real data. The Variational Information Bottleneck (VIB, Alemi et al. 2017) makes it trainable with neural networks."
+          },
+          {
+            "type": "Example",
+            "props": {
+              "title": "VIB Architecture for Operator Discovery",
+              "language": "python"
+            },
+            "children": "import torch\nimport torch.nn as nn\n\nclass OperatorVIB(nn.Module):\n    \"\"\"\n    Variational Information Bottleneck for operator discovery.\n    \n    Encoder: event description → compressed latent (operator)\n    Decoder: latent → predicted state changes\n    \"\"\"\n    def __init__(self, input_dim=768, latent_dim=64, n_state_dims=128):\n        super().__init__()\n        # Encoder: compress event description\n        self.encoder_mu = nn.Linear(input_dim, latent_dim)\n        self.encoder_logvar = nn.Linear(input_dim, latent_dim)\n        \n        # Decoder: predict state changes from operator\n        self.decoder = nn.Sequential(\n            nn.Linear(latent_dim, 256),\n            nn.ReLU(),\n            nn.Linear(256, n_state_dims)\n        )\n    \n    def encode(self, x):\n        \"\"\"Map event description to operator distribution.\"\"\"\n        mu = self.encoder_mu(x)\n        logvar = self.encoder_logvar(x)\n        return mu, logvar\n    \n    def reparameterize(self, mu, logvar):\n        \"\"\"Sample operator via reparameterization trick.\"\"\"\n        std = torch.exp(0.5 * logvar)\n        eps = torch.randn_like(std)\n        return mu + eps * std\n    \n    def forward(self, event_embedding):\n        mu, logvar = self.encode(event_embedding)\n        z = self.reparameterize(mu, logvar)  # z IS the operator\n        state_changes = self.decoder(z)\n        return state_changes, mu, logvar\n    \n    def loss(self, pred_states, true_states, mu, logvar, beta=1.0):\n        \"\"\"VIB loss = reconstruction + β * KL divergence.\"\"\"\n        recon = nn.MSELoss()(pred_states, true_states)  # I(T; Y)\n        kl = -0.5 * torch.sum(1 + logvar - mu.pow(2) - logvar.exp())  # I(X; T)\n        return recon + beta * kl"
+          },
+          {
+            "type": "DeepDive",
+            "props": {
+              "title": "Connection to VAEs and β-VAE",
+              "id": "vae-connection"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "This looks exactly like a β-VAE! That's because β-VAE IS a special case of the IB principle. The KL term I(X; T) acts as the bottleneck, and β controls how tight it is. Higgins et al. (2017) showed that β > 1 encourages disentangled representations — each latent dimension captures an independent factor. For operators, this means each dimension could capture an independent semantic axis: polarity, volitionality, telicity, etc. (connecting to Entry 12: Disentangled Operator Dimensions)."
+              }
+            ]
+          }
+        ]
+      },
+
+      {
+        "type": "Section",
+        "props": { "title": "5. Interactive: What Survives the Bottleneck?" },
+        "children": [
+          {
+            "type": "p",
+            "children": "Different types of information have different compression costs. Let's explore what's cheap and what's expensive to preserve."
+          },
+          {
+            "type": "InteractiveDemo",
+            "props": {
+              "title": "🧪 Information Survival Analyzer",
+              "stateKey": "compressionLevel",
+              "inputs": [
+                {
+                  "type": "select",
+                  "key": "compressionLevel",
+                  "label": "Compression Level",
+                  "options": [
+                    { "value": "none", "label": "No compression (β → ∞)" },
+                    { "value": "light", "label": "Light compression (β = 2.0)" },
+                    { "value": "medium", "label": "Medium compression (β = 1.0)" },
+                    { "value": "heavy", "label": "Heavy compression (β = 0.3)" },
+                    { "value": "extreme", "label": "Extreme compression (β → 0)" }
+                  ]
+                }
+              ],
+              "computeFn": "(() => {\n  const levels = {\n    none: {\n      survives: '✅ Operator type (HARM)\\n✅ Agent identity (assassin)\\n✅ Patient identity (president)\\n✅ Instrument (rifle)\\n✅ Location (hotel balcony)\\n✅ Manner (carefully aimed)\\n✅ Time (dawn)',\n      bits: '~200 bits',\n      insight: 'Everything preserved. No generalization possible.'\n    },\n    light: {\n      survives: '✅ Operator type (HARM)\\n✅ Agent identity (assassin)\\n✅ Patient identity (president)\\n✅ Instrument (rifle)\\n❌ Location\\n❌ Manner\\n❌ Time',\n      bits: '~80 bits',\n      insight: 'Peripheral details stripped. Core event structure intact.'\n    },\n    medium: {\n      survives: '✅ Operator type (HARM)\\n✅ Agent role (human)\\n✅ Patient role (human)\\n✅ Instrument type (weapon)\\n❌ Specific identities\\n❌ Location\\n❌ Manner',\n      bits: '~30 bits',\n      insight: 'Abstraction begins! Identities become ROLES. This is where operator structure emerges.'\n    },\n    heavy: {\n      survives: '✅ Operator type (HARM)\\n✅ Agent (animate)\\n✅ Patient (animate)\\n❌ Instrument\\n❌ Everything else',\n      bits: '~10 bits',\n      insight: 'Nearly pure operator. Just the transformation type and role types.'\n    },\n    extreme: {\n      survives: '✅ Operator type (HARM)\\n❌ Everything else',\n      bits: '~4 bits',\n      insight: 'Pure primitive! Just the operator label. This IS the Schankian primitive — the incompressible semantic core.'\n    }\n  };\n  const l = levels[state.compressionLevel || 'medium'];\n  return `Compression: ${state.compressionLevel || 'medium'}\\n\\nWhat survives:\\n${l.survives}\\n\\n📦 Approximate bits needed: ${l.bits}\\n\\n💡 ${l.insight}`;\n})()",
+              "display": "pre"
+            }
+          },
+          {
+            "type": "Callout",
+            "props": { "type": "warning" },
+            "children": "The order of information loss is NOT random. It follows a hierarchy: manner/location/time → specific identities → instrument → role types → operator. The operator is ALWAYS the last thing standing. This hierarchy IS the definition of 'primitive.'"
+          }
+        ]
+      },
+
+      {
+        "type": "Section",
+        "props": { "title": "6. Causal IB: Compression That Respects Causation" },
+        "children": [
+          {
+            "type": "p",
+            "children": "Standard IB compresses based on statistical correlation. But we want CAUSAL compression — preserving what causes state changes, not what merely correlates with them."
+          },
+          {
+            "type": "Example",
+            "props": {
+              "title": "Why Causal Matters",
+              "language": "text"
+            },
+            "children": "Correlation-based IB might preserve:\n  \"Events with rifles tend to happen at balconies\"\n  → Preserves LOCATION (spurious correlation!)\n\nCausal IB preserves:\n  \"Rifles CAUSE projectile motion CAUSING harm\"\n  → Preserves CAUSAL CHAIN (the actual mechanism)\n\nThe Causal Information Bottleneck (CIB, 2025) replaces\nI(T; Y) with I_causal(T; Y) — only counting information\nthat flows through causal pathways, not spurious\ncorrelations in the training data."
+          },
+          {
+            "type": "DeepDive",
+            "props": {
+              "title": "CIB and do-calculus",
+              "id": "cib-do-calculus"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "The CIB uses Pearl's do-calculus to distinguish causal from correlational information. Instead of optimizing I(T; Y), it optimizes I(T; Y | do(T=t)) — the information T provides about Y when we INTERVENE to set T, not merely observe it. This connects directly to Entry 22 (Operators as Causal Interventions) and Entry 52 (Pearl's Ladder). Operators discovered via CIB are guaranteed to be causally valid, not just statistically convenient."
+              }
+            ]
+          }
+        ]
+      },
+
+      {
+        "type": "Section",
+        "props": { "title": "7. The β Phase Diagram" },
+        "children": [
+          {
+            "type": "p",
+            "children": "As β varies continuously, the IB solution doesn't change smoothly — it undergoes PHASE TRANSITIONS where new information suddenly becomes worth preserving. These phase transitions correspond to operator hierarchy levels!"
+          },
+          {
+            "type": "InteractiveDemo",
+            "props": {
+              "title": "📊 IB Phase Diagram",
+              "stateKey": "showBottleneck",
+              "inputs": [
+                {
+                  "type": "slider",
+                  "key": "beta",
+                  "label": "β value",
+                  "min": 0,
+                  "max": 3,
+                  "step": 0.1,
+                  "defaultValue": 1.0
+                }
+              ],
+              "computeFn": "(() => {\n  const b = state.beta || 1.0;\n  const phases = [\n    { threshold: 0.3, label: 'Phase 1: Pure operators', desc: 'Only ~14 primitive types survive. This IS the Schankian level.', bits: 4 },\n    { threshold: 0.8, label: 'Phase 2: Operators + role types', desc: 'Agent/patient animacy, volitionality emerge as worth encoding.', bits: 12 },\n    { threshold: 1.5, label: 'Phase 3: + Instrument/manner', desc: 'HOW the action was performed becomes informative.', bits: 30 },\n    { threshold: 2.5, label: 'Phase 4: + Identities/context', desc: 'WHO specifically and WHERE — full reconstruction.', bits: 100 }\n  ];\n  let current = phases[0];\n  for (const p of phases) {\n    if (b >= p.threshold) current = p;\n  }\n  const bar = (bits, max) => '█'.repeat(Math.round(bits / max * 30)) + '░'.repeat(30 - Math.round(bits / max * 30));\n  return `β = ${b.toFixed(1)}\\n\\n🔬 Current phase: ${current.label}\\n${current.desc}\\n\\nInformation preserved: ~${current.bits} bits\\n${bar(current.bits, 100)}\\n\\n— Phase transitions —\\nβ < 0.3  → Phase 1: Pure operators (~4 bits)\\nβ ≈ 0.8  → Phase 2: + Role types (~12 bits)\\nβ ≈ 1.5  → Phase 3: + Instrument/manner (~30 bits)\\nβ > 2.5  → Phase 4: Full detail (~100+ bits)\\n\\n⚡ Phase transitions are SHARP — a tiny β change\\ncan suddenly make a whole category of information\\nworth preserving. Just like physical phase transitions!`;\n})()",
+              "display": "pre"
+            }
+          },
+          {
+            "type": "Analogy",
+            "props": {
+              "concept": "IB Phase Transitions",
+              "analogy": "Water freezing at exactly 0°C"
+            },
+            "children": "Just as water doesn't gradually become ice — it undergoes a sharp phase transition at 0°C — the IB solution undergoes sharp transitions at critical β values. Below β_c₁, only operators survive. Above β_c₂, role types suddenly become worth encoding. These critical points are NOT arbitrary — they're determined by the structure of semantic information itself."
+          }
+        ]
+      },
+
+      {
+        "type": "Section",
+        "props": { "title": "8. Connections to Other Frameworks" },
+        "children": [
+          {
+            "type": "p",
+            "children": "The IB isn't an isolated idea — it's the mathematical backbone connecting several entries in our brainstorm."
+          },
+          {
+            "type": "DefinitionList",
+            "props": {
+              "items": [
+                {
+                  "term": "Entry 45: MDL",
+                  "definition": "Minimum Description Length ≥ Rate-Distortion ≥ IB bound. Three frameworks giving the same answer: primitives minimize description length."
+                },
+                {
+                  "term": "Entry 47: Semantic RG",
+                  "definition": "Renormalization Group coarse-graining IS repeated IB compression at increasing scales. RG fixed points = IB phase transition points = operator levels."
+                },
+                {
+                  "term": "Entry 56: Rate-Distortion",
+                  "definition": "R(D) gives the fundamental limit — minimum bits per operator. If R(D) is low, operators exist (shared structure). If R(D) ≈ N, no compression possible."
+                },
+                {
+                  "term": "Entry 12: Disentanglement",
+                  "definition": "β > 1 in β-VAE encourages disentangled representations — each IB dimension becomes an independent semantic axis."
+                },
+                {
+                  "term": "Entry 54: DreamCoder",
+                  "definition": "DreamCoder's library learning = IB in program space. The 'sleep' phase compresses discovered subroutines = IB compression of operator compositions."
+                }
+              ]
+            }
+          }
+        ]
+      },
+
+      {
+        "type": "Section",
+        "props": { "title": "9. Practical: Training an Operator Bottleneck" },
+        "children": [
+          {
+            "type": "p",
+            "children": "Here's a concrete training recipe for discovering operators via IB."
+          },
+          {
+            "type": "Example",
+            "props": {
+              "title": "Training Recipe",
+              "language": "python"
+            },
+            "children": "# Step 1: Prepare data\n# For each event, we need:\n#   X = event embedding (from BERT/GPT sentence encoder)\n#   Y = state change vectors for all participants\n\nfrom transformers import AutoModel, AutoTokenizer\n\nmodel = AutoModel.from_pretrained('bert-base-uncased')\ntokenizer = AutoTokenizer.from_pretrained('bert-base-uncased')\n\ndef encode_event(text):\n    tokens = tokenizer(text, return_tensors='pt')\n    with torch.no_grad():\n        output = model(**tokens)\n    return output.last_hidden_state[:, 0, :]  # [CLS] token\n\n# Step 2: β annealing schedule\n# Start with β high (preserve everything)\n# Gradually decrease (force compression)\n# Monitor cluster formation in latent space\n\ndef beta_schedule(epoch, warmup=10, target=0.5):\n    \"\"\"Anneal β from 0 to target over warmup epochs.\"\"\"\n    if epoch < warmup:\n        return target * epoch / warmup\n    return target\n\n# Step 3: Train and analyze\n# After training, cluster the latent space\n# Each cluster = one discovered operator\n# Compare to known Schankian primitives!\n\nfrom sklearn.cluster import HDBSCAN\n\ndef discover_operators(model, events):\n    latents = [model.encode(e)[0] for e in events]  # mu only\n    latents = torch.stack(latents).detach().numpy()\n    \n    clusterer = HDBSCAN(min_cluster_size=50)\n    labels = clusterer.fit_predict(latents)\n    \n    n_operators = len(set(labels)) - 1  # exclude noise\n    print(f'Discovered {n_operators} operator clusters')\n    # Schank proposed ~14. How close do we get?\n    return labels"
+          },
+          {
+            "type": "Callout",
+            "props": { "type": "success" },
+            "children": "The beauty of IB operator discovery: NO SUPERVISION NEEDED. You don't need to label events with operators. The bottleneck discovers them automatically as the representations that maximally compress event descriptions while still predicting state changes."
+          }
+        ]
+      },
+
+      {
+        "type": "Section",
+        "props": { "title": "10. Quiz: Test Your Understanding" },
+        "children": [
+          {
+            "type": "Quiz",
+            "props": {
+              "questions": [
+                {
+                  "question": "In the IB objective min I(X;T) - β·I(T;Y), what happens when β → 0?",
+                  "options": [
+                    "T preserves everything about X",
+                    "T retains only what predicts Y (maximum relevant compression)",
+                    "T becomes trivial (constant, no information)",
+                    "T becomes identical to Y"
+                  ],
+                  "correct": 2,
+                  "explanation": "When β → 0, the I(T;Y) term vanishes. The objective becomes just 'minimize I(X;T)' — compress as much as possible. The solution is T = constant (zero information). We need β > 0 to make prediction worthwhile."
+                },
+                {
+                  "question": "Why is the Causal Information Bottleneck (CIB) better than standard IB for operator discovery?",
+                  "options": [
+                    "CIB is faster to compute",
+                    "CIB preserves causal relationships, not spurious correlations",
+                    "CIB uses fewer parameters",
+                    "CIB doesn't need training data"
+                  ],
+                  "correct": 1,
+                  "explanation": "Standard IB can preserve spurious correlations (e.g., 'rifles correlate with balconies'). CIB uses do-calculus to ensure the bottleneck preserves only causally relevant information — the actual mechanism by which events cause state changes."
+                },
+                {
+                  "question": "What do IB phase transitions correspond to in operator discovery?",
+                  "options": [
+                    "Overfitting thresholds",
+                    "Levels of the operator hierarchy (primitives → roles → details)",
+                    "Training convergence points",
+                    "Batch size boundaries"
+                  ],
+                  "correct": 1,
+                  "explanation": "As β increases, the IB solution undergoes sharp phase transitions where new categories of information suddenly become worth preserving. These correspond exactly to operator hierarchy levels: first pure operator types, then role information, then instrument/manner, then full detail."
+                },
+                {
+                  "question": "How does the IB principle connect to the claim that Schankian primitives are 'universal'?",
+                  "options": [
+                    "IB proves universality mathematically",
+                    "If different languages yield the same IB clusters, universality is empirically validated",
+                    "IB doesn't connect to universality at all",
+                    "Universal means β = 1 always works"
+                  ],
+                  "correct": 1,
+                  "explanation": "If we run IB compression on event descriptions in English, Mandarin, Arabic, and Swahili, and the bottleneck representations cluster into the same ~14 operator types, that's powerful empirical evidence for cross-linguistic universality of semantic primitives."
+                }
+              ]
+            }
+          }
+        ]
+      },
+
+      {
+        "type": "Section",
+        "props": { "title": "Summary" },
+        "children": [
+          {
+            "type": "Callout",
+            "props": { "type": "success" },
+            "children": "Key takeaways:\n\n1. The Information Bottleneck compresses event descriptions while preserving state-change prediction\n2. What survives maximum compression IS the Schankian operator — the incompressible causal core\n3. The β parameter controls abstraction level; phase transitions reveal the operator hierarchy\n4. The Causal IB ensures we preserve causation, not correlation\n5. No supervision needed — bottleneck discovers primitives automatically\n6. IB unifies MDL, Rate-Distortion, RG, and disentanglement into one framework"
+          }
+        ]
+      }
+    ]
+  }
+}
