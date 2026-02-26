@@ -964,14 +964,14 @@
                       "Relevance:"
                     ]
                   },
-                  " ⭐⭐ PRACTICAL FOR IDEAS 3 & 4. The SNR-invariant denoiser operates across ALL corruption levels with a single model — meaning SAE feature guidance could be applied uniformly regardless of noise level, simplifying our dictionary-guided denoising (Idea 4). The self-correction capability is especially relevant: if SAE-guided corrections introduce small errors, DSL's self-correction mechanism could recover from them. The 4x step reduction also means SAE guidance per-step overhead is less costly."
+                  " \u2b50\u2b50 PRACTICAL FOR IDEAS 3 & 4. The SNR-invariant denoiser operates across ALL corruption levels with a single model \u2014 meaning SAE feature guidance could be applied uniformly regardless of noise level, simplifying our dictionary-guided denoising (Idea 4). The self-correction capability is especially relevant: if SAE-guided corrections introduce small errors, DSL's self-correction mechanism could recover from them. The 4x step reduction also means SAE guidance per-step overhead is less costly."
                 ]
               }
             ]
           },
           {
             "type": "DeepDive",
-            "title": "[Feb 24] P2: Path Planning for MDM Sampling — Planning + Denoising Decomposition (ICLR 2026)",
+            "title": "[Feb 24] P2: Path Planning for MDM Sampling \u2014 Planning + Denoising Decomposition (ICLR 2026)",
             "children": [
               {
                 "type": "p",
@@ -994,7 +994,7 @@
                       "Key insight:"
                     ]
                   },
-                  " Decomposes each MDM generation step into two sub-stages: a PLANNER selects which tokens to update, and a DENOISER fills them in. Critically, this enables REFINING already-unmasked tokens — something standard MDMs cannot do. Proves an expanded ELBO on log-likelihood. Massive gains: +22% protein foldability, +68% story ROUGE, +33% code pass@1."
+                  " Decomposes each MDM generation step into two sub-stages: a PLANNER selects which tokens to update, and a DENOISER fills them in. Critically, this enables REFINING already-unmasked tokens \u2014 something standard MDMs cannot do. Proves an expanded ELBO on log-likelihood. Massive gains: +22% protein foldability, +68% story ROUGE, +33% code pass@1."
                 ]
               },
               {
@@ -1006,7 +1006,7 @@
                       "Relevance:"
                     ]
                   },
-                  " ⭐⭐⭐ DIRECT FRAMEWORK FOR IDEAS 3 & 4. The planning-denoising decomposition is exactly where SAE features plug in: the PLANNER could use SAE feature analysis to decide which tokens need updating (those whose SAE features don't match target), and the DENOISER could be guided by SAE dictionary constraints. The token refinement capability enables iterative SAE-guided correction — unmask tokens, check their SAE features, remask/refine misaligned ones. Complements Where-to-Unmask and LoMDM with a more general framework."
+                  " \u2b50\u2b50\u2b50 DIRECT FRAMEWORK FOR IDEAS 3 & 4. The planning-denoising decomposition is exactly where SAE features plug in: the PLANNER could use SAE feature analysis to decide which tokens need updating (those whose SAE features don't match target), and the DENOISER could be guided by SAE dictionary constraints. The token refinement capability enables iterative SAE-guided correction \u2014 unmask tokens, check their SAE features, remask/refine misaligned ones. Complements Where-to-Unmask and LoMDM with a more general framework."
                 ]
               }
             ]
@@ -1036,7 +1036,7 @@
                       "Key insight:"
                     ]
                   },
-                  " Casts MDM denoising as a KL-regularized MDP and uses GRPO to learn an optimal unmasking policy. Proves convergence guarantees — the learned policy generates samples closer to the data distribution than heuristic schedules. On Sudoku (where order is critical): +22% over random, +12% over max-confidence."
+                  " Casts MDM denoising as a KL-regularized MDP and uses GRPO to learn an optimal unmasking policy. Proves convergence guarantees \u2014 the learned policy generates samples closer to the data distribution than heuristic schedules. On Sudoku (where order is critical): +22% over random, +12% over max-confidence."
                 ]
               },
               {
@@ -1048,7 +1048,7 @@
                       "Relevance:"
                     ]
                   },
-                  " ⭐⭐ COMPLEMENTS IDEA 3. Another approach to learned generation ordering (alongside LoMDM, Where-to-Unmask). The KL-regularized MDP formulation is theoretically clean and could be extended: add SAE feature matching as a reward signal → the RL policy learns to unmask in an order that maximizes SAE feature coherence. The convergence guarantees would carry over, giving theoretical backing to SAE-aware scheduling."
+                  " \u2b50\u2b50 COMPLEMENTS IDEA 3. Another approach to learned generation ordering (alongside LoMDM, Where-to-Unmask). The KL-regularized MDP formulation is theoretically clean and could be extended: add SAE feature matching as a reward signal \u2192 the RL policy learns to unmask in an order that maximizes SAE feature coherence. The convergence guarantees would carry over, giving theoretical backing to SAE-aware scheduling."
                 ]
               }
             ]
@@ -3879,7 +3879,7 @@
       },
       {
         "type": "Section",
-        "title": "📡 Feb 25, 2026: Research Sweep — 3 New Findings",
+        "title": "\ud83d\udce1 Feb 25, 2026: Research Sweep \u2014 3 New Findings",
         "children": [
           {
             "type": "DeepDive",
@@ -3888,19 +3888,19 @@
               {
                 "type": "p",
                 "children": [
-                  " Cywiński & Deja, 'SAeUron: Interpretable Concept Unlearning in Diffusion Models with Sparse Autoencoders' (arXiv:2501.18052, ICML 2025)"
+                  " Cywi\u0144ski & Deja, 'SAeUron: Interpretable Concept Unlearning in Diffusion Models with Sparse Autoencoders' (arXiv:2501.18052, ICML 2025)"
                 ]
               },
               {
                 "type": "p",
                 "children": [
-                  " SAeUron trains SAEs on image diffusion model activations and identifies specific SAE features corresponding to concepts (e.g., 'nudity', 'violence'). By zeroing those features, they achieve concept erasure that is robust to adversarial attacks — unlike other methods. A single SAE can remove multiple concepts simultaneously. Code and checkpoints available."
+                  " SAeUron trains SAEs on image diffusion model activations and identifies specific SAE features corresponding to concepts (e.g., 'nudity', 'violence'). By zeroing those features, they achieve concept erasure that is robust to adversarial attacks \u2014 unlike other methods. A single SAE can remove multiple concepts simultaneously. Code and checkpoints available."
                 ]
               },
               {
                 "type": "p",
                 "children": [
-                  " ⭐⭐⭐ DIRECT VALIDATION of Ideas 2 & 4 in the image domain. SAeUron proves that individual SAE features causally control concept presence in diffusion generation. The inverse of erasure is enhancement — exactly what Feature Steering (Idea 2) proposes. For Dictionary-Guided Denoising (Idea 4), SAeUron's finding that features are robustly causal (surviving adversarial attacks) means SAE-based guidance would be reliable, not just correlational. The multi-concept capability via a single SAE aligns with our vision of a unified SAE dictionary guiding diverse generation properties."
+                  " \u2b50\u2b50\u2b50 DIRECT VALIDATION of Ideas 2 & 4 in the image domain. SAeUron proves that individual SAE features causally control concept presence in diffusion generation. The inverse of erasure is enhancement \u2014 exactly what Feature Steering (Idea 2) proposes. For Dictionary-Guided Denoising (Idea 4), SAeUron's finding that features are robustly causal (surviving adversarial attacks) means SAE-based guidance would be reliable, not just correlational. The multi-concept capability via a single SAE aligns with our vision of a unified SAE dictionary guiding diverse generation properties."
                 ]
               },
               {
@@ -3908,9 +3908,11 @@
                 "children": [
                   {
                     "type": "strong",
-                    "children": ["Transfer to text:"]
+                    "children": [
+                      "Transfer to text:"
+                    ]
                   },
-                  " SAeUron operates on U-Net activations in image diffusion. For text DLMs (transformer-based), the same approach would use SAEs on transformer hidden states — which CorrSteer and DLM-Scope already do for LLMs/DLMs respectively. The pipeline is: train SAE → identify causal features → steer during generation."
+                  " SAeUron operates on U-Net activations in image diffusion. For text DLMs (transformer-based), the same approach would use SAEs on transformer hidden states \u2014 which CorrSteer and DLM-Scope already do for LLMs/DLMs respectively. The pipeline is: train SAE \u2192 identify causal features \u2192 steer during generation."
                 ]
               }
             ]
@@ -3934,7 +3936,7 @@
               {
                 "type": "p",
                 "children": [
-                  " ⭐⭐ Relevant to Idea 4 (Dictionary-Guided Denoising). Fewer denoising steps means each step carries more weight — SAE guidance per step becomes more impactful. The Confidence-Adaptive Decoding is interesting: tokens are finalized when confidence is high. SAE feature coherence could serve as an additional confidence signal — if SAE features align into a coherent concept, that's a sign the token is ready to be finalized."
+                  " \u2b50\u2b50 Relevant to Idea 4 (Dictionary-Guided Denoising). Fewer denoising steps means each step carries more weight \u2014 SAE guidance per step becomes more impactful. The Confidence-Adaptive Decoding is interesting: tokens are finalized when confidence is high. SAE feature coherence could serve as an additional confidence signal \u2014 if SAE features align into a coherent concept, that's a sign the token is ready to be finalized."
                 ]
               },
               {
@@ -3942,7 +3944,9 @@
                 "children": [
                   {
                     "type": "strong",
-                    "children": ["Connection to Idea 3:"]
+                    "children": [
+                      "Connection to Idea 3:"
+                    ]
                   },
                   " CAD's per-token adaptive scheduling is a form of semantically-aware scheduling. SAE features could inform which tokens are 'semantically settled' vs still needing refinement."
                 ]
@@ -3962,16 +3966,44 @@
               {
                 "type": "p",
                 "children": [
-                  " Sparse-LaViDa dynamically truncates unnecessary masked tokens at each inference step to accelerate MDM sampling. Built on LaViDa-O, a 10.4B unified diffusion model supporting image understanding, text-to-image, and image editing. The key insight: not all masked positions need attention at every step — sparse computation focuses on the 'active frontier'."
+                  " Sparse-LaViDa dynamically truncates unnecessary masked tokens at each inference step to accelerate MDM sampling. Built on LaViDa-O, a 10.4B unified diffusion model supporting image understanding, text-to-image, and image editing. The key insight: not all masked positions need attention at every step \u2014 sparse computation focuses on the 'active frontier'."
                 ]
               },
               {
                 "type": "p",
                 "children": [
-                  " ⭐⭐ Relevant to Idea 3 (Semantically-Aware Noise Schedules). Sparse-LaViDa's dynamic token truncation is an implicit form of adaptive scheduling — tokens that are 'easy' get less compute. SAE features could make this explicit: tokens whose SAE feature activations are already coherent could be deprioritized, while tokens in semantically ambiguous states get more denoising attention. The multimodal setting (text + image) is also relevant: SAE features could bridge modalities in the shared latent space."
+                  " \u2b50\u2b50 Relevant to Idea 3 (Semantically-Aware Noise Schedules). Sparse-LaViDa's dynamic token truncation is an implicit form of adaptive scheduling \u2014 tokens that are 'easy' get less compute. SAE features could make this explicit: tokens whose SAE feature activations are already coherent could be deprioritized, while tokens in semantically ambiguous states get more denoising attention. The multimodal setting (text + image) is also relevant: SAE features could bridge modalities in the shared latent space."
                 ]
               }
             ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "title": "\ud83d\udce1 Feb 26, 2026: Steerling-8B \u2014 Our Idea 2, Built at Scale",
+        "children": [
+          {
+            "type": "p",
+            "content": "\ud83d\udd34 **Steerling-8B** (Guide Labs) is the first inherently interpretable 8B language model, built on a causal discrete diffusion backbone. It decomposes embeddings into ~33K supervised 'known' concepts + ~100K discovered concepts + residual, and can suppress or amplify specific concepts at inference time WITHOUT retraining. 84%+ of token contribution routes through the concept module. Trained on 1.35T tokens, competitive with models using 2-7\u00d7 more compute."
+          },
+          {
+            "type": "DeepDive",
+            "title": "Why This Matters for Our Research",
+            "children": [
+              {
+                "type": "p",
+                "content": "This is a direct, large-scale validation of our Idea 2 (Feature Steering for Conditional Generation). They built exactly what we theorized: a model where you can activate interpretable features to control generation. Their key innovation is constraining the training loss to force signal through concepts \u2014 this is the missing architectural detail we hadn't specified. Also validates Idea 1 (their concept decomposition IS a structured latent space). The discrete diffusion backbone means multi-token steering, not just next-token."
+              }
+            ]
+          },
+          {
+            "type": "p",
+            "content": "\ud83d\udfe1 **IDLM** (2602.19066): Distills diffusion LMs to reduce inference steps by 4-64\u00d7 while preserving quality. Practical for deploying any SAE+diffusion system."
+          },
+          {
+            "type": "p",
+            "content": "\ud83d\udfe1 **Discrete Diffusion for Lookahead Planning** (2602.19980): Shows discrete diffusion develops emergent mechanisms different from AR models for multi-step planning \u2014 relevant to noise schedule design (Idea 3)."
           }
         ]
       },
