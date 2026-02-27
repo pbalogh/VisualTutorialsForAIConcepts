@@ -4047,6 +4047,138 @@
       },
       {
         "type": "Section",
+        "title": "📡 Feb 27, 2026: Sampler Correctness, Reward Stitching & Conditional Estimators",
+        "children": [
+          {
+            "type": "DeepDive",
+            "title": "[Feb 27] ⚠️ Few-Step Discrete Diffusion Samplers Are Distributionally Incorrect (Feb 23, 2026)",
+            "children": [
+              {
+                "type": "p",
+                "children": [
+                  {
+                    "type": "strong",
+                    "children": [
+                      "Paper:"
+                    ]
+                  },
+                  " Tang et al., 'Is Your Diffusion Sampler Actually Correct? A Sampler-Centric Evaluation of Discrete Diffusion Language Models' (arXiv:2602.19619, Feb 23, 2026)"
+                ]
+              },
+              {
+                "type": "p",
+                "children": [
+                  {
+                    "type": "strong",
+                    "children": [
+                      "Key insight:"
+                    ]
+                  },
+                  " Introduces an oracle evaluation framework using exact HMM posteriors to isolate sampler-induced error from denoiser approximation error. CRITICAL FINDING: few-step discrete diffusion samplers are NOT distributionally correct even under an ORACLE denoiser — transition-level mismatch vanishes only as steps approach sequence length. Moreover, improvements in NLL, generative perplexity, or MAUVE do NOT imply correct sampling. LLaDA shows persistent deviation and entropy collapse even with many steps."
+                ]
+              },
+              {
+                "type": "p",
+                "children": [
+                  {
+                    "type": "strong",
+                    "children": [
+                      "Relevance:"
+                    ]
+                  },
+                  " ⭐⭐⭐ IMPORTANT CAVEAT for all ideas. If few-step sampling is fundamentally flawed, SAE-guided interventions at each step interact with an already-incorrect sampling process. This means: (1) for Idea 4 (dictionary-guided denoising), SAE corrections might partially compensate for sampler error — or exacerbate it. (2) for Idea 3 (semantic schedules), the noise schedule interacts with sampler correctness in ways we need to understand. (3) Practical implication: SAE-guided diffusion may need MORE steps than standard to maintain distributional accuracy, offsetting efficiency gains. The LLaDA entropy collapse is especially concerning — it suggests the model converges too aggressively, which SAE guidance could either help (by maintaining diversity through feature steering) or hurt (by adding another convergence pressure)."
+                ]
+              }
+            ]
+          },
+          {
+            "type": "DeepDive",
+            "title": "[Feb 27] 🔥 Reward-Guided Stitching: Step-Level Recombination of Diffusion Reasoning (Feb 26, 2026)",
+            "children": [
+              {
+                "type": "p",
+                "children": [
+                  {
+                    "type": "strong",
+                    "children": [
+                      "Paper:"
+                    ]
+                  },
+                  " Miles et al., 'Test-Time Scaling with Diffusion Language Models via Reward-Guided Stitching' (arXiv:2602.22871, Feb 26, 2026)"
+                ]
+              },
+              {
+                "type": "p",
+                "children": [
+                  {
+                    "type": "strong",
+                    "children": [
+                      "Key insight:"
+                    ]
+                  },
+                  " Proposes 'Stitching Noisy Diffusion Thoughts' — samples many diverse, low-cost reasoning trajectories from a masked DLM, scores every intermediate step with a process reward model (PRM), then stitches highest-quality steps ACROSS trajectories into a composite rationale. An AR solver then recomputes the final answer from the stitched rationale. Training-free, +23.8% average accuracy across 6 math/coding tasks, 1.8x latency reduction vs Dream/LLaDA. Code released."
+                ]
+              },
+              {
+                "type": "p",
+                "children": [
+                  {
+                    "type": "strong",
+                    "children": [
+                      "Relevance:"
+                    ]
+                  },
+                  " ⭐⭐⭐ ARCHITECTURE FOR IDEAS 2 & 4. The step-level scoring and stitching framework is a natural fit for SAE-based guidance: (1) Replace the PRM with SAE feature coherence scoring — score each intermediate step by how well its SAE features align with target semantics. (2) The cross-trajectory stitching enables composing best semantic features from different generation attempts. (3) The modular pipeline (diffusion explores, scorer evaluates, AR solver refines) maps to: diffusion generates diverse candidates → SAE features evaluate semantic quality → solver produces final output. The finding that low-confidence diffusion sampling produces more diverse, useful candidates is interesting — it means SAE-guided exploration (deliberately sampling diverse feature configurations) could improve final quality."
+                ]
+              }
+            ]
+          },
+          {
+            "type": "DeepDive",
+            "title": "[Feb 27] Sample-Efficient Discrete Diffusion via Round-Robin Conditionals (Feb 24, 2026)",
+            "children": [
+              {
+                "type": "p",
+                "children": [
+                  {
+                    "type": "strong",
+                    "children": [
+                      "Paper:"
+                    ]
+                  },
+                  " 'Discrete Diffusion with Sample-Efficient Estimators for Conditionals' (arXiv:2602.20293, Feb 24, 2026)"
+                ]
+              },
+              {
+                "type": "p",
+                "children": [
+                  {
+                    "type": "strong",
+                    "children": [
+                      "Key insight:"
+                    ]
+                  },
+                  " Instead of approximating a discrete score function, directly estimates single-site conditionals using sample-efficient estimators combined with round-robin noising/denoising dynamics. Preserves combinatorial structure of discrete data while allowing tractable inference. A principled alternative to score-based approaches like SEDD."
+                ]
+              },
+              {
+                "type": "p",
+                "children": [
+                  {
+                    "type": "strong",
+                    "children": [
+                      "Relevance:"
+                    ]
+                  },
+                  " ⭐⭐ THEORETICAL ALTERNATIVE for Idea 4. The single-site conditional estimation approach could be combined with SAE-guided constraints: at each site (token position), the conditional estimator could be augmented with SAE feature information about what that position 'should be' given the current global feature state. The round-robin dynamics (visiting one site at a time) are also interesting for SAE integration — you could check SAE feature coherence after each single-site update, enabling very fine-grained dictionary-guided denoising."
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
         "title": "Next Steps",
         "children": [
           {
