@@ -127,6 +127,18 @@ function CreateTutorialModal({ isOpen, onClose }) {
 
 const tutorials = [
   {
+    id: 'brainstorm-74-attention-heads-modal-operators',
+    title: 'Attention Heads as Modal Operators',
+    description: 'How transformer attention implements Kripke accessibility relations — unifying epistemic reasoning, Bloom filter heads, and Schankian mental primitives under modal logic.',
+    tags: ['modal logic', 'attention', 'Kripke', 'mechanistic interpretability', 'epistemic', 'Schankian operators'],
+    icon: '🔮',
+    gradient: 'from-violet-500 to-indigo-600',
+    shadowColor: 'shadow-violet-500/30',
+    glowColor: 'rgba(139, 92, 246, 0.4)',
+    readTime: '25 min',
+    difficulty: 4,
+  },
+  {
     id: 'where-grammar-lives',
     title: 'Where Grammar Lives: Syntactic Transition Priors in MLP Vectors',
     description: 'We matched MLP input/output vectors across tokens in GPT-2 and found something unexpected: displacement vectors encode syntactic transition probabilities — not semantic content, but grammar itself.',

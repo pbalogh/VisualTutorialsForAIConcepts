@@ -1,0 +1,398 @@
+{
+  "id": "brainstorm-74-attention-heads-modal-operators",
+  "title": "Attention Heads as Modal Operators",
+  "subtitle": "How transformer attention implements Kripke accessibility — epistemic, deontic, and temporal reasoning in neural circuits",
+  "readTime": "25 min",
+  "state": {},
+  "content": {
+    "type": "Fragment",
+    "children": [
+      {
+        "type": "Callout",
+        "props": { "type": "info" },
+        "children": "This tutorial reveals a deep structural parallel: transformer attention heads are Kripke accessibility relations in disguise. We show how this lens unifies epistemic reasoning, Bloom filter heads, modal logic, and Schankian operators into one architectural framework."
+      },
+      {
+        "type": "Section",
+        "props": { "title": "1. The Core Insight: Attention IS Accessibility" },
+        "children": [
+          {
+            "type": "p",
+            "children": "In modal logic, Kripke semantics evaluates statements like 'Agent knows φ' or 'It is obligatory that φ' using accessibility relations between possible worlds. A statement □φ is true at world w if φ is true at every world accessible from w."
+          },
+          {
+            "type": "p",
+            "children": "Now look at a transformer attention head: given a query token, it attends to (accesses) a subset of other token positions, then aggregates their information. The attention pattern IS an accessibility relation — it determines which 'worlds' (token positions) are consulted when computing the output."
+          },
+          {
+            "type": "Analogy",
+            "props": {
+              "left": "Kripke Frame",
+              "right": "Attention Head",
+              "pairs": [
+                { "a": "Possible world w", "b": "Token position i" },
+                { "a": "Accessibility relation R(w,v)", "b": "Attention weight α(i,j)" },
+                { "a": "□φ true at w", "b": "Output = weighted sum over attended positions" },
+                { "a": "Modal axiom constraints on R", "b": "Attention pattern structure (causal mask, etc.)" },
+                { "a": "Multi-modal logic (K₁, K₂, ...)", "b": "Multi-head attention (head₁, head₂, ...)" }
+              ]
+            }
+          },
+          {
+            "type": "Callout",
+            "props": { "type": "key-insight" },
+            "children": "Multi-head attention is literally multi-modal logic — each head implements a different accessibility relation, corresponding to a different modality (epistemic, temporal, causal, etc.)."
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "2. Modal Axioms as Attention Constraints" },
+        "children": [
+          {
+            "type": "p",
+            "children": "Different modal logics have different axiom systems that constrain the accessibility relation. These map directly to structural properties of attention patterns:"
+          },
+          {
+            "type": "DefinitionList",
+            "props": {
+              "items": [
+                {
+                  "term": "Axiom T: □φ → φ (Reflexivity)",
+                  "definition": "The head always attends to the current position. Self-attention with strong diagonal = reflexive accessibility. Knowledge must be true: what the model 'knows' at position i includes information at i itself."
+                },
+                {
+                  "term": "Axiom 4: □φ → □□φ (Transitivity)",
+                  "definition": "If head H attends from i→j and j→k, then composing two layers gives i→k. Deep transformers implement transitive closure through layer stacking — exactly how epistemic logic handles positive introspection."
+                },
+                {
+                  "term": "Axiom K: □(φ→ψ) → (□φ→□ψ) (Distribution)",
+                  "definition": "The attention mechanism distributes over the residual stream's additive structure. This is baked into the architecture — attention is a linear map over values."
+                },
+                {
+                  "term": "Axiom D: □φ → ◇φ (Seriality)",
+                  "definition": "Every position attends to at least one other position. Softmax guarantees this — attention weights always sum to 1, so every 'world' can access some world."
+                }
+              ]
+            }
+          },
+          {
+            "type": "DeepDive",
+            "props": {
+              "title": "Why does this matter? Can't we just say 'attention attends to stuff'?",
+              "id": "why-modal-matters"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "The modal logic framing gives us something attention-as-lookup doesn't: a formal language for describing WHAT KIND of information each head accesses. An epistemic head (KD45 axioms) has different structural guarantees than a temporal head (linear order) or a deontic head (serial but not reflexive). These aren't metaphors — they're testable structural predictions about attention patterns."
+              },
+              {
+                "type": "p",
+                "children": "Concretely: if head 7.3 in GPT-2 implements epistemic accessibility, its attention matrix should satisfy reflexivity (strong diagonal), transitivity (compose with itself ≈ itself), and Euclideanness (if i attends to j and i attends to k, then j attends to k). These are falsifiable predictions that pure 'attention head' descriptions don't make."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "3. Three Flavors of Modal Heads" },
+        "children": [
+          {
+            "type": "h3",
+            "children": "🧠 Epistemic Heads — 'What does the model know here?'"
+          },
+          {
+            "type": "p",
+            "children": "Epistemic heads attend to positions containing factual information relevant to the current query. They implement K_model(φ) — 'the model knows φ at this position.' The accessibility relation connects a position to all positions whose information is epistemically available."
+          },
+          {
+            "type": "Example",
+            "props": {
+              "title": "Epistemic Head in Action",
+              "language": "text"
+            },
+            "children": "Input: 'The capital of France is [MASK]'\n\nEpistemic head attends:\n  [MASK] → 'capital' (what we need to know)\n  [MASK] → 'France' (constraining entity)\n  [MASK] → 'of' (relational structure)\n\nAccessibility: {MASK} can 'see' factual constraints\nModal statement: K_model(capital(France) = Paris)"
+          },
+          {
+            "type": "h3",
+            "children": "⏰ Temporal Heads — 'What happened before/after?'"
+          },
+          {
+            "type": "p",
+            "children": "Temporal heads implement accessibility along the narrative timeline. In causal (autoregressive) models, the causal mask already enforces 'the past is accessible, the future is not' — this IS the temporal modal axiom. But within the accessible past, temporal heads selectively attend to causally relevant prior events."
+          },
+          {
+            "type": "h3",
+            "children": "⚖️ Deontic Heads — 'What should come next?'"
+          },
+          {
+            "type": "p",
+            "children": "Deontic heads attend to positions that constrain what OUGHT to follow — grammatical obligations, narrative expectations, format requirements. The 'induction heads' discovered by Anthropic (attending to previous instances of a pattern to predict continuation) are deontic in nature: they encode 'given this pattern, you SHOULD produce this next.'"
+          },
+          {
+            "type": "Callout",
+            "props": { "type": "warning" },
+            "children": "These categories aren't mutually exclusive — a single head might serve epistemic functions in some contexts and temporal functions in others. The modal type is a property of the head's behavior on specific inputs, not a fixed label."
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "4. Interactive Demo: Visualizing Modal Accessibility" },
+        "children": [
+          {
+            "type": "p",
+            "children": "Let's build intuition for how different modal axioms constrain attention patterns. Each axiom forces the attention matrix to have specific structural properties."
+          },
+          {
+            "type": "InteractiveDemo",
+            "props": {
+              "id": "modal-axiom-explorer",
+              "title": "Modal Axiom → Attention Pattern Explorer",
+              "height": 420,
+              "code": "() => {\n  const [axioms, setAxioms] = React.useState({ T: true, D: true, K4: false, K5: false });\n  const n = 5;\n  const labels = ['The', 'cat', 'sat', 'on', 'mat'];\n  \n  const genMatrix = () => {\n    const m = Array.from({length: n}, () => Array(n).fill(0));\n    // Base: random sparse attention\n    for (let i = 0; i < n; i++) {\n      for (let j = 0; j < n; j++) {\n        m[i][j] = Math.random() > 0.6 ? Math.random() * 0.3 + 0.1 : 0.05;\n      }\n    }\n    // Axiom T (reflexivity): strong diagonal\n    if (axioms.T) for (let i = 0; i < n; i++) m[i][i] = 0.8 + Math.random() * 0.2;\n    // Axiom D (seriality): ensure each row has at least one strong connection\n    if (axioms.D) for (let i = 0; i < n; i++) {\n      const j = Math.floor(Math.random() * n);\n      m[i][j] = Math.max(m[i][j], 0.5);\n    }\n    // Axiom 4 (transitivity): if i→j and j→k, boost i→k\n    if (axioms.K4) {\n      for (let i = 0; i < n; i++)\n        for (let j = 0; j < n; j++)\n          if (m[i][j] > 0.3)\n            for (let k = 0; k < n; k++)\n              if (m[j][k] > 0.3) m[i][k] = Math.max(m[i][k], Math.min(m[i][j], m[j][k]));\n    }\n    // Axiom 5 (Euclidean): if i→j and i→k, then j→k\n    if (axioms.K5) {\n      for (let i = 0; i < n; i++)\n        for (let j = 0; j < n; j++)\n          if (m[i][j] > 0.3)\n            for (let k = 0; k < n; k++)\n              if (m[i][k] > 0.3) m[j][k] = Math.max(m[j][k], Math.min(m[i][j], m[i][k]));\n    }\n    // Normalize rows\n    for (let i = 0; i < n; i++) {\n      const s = m[i].reduce((a,b) => a+b, 0);\n      for (let j = 0; j < n; j++) m[i][j] /= s;\n    }\n    return m;\n  };\n  \n  const [matrix, setMatrix] = React.useState(genMatrix);\n  React.useEffect(() => setMatrix(genMatrix()), [axioms.T, axioms.D, axioms.K4, axioms.K5]);\n  \n  const cellSize = 52;\n  const logicName = axioms.T && axioms.K4 && axioms.K5 ? 'S5 (Knowledge)' :\n    axioms.T && axioms.K4 ? 'S4 (Strong belief)' :\n    axioms.D && !axioms.T ? 'KD (Deontic)' :\n    axioms.T ? 'T (Factive)' : 'K (Basic modal)';\n  \n  return React.createElement('div', {style:{fontFamily:'monospace'}},\n    React.createElement('div', {style:{display:'flex',gap:16,marginBottom:16,flexWrap:'wrap'}},\n      ...Object.entries({T:'Reflexive (T)',D:'Serial (D)',K4:'Transitive (4)',K5:'Euclidean (5)'}).map(([k,label]) =>\n        React.createElement('label', {key:k, style:{display:'flex',alignItems:'center',gap:6,cursor:'pointer',color:'#e2e8f0',fontSize:14}},\n          React.createElement('input', {type:'checkbox', checked:axioms[k], onChange:()=>setAxioms(p=>({...p,[k]:!p[k]}))}),\n          label\n        )\n      )\n    ),\n    React.createElement('div', {style:{marginBottom:12,color:'#a78bfa',fontWeight:'bold',fontSize:16}}, `Logic: ${logicName}`),\n    React.createElement('div', {style:{display:'flex',gap:8,alignItems:'flex-start'}},\n      React.createElement('div', null,\n        React.createElement('div', {style:{display:'flex',marginLeft:52}},\n          ...labels.map((l,j) => React.createElement('div', {key:j, style:{width:cellSize,textAlign:'center',fontSize:11,color:'#94a3b8'}}, l))\n        ),\n        ...matrix.map((row, i) =>\n          React.createElement('div', {key:i, style:{display:'flex',alignItems:'center'}},\n            React.createElement('div', {style:{width:48,textAlign:'right',paddingRight:4,fontSize:11,color:'#94a3b8'}}, labels[i]),\n            ...row.map((v, j) => {\n              const intensity = Math.round(v * 255);\n              return React.createElement('div', {\n                key:j,\n                style:{\n                  width:cellSize, height:cellSize-4,\n                  backgroundColor:`rgba(139,92,246,${v})`,\n                  border:'1px solid rgba(139,92,246,0.2)',\n                  display:'flex',alignItems:'center',justifyContent:'center',\n                  fontSize:11, color: v > 0.4 ? '#fff' : '#94a3b8'\n                }\n              }, v.toFixed(2));\n            })\n          )\n        )\n      )\n    ),\n    React.createElement('button', {\n      onClick: () => setMatrix(genMatrix()),\n      style:{marginTop:12,padding:'6px 16px',background:'#7c3aed',color:'white',border:'none',borderRadius:6,cursor:'pointer',fontSize:13}\n    }, '🔄 Regenerate')\n  );\n}"
+            }
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "5. Bloom Filter Heads Through the Modal Lens" },
+        "children": [
+          {
+            "type": "p",
+            "children": "The 'Bloom filter heads' paper discovered attention heads that implement approximate set membership testing — checking whether a token has appeared before. In modal terms, these are implementing a specific epistemic operator: K_context(token ∈ previous_tokens)."
+          },
+          {
+            "type": "p",
+            "children": "The Bloom filter analogy maps perfectly: each hash function = one attention head's accessibility pattern. A token is 'known to be present' if ALL relevant heads attend to a matching previous position. False positives (the classic Bloom filter failure mode) correspond to epistemic errors — the model 'believes' a token appeared when it didn't."
+          },
+          {
+            "type": "DeepDive",
+            "props": {
+              "title": "How does this connect to the Anxiety of Influence paper?",
+              "id": "bloom-filter-connection"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "The Bloom filter heads paper showed specific attention heads in GPT-2 that check 'has this token appeared in context?' This is the simplest possible epistemic query: K(x ∈ C). But the modal framework generalizes this: other heads ask 'what role did x play?' (relational epistemic), 'when did x appear?' (temporal modal), or 'what typically follows x?' (deontic/predictive). Bloom filter heads are the ground floor of a modal skyscraper."
+              }
+            ]
+          },
+          {
+            "type": "Example",
+            "props": {
+              "title": "Modal Classification of Known Head Types",
+              "language": "text"
+            },
+            "children": "Head Type              | Modal Logic  | Axioms  | Function\n-----------------------|-------------|---------|---------------------------\nBloom filter heads     | Epistemic   | KD45    | Set membership testing\nInduction heads        | Deontic     | KD      | Pattern continuation obligation\nPrevious token heads   | Temporal    | Linear  | Immediate past access\nName mover heads       | Epistemic   | S5      | Entity reference resolution\nNegation heads         | Alethic     | T       | Logical complement\nBackup heads           | Epistemic   | KD45    | Redundant knowledge paths"
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "6. Dynamic Epistemic Logic — How Updates Propagate" },
+        "children": [
+          {
+            "type": "p",
+            "children": "Static modal logic describes what's known at one moment. Dynamic Epistemic Logic (DEL) describes how knowledge changes when new information arrives. In transformers, this is exactly what happens layer by layer."
+          },
+          {
+            "type": "p",
+            "children": "The Baltag-Moss-Solecki framework models updates as action models that transform the accessibility relation. Each transformer layer IS an update: it reads the current residual stream (knowledge state), applies attention (accessibility-based aggregation), and writes back a transformed representation (updated knowledge state)."
+          },
+          {
+            "type": "Analogy",
+            "props": {
+              "left": "DEL Update",
+              "right": "Transformer Layer",
+              "pairs": [
+                { "a": "Epistemic state (S, R, V)", "b": "Residual stream at layer L" },
+                { "a": "Action model (announcement)", "b": "Attention pattern at layer L" },
+                { "a": "Product update S ⊗ A", "b": "Residual stream at layer L+1" },
+                { "a": "Common knowledge after announcement", "b": "Information propagated via all-to-all attention" },
+                { "a": "Private announcement (some agents learn)", "b": "Sparse attention (only some positions updated)" }
+              ]
+            }
+          },
+          {
+            "type": "Callout",
+            "props": { "type": "key-insight" },
+            "children": "A 12-layer transformer performs 12 rounds of epistemic updates — each layer's attention decides what new information becomes 'known' at each position. The residual stream accumulates knowledge exactly like iterated public announcements in DEL."
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "7. Connecting to Schankian Operators" },
+        "children": [
+          {
+            "type": "p",
+            "children": "This is where it all comes together. Schankian operators (ATRANS, PTRANS, MTRANS, MBUILD, etc.) are transformations on entity states. Modal operators (□, K, O) are transformations on truth values across possible worlds. The connection:"
+          },
+          {
+            "type": "p",
+            "children": "Schankian mental primitives MBUILD (constructing a thought) and MTRANS (transferring information) ARE epistemic modal operators. MBUILD(agent, φ) = the agent comes to believe φ = B_agent(φ). MTRANS(source, dest, info) = information transfer that updates the destination's epistemic state."
+          },
+          {
+            "type": "Example",
+            "props": {
+              "title": "Schankian → Modal Translation",
+              "language": "text"
+            },
+            "children": "MBUILD(John, danger)  →  B_John(danger)     [John believes danger]\nMTRANS(Mary, John, φ) →  K_John(φ)          [John now knows φ]\nATRANS(book, A→B)     →  Poss_B(book)       [B can now access book]\nPTRANS(cat, mat)      →  Loc(cat) = mat      [Physical state update]\n\nThe physical operators (ATRANS, PTRANS) update the WORLD state.\nThe mental operators (MBUILD, MTRANS) update AGENT BELIEF states.\nBoth are modal operators on different accessibility relations!"
+          },
+          {
+            "type": "DeepDive",
+            "props": {
+              "title": "What about Entry 59 — Differentiable Modal Operators?",
+              "id": "entry-59-connection"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "Entry 59 proposed using Modal Logical Neural Networks (Sulc 2025) to implement differentiable Kripke accessibility. This tutorial's insight completes the circle: we don't need to BUILD modal operators into transformers — they're already there in the attention heads! The task becomes IDENTIFYING which heads implement which modal relations, then using that understanding to improve or constrain them."
+              },
+              {
+                "type": "p",
+                "children": "The practical implication: instead of designing a new architecture, we can probe existing transformers for modal structure. Train probing classifiers on attention patterns to predict modal axiom satisfaction. If certain heads consistently satisfy S5 axioms (reflexive + transitive + Euclidean), those are your epistemic heads."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "8. Interactive: Build a Modal Transformer" },
+        "children": [
+          {
+            "type": "p",
+            "children": "Let's see how assigning different modal roles to attention heads affects a tiny transformer's reasoning ability."
+          },
+          {
+            "type": "InteractiveDemo",
+            "props": {
+              "id": "modal-transformer-builder",
+              "title": "Assign Modal Roles to Heads",
+              "height": 380,
+              "code": "() => {\n  const [roles, setRoles] = React.useState(['epistemic', 'temporal', 'deontic', 'epistemic']);\n  const roleColors = { epistemic: '#8b5cf6', temporal: '#06b6d4', deontic: '#f59e0b', causal: '#ef4444' };\n  const roleIcons = { epistemic: '🧠', temporal: '⏰', deontic: '⚖️', causal: '🔗' };\n  const allRoles = ['epistemic', 'temporal', 'deontic', 'causal'];\n  \n  const capabilities = {\n    epistemic: ['fact lookup', 'entity tracking', 'set membership'],\n    temporal: ['sequence ordering', 'past reference', 'event ordering'],\n    deontic: ['pattern completion', 'grammar enforcement', 'format following'],\n    causal: ['if-then reasoning', 'intervention prediction', 'counterfactual']\n  };\n  \n  const getCombinedCapabilities = () => {\n    const caps = new Set();\n    roles.forEach(r => capabilities[r].forEach(c => caps.add(c)));\n    return [...caps];\n  };\n  \n  const getEmergent = () => {\n    const r = new Set(roles);\n    const e = [];\n    if (r.has('epistemic') && r.has('temporal')) e.push('📖 Narrative comprehension (know WHAT happened WHEN)');\n    if (r.has('epistemic') && r.has('deontic')) e.push('✅ Instruction following (know facts + follow rules)');\n    if (r.has('temporal') && r.has('causal')) e.push('🔮 Prediction (temporal order + causal mechanism)');\n    if (r.has('epistemic') && r.has('causal')) e.push('💡 Explanation (know facts + trace causes)');\n    if (r.size >= 3) e.push('🌟 Theory of Mind (multiple modal perspectives)');\n    return e;\n  };\n  \n  return React.createElement('div', {style:{fontFamily:'system-ui',color:'#e2e8f0'}},\n    React.createElement('div', {style:{display:'flex',gap:12,marginBottom:20,flexWrap:'wrap'}},\n      roles.map((role, i) =>\n        React.createElement('div', {key:i, style:{background:'rgba(30,30,50,0.8)',borderRadius:12,padding:'12px 16px',border:`2px solid ${roleColors[role]}`,minWidth:120}},\n          React.createElement('div', {style:{fontSize:12,color:'#94a3b8',marginBottom:4}}, `Head ${i}`),\n          React.createElement('div', {style:{fontSize:20,marginBottom:6}}, roleIcons[role]),\n          React.createElement('select', {\n            value: role,\n            onChange: e => { const nr = [...roles]; nr[i] = e.target.value; setRoles(nr); },\n            style:{background:'#1e1e3a',color:'#e2e8f0',border:'1px solid #4a4a6a',borderRadius:4,padding:'2px 6px',fontSize:12,width:'100%'}\n          }, allRoles.map(r => React.createElement('option', {key:r, value:r}, r)))\n        )\n      )\n    ),\n    React.createElement('div', {style:{marginBottom:16}},\n      React.createElement('div', {style:{fontSize:13,fontWeight:'bold',color:'#a78bfa',marginBottom:6}}, 'Individual Capabilities:'),\n      React.createElement('div', {style:{display:'flex',flexWrap:'wrap',gap:6}},\n        getCombinedCapabilities().map(c =>\n          React.createElement('span', {key:c, style:{background:'rgba(139,92,246,0.15)',padding:'3px 10px',borderRadius:12,fontSize:12,color:'#c4b5fd'}}, c)\n        )\n      )\n    ),\n    React.createElement('div', null,\n      React.createElement('div', {style:{fontSize:13,fontWeight:'bold',color:'#f59e0b',marginBottom:6}}, 'Emergent from Combination:'),\n      getEmergent().length > 0 ?\n        getEmergent().map(e => React.createElement('div', {key:e, style:{fontSize:13,padding:'4px 0',color:'#fcd34d'}}, e)) :\n        React.createElement('div', {style:{fontSize:13,color:'#6b7280',fontStyle:'italic'}}, 'Add diverse modal types for emergent capabilities...')\n    )\n  );\n}"
+            }
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "9. The Unification" },
+        "children": [
+          {
+            "type": "p",
+            "children": "This modal operator framework unifies several threads from our brainstorming:"
+          },
+          {
+            "type": "DefinitionList",
+            "props": {
+              "items": [
+                {
+                  "term": "Bloom Filter Heads (Entry 25/Anxiety paper)",
+                  "definition": "Epistemic modal operators implementing K(x ∈ context). The simplest modal query."
+                },
+                {
+                  "term": "Epistemic State Operators (Entry 50)",
+                  "definition": "OBSERVE, DOUBT, REFUSE as epistemic updates in DEL. Attention heads are the mechanism."
+                },
+                {
+                  "term": "Modal Operators as Theory of Mind (Entry 59)",
+                  "definition": "MBUILD/MTRANS as differentiable Kripke relations. Already implemented by certain attention heads."
+                },
+                {
+                  "term": "MLP Gate Linearity",
+                  "definition": "Function words (if, must, might) are natural language modal operators. MLP gates may implement the truth-value computation while attention implements the accessibility."
+                },
+                {
+                  "term": "Differentiable Event Calculus (Entry 73)",
+                  "definition": "Event Calculus fluent initiation/termination = temporal modal updates. Attention heads that track state changes implement the EC."
+                }
+              ]
+            }
+          },
+          {
+            "type": "Callout",
+            "props": { "type": "key-insight" },
+            "children": "The attention-as-modal-operator view doesn't just describe what transformers do — it predicts what they SHOULD do. If a head satisfies S5 axioms, it implements knowledge. If it satisfies KD, it implements obligation. These are checkable structural properties that give mechanistic interpretability a formal backbone."
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "10. Quiz: Test Your Understanding" },
+        "children": [
+          {
+            "type": "Quiz",
+            "props": {
+              "questions": [
+                {
+                  "question": "In Kripke semantics, □φ is true at world w when...",
+                  "options": [
+                    "φ is true at w itself",
+                    "φ is true at every world accessible from w",
+                    "φ is true at some world accessible from w",
+                    "φ is true at no world accessible from w"
+                  ],
+                  "answer": 1,
+                  "explanation": "The box operator □ (necessity) requires φ to hold at ALL accessible worlds. The diamond ◇ (possibility) requires φ at SOME accessible world."
+                },
+                {
+                  "question": "Which modal axiom does softmax attention automatically satisfy?",
+                  "options": [
+                    "Axiom T (reflexivity)",
+                    "Axiom 4 (transitivity)",
+                    "Axiom D (seriality)",
+                    "Axiom 5 (Euclidean)"
+                  ],
+                  "answer": 2,
+                  "explanation": "Softmax produces a probability distribution that sums to 1, so every position always attends to at least one other position (including itself). This is seriality — Axiom D: □φ → ◇φ."
+                },
+                {
+                  "question": "Schank's MTRANS(Mary, John, φ) is best modeled as:",
+                  "options": [
+                    "A physical state transformation",
+                    "An epistemic update that changes John's knowledge state",
+                    "A deontic operator creating an obligation",
+                    "A temporal shift in narrative ordering"
+                  ],
+                  "answer": 1,
+                  "explanation": "MTRANS transfers information — after the transfer, John knows φ. This is a classic epistemic update: K_John(φ) becomes true. In DEL terms, it's a public announcement to John."
+                },
+                {
+                  "question": "Multi-head attention in transformers corresponds to:",
+                  "options": [
+                    "A single modal operator applied multiple times",
+                    "Multiple accessibility relations in a multi-modal logic",
+                    "Quantification over possible worlds",
+                    "The fixed-point computation of a single modal logic"
+                  ],
+                  "answer": 1,
+                  "explanation": "Each head has its own Q/K/V projections producing its own attention pattern = its own accessibility relation. Multi-head attention is structurally identical to multi-modal logic where K₁, K₂, ... each have independent accessibility relations."
+                },
+                {
+                  "question": "If an attention head's pattern is reflexive, transitive, AND Euclidean, it implements:",
+                  "options": [
+                    "KD (deontic logic)",
+                    "T (factive logic)",
+                    "S4 (strong belief)",
+                    "S5 (knowledge/equivalence relation)"
+                  ],
+                  "answer": 3,
+                  "explanation": "Reflexive + transitive + Euclidean = equivalence relation = S5 modal logic. S5 is the logic of knowledge (what is known is true, and you know what you know and don't know). The accessibility becomes an equivalence relation partitioning positions into 'information classes.'"
+                }
+              ]
+            }
+          }
+        ]
+      }
+    ]
+  }
+}
