@@ -248,7 +248,16 @@
               "title": "Finding heads that attend to repeated tokens"
             },
             "children": [
-              "# Find positions of repeated token\ntoken_strs = [model.to_string(t) for t in tokens[0]]\ndoctor_positions = [i for i, s in enumerate(token_strs) if \"doctor\" in s.lower()]\nfirst_doc, second_doc = doctor_positions[0], doctor_positions[1]\n\n# Check every head in every layer\nfor layer in range(model.cfg.n_layers):\n    attn = cache[f\"blocks.{layer}.attn.hook_pattern\"]\n    for head in range(model.cfg.n_heads):\n        attn_to_first",
+              "# Find positions of repeated token\ntoken_strs = [model.to_string(t) for t in tokens[0]]\ndoctor_positions = [i for i, s in enumerate(token_strs) if \"doctor\" in s.lower()]\nfirst_doc, second_doc",
+              {
+                "type": "FootnoteRef",
+                "props": {
+                  "id": "source-ann-1772218111808-o2x1uw",
+                  "targetId": "ann-1772218111808-o2x1uw",
+                  "type": "ask"
+                }
+              },
+              " = doctor_positions[0], doctor_positions[1]\n\n# Check every head in every layer\nfor layer in range(model.cfg.n_layers):\n    attn = cache[f\"blocks.{layer}.attn.hook_pattern\"]\n    for head in range(model.cfg.n_heads):\n        attn_to_first",
               {
                 "type": "FootnoteRef",
                 "props": {
@@ -258,6 +267,37 @@
                 }
               },
               " = attn[0, head, second_doc, first_doc].item()\n        if attn_to_first > 0.1:  # Only show heads with significant attention\n            print(f\"  L{layer}H{head}: {attn_to_first:.3f} attention\")"
+            ]
+          },
+          {
+            "type": "Sidebar",
+            "props": {
+              "type": "note",
+              "title": "Q: So this is really second_doc_token_index?",
+              "expanded": true,
+              "id": "ann-1772218111808-o2x1uw",
+              "sourceId": "source-ann-1772218111808-o2x1uw"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "Yes, exactly right. second_doc is a variable holding the integer position index of the second \"doctor\" token in the sequence, not the word itself. So when you see attn[0, head, second_doc, first_doc], you're really reading attn[0, head, 7, 3] or whatever positions those tokens landed at after tokenization. The name second_doc is just a human-friendly alias so the code reads like a sentence instead of a wall of magic numbers."
+              },
+              {
+                "type": "p",
+                "children": "This is a common pattern in mechanistic interpretability work. You tokenize your input, find which index corresponds to the token you care about, stash that index in a descriptively named variable, and then use it to slice into tensors. The variable name describes the semantic role (\"the second occurrence of doctor\") while the value is purely a positional integer. If you renamed it to second_doc_token_index the code would do exactly the same thing, it would just be more explicit about what it holds."
+              },
+              {
+                "type": "p",
+                "children": "The reason the tutorial uses the shorter name is readability in the attention indexing expression. attn[0, head, second_doc, first_doc] maps cleanly onto the shape description [batch, head, destination, source] and lets you immediately see that the second doctor token is the destination (the one doing the looking) and the first doctor token is the source (the one being attended to). Longer variable names would make that correspondence harder to scan at a glance."
+              },
+              {
+                "type": "p",
+                "props": {
+                  "className": "text-xs text-gray-400 mt-2"
+                },
+                "children": "Asked about \"second_doc\" — 2/27/2026, 1:48:20 PM"
+              }
             ]
           },
           {
