@@ -47,17 +47,34 @@
           {
             "type": "ol",
             "children": [
-              { "type": "li", "children": "TransformerLens Fundamentals — loading models, hook points, caching activations" },
-              { "type": "li", "children": "Activation Patching & Ablation — causal interventions to test what heads do" },
-              { "type": "li", "children": "SAELens & Sparse Autoencoders — decomposing superposition into interpretable features" },
-              { "type": "li", "children": "Probing & Steering — reading from and writing to internal representations" },
-              { "type": "li", "children": "Circuit Analysis — QK/OV framework, DLA, composition, path patching" },
-              { "type": "li", "children": "Full Bloom Filter Replication — end-to-end paper methodology" }
+              {
+                "type": "li",
+                "children": "TransformerLens Fundamentals — loading models, hook points, caching activations"
+              },
+              {
+                "type": "li",
+                "children": "Activation Patching & Ablation — causal interventions to test what heads do"
+              },
+              {
+                "type": "li",
+                "children": "SAELens & Sparse Autoencoders — decomposing superposition into interpretable features"
+              },
+              {
+                "type": "li",
+                "children": "Probing & Steering — reading from and writing to internal representations"
+              },
+              {
+                "type": "li",
+                "children": "Circuit Analysis — QK/OV framework, DLA, composition, path patching"
+              },
+              {
+                "type": "li",
+                "children": "Full Bloom Filter Replication — end-to-end paper methodology"
+              }
             ]
           }
         ]
       },
-
       {
         "type": "Section",
         "props": {
@@ -102,7 +119,40 @@
               "language": "python",
               "title": "run_with_cache: the core TransformerLens operation"
             },
-            "children": "prompt = \"The doctor examined the patient and the doctor prescribed medicine\"\ntokens = model.to_tokens(prompt)\nlogits, cache = model.run_with_cache(tokens)\n\nprint(f\"Logits shape: {logits.shape}\")  # [batch, seq_len, vocab_size]\nprint(f\"Total cached tensors: {len(cache)}\")  # hundreds of tensors"
+            "children": [
+              "prompt = \"The doctor examined the patient and the doctor prescribed medicine\"\ntokens = model.to_tokens(prompt)\nlogits, cache = model.run_with_cache(tokens)\n\nprint(f\"Logits shape: {logits.shape}\")  # [batch",
+              {
+                "type": "FootnoteRef",
+                "props": {
+                  "id": "source-ann-1772216503073-gqgl4z",
+                  "targetId": "ann-1772216503073-gqgl4z",
+                  "type": "explain"
+                }
+              },
+              ", seq_len, vocab_size]\nprint(f\"Total cached tensors: {len(cache)}\")  # hundreds of tensors"
+            ]
+          },
+          {
+            "type": "Sidebar",
+            "props": {
+              "type": "note",
+              "title": "About \"batch\"",
+              "id": "ann-1772216503073-gqgl4z",
+              "sourceId": "source-ann-1772216503073-gqgl4z"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "In this attention pattern tensor, the batch dimension indexes the separate input examples being processed simultaneously through the model. Each example in the batch produces its own full set of attention patterns, so a batch size of 8 means you get 8 independent sets of [head, dest, src] attention maps. When analyzing circuits, you'll often index into a specific batch element (e.g., `pattern[0]`) to inspect how the model attends on one particular input."
+              },
+              {
+                "type": "p",
+                "props": {
+                  "className": "text-xs text-gray-400 mt-2"
+                },
+                "children": "Added 2/27/2026, 1:21:31 PM"
+              }
+            ]
           },
           {
             "type": "DeepDive",
@@ -117,11 +167,26 @@
               {
                 "type": "ul",
                 "children": [
-                  { "type": "li", "children": "blocks.{layer}.attn.hook_pattern — attention patterns [batch, head, dest, src]. WHERE each head attends." },
-                  { "type": "li", "children": "blocks.{layer}.attn.hook_result — attention output [batch, seq, head, d_head]. WHAT each head writes." },
-                  { "type": "li", "children": "blocks.{layer}.attn.hook_q / hook_k / hook_v — query, key, value vectors." },
-                  { "type": "li", "children": "blocks.{layer}.hook_resid_pre / hook_resid_post — residual stream before/after the layer." },
-                  { "type": "li", "children": "blocks.{layer}.mlp.hook_post — MLP layer output." }
+                  {
+                    "type": "li",
+                    "children": "blocks.{layer}.attn.hook_pattern — attention patterns [batch, head, dest, src]. WHERE each head attends."
+                  },
+                  {
+                    "type": "li",
+                    "children": "blocks.{layer}.attn.hook_result — attention output [batch, seq, head, d_head]. WHAT each head writes."
+                  },
+                  {
+                    "type": "li",
+                    "children": "blocks.{layer}.attn.hook_q / hook_k / hook_v — query, key, value vectors."
+                  },
+                  {
+                    "type": "li",
+                    "children": "blocks.{layer}.hook_resid_pre / hook_resid_post — residual stream before/after the layer."
+                  },
+                  {
+                    "type": "li",
+                    "children": "blocks.{layer}.mlp.hook_post — MLP layer output."
+                  }
                 ]
               },
               {
@@ -164,7 +229,6 @@
           }
         ]
       },
-
       {
         "type": "Section",
         "props": {
@@ -265,7 +329,6 @@
           }
         ]
       },
-
       {
         "type": "Section",
         "props": {
@@ -359,7 +422,6 @@
           }
         ]
       },
-
       {
         "type": "Section",
         "props": {
@@ -433,7 +495,6 @@
           }
         ]
       },
-
       {
         "type": "Section",
         "props": {
@@ -523,9 +584,18 @@
           {
             "type": "ul",
             "children": [
-              { "type": "li", "children": "Q-composition: A's output → B's query ('A tells B what to look for')" },
-              { "type": "li", "children": "K-composition: A's output → B's key ('A tells B what to advertise about this position')" },
-              { "type": "li", "children": "V-composition: A's output → B's value ('A tells B what to copy when attention fires')" }
+              {
+                "type": "li",
+                "children": "Q-composition: A's output → B's query ('A tells B what to look for')"
+              },
+              {
+                "type": "li",
+                "children": "K-composition: A's output → B's key ('A tells B what to advertise about this position')"
+              },
+              {
+                "type": "li",
+                "children": "V-composition: A's output → B's value ('A tells B what to copy when attention fires')"
+              }
             ]
           },
           {
@@ -542,7 +612,6 @@
           }
         ]
       },
-
       {
         "type": "Section",
         "props": {
@@ -589,9 +658,18 @@
           {
             "type": "ul",
             "children": [
-              { "type": "li", "children": "Selectivity — signal-to-noise ratio (repeat attention / non-repeat attention)" },
-              { "type": "li", "children": "Miss rate — false negatives (should be ≈ 0 for a Bloom filter)" },
-              { "type": "li", "children": "False positive ratio — non-repeats that trigger above threshold" }
+              {
+                "type": "li",
+                "children": "Selectivity — signal-to-noise ratio (repeat attention / non-repeat attention)"
+              },
+              {
+                "type": "li",
+                "children": "Miss rate — false negatives (should be ≈ 0 for a Bloom filter)"
+              },
+              {
+                "type": "li",
+                "children": "False positive ratio — non-repeats that trigger above threshold"
+              }
             ]
           },
           {
@@ -652,7 +730,6 @@
           }
         ]
       },
-
       {
         "type": "Section",
         "props": {
@@ -666,16 +743,30 @@
           {
             "type": "ul",
             "children": [
-              { "type": "li", "children": "\"Walk me through your paper.\" → Steps 1-7 from Module 6, emphasizing the Bloom filter analogy at each step." },
-              { "type": "li", "children": "\"How do you know it's not just copying?\" → Semantic near-misses don't trigger (token-level matching). FP rate follows capacity formula (it's a hash, not a lookup)." },
-              { "type": "li", "children": "\"What's the causal evidence?\" → Ablation shows selective impact on repeats. Path patching confirms heads are on the critical path." },
-              { "type": "li", "children": "\"Why Bloom filter specifically?\" → No false negatives ✓, yes false positives ✓, FP rate fits the formula ✓, multiple independent hash functions ✓, capacity scales with dimensionality ✓." },
-              { "type": "li", "children": "\"What surprised you?\" → How early (layers 0-3) this computation happens. How clean the independence is between heads. That a discrete CS data structure emerges from gradient descent on continuous weights." }
+              {
+                "type": "li",
+                "children": "\"Walk me through your paper.\" → Steps 1-7 from Module 6, emphasizing the Bloom filter analogy at each step."
+              },
+              {
+                "type": "li",
+                "children": "\"How do you know it's not just copying?\" → Semantic near-misses don't trigger (token-level matching). FP rate follows capacity formula (it's a hash, not a lookup)."
+              },
+              {
+                "type": "li",
+                "children": "\"What's the causal evidence?\" → Ablation shows selective impact on repeats. Path patching confirms heads are on the critical path."
+              },
+              {
+                "type": "li",
+                "children": "\"Why Bloom filter specifically?\" → No false negatives ✓, yes false positives ✓, FP rate fits the formula ✓, multiple independent hash functions ✓, capacity scales with dimensionality ✓."
+              },
+              {
+                "type": "li",
+                "children": "\"What surprised you?\" → How early (layers 0-3) this computation happens. How clean the independence is between heads. That a discrete CS data structure emerges from gradient descent on continuous weights."
+              }
             ]
           }
         ]
       },
-
       {
         "type": "Section",
         "props": {
