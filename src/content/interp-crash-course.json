@@ -143,7 +143,18 @@
             "children": [
               {
                 "type": "p",
-                "children": "In this attention pattern tensor, the batch dimension indexes the separate input examples being processed simultaneously through the model. Each example in the batch produces its own full set of attention patterns, so a batch size of 8 means you get 8 independent sets of [head, dest, src] attention maps. When analyzing circuits, you'll often index into a specific batch element (e.g., `pattern[0]`) to inspect how the model attends on one particular input."
+                "children": [
+                  "In this attention pattern tensor, the batch dimension indexes the separate input examples being processed simultaneously",
+                  {
+                    "type": "FootnoteRef",
+                    "props": {
+                      "id": "source-ann-1772216646393-zwetxd",
+                      "targetId": "ann-1772216646393-zwetxd",
+                      "type": "ask"
+                    }
+                  },
+                  " through the model. Each example in the batch produces its own full set of attention patterns, so a batch size of 8 means you get 8 independent sets of [head, dest, src] attention maps. When analyzing circuits, you'll often index into a specific batch element (e.g., `pattern[0]`) to inspect how the model attends on one particular input."
+                ]
               },
               {
                 "type": "p",
@@ -151,6 +162,37 @@
                   "className": "text-xs text-gray-400 mt-2"
                 },
                 "children": "Added 2/27/2026, 1:21:31 PM"
+              }
+            ]
+          },
+          {
+            "type": "Sidebar",
+            "props": {
+              "type": "note",
+              "title": "Q: Is this referring to a specific scenario in which we're experimenting by feeding groups of text-segments into the model?",
+              "expanded": true,
+              "id": "ann-1772216646393-zwetxd",
+              "sourceId": "source-ann-1772216646393-zwetxd"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "Yes, exactly. When you work with a transformer model, you typically don't feed in one sentence at a time — you feed in a batch of several inputs at once. This isn't just an experimental choice, it's how GPU hardware works efficiently. Instead of processing \"The cat sat on the mat\" alone, you might feed in 8 different sentences together as a single batch, and the model processes all 8 in parallel."
+              },
+              {
+                "type": "p",
+                "children": "In the context of circuit analysis, this matters because you often want to compare how the model behaves across different inputs. For example, you might construct a batch where each example tests a slightly different pattern — maybe varying which noun an indirect object refers to, or swapping gendered pronouns — so you can see how the attention heads respond differently. The batch dimension in your tensor is just the index that lets you pick out which of those examples you're looking at."
+              },
+              {
+                "type": "p",
+                "children": "So when the passage says you might do pattern[0], that's you saying \"show me the full attention map for the first sentence I fed in.\" pattern[1] would be the second sentence, and so on. Each one has its own complete set of attention patterns across all heads, completely independent of the others. The model doesn't mix information between batch elements — they just happen to ride through the hardware together for speed."
+              },
+              {
+                "type": "p",
+                "props": {
+                  "className": "text-xs text-gray-400 mt-2"
+                },
+                "children": "Asked about \"input examples being processed...\" — 2/27/2026, 1:23:55 PM"
               }
             ]
           },
