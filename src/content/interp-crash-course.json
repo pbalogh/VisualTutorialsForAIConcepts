@@ -247,7 +247,53 @@
               "language": "python",
               "title": "Finding heads that attend to repeated tokens"
             },
-            "children": "# Find positions of repeated token\ntoken_strs = [model.to_string(t) for t in tokens[0]]\ndoctor_positions = [i for i, s in enumerate(token_strs) if \"doctor\" in s.lower()]\nfirst_doc, second_doc = doctor_positions[0], doctor_positions[1]\n\n# Check every head in every layer\nfor layer in range(model.cfg.n_layers):\n    attn = cache[f\"blocks.{layer}.attn.hook_pattern\"]\n    for head in range(model.cfg.n_heads):\n        attn_to_first = attn[0, head, second_doc, first_doc].item()\n        if attn_to_first > 0.1:  # Only show heads with significant attention\n            print(f\"  L{layer}H{head}: {attn_to_first:.3f} attention\")"
+            "children": [
+              "# Find positions of repeated token\ntoken_strs = [model.to_string(t) for t in tokens[0]]\ndoctor_positions = [i for i, s in enumerate(token_strs) if \"doctor\" in s.lower()]\nfirst_doc, second_doc = doctor_positions[0], doctor_positions[1]\n\n# Check every head in every layer\nfor layer in range(model.cfg.n_layers):\n    attn = cache[f\"blocks.{layer}.attn.hook_pattern\"]\n    for head in range(model.cfg.n_heads):\n        attn_to_first",
+              {
+                "type": "FootnoteRef",
+                "props": {
+                  "id": "source-ann-1772216793686-3fkl52",
+                  "targetId": "ann-1772216793686-3fkl52",
+                  "type": "ask"
+                }
+              },
+              " = attn[0, head, second_doc, first_doc].item()\n        if attn_to_first > 0.1:  # Only show heads with significant attention\n            print(f\"  L{layer}H{head}: {attn_to_first:.3f} attention\")"
+            ]
+          },
+          {
+            "type": "Sidebar",
+            "props": {
+              "type": "note",
+              "title": "Q: This variable name seems to imply something, but I'm not sure what. How do we interpret this code?",
+              "expanded": true,
+              "id": "ann-1772216793686-3fkl52",
+              "sourceId": "source-ann-1772216793686-3fkl52"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "attn_to_first is the attention weight that the second occurrence of \"doctor\" pays to the first occurrence of \"doctor.\" The name literally means \"attention to the first one\" — first referring to the first doctor token's position in the sequence."
+              },
+              {
+                "type": "p",
+                "children": "Here is how to read the line that computes it: attn[0, head, second_doc, first_doc]. The attention pattern tensor has shape [batch, head, destination, source]. So index 0 is the batch dimension, head selects which attention head we are examining, second_doc is the destination position (the token that is \"looking\"), and first_doc is the source position (the token being \"looked at\"). The resulting scalar tells you what fraction of the second doctor token's attention budget this head spends on the first doctor token."
+              },
+              {
+                "type": "p",
+                "children": "Think of it like a student in a classroom. The second \"doctor\" token is a student trying to decide who to listen to. Each attention head gives that student a different strategy. attn_to_first measures how much one particular head's strategy says \"pay attention to the earlier place in the text where this same word appeared.\" A value near 1.0 means that head is almost entirely focused on the first occurrence; a value near 0 means it ignores it."
+              },
+              {
+                "type": "p",
+                "children": "The loop checks this value across every layer and every head, filtering for cases where it exceeds some threshold. This is how you discover \"duplicate token heads\" or \"previous token heads\" — heads that have learned the specific circuit of noticing when a token has appeared before and routing information from the first occurrence to the second. That is why the variable name is so telling: the whole point of this code is to find heads whose job is attending to the first instance of a repeated token."
+              },
+              {
+                "type": "p",
+                "props": {
+                  "className": "text-xs text-gray-400 mt-2"
+                },
+                "children": "Asked about \"attn_to_first\" — 2/27/2026, 1:26:19 PM"
+              }
+            ]
           },
           {
             "type": "Example",
