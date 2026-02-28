@@ -1,0 +1,481 @@
+{
+  "id": "tensor-products-for-humans",
+  "title": "Tensor Products for Humans",
+  "subtitle": "The Simplest Scary Math You'll Ever Learn — and Why Transformers Might Be Doing It",
+  "readTime": "30 min",
+  "state": "published",
+  "content": {
+    "type": "Fragment",
+    "children": [
+      {
+        "type": "Callout",
+        "props": {
+          "type": "idea"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "Tensor products sound terrifying. They're not. A tensor product is what happens when you ask: 'What are ALL the ways these two things can interact?' The answer is a grid. The grid gets big fast — that's the only hard part. This tutorial builds tensor products from scratch, shows why they matter for language, shows why they explode, and connects them to what transformers are actually doing when they combine information from different tokens."
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "1. Multiplication Is a Tensor Product"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "You already know tensor products. You've been doing them since third grade."
+          },
+          {
+            "type": "p",
+            "children": "Remember multiplication tables? The multiplication table IS a tensor product. Take the numbers 1 through 3 on one axis and 1 through 4 on the other. The table gives you every pairwise product:"
+          },
+          {
+            "type": "Example",
+            "props": {
+              "title": "The Humblest Tensor Product"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "     1   2   3   4\n  ┌───┬───┬───┬───┐\n1 │ 1 │ 2 │ 3 │ 4 │\n  ├───┼───┼───┼───┤\n2 │ 2 │ 4 │ 6 │ 8 │\n  ├───┼───┼───┼───┤\n3 │ 3 │ 6 │ 9 │ 12│\n  └───┴───┴───┴───┘\n\nThat's [1,2,3] ⊗ [1,2,3,4]. Three numbers times four numbers gives twelve numbers arranged in a grid. The grid IS the tensor product."
+              }
+            ]
+          },
+          {
+            "type": "p",
+            "children": "The ⊗ symbol just means: 'make a grid of all pairwise products.' That's the whole operation. Everything else is consequences."
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "2. Vectors Make Grids"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "Now replace the numbers with vectors — lists of numbers that represent something. Say we have vectors for words:"
+          },
+          {
+            "type": "Example",
+            "props": {
+              "title": "Cat ⊗ Red"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "Imagine (absurdly simplified) 3D embeddings:\n\ncat  = [0.9, 0.1, 0.8]   — (furry, abstract, animate)\nred  = [0.7, 0.2]         — (warm, intense)\n\ncat ⊗ red:\n           warm   intense\n  furry   [0.63,  0.18]\n  abstract[0.07,  0.02]\n  animate [0.56,  0.16]\n\nEach cell answers a question: 'How much is cat-furry interacting with red-warm?' (0.63 — a lot!) 'How much is cat-abstract interacting with red-intense?' (0.02 — barely at all.)"
+              }
+            ]
+          },
+          {
+            "type": "p",
+            "children": "The tensor product doesn't just COMBINE the two vectors — it records every possible interaction between their components. It's the maximally informative way to combine two things. Nothing is lost. Every pairwise relationship is preserved."
+          },
+          {
+            "type": "Callout",
+            "props": {
+              "type": "key"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "This is the fundamental insight: a tensor product preserves STRUCTURE. Adding cat + red gives you one vector — but you can't tell if the 'furry' came from cat or red. The tensor product cat ⊗ red keeps track: furry came from cat (it's on the cat axis), warm came from red (it's on the red axis). The structure of who-contributed-what is preserved in the grid layout."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "3. The Explosion Problem"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "So tensor products are beautiful and maximally informative. What's the catch? The grid gets enormous."
+          },
+          {
+            "type": "Example",
+            "props": {
+              "title": "The Dimensionality Bomb"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "Two 3-dimensional vectors: 3 × 3 = 9 entries. Fine.\n\nTwo 1024-dimensional vectors (GPT-2 scale): 1024 × 1024 = 1,048,576 entries. That's a million numbers to represent 'red cat.'\n\nThree 1024-dimensional vectors ('big red cat'): 1024 × 1024 × 1024 = 1,073,741,824 entries. A BILLION numbers.\n\nA 20-word sentence: 1024²⁰ ≈ 10⁶⁰ entries. More numbers than atoms in the universe. For one sentence."
+              }
+            ]
+          },
+          {
+            "type": "p",
+            "children": "This is why you can't literally compute tensor products of word embeddings. The dimensionality explosion makes it physically impossible. And yet... the tensor product is the RIGHT mathematical object for composition. It captures exactly what we want: every interaction between every component of every word. We just can't afford to store it."
+          },
+          {
+            "type": "Analogy",
+            "props": {
+              "concept": "The Tensor Product Dilemma",
+              "analogy": "It's like having a perfect map of a city that's the same size as the city. Infinitely detailed, captures everything, and completely useless because you can't carry it. What you need is a smaller map that keeps the important roads and drops the alleys. That compression — from the full tensor product to something manageable — is what transformers spend most of their computation doing."
+            }
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "4. Contraction: Squashing the Grid"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "Tensor contraction is how you make the grid smaller. The simplest contraction: sum along one axis."
+          },
+          {
+            "type": "Example",
+            "props": {
+              "title": "Contracting Cat ⊗ Red"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "Our cat ⊗ red grid:\n           warm   intense\n  furry   [0.63,  0.18]\n  abstract[0.07,  0.02]\n  animate [0.56,  0.16]\n\nContract along the 'red' axis (sum each row):\n  furry:    0.63 + 0.18 = 0.81\n  abstract: 0.07 + 0.02 = 0.09\n  animate:  0.56 + 0.16 = 0.72\n\nResult: [0.81, 0.09, 0.72] — a vector back in 'cat-space'.\n\nThis is a lossy compression. We've collapsed the red dimension. We know the cat is strongly modified (high values) but we've lost the detail of whether the modification was 'warm' or 'intense.' The specific contribution of each red-dimension is gone — only their sum remains."
+              }
+            ]
+          },
+          {
+            "type": "p",
+            "children": "More sophisticated contractions use learned weights instead of simple sums — 'pay more attention to the warm dimension than the intense dimension when collapsing.' That learned, weighted contraction is essentially what a matrix multiplication does. And matrix multiplications are the primary operation of neural networks."
+          },
+          {
+            "type": "DeepDive",
+            "props": {
+              "title": "Why Contraction Is Lossy (and Why That's OK)"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "Every contraction throws away information. That sounds bad, but consider: the full tensor product of a 20-word sentence has 10⁶⁰ entries. The vast majority of those entries represent interactions that DON'T MATTER. The interaction between the third phonological feature of the seventh word and the second syntactic feature of the twelfth word is almost certainly irrelevant. Contraction throws away these irrelevant interactions. The art is keeping the ones that matter."
+              },
+              {
+                "type": "p",
+                "children": "In fact, this is a deep insight about language: most possible interactions between words are meaningless. 'Big red cat' has three interesting interactions (big modifies cat, red modifies cat, big and red are co-modifiers) out of 1024³ possible component interactions. Language is SPARSE in tensor-product space. The relevant information lives in a tiny, low-rank subspace of the full tensor product."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "5. What Transformers Actually Do (the Tensor Product View)"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "Here's the speculative but compelling claim: attention computes an implicit tensor product, and the MLP contracts it back down."
+          },
+          {
+            "type": "DeepDive",
+            "props": {
+              "title": "Attention as Selective Tensor Product"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "When an attention head at position i attends to position j, it computes: output_i += attention_weight × V_j. This adds the value vector of position j into position i's residual stream. If you think of this as combining the information at two positions, it's computing something like a PARTIAL tensor product — not the full grid of all interactions, but a weighted slice of it."
+              },
+              {
+                "type": "p",
+                "children": "Multiple attention heads do this simultaneously, each extracting a different 'slice' of the full tensor product. Head 1 might capture subject-verb interactions. Head 2 might capture adjective-noun interactions. Together, they approximate the relevant parts of the tensor product without ever computing the full, impossible grid."
+              }
+            ]
+          },
+          {
+            "type": "DeepDive",
+            "props": {
+              "title": "The MLP as Tensor Contractor"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "After attention has mixed information from multiple positions, the residual stream at each position contains a superposition of partial tensor products. The MLP's job: contract these back into a clean vector that fits in 1024 dimensions."
+              },
+              {
+                "type": "p",
+                "children": "The key operation: W₂ · GELU(W₁x + b₁) + b₂. The expansion to 4× width (W₁ maps 1024 → 4096) temporarily gives more room to work — more room to untangle the overlapping tensor slices. The GELU selectively zeros out irrelevant components. Then W₂ contracts back to 1024. It's a brief excursion into higher-dimensional space to perform a nonlinear contraction."
+              },
+              {
+                "type": "p",
+                "children": "And HERE is the connection to our linearization finding: if the tensor product slices that attention produced are already low-rank (most interactions are near-zero), then the contraction doesn't NEED the nonlinear step. A linear contraction (W·x + b) suffices because there's nothing complex to untangle. The GELU is only needed when the slices overlap in ways that require nonlinear separation — which, apparently, only happens in about 12% of layers."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "6. The Outer Product: Tensor Products You Can See"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "The tensor product of two vectors has another name you might have seen: the outer product. And it has a beautiful visual form."
+          },
+          {
+            "type": "Example",
+            "props": {
+              "title": "Visualizing an Outer Product"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "Take a = [3, 1, 2] and b = [1, 4, 2].\n\na ⊗ b = a · bᵀ =\n  [3×1  3×4  3×2]     [3  12  6]\n  [1×1  1×4  1×2]  =  [1   4  2]\n  [2×1  2×4  2×2]     [2   8  4]\n\nIf you squint, this matrix has a pattern: every row is a scaled version of b. Row 1 is 3×b, row 2 is 1×b, row 3 is 2×b. That's because the outer product of two vectors always produces a RANK-1 matrix — a matrix where all rows point in the same direction, just at different magnitudes."
+              }
+            ]
+          },
+          {
+            "type": "p",
+            "children": "Rank-1 means: despite having 9 entries, this matrix only contains the information of 6 numbers (3 from a, 3 from b). The grid is big but redundant. This is crucial — it means the tensor product of two vectors can be perfectly reconstructed from the two original vectors. No information is lost, but no new information is created either."
+          },
+          {
+            "type": "Callout",
+            "props": {
+              "type": "key"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "The interesting things happen when you ADD outer products. If you compute a₁⊗b₁ + a₂⊗b₂ + a₃⊗b₃, you get a matrix of rank (up to) 3. This sum of outer products is how multiple relationships get superimposed into one matrix — and it's essentially what attention is doing when it combines value vectors from multiple positions."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "7. Rank: How Much Information Is Really There?"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "Rank is the most important concept for understanding why tensor contractions work. The rank of a matrix (or higher-order tensor) tells you: how many independent pieces of information does this actually contain?"
+          },
+          {
+            "type": "Example",
+            "props": {
+              "title": "Low Rank = Compressible"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "A 1024×1024 matrix has 1,048,576 entries. But if its rank is 5, it can be perfectly represented as the sum of just 5 outer products — that's only 5 × (1024 + 1024) = 10,240 numbers. A million entries compressed to ten thousand, with ZERO information loss.\n\nThis is the magic of low rank: the grid looks enormous but the information is sparse. Most of the entries are predictable from a small number of underlying factors."
+              }
+            ]
+          },
+          {
+            "type": "Analogy",
+            "props": {
+              "concept": "Rank and Recipes",
+              "analogy": "A cookbook with 1000 recipes looks like it contains 1000 independent pieces of information. But if every recipe is just a variation on 5 base recipes (add garlic to recipe 3, use chicken instead of beef in recipe 1), the effective 'rank' is 5. You could reconstruct all 1000 recipes from just the 5 bases plus a small modification table. Most of the cookbook is redundant."
+            }
+          },
+          {
+            "type": "p",
+            "children": "The claim behind MLP linearizability is essentially: the tensor products that attention creates are mostly low-rank. The interactions between tokens, despite living in million-dimensional tensor space, only have a few dozen independent 'factors.' A linear contraction captures those factors perfectly. You only need the nonlinear GELU when the rank is high enough that linear compression becomes lossy."
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "8. Composition in Language: Why This Matters"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "The deep reason tensor products matter for language is that language is COMPOSITIONAL. The meaning of 'the big red cat sat on the mat' is built from the meanings of its parts plus how they combine. The fundamental question of computational linguistics is: what's the right mathematical operation for 'combine'?"
+          },
+          {
+            "type": "DeepDive",
+            "props": {
+              "title": "The Failed Candidates"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "ADDITION: cat + red = ??? You get a single vector, but you've lost structure. cat + red = red + cat. You can't distinguish 'dog bites man' from 'man bites dog.' Addition is commutative, but composition isn't.\n\nCONCATENATION: [cat; red] = a longer vector. Preserves structure but grows linearly with sentence length. A 100-word sentence needs 100× the dimensions. Doesn't scale.\n\nELEMENT-WISE MULTIPLICATION: cat ⊙ red (multiply corresponding entries). Better than addition (not commutative if you add position info), but only captures interactions between ALIGNED dimensions. Misses all cross-dimensional interactions.\n\nTENSOR PRODUCT: cat ⊗ red. Captures ALL interactions, preserves structure, not commutative. The CORRECT mathematical answer. But it explodes in dimensionality."
+              }
+            ]
+          },
+          {
+            "type": "p",
+            "children": "This is the fundamental tension: the mathematically correct operation (tensor product) is computationally impossible. Every practical system must approximate it. The question is how."
+          },
+          {
+            "type": "DeepDive",
+            "props": {
+              "title": "Transformers: Compressed Tensor Products?"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "The transformer's answer might be: compute low-rank approximations of the relevant tensor products, contracted into fixed-width vectors, updated iteratively across layers. Each attention layer extracts a few more 'slices' of the full tensor product. Each MLP contracts the accumulated slices back into the residual stream. After 24 layers, enough of the tensor structure has been captured — in compressed form — to predict the next token."
+              },
+              {
+                "type": "p",
+                "children": "This would explain why depth matters so much in transformers. You can't capture a rank-50 tensor product in a single attention layer (each head contributes a rank-1 slice). But 12 heads across 24 layers gives you 288 rank-1 slices to work with — enough to approximate a rank-50 interaction if the slices are chosen well."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "9. The Dot Product: Contraction You Already Know"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "If tensor products EXPAND (making grids from vectors), dot products CONTRACT (making numbers from vectors). And you already understand dot products."
+          },
+          {
+            "type": "Example",
+            "props": {
+              "title": "Dot Product = Full Contraction"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "a = [3, 1, 2],  b = [1, 4, 2]\n\na · b = 3×1 + 1×4 + 2×2 = 3 + 4 + 4 = 11\n\nThe dot product took two 3D vectors and produced one number. That's a full contraction — we summed over the ONLY shared axis, collapsing everything. Maximum compression. Maximum information loss.\n\nThe outer product (tensor product) gives a 3×3 grid = 9 numbers.\nThe dot product gives 1 number.\n\nThey're opposite extremes of the same operation: the outer product is zero contractions (keep everything), the dot product is full contraction (collapse everything)."
+              }
+            ]
+          },
+          {
+            "type": "p",
+            "children": "Attention uses BOTH in sequence: queries and keys interact via dot product (full contraction → one number per pair, the attention weight). Then the attention weight multiplies a value vector (scaling → a partial tensor product). This dance between expansion and contraction is the heartbeat of the transformer."
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "10. Matrices Are Already Tensors"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "Here's a secret that textbooks bury: you've been working with tensors all along. Scalars, vectors, matrices — they're all tensors of different 'order':"
+          },
+          {
+            "type": "Example",
+            "props": {
+              "title": "The Tensor Family"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "Order 0: SCALAR — a single number. Temperature: 72°F.\nOrder 1: VECTOR — a list of numbers. Position: [3, 7, 2].\nOrder 2: MATRIX — a grid of numbers. Transformation: [[1,0],[0,1]].\nOrder 3: A CUBE of numbers. No common name — just a '3-tensor.'\nOrder 4: A 4D grid. And so on.\n\nThe tensor product increases order: vector ⊗ vector = matrix. Matrix ⊗ vector = 3-tensor. The order just counts how many indices you need to look up an entry. A scalar needs 0 indices. A vector needs 1 (which row?). A matrix needs 2 (which row, which column?). A 3-tensor needs 3 (which row, which column, which depth?)."
+              }
+            ]
+          },
+          {
+            "type": "p",
+            "children": "Every matrix multiplication is a tensor contraction: C = A × B means 'take the order-2 tensor A and the order-2 tensor B, contract along one shared axis, producing an order-2 tensor C.' When you write neural_network_layer = W @ x + b, you're doing tensor contraction. The entire field of deep learning is applied tensor algebra — we just usually don't call it that."
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "11. Why Nonlinearity Matters (Sometimes)"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "Now we can finally state precisely WHY the MLP's nonlinearity (GELU) is sometimes necessary and sometimes not."
+          },
+          {
+            "type": "DeepDive",
+            "props": {
+              "title": "The Linear Contraction Limit"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "A linear contraction (W·x + b) can only produce outputs that are LINEAR combinations of the input components. If the residual stream contains the superposition a₁⊗b₁ + a₂⊗b₂ (two tensor product slices overlapping), a linear contraction can scale them and add them, but it CANNOT separate them."
+              },
+              {
+                "type": "p",
+                "children": "This is fine when the slices don't interfere — when a₁⊗b₁ and a₂⊗b₂ occupy orthogonal subspaces. A linear contraction just reads each one independently. No separation needed."
+              },
+              {
+                "type": "p",
+                "children": "But when the slices OVERLAP — when the interaction between 'big' and 'cat' occupies the same dimensions as the interaction between 'on' and 'mat' — you need something nonlinear to pull them apart. GELU can do this because it's selectively zeroing out dimensions: 'keep the positive components (which carry one interaction), suppress the negative ones (which carry the other).' This is a nonlinear filter, and no linear operation can replicate it."
+              }
+            ]
+          },
+          {
+            "type": "Callout",
+            "props": {
+              "type": "key"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "The 'Shooting the Swordsman' finding in one sentence: In ~88% of transformer layers, the tensor product slices that attention produces are already orthogonal enough that linear contraction works. The nonlinear filter (GELU) is only needed in the ~12% of layers where slices genuinely overlap and must be separated."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "12. The Big Picture"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "Let's zoom all the way out. The story of tensor products in transformers is:"
+          },
+          {
+            "type": "p",
+            "children": "1. Language is compositional — meanings combine.\n2. The mathematically perfect combination operator is the tensor product.\n3. Tensor products explode in dimensionality — you can't compute them directly.\n4. Transformers approximate them: attention computes low-rank slices, MLPs contract them back into fixed-width vectors.\n5. The contraction usually doesn't need nonlinearity because the slices are approximately orthogonal — language interactions are sparse in tensor space.\n6. The few layers where nonlinearity IS needed are the ones doing the hard compositional work — resolving genuine ambiguities where multiple interactions compete for the same representational real estate."
+          },
+          {
+            "type": "p",
+            "children": "This is speculative. No one has proven that transformers are computing tensor products. But the mathematical structure fits: the operations match, the dimensionalities match, and the linearization results make precise predictions about when nonlinearity should and shouldn't matter."
+          },
+          {
+            "type": "Analogy",
+            "props": {
+              "concept": "The Sculptor's Chisel",
+              "analogy": "Think of the full tensor product as a block of marble that contains every possible statue. Attention selects which parts of the marble matter — the rough shape. The MLP is the chisel that refines the details. In 88% of layers, the rough shape is already sharp enough. The chisel just polishes. In 12% of layers, there's genuine ambiguity in the marble — two possible statues overlapping — and only the nonlinear chisel can separate them."
+            }
+          },
+          {
+            "type": "Callout",
+            "props": {
+              "type": "idea"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "The deepest question this raises: if transformers are approximating tensor products, are they finding the OPTIMAL low-rank approximation? Or just a good-enough one? If we could design architectures that directly compute rank-k tensor products and contract them — skipping the attention-MLP dance entirely — would we get something more efficient? This is an open research question, and it might be the key to architectures beyond the transformer."
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}
