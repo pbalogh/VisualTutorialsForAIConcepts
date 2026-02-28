@@ -1,0 +1,356 @@
+{
+  "id": "brainstorm-24-operators-as-interface-layer",
+  "title": "Operators as Interface Layer for LLM World Models",
+  "subtitle": "LLMs already have implicit world models — Schankian operators extract and organize that hidden knowledge into explicit, usable structure",
+  "readTime": "22 min",
+  "state": {},
+  "content": {
+    "type": "Fragment",
+    "children": [
+      {
+        "type": "Callout",
+        "props": {
+          "type": "info"
+        },
+        "children": "This tutorial explores a major reframing: instead of teaching LLMs about events, we use Schankian operators to EXTRACT what they already know. LLMs have implicit world models buried in their weights — operators provide the interface layer to access them."
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "1. The Hidden Knowledge Problem"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "Large language models know an enormous amount about how the world works. They can predict that dropping a glass will break it, that giving someone a gift makes them happy, that opening a door requires it to be unlocked. But this knowledge is tangled up in billions of parameters with no clear way to extract or verify it."
+          },
+          {
+            "type": "Analogy",
+            "props": {
+              "concept": "Implicit vs Explicit Knowledge",
+              "analogy": "Think of a skilled chef who can make incredible dishes but has never written a recipe. The knowledge is there — in their hands, their timing, their intuitions — but it's implicit. You can't inspect it, verify it, or transfer it to someone else. An LLM is like that chef: rich internal knowledge, no recipe book. Schankian operators are the recipe extraction system."
+            }
+          },
+          {
+            "type": "p",
+            "children": "The key evidence comes from Othello-GPT (Li et al., 2023): a transformer trained only to predict legal Othello moves develops an internal representation of the board state — a world model — despite never being told the rules. If this works for Othello, what world models do language models develop from text?"
+          },
+          {
+            "type": "DeepDive",
+            "props": {
+              "title": "What exactly did Othello-GPT prove?",
+              "id": "othello-gpt"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "Li et al. trained a GPT-style model on sequences of Othello moves (just tokens, no board representation). Using probing classifiers, they found the model internally represents the full 8×8 board state at each step. Intervening on these internal representations changed the model's predictions in ways consistent with changing the actual board — proving the representation is causally used, not just correlated."
+              },
+              {
+                "type": "p",
+                "children": "The critical implication: if a model trained on move sequences develops board-state representations, then models trained on event narratives likely develop entity-state representations. The question is: can we extract them?"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "2. The Interface Layer Concept"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "In software engineering, an interface layer sits between two systems, translating between their different representations. A database driver translates between your application's objects and the database's rows. A graphics API translates between your scene description and the GPU's triangles."
+          },
+          {
+            "type": "Callout",
+            "props": {
+              "type": "key"
+            },
+            "children": "Schankian operators are an interface layer between an LLM's implicit world model (entangled, high-dimensional, uninterpretable) and an explicit event semantics (structured, inspectable, composable). We're not adding knowledge — we're providing an API to knowledge that already exists."
+          },
+          {
+            "type": "Analogy",
+            "props": {
+              "concept": "Operators as an API",
+              "analogy": "Imagine the LLM's knowledge as a vast underground lake of fresh water. The water is there, but inaccessible. You could try to fill the lake yourself (training from scratch), or you could drill wells at strategic points and install pumps (operators). Each operator is a well that taps a specific type of knowledge: ATRANS extracts transfer knowledge, PROPEL extracts force-application knowledge, MTRANS extracts information-flow knowledge. The interface layer is the pumping station that organizes all these wells."
+            }
+          },
+          {
+            "type": "p",
+            "children": "This reframing has profound implications for the project. Instead of asking 'How do we teach a neural network Schankian primitives?' we ask 'How do we extract Schankian structure from what neural networks already know?'"
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "3. Three Layers of Implicit World Knowledge"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "LLM world models appear to encode at least three types of event knowledge, each corresponding to a different aspect of Schankian operators:"
+          },
+          {
+            "type": "Example",
+            "props": {
+              "title": "Layer 1: Action-Effect Mappings",
+              "description": "Given 'John dropped the vase,' LLMs consistently predict it broke. This is the forward model: operator + entity → new state. The LLM knows PROPEL(object, downward) → BREAK if fragile."
+            }
+          },
+          {
+            "type": "Example",
+            "props": {
+              "title": "Layer 2: Precondition Recognition",
+              "description": "Given 'John unlocked the door and walked through,' LLMs know the door was previously locked. This is precondition inference: working backward from operator application to required prior states."
+            }
+          },
+          {
+            "type": "Example",
+            "props": {
+              "title": "Layer 3: Entity State Tracking",
+              "description": "Given a narrative where John gives Mary a book, then Mary gives it to Bob, LLMs track that Bob now has the book. This is multi-step state tracking through operator chains: ATRANS(John→Mary) then ATRANS(Mary→Bob)."
+            }
+          },
+          {
+            "type": "p",
+            "children": "Each layer is progressively harder to extract. Action-effect mappings are relatively accessible (they show up in text completion). Preconditions require backward inference. Entity state tracking requires maintaining and updating representations across many steps — exactly what our operator framework is designed to do."
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "4. Evidence: LLMs Have World Models (But Can't Use Them Well)"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "Multiple lines of evidence suggest LLMs develop implicit world models during training, but struggle to use them reliably:"
+          },
+          {
+            "type": "DeepDive",
+            "props": {
+              "title": "The Evidence Landscape",
+              "id": "evidence"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "1. **Othello-GPT** (Li et al., 2023): Board state emerges from move sequences. Causal interventions confirm the model uses its internal board representation."
+              },
+              {
+                "type": "p",
+                "children": "2. **Probing Studies**: Linear probes can extract entity properties (location, state, possession) from LLM hidden states, showing the information IS there — just not organized for explicit use."
+              },
+              {
+                "type": "p",
+                "children": "3. **Failure Modes**: LLMs fail at multi-step state tracking, lose track of entity properties over long contexts, and make errors that suggest they have the knowledge but can't maintain consistent state. These are exactly the failures an explicit operator interface would fix."
+              },
+              {
+                "type": "p",
+                "children": "4. **Emergent Abilities**: Larger models suddenly succeed at tasks requiring world modeling (physical reasoning, causal inference). This suggests a phase transition where implicit world models become rich enough to support these tasks — but they remain fragile without explicit structure."
+              }
+            ]
+          },
+          {
+            "type": "Callout",
+            "props": {
+              "type": "warning"
+            },
+            "children": "The gap between 'having knowledge' and 'using it reliably' is precisely what an interface layer addresses. You don't need a bigger lake — you need better pumps."
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "5. The Extraction Architecture"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "How would an operator interface layer actually work? The architecture has three components:"
+          },
+          {
+            "type": "Example",
+            "props": {
+              "title": "Component 1: State Probes",
+              "description": "Linear or low-rank probes that extract entity state vectors from LLM hidden states at each narrative step. These tap into the implicit world model to read current entity properties (location, possession, physical state, mental state)."
+            }
+          },
+          {
+            "type": "Example",
+            "props": {
+              "title": "Component 2: Operator Classifier",
+              "description": "A module that classifies which Schankian operator(s) are being applied at each event, based on the LLM's internal representations. This could use attention pattern analysis (brainstorm #41), SAE feature mining (brainstorm #25), or direct probing of event representations."
+            }
+          },
+          {
+            "type": "Example",
+            "props": {
+              "title": "Component 3: State Update Engine",
+              "description": "Given the current entity states (from probes) and the identified operator (from classifier), apply the operator as a geometric transformation to produce predicted post-event states. Compare predictions with actual probed states for training signal."
+            }
+          },
+          {
+            "type": "p",
+            "children": "The beauty of this architecture is that it's modular and testable. Each component can be evaluated independently, and the whole system provides a structured interface to the LLM's implicit knowledge without modifying the LLM itself."
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "6. Why Extraction Beats Training From Scratch"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "This interface-layer approach has several decisive advantages over training operator systems from scratch:"
+          },
+          {
+            "type": "Analogy",
+            "props": {
+              "concept": "Extraction vs Training",
+              "analogy": "Consider archaeology vs manufacturing. You could try to manufacture ancient Roman pottery from raw clay (training from scratch). Or you could excavate real Roman pottery that's buried underground (extraction). The pottery already exists — you just need the right tools and techniques to unearth it. Extraction preserves the authentic structure that emerged from the original process (billions of tokens of training data), which is far richer than anything we could engineer directly."
+            }
+          },
+          {
+            "type": "p",
+            "children": "Concretely: (1) LLMs have already processed orders of magnitude more event data than any purpose-built system could. (2) Their implicit world models have been refined by gradient descent over trillions of tokens. (3) Extraction is computationally cheap compared to pre-training. (4) The operator structure we extract is grounded in actual language use, not hand-designed categories."
+          },
+          {
+            "type": "Callout",
+            "props": {
+              "type": "key"
+            },
+            "children": "The reframing from 'teaching' to 'extracting' is not just philosophical — it changes the research methodology. Instead of designing training data and loss functions, we design probes and classifiers. Instead of asking 'did the model learn operators?', we ask 'where are the operators already encoded?'"
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "7. Connections to Other Brainstorms"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "This interface-layer perspective connects to and enriches several other ideas in the project:"
+          },
+          {
+            "type": "Example",
+            "props": {
+              "title": "#25: Mining SAE Dictionaries",
+              "description": "Sparse Autoencoders decompose LLM activations into interpretable features. Some of these features may already BE Schankian operators — making SAE mining a direct implementation of the extraction approach."
+            }
+          },
+          {
+            "type": "Example",
+            "props": {
+              "title": "#41: Attention as Operator Signatures",
+              "description": "If operators leave distinctive attention patterns, we can identify which operator is active by reading the attention topology — another extraction technique."
+            }
+          },
+          {
+            "type": "Example",
+            "props": {
+              "title": "#22: Causal Interventions (Mech Interp)",
+              "description": "Interchange Intervention Accuracy tests whether internal representations are causally used. This is the verification step: after extracting operators, we intervene to confirm they're real, not artifacts."
+            }
+          },
+          {
+            "type": "Example",
+            "props": {
+              "title": "#62: MoE Routing as Operator Selection",
+              "description": "In MoE models, the router already dispatches to specialized experts. If those experts correspond to operators, the routing mechanism IS the operator classifier — already built into the architecture."
+            }
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "8. The Bigger Picture: Organizing Implicit Knowledge"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "The operator interface layer is part of a broader trend in AI: moving from 'train more' to 'understand what's already there.' Mechanistic interpretability, probing classifiers, sparse autoencoders, and representation engineering all share this philosophy."
+          },
+          {
+            "type": "p",
+            "children": "What makes the Schankian operator interface special is that it doesn't just extract individual features — it provides a complete computational framework (operators with preconditions, effects, compositions, and inverses) that organizes extracted knowledge into a usable system."
+          },
+          {
+            "type": "Callout",
+            "props": {
+              "type": "key"
+            },
+            "children": "The ultimate vision: an operator interface layer that can be attached to ANY sufficiently large language model, instantly providing structured access to its implicit event semantics. A universal semantic API for neural world models."
+          },
+          {
+            "type": "Quiz",
+            "props": {
+              "question": "Why is extracting operators from LLMs potentially better than training a separate operator system from scratch?",
+              "options": [
+                "LLMs are larger, so extraction is always better",
+                "LLMs have already distilled event knowledge from trillions of tokens — extraction leverages that investment rather than starting over",
+                "Training from scratch is impossible for operators",
+                "Extraction is faster because it uses fewer GPU hours"
+              ],
+              "correctIndex": 1,
+              "explanation": "The key advantage is that LLMs have already processed orders of magnitude more event data than any purpose-built system could. Their implicit world models encode rich event semantics refined by gradient descent over trillions of tokens. Extraction leverages this massive prior investment rather than duplicating it."
+            }
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "9. Open Questions and Next Steps"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "This reframing raises several important research questions:"
+          },
+          {
+            "type": "p",
+            "children": "**Fidelity**: How faithfully can probes extract entity states? Linear probes may miss nonlinear structure. Do we need more sophisticated extraction methods?"
+          },
+          {
+            "type": "p",
+            "children": "**Universality**: Do different LLMs develop the same implicit operators? If Llama and GPT both converge on similar operator structures, that's strong evidence for universality."
+          },
+          {
+            "type": "p",
+            "children": "**Completeness**: Do LLMs encode ALL Schankian operators, or only some? Physical operators (PROPEL, MOVE) might be less represented than social/mental ones (MTRANS, MBUILD) since text is biased toward human social interaction."
+          },
+          {
+            "type": "p",
+            "children": "**Composability**: Can extracted operators be composed to handle novel event types the LLM hasn't seen? This is the ultimate test of whether we've extracted true primitives."
+          },
+          {
+            "type": "Quiz",
+            "props": {
+              "question": "What did the Othello-GPT experiment demonstrate that's relevant to the operator interface layer concept?",
+              "options": [
+                "That transformers can play Othello better than humans",
+                "That models trained on sequential observations develop internal world-state representations that are causally used for predictions",
+                "That game-playing requires explicit rules to be provided",
+                "That probing classifiers are unreliable"
+              ],
+              "correctIndex": 1,
+              "explanation": "Othello-GPT showed that a transformer trained only on move sequences internally develops a representation of the board state — without ever being given the board as input. Causal interventions confirmed this representation is actually used for predictions. This suggests language models similarly develop entity-state representations from text, which operators could extract and organize."
+            }
+          }
+        ]
+      }
+    ]
+  }
+}

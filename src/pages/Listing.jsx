@@ -782,6 +782,18 @@ const tutorials = [
     difficulty: 4,
   },
   {
+    id: 'brainstorm-24-operators-as-interface-layer',
+    title: 'Operators as Interface Layer for LLM World Models',
+    description: 'LLMs have implicit world models — Schankian operators extract and organize that hidden knowledge into explicit, composable event semantics',
+    tags: ['schankian', 'world-models', 'LLM', 'interface-layer', 'extraction'],
+    icon: '🔌',
+    gradient: 'from-amber-500 to-orange-600',
+    shadowColor: 'shadow-amber-500/30',
+    glowColor: 'rgba(245, 158, 11, 0.4)',
+    readTime: '22 min',
+    difficulty: 3,
+  },
+  {
     id: 'brainstorm-56-rate-distortion-bounds',
     title: 'Rate-Distortion Bounds on Operator Compression',
     description: 'When do embeddings provably fail? Shannon\'s theory reveals the minimum dimensions each Schankian operator needs',
