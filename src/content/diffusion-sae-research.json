@@ -4248,6 +4248,151 @@
           }
         ]
       }
+    ],
+      {
+        "type": "Section",
+        "title": "📡 Feb 28, 2026: One-Step SAEs, Discrete Diffusion Survey & Scaling to 10B",
+        "children": [
+          {
+            "type": "DeepDive",
+            "title": "[Feb 28] 🔥🔥 One-Step is Enough: SAEs for T2I Diffusion Models (NeurIPS 2025)",
+            "children": [
+              {
+                "type": "p",
+                "children": [
+                  {
+                    "type": "strong",
+                    "children": [
+                      "Paper:"
+                    ]
+                  },
+                  " 'One-Step is Enough: Sparse Autoencoders for Text-to-Image Diffusion Models' (arXiv:2410.22366, NeurIPS 2025 poster)"
+                ]
+              },
+              {
+                "type": "p",
+                "children": [
+                  {
+                    "type": "strong",
+                    "children": [
+                      "Key insight:"
+                    ]
+                  },
+                  " Training SAEs on diffusion model activations does NOT require collecting activations across all denoising steps — a SINGLE timestep's activations suffice for learning interpretable, steerable features. This dramatically reduces the cost of SAE training for diffusion models. Demonstrates decomposition of intermediate representations into sparse sums of interpretable features that enable fine-grained control."
+                ]
+              },
+              {
+                "type": "p",
+                "children": [
+                  {
+                    "type": "strong",
+                    "children": [
+                      "Relevance:"
+                    ]
+                  },
+                  " ⭐⭐⭐ CRITICAL PRACTICAL FINDING for all four ideas. The biggest practical concern with SAE+diffusion is cost — if you need to train SAEs across every denoising timestep, it's prohibitive. This paper eliminates that concern: one-step training produces features that generalize across timesteps. For Idea 1 (structured latent spaces), this means SAE feature space is consistent across the denoising trajectory. For Idea 3 (semantic noise schedules), the timestep-invariance of SAE features validates that the same feature vocabulary can guide scheduling at any noise level. For Idea 4 (dictionary-guided denoising), dictionary features learned from one timestep can be applied at every step."
+                ]
+              },
+              {
+                "type": "p",
+                "children": [
+                  {
+                    "type": "strong",
+                    "children": [
+                      "Connection to DLM-Scope:"
+                    ]
+                  },
+                  " DLM-Scope trains SAEs on text DLMs; this paper trains SAEs on image diffusion. Together they confirm SAEs work on both modalities. The 'one-step sufficiency' finding should transfer to text DLMs, making our SAE training pipeline much simpler."
+                ]
+              }
+            ]
+          },
+          {
+            "type": "DeepDive",
+            "title": "[Feb 28] Discrete Diffusion in LLMs & MLLMs: Comprehensive Survey (Jun 2025)",
+            "children": [
+              {
+                "type": "p",
+                "children": [
+                  {
+                    "type": "strong",
+                    "children": [
+                      "Paper:"
+                    ]
+                  },
+                  " 'Discrete Diffusion in Large Language and Multimodal Models: A Survey' (arXiv:2506.13759, Jun 2025)"
+                ]
+              },
+              {
+                "type": "p",
+                "children": [
+                  {
+                    "type": "strong",
+                    "children": [
+                      "Key contribution:"
+                    ]
+                  },
+                  " First systematic survey of discrete diffusion LLMs (dLLMs) and multimodal LLMs (dMLLMs). Covers the shift from AR models to multi-token, parallel decoding via full attention and denoising-based generation. Catalogs architectures, training paradigms, and scaling approaches across the field."
+                ]
+              },
+              {
+                "type": "p",
+                "children": [
+                  {
+                    "type": "strong",
+                    "children": [
+                      "Relevance:"
+                    ]
+                  },
+                  " ⭐⭐ REFERENCE RESOURCE. Provides the taxonomic framework for positioning our SAE+diffusion work within the broader landscape. Useful for literature review and identifying which diffusion families are most amenable to SAE integration."
+                ]
+              }
+            ]
+          },
+          {
+            "type": "DeepDive",
+            "title": "[Feb 28] Scaling Discrete Diffusion to 10B Parameters Confirmed (ICLR 2026 submission)",
+            "children": [
+              {
+                "type": "p",
+                "children": [
+                  {
+                    "type": "strong",
+                    "children": [
+                      "Paper:"
+                    ]
+                  },
+                  " von Rütte et al., 'Scaling Behavior of Discrete Diffusion Language Models' (arXiv:2512.10858, updated Feb 2026)"
+                ]
+              },
+              {
+                "type": "p",
+                "children": [
+                  {
+                    "type": "strong",
+                    "children": [
+                      "Update:"
+                    ]
+                  },
+                  " Now confirmed as the largest publicly known uniform diffusion model at 10B parameters trained for 10²² FLOPs. Reformulates the discrete diffusion ELBO in terms of signal-to-noise ratio, closing the gap to continuous diffusion theory. Training code and models to be open-sourced. The SNR reformulation simplifies both theory and implementation — relevant for Idea 3 (noise schedules could be expressed in SNR terms)."
+                ]
+              }
+            ]
+          },
+          {
+            "type": "p",
+            "children": [
+              {
+                "type": "strong",
+                "children": [
+                  "Summary:"
+                ]
+              },
+              " The 'One-Step is Enough' finding is the most impactful new result — it removes a major practical barrier to SAE+diffusion integration. The field continues to mature rapidly with comprehensive surveys and scaling studies confirming discrete diffusion as a viable paradigm."
+            ]
+          }
+        ]
+      }
     ]
   }
 }
