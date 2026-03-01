@@ -1,0 +1,352 @@
+{
+  "id": "brainstorm-77-recursive-midpoint",
+  "title": "Recursive Midpoint Diffusion",
+  "subtitle": "Brownian Lightning for Text Generation — endpoints first, details last",
+  "readTime": "25 min",
+  "state": {
+    "recursionLevel": 0,
+    "showTokens": false,
+    "activeNode": null
+  },
+  "content": {
+    "type": "Fragment",
+    "children": [
+      {
+        "type": "Callout",
+        "props": { "type": "info" },
+        "children": "Lightning bolts are made by setting two endpoints and recursively displacing midpoints with noise. What if text generation worked the same way? This tutorial explores a radical architecture that generates text from the outside in — global structure first, local details last — with embarrassing parallelism at every level."
+      },
+
+      {
+        "type": "Section",
+        "props": { "title": "1. The Lightning Bolt Insight" },
+        "children": [
+          {
+            "type": "p",
+            "children": "Computer graphics has a beautiful algorithm for generating lightning bolts and fractal terrain: midpoint displacement. You start with two endpoints, find the midpoint, displace it randomly, then recurse on each half. After a few levels, you get a jagged, natural-looking bolt."
+          },
+          {
+            "type": "Analogy",
+            "props": {
+              "concept": "Recursive Midpoint Displacement",
+              "analogy": "Imagine planning a road trip. First you pick start (New York) and end (San Francisco). Then you pick a midpoint city (Denver). Then midpoints of each leg (Pittsburgh, Salt Lake City). Then smaller stops between those. You plan the BIG structure first, then fill in details. You never start driving blind from New York hoping to end up in San Francisco."
+            }
+          },
+          {
+            "type": "p",
+            "children": "Autoregressive text generation (GPT-style) is like starting to drive from New York with no map — each token depends only on previous tokens, with no guarantee of arriving at a coherent destination. Flat diffusion is like teleporting random molecules and hoping they assemble into a road. Recursive midpoint generation gives you the map FIRST."
+          },
+          {
+            "type": "InteractiveDemo",
+            "props": {
+              "title": "⚡ Lightning Bolt Generator",
+              "height": 320,
+              "initialCode": "// Midpoint displacement: click 'Generate' to see recursion levels\nconst canvas = document.createElement('canvas');\ncanvas.width = 580; canvas.height = 280;\ncanvas.style.background = '#0a0a2e';\ncanvas.style.borderRadius = '12px';\ncontainer.appendChild(canvas);\nconst ctx = canvas.getContext('2d');\n\nconst controls = document.createElement('div');\ncontrols.style.cssText = 'display:flex;gap:12px;margin-top:8px;align-items:center';\nconst btn = document.createElement('button');\nbtn.textContent = '⚡ Generate Level by Level';\nbtn.style.cssText = 'padding:8px 16px;border-radius:8px;background:#7c3aed;color:white;border:none;cursor:pointer;font-weight:600';\nconst label = document.createElement('span');\nlabel.style.cssText = 'color:#a78bfa;font-size:14px';\nlabel.textContent = 'Click to start';\ncontrols.appendChild(btn); controls.appendChild(label);\ncontainer.appendChild(controls);\n\nlet level = 0;\nlet points = [{x: 40, y: 140}, {x: 540, y: 140}];\nconst colors = ['#ef4444','#f59e0b','#22c55e','#3b82f6','#a855f7','#ec4899'];\n\nfunction draw() {\n  ctx.clearRect(0,0,580,280);\n  ctx.shadowBlur = 15;\n  ctx.shadowColor = colors[Math.min(level, colors.length-1)] || '#a855f7';\n  ctx.strokeStyle = colors[Math.min(level, colors.length-1)] || '#a855f7';\n  ctx.lineWidth = Math.max(4 - level * 0.5, 1.5);\n  ctx.beginPath();\n  ctx.moveTo(points[0].x, points[0].y);\n  for (let i = 1; i < points.length; i++) ctx.lineTo(points[i].x, points[i].y);\n  ctx.stroke();\n  // Draw endpoints as circles\n  for (const p of points) {\n    ctx.beginPath(); ctx.arc(p.x, p.y, 3, 0, Math.PI*2);\n    ctx.fillStyle = '#fff'; ctx.fill();\n  }\n  ctx.shadowBlur = 0;\n  // Labels\n  ctx.fillStyle = '#94a3b8'; ctx.font = '13px sans-serif';\n  ctx.fillText('Start', 30, 170);\n  ctx.fillText('End', 520, 170);\n  ctx.fillStyle = colors[Math.min(level, colors.length-1)];\n  ctx.font = 'bold 14px sans-serif';\n  ctx.fillText('Level ' + level + ' — ' + points.length + ' points', 220, 20);\n}\n\nbtn.onclick = () => {\n  if (level >= 6) { level = 0; points = [{x:40,y:140},{x:540,y:140}]; draw(); label.textContent = 'Reset! Click again.'; return; }\n  const newPoints = [points[0]];\n  for (let i = 0; i < points.length - 1; i++) {\n    const a = points[i], b = points[i+1];\n    const displacement = (Math.random()-0.5) * (120 / (level+1));\n    newPoints.push({x: (a.x+b.x)/2, y: (a.y+b.y)/2 + displacement});\n    newPoints.push(b);\n  }\n  points = newPoints;\n  level++;\n  draw();\n  const msgs = ['Two endpoints set','Midpoint added — big structure','4 points — paragraph-level','8 points — getting detailed','16 points — fine structure','32+ points — token-level detail'];\n  label.textContent = 'Level ' + level + ': ' + (msgs[level-1]||'Maximum detail');\n};\ndraw();"
+            }
+          }
+        ]
+      },
+
+      {
+        "type": "Section",
+        "props": { "title": "2. The Algorithm: Text as a Binary Tree" },
+        "children": [
+          {
+            "type": "p",
+            "children": "Here's the core idea applied to text generation:"
+          },
+          {
+            "type": "Example",
+            "props": {
+              "title": "Recursive Midpoint Text Generation"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "Goal: Generate a story from 'John is healthy' to 'John is in the hospital'."
+              },
+              {
+                "type": "p",
+                "children": "Level 0 (Endpoints): [John is healthy] ←———→ [John is in the hospital]"
+              },
+              {
+                "type": "p",
+                "children": "Level 1 (Midpoint): [John is healthy] → [John gets hit by a car] → [John is in the hospital]"
+              },
+              {
+                "type": "p",
+                "children": "Level 2 (Fill halves): [healthy] → [crosses street carelessly] → [hit by car] → [ambulance arrives] → [hospital]"
+              },
+              {
+                "type": "p",
+                "children": "Level 3+: Each gap gets filled with increasingly specific detail until we reach actual sentences and words."
+              },
+              {
+                "type": "p",
+                "children": "Notice: the midpoint between 'healthy' and 'hospital' MUST involve some harm event. The causal structure emerges automatically from the endpoints!"
+              }
+            ]
+          },
+          {
+            "type": "DeepDive",
+            "props": {
+              "title": "Why O(log n) depth matters",
+              "id": "log-n-depth"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "Autoregressive generation (GPT) takes O(n) steps — one per token, sequentially. A 10,000-token essay needs 10,000 sequential steps. Recursive midpoint generation takes O(log n) levels of recursion. After just 14 levels, you've planned 16,384 positions. At each level, ALL midpoint computations are independent — pure parallelism."
+              },
+              {
+                "type": "p",
+                "children": "This is the same speedup that makes binary search faster than linear search, or merge sort faster than bubble sort. It's one of the most powerful ideas in computer science applied to text generation."
+              }
+            ]
+          },
+          {
+            "type": "InteractiveDemo",
+            "props": {
+              "title": "🌳 Build a Narrative Tree",
+              "height": 400,
+              "initialCode": "// Interactive narrative tree — click nodes to expand\nconst wrap = document.createElement('div');\nwrap.style.cssText = 'font-family:system-ui;color:#e2e8f0;';\ncontainer.appendChild(wrap);\n\nconst tree = {\n  text: 'Story arc',\n  children: [\n    { text: '🟢 John is healthy', leaf: true, level: 0 },\n    { text: '❓ Click to generate midpoint', expandable: true, left: 'John is healthy', right: 'John is in hospital', level: 1 },\n    { text: '🔴 John is in the hospital', leaf: true, level: 0 }\n  ]\n};\n\nconst midpoints = {\n  'John is healthy|John is in hospital': [\n    { text: '🟡 John gets hit by a car', children: [\n      { text: '🟢 John is healthy', leaf: true, level: 0 },\n      { text: '❓ Click to fill', expandable: true, left: 'healthy', right: 'hit by car', level: 2 },\n      { text: '🟡 John gets hit by a car', leaf: true, level: 1 },\n      { text: '❓ Click to fill', expandable: true, left: 'hit by car', right: 'hospital', level: 2 },\n      { text: '🔴 John is in the hospital', leaf: true, level: 0 }\n    ]}\n  ],\n  'healthy|hit by car': [\n    { text: '🟠 John crosses a busy street without looking', leaf: true, level: 2 }\n  ],\n  'hit by car|hospital': [\n    { text: '🟠 A bystander calls 911, ambulance arrives', leaf: true, level: 2 }\n  ]\n};\n\nconst levelColors = ['#ef4444','#f59e0b','#22c55e','#3b82f6','#a855f7'];\n\nfunction render(node, depth=0) {\n  const div = document.createElement('div');\n  div.style.cssText = `margin-left:${depth*24}px;padding:6px 12px;margin:4px 0;border-radius:8px;font-size:14px;`;\n  \n  if (node.expandable) {\n    div.style.background = 'rgba(139,92,246,0.15)';\n    div.style.cursor = 'pointer';\n    div.style.border = '1px dashed rgba(139,92,246,0.4)';\n    div.textContent = node.text;\n    div.onclick = () => {\n      const key = node.left + '|' + node.right;\n      const result = midpoints[key];\n      if (result) {\n        if (result[0].children) {\n          // Replace entire tree display\n          tree.children = result[0].children;\n          wrap.innerHTML = '';\n          wrap.appendChild(renderInfo());\n          tree.children.forEach(c => wrap.appendChild(render(c, 0)));\n        } else {\n          div.style.background = 'rgba(34,197,94,0.15)';\n          div.style.border = '1px solid rgba(34,197,94,0.3)';\n          div.style.cursor = 'default';\n          div.textContent = result[0].text;\n          div.onclick = null;\n        }\n      }\n    };\n  } else {\n    const c = levelColors[node.level] || '#94a3b8';\n    div.style.background = `${c}15`;\n    div.style.borderLeft = `3px solid ${c}`;\n    div.textContent = node.text;\n  }\n  return div;\n}\n\nfunction renderInfo() {\n  const info = document.createElement('div');\n  info.style.cssText = 'color:#94a3b8;font-size:13px;margin-bottom:8px;padding:4px 8px;';\n  info.innerHTML = '🌳 <b>Narrative tree</b> — click purple nodes to generate midpoints';\n  return info;\n}\n\nwrap.appendChild(renderInfo());\ntree.children.forEach(c => wrap.appendChild(render(c, 0)));"
+            }
+          }
+        ]
+      },
+
+      {
+        "type": "Section",
+        "props": { "title": "3. Three Key Properties" },
+        "children": [
+          {
+            "type": "h3",
+            "children": "🔀 Embarrassingly Parallel"
+          },
+          {
+            "type": "p",
+            "children": "At each recursion level, every midpoint computation is independent. Level 2 has 2 midpoints to compute — they can run on 2 different GPUs simultaneously. Level 10 has 1,024 midpoints — send them to 1,024 workers. This is a MapReduce problem: map = generate midpoint from two anchors, reduce = concatenate in order."
+          },
+          {
+            "type": "Callout",
+            "props": { "type": "key" },
+            "children": "This would be the first text generation architecture that is truly distributable across machines. Autoregressive models are inherently sequential. Flat diffusion needs global attention at each step. Recursive midpoint generation has a clean binary tree dependency graph."
+          },
+          {
+            "type": "h3",
+            "children": "🎯 Natural Global Coherence"
+          },
+          {
+            "type": "p",
+            "children": "Global structure is locked in at Level 0–1 (endpoints and major turning points). Local details at Level 5+ can never violate the global plan. This solves the main weakness of flat diffusion models, which can lose global coherence during the denoising process because everything is refined simultaneously."
+          },
+          {
+            "type": "h3",
+            "children": "🔬 SAE Feature Hierarchy = Recursion Schedule"
+          },
+          {
+            "type": "p",
+            "children": "Sparse Autoencoder (SAE) features naturally organize into abstraction levels — coarse features (topic, genre) and fine features (word choice, syntax). The recursion levels map perfectly: Level 0 activates coarse SAE features, deeper levels activate increasingly fine-grained features. The feature abstraction ladder IS the recursion schedule."
+          },
+          {
+            "type": "DeepDive",
+            "props": {
+              "title": "Connection to Schankian operators",
+              "id": "schankian-connection"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "Schankian operators define state transitions: entity_before → event → entity_after. At the coarsest recursion level, the 'endpoints' are entity states and the 'midpoint' is the event that transforms one into the other. 'John is healthy' → HARM event → 'John is injured'. The recursive refinement mirrors how narratives work: abstract summary first, then increasingly specific detail. This IS operator decomposition."
+              }
+            ]
+          }
+        ]
+      },
+
+      {
+        "type": "Section",
+        "props": { "title": "4. Three Paradigms Compared" },
+        "children": [
+          {
+            "type": "InteractiveDemo",
+            "props": {
+              "title": "📊 Generation Paradigm Comparison",
+              "height": 320,
+              "initialCode": "const wrap = document.createElement('div');\nwrap.style.cssText = 'font-family:system-ui;color:#e2e8f0;';\ncontainer.appendChild(wrap);\n\nconst paradigms = [\n  { name: 'Autoregressive (GPT)', icon: '➡️', depth: 'O(n)', parallel: '❌ None', coherence: '⚠️ Drifts', color: '#ef4444',\n    desc: 'Generates left-to-right, one token at a time. Fast locally but can lose the plot over long sequences.' },\n  { name: 'Flat Diffusion', icon: '🌫️', depth: 'O(T steps)', parallel: '✅ Per step', coherence: '⚠️ Global blur', color: '#f59e0b',\n    desc: 'Refines all positions simultaneously from noise. Parallel within each step, but needs many steps and can lose global structure.' },\n  { name: 'Recursive Midpoint', icon: '⚡', depth: 'O(log n)', parallel: '✅✅ Per level', coherence: '✅ Locked in', color: '#22c55e',\n    desc: 'Endpoints first, then recursive infilling. Logarithmic depth, massively parallel at each level, global coherence by construction.' }\n];\n\nconst table = document.createElement('div');\ntable.style.cssText = 'display:grid;gap:12px;';\n\nparadigms.forEach(p => {\n  const card = document.createElement('div');\n  card.style.cssText = `padding:16px;border-radius:12px;background:rgba(30,30,60,0.6);border-left:4px solid ${p.color};cursor:pointer;transition:all 0.2s`;\n  card.innerHTML = `\n    <div style=\"display:flex;justify-content:space-between;align-items:center\">\n      <span style=\"font-size:16px;font-weight:600\">${p.icon} ${p.name}</span>\n      <span style=\"font-size:12px;color:#94a3b8\">click to expand</span>\n    </div>\n    <div style=\"display:flex;gap:20px;margin-top:8px;font-size:13px\">\n      <span>Depth: <b style=\"color:${p.color}\">${p.depth}</b></span>\n      <span>Parallel: ${p.parallel}</span>\n      <span>Coherence: ${p.coherence}</span>\n    </div>\n    <div class=\"desc\" style=\"display:none;margin-top:8px;font-size:13px;color:#cbd5e1;line-height:1.5\">${p.desc}</div>\n  `;\n  card.onclick = () => {\n    const desc = card.querySelector('.desc');\n    desc.style.display = desc.style.display === 'none' ? 'block' : 'none';\n  };\n  table.appendChild(card);\n});\nwrap.appendChild(table);\n\nconst note = document.createElement('p');\nnote.style.cssText = 'color:#64748b;font-size:12px;margin-top:12px;';\nnote.textContent = 'Click each card to see details. For n=10,000 tokens: GPT needs ~10,000 steps, flat diffusion ~1,000 steps, recursive midpoint ~14 levels.';\nwrap.appendChild(note);"
+            }
+          }
+        ]
+      },
+
+      {
+        "type": "Section",
+        "props": { "title": "5. The March 2026 Extensions" },
+        "children": [
+          {
+            "type": "Callout",
+            "props": { "type": "tip" },
+            "children": "Three major extensions were discovered: the algorithm is substrate-agnostic (works without SAEs or diffusion), separates planning from writing (like human authors), and produces an inspectable/editable generation tree."
+          },
+          {
+            "type": "h3",
+            "children": "🔧 Substrate-Agnostic: Build It Today"
+          },
+          {
+            "type": "p",
+            "children": "The recursion works with ANY anchor representation — SAE features (research version), summary phrases (practical version), plain embeddings, or even single words. A prototype can be built TODAY with vanilla LLM calls: (1) generate midpoint summary from two endpoint summaries, (2) estimate token budget per interval, (3) fill tokens given left context + right-side target."
+          },
+          {
+            "type": "Example",
+            "props": {
+              "title": "Three-Prompt Prototype"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "Prompt 1 (Plan): 'Given these two story beats: [A] and [B], what is the most likely event that connects them? Reply with one sentence.'"
+              },
+              {
+                "type": "p",
+                "children": "Prompt 2 (Budget): 'This story segment covers [event]. Estimate how many words it needs: 50/100/200/500.'"
+              },
+              {
+                "type": "p",
+                "children": "Prompt 3 (Write): 'Continue this story. Previous text: [left context]. This section should end with [right anchor]. Write ~[budget] words.'"
+              },
+              {
+                "type": "p",
+                "children": "That's it — recursion + 3 prompts = hierarchical text generation. No custom models, no diffusion, no SAEs needed."
+              }
+            ]
+          },
+          {
+            "type": "h3",
+            "children": "✍️ Parallel Planning, Sequential Execution"
+          },
+          {
+            "type": "p",
+            "children": "Pure parallel infilling produces incoherent seams between chunks. The solution: parallelize Phase 1 (plan the tree — cheap, just summaries) and serialize Phase 2 (write prose left-to-right, each chunk sees full left context + right anchor). This separates PLANNING from WRITING — exactly how human writers work. Outline first (hierarchical, can jump around), prose second (sequential, flowing)."
+          },
+          {
+            "type": "Analogy",
+            "props": {
+              "concept": "Two-Phase Generation",
+              "analogy": "Think of a film production. Phase 1 is the writer's room: they plan the story arc, major beats, scene outlines — all in parallel, jumping around, reorganizing. Phase 2 is the shoot: scenes are filmed in a logical order so actors have continuity. The planning is hierarchical and parallel; the execution is sequential and grounded."
+            }
+          },
+          {
+            "type": "h3",
+            "children": "🌳 The Generation Tree as Collaboration Interface"
+          },
+          {
+            "type": "p",
+            "children": "Unlike autoregressive generation (opaque token stream) or flat diffusion (noise → text), recursive midpoint generation 'shows its work' at every level. Each level is human-readable: Level 0 = premise/conclusion, Level 1 = major turning points, Level 2 = paragraph topics. A human can inspect, edit, or override any anchor at any level, and only the subtree below regenerates."
+          },
+          {
+            "type": "Callout",
+            "props": { "type": "key" },
+            "children": "This is not just interpretability — it's a human-AI co-authoring interface. The human engages at whatever abstraction level they want: architect the whole story at Level 1, micromanage a tricky transition at Level 5, leave the rest to the machine. No existing writing tool works this way."
+          }
+        ]
+      },
+
+      {
+        "type": "Section",
+        "props": { "title": "6. Architecture Sketch" },
+        "children": [
+          {
+            "type": "p",
+            "children": "The full research version has four components:"
+          },
+          {
+            "type": "InteractiveDemo",
+            "props": {
+              "title": "🏗️ Architecture Components",
+              "height": 300,
+              "initialCode": "const wrap = document.createElement('div');\nwrap.style.cssText = 'font-family:system-ui;color:#e2e8f0;display:grid;grid-template-columns:1fr 1fr;gap:12px;';\ncontainer.appendChild(wrap);\n\nconst components = [\n  { name: 'Anchor Encoder', icon: '🎯', color: '#3b82f6', desc: 'Takes two SAE feature vectors → produces midpoint prior distribution. The encoder learns what kind of content naturally bridges two semantic anchors.' },\n  { name: 'Midpoint Diffusion', icon: '🌀', color: '#a855f7', desc: 'Denoises from prior, conditioned on both anchors + recursion depth. Uses the anchor encoder output as a strong prior, so it only needs to fill in local detail.' },\n  { name: 'Feature Cascade', icon: '📊', color: '#22c55e', desc: 'Maps recursion depth → which SAE feature levels to activate/enforce. Level 0 = topic features. Level 3 = rhetorical features. Level 6+ = syntactic features.' },\n  { name: 'Scheduler', icon: '📋', color: '#f59e0b', desc: 'Manages the binary tree of intervals, dispatches midpoint jobs to workers. Handles the MapReduce orchestration across GPUs/machines.' }\n];\n\ncomponents.forEach(c => {\n  const card = document.createElement('div');\n  card.style.cssText = `padding:16px;border-radius:12px;background:rgba(30,30,60,0.6);border:1px solid ${c.color}33;cursor:pointer;transition:all 0.3s`;\n  card.innerHTML = `<div style=\"font-size:24px;margin-bottom:8px\">${c.icon}</div><div style=\"font-weight:700;color:${c.color};margin-bottom:4px\">${c.name}</div><div style=\"font-size:13px;color:#94a3b8;line-height:1.5\">${c.desc}</div>`;\n  card.onmouseenter = () => card.style.borderColor = c.color;\n  card.onmouseleave = () => card.style.borderColor = c.color + '33';\n  wrap.appendChild(card);\n});"
+            }
+          }
+        ]
+      },
+
+      {
+        "type": "Section",
+        "props": { "title": "7. Why This Might Actually Work" },
+        "children": [
+          {
+            "type": "p",
+            "children": "Lightning bolt generation works because electricity DOES flow between endpoints — the midpoint displacement is physically motivated. Similarly, text flows from premise to conclusion — the semantic interpolation is linguistically motivated. The bounded Brownian walk prevents 'drift' — early choices at coarse levels constrain fine-level choices, unlike flat diffusion where early denoising errors cascade into incoherence."
+          },
+          {
+            "type": "DeepDive",
+            "props": {
+              "title": "Connections to existing work",
+              "id": "existing-work"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "SSD-LM (Semi-autoregressive Simplex-based Diffusion) generates blocks then fills gaps — similar spirit but not recursive. dLLMs show that non-autoregressive models exploit asymmetry for planning — recursive midpoint is an alternative planning solution. Steerling-8B (Guide Labs, Feb 2026) demonstrates interpretable concept routing in diffusion LMs — those routed concepts could serve as the anchor features at each recursion level. Hierarchical diffusion exists for images (cascaded models like Imagen) but this recursive midpoint structure hasn't been applied to text."
+              }
+            ]
+          },
+          {
+            "type": "Callout",
+            "props": { "type": "tip" },
+            "children": "Three potential papers: (1) 'Recursive Midpoint Planning for Long-Form Generation' — LLM-only, practical, buildable today. (2) 'Recursive Midpoint Diffusion with SAE Feature Hierarchies' — the full research version. (3) 'The Generation Tree: Human-AI Collaborative Writing' — the HCI/tool paper."
+          }
+        ]
+      },
+
+      {
+        "type": "Section",
+        "props": { "title": "🧠 Test Your Understanding" },
+        "children": [
+          {
+            "type": "Quiz",
+            "props": {
+              "question": "Why does recursive midpoint generation have better global coherence than flat diffusion?",
+              "options": [
+                "It uses more parameters",
+                "Global structure is set first at Level 0-1 and constrains all later levels",
+                "It generates more tokens per step",
+                "It uses a larger context window"
+              ],
+              "correct": 1,
+              "explanation": "The key insight is hierarchical constraint: endpoints and major turning points are locked in first, and all finer-grained details must be consistent with them. Flat diffusion refines everything simultaneously, so there's no guarantee that local changes preserve global structure."
+            }
+          },
+          {
+            "type": "Quiz",
+            "props": {
+              "question": "What is the generation depth (number of sequential steps) for a 10,000-token document using recursive midpoint generation?",
+              "options": [
+                "10,000 steps (one per token)",
+                "About 1,000 steps (T diffusion steps)",
+                "About 14 steps (log₂ of 10,000)",
+                "1 step (everything in parallel)"
+              ],
+              "correct": 2,
+              "explanation": "log₂(10,000) ≈ 13.3, so about 14 levels of recursion. At each level, all midpoints are computed in parallel. This is dramatically fewer sequential steps than autoregressive (10,000) or flat diffusion (~1,000)."
+            }
+          },
+          {
+            "type": "Quiz",
+            "props": {
+              "question": "What makes this architecture 'substrate-agnostic'?",
+              "options": [
+                "It only works with SAE features",
+                "It requires a specific diffusion model",
+                "The recursive midpoint structure works with any anchor representation — SAE features, summaries, embeddings, or plain text",
+                "It only works on GPUs"
+              ],
+              "correct": 2,
+              "explanation": "The insight is the recursive planning structure itself, not the specific representation. You can prototype it today with plain LLM calls generating summary-level midpoints, or build the full version with SAE features and diffusion. The algorithm is the same either way."
+            }
+          }
+        ]
+      }
+    ]
+  }
+}

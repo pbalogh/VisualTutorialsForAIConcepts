@@ -127,6 +127,18 @@ function CreateTutorialModal({ isOpen, onClose }) {
 
 const tutorials = [
   {
+    id: 'brainstorm-77-recursive-midpoint',
+    title: 'Recursive Midpoint Diffusion',
+    description: 'Brownian lightning for text generation — endpoints first, details last. A radical architecture that generates text from the outside in with O(log n) depth, embarrassing parallelism, and natural global coherence.',
+    tags: ['diffusion', 'text generation', 'architecture', 'parallelism', 'SAE', 'hierarchical planning', 'Schankian operators'],
+    icon: '⚡',
+    gradient: 'from-purple-500 to-fuchsia-600',
+    shadowColor: 'shadow-purple-500/30',
+    glowColor: 'rgba(168, 85, 247, 0.4)',
+    readTime: '25 min',
+    difficulty: 3,
+  },
+  {
     id: 'brainstorm-74-attention-heads-modal-operators',
     title: 'Attention Heads as Modal Operators',
     description: 'How transformer attention implements Kripke accessibility relations — unifying epistemic reasoning, Bloom filter heads, and Schankian mental primitives under modal logic.',
