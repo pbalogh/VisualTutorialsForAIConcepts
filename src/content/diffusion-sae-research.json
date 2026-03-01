@@ -4390,6 +4390,252 @@
               },
               " The 'One-Step is Enough' finding is the most impactful new result — it removes a major practical barrier to SAE+diffusion integration. The field continues to mature rapidly with comprehensive surveys and scaling studies confirming discrete diffusion as a viable paradigm."
             ]
+          },
+          {
+            "type": "DeepDive",
+            "title": "[Mar 1] 🔥🔥🔥 Steerling-8B: First Inherently Interpretable Diffusion LM with Concept Routing (Feb 23, 2026)",
+            "children": [
+              {
+                "type": "p",
+                "children": [
+                  {
+                    "type": "strong",
+                    "children": [
+                      "Source:"
+                    ]
+                  },
+                  " Guide Labs, 'Steerling-8B' (guidelabs.ai, Feb 23, 2026). Model: HuggingFace guidelabs/steerling-8b"
+                ]
+              },
+              {
+                "type": "p",
+                "children": [
+                  {
+                    "type": "strong",
+                    "children": [
+                      "Key insight:"
+                    ]
+                  },
+                  " An 8B-parameter causal discrete diffusion LM built to be interpretable BY CONSTRUCTION. Decomposes embeddings into three explicit pathways: ~33K supervised 'known' concepts, ~100K 'discovered' concepts, and a residual. Concepts route through linear paths with per-concept contribution decomposition. 84%+ of token-level contribution flows through the concept module. Trained on 1.35T tokens, competitive with models using 2-7x more compute."
+                ]
+              },
+              {
+                "type": "p",
+                "children": [
+                  {
+                    "type": "strong",
+                    "children": [
+                      "Capabilities:"
+                    ]
+                  },
+                  " (1) Suppress or amplify specific concepts at inference without retraining, (2) training data provenance for any output chunk, (3) inference-time alignment via concept control replacing thousands of safety examples. Every generated token traces to input context, concepts, and training data."
+                ]
+              },
+              {
+                "type": "p",
+                "children": [
+                  {
+                    "type": "strong",
+                    "children": [
+                      "Relevance:"
+                    ]
+                  },
+                  " ⭐⭐⭐ THIS IS OUR IDEA 1 IMPLEMENTED AT SCALE! Steerling-8B is essentially a diffusion LM with a built-in SAE-like concept bottleneck. Their ~33K supervised + ~100K discovered concepts ARE the structured latent space we proposed. The linear concept-to-logit path ensures decomposability — exactly what SAE features provide. The 84% concept routing means the model doesn't bypass the interpretable pathway. Key difference from our proposal: they train concepts INTO the model architecture rather than extracting them post-hoc via SAEs. This validates the thesis but suggests the most effective approach may be architectural integration rather than post-hoc SAE application."
+                ]
+              },
+              {
+                "type": "p",
+                "children": [
+                  {
+                    "type": "strong",
+                    "children": [
+                      "New questions:"
+                    ]
+                  },
+                  " (1) How do Steerling's learned concepts compare to SAE features from DLM-Scope? (2) Could we use SAEs to analyze Steerling's residual pathway (the 16% not routed through concepts)? (3) Is architectural concept integration always better than post-hoc SAE extraction, or do they capture different things?"
+                ]
+              }
+            ]
+          },
+          {
+            "type": "DeepDive",
+            "title": "[Mar 1] dLLMs Exploit Asymmetry for Planning — Mechanistic Analysis (Feb 23, 2026)",
+            "children": [
+              {
+                "type": "p",
+                "children": [
+                  {
+                    "type": "strong",
+                    "children": [
+                      "Paper:"
+                    ]
+                  },
+                  " 'Discrete Diffusion Models Exploit Asymmetry to Solve Lookahead Planning Tasks' (arXiv:2602.19980, Feb 23, 2026)"
+                ]
+              },
+              {
+                "type": "p",
+                "children": [
+                  {
+                    "type": "strong",
+                    "children": [
+                      "Key insight:"
+                    ]
+                  },
+                  " NAR diffusion models solve planning by exploiting a critical asymmetry: forward generation requires complex lookahead at branching junctions, but reverse generation is often deterministic. dLLMs learn to use future tokens to decode BACKWARDS, avoiding the need to learn complex traversal. Result: perfect accuracy with exponentially fewer training examples and shallower architectures than AR models."
+                ]
+              },
+              {
+                "type": "p",
+                "children": [
+                  {
+                    "type": "strong",
+                    "children": [
+                      "Relevance:"
+                    ]
+                  },
+                  " ⭐⭐ MECHANISTIC INSIGHT for all ideas. This explains WHY diffusion LMs might be better targets for SAE-guided generation than AR LMs: their bidirectional access enables backward decoding from semantic targets. SAE features specifying desired semantics could serve as the 'future tokens' that guide backward planning. Complements the Mechanism Shift paper — another piece of evidence that dLLMs compute fundamentally differently from AR models."
+                ]
+              }
+            ]
+          },
+          {
+            "type": "DeepDive",
+            "title": "[Mar 1] IDLM: 4x-64x Faster DLM Inference via Inverse Distillation (Feb 22, 2026)",
+            "children": [
+              {
+                "type": "p",
+                "children": [
+                  {
+                    "type": "strong",
+                    "children": [
+                      "Paper:"
+                    ]
+                  },
+                  " 'IDLM: Inverse-distilled Diffusion Language Models' (arXiv:2602.19066, Feb 22, 2026)"
+                ]
+              },
+              {
+                "type": "p",
+                "children": [
+                  {
+                    "type": "strong",
+                    "children": [
+                      "Key insight:"
+                    ]
+                  },
+                  " Extends inverse distillation from continuous to discrete diffusion, proving unique solution existence for the inverse formulation. Introduces gradient-stable relaxations for discrete backpropagation. Achieves 4x-64x step reduction while preserving teacher entropy and generative perplexity."
+                ]
+              },
+              {
+                "type": "p",
+                "children": [
+                  {
+                    "type": "strong",
+                    "children": [
+                      "Relevance:"
+                    ]
+                  },
+                  " ⭐⭐ PRACTICAL ENABLER. Fewer denoising steps means SAE-guided interventions per step become less costly. Combined with DSL's 4x reduction, total overhead for SAE guidance could be minimal. The gradient-stable relaxations for discrete backprop could also help train SAE-guided denoising objectives."
+                ]
+              }
+            ]
+          },
+          {
+            "type": "DeepDive",
+            "title": "[Mar 1] dLLM Framework: Unified Open-Source Toolkit for Diffusion LMs (Feb 26, 2026)",
+            "children": [
+              {
+                "type": "p",
+                "children": [
+                  {
+                    "type": "strong",
+                    "children": [
+                      "Paper:"
+                    ]
+                  },
+                  " 'dLLM: Simple Diffusion Language Modeling' (arXiv:2602.22661, Feb 26, 2026)"
+                ]
+              },
+              {
+                "type": "p",
+                "children": [
+                  {
+                    "type": "strong",
+                    "children": [
+                      "Key insight:"
+                    ]
+                  },
+                  " Unified open-source framework standardizing DLM training, inference, and evaluation. Supports LLaDA, Dream, MDLM, BD3LM. Includes recipes for converting BERT or AR models into DLMs with accessible compute. Code: github.com/ZHZisZZ/dllm"
+                ]
+              },
+              {
+                "type": "p",
+                "children": [
+                  {
+                    "type": "strong",
+                    "children": [
+                      "Relevance:"
+                    ]
+                  },
+                  " ⭐⭐ PRACTICAL INFRASTRUCTURE. A unified framework for DLM experimentation dramatically lowers the barrier to prototyping SAE+diffusion ideas. Could serve as the base for our experimental work — add SAE hooks to dLLM's training/inference pipeline."
+                ]
+              }
+            ]
+          },
+          {
+            "type": "DeepDive",
+            "title": "[Mar 1] DLM Sampler Correctness: Metrics Don't Imply Correct Sampling (Feb 23, 2026)",
+            "children": [
+              {
+                "type": "p",
+                "children": [
+                  {
+                    "type": "strong",
+                    "children": [
+                      "Paper:"
+                    ]
+                  },
+                  " 'Is Your Diffusion Sampler Actually Correct?' (arXiv:2602.19619, Feb 23, 2026)"
+                ]
+              },
+              {
+                "type": "p",
+                "children": [
+                  {
+                    "type": "strong",
+                    "children": [
+                      "Key insight:"
+                    ]
+                  },
+                  " Uses an oracle HMM framework to isolate sampler-induced error from denoiser error. Finding: few-step discrete diffusion samplers are NOT distributionally correct even with perfect denoisers. Mismatch only vanishes as steps approach sequence length. Improvements in NLL/perplexity/MAUVE don't imply correct sampling."
+                ]
+              },
+              {
+                "type": "p",
+                "children": [
+                  {
+                    "type": "strong",
+                    "children": [
+                      "Relevance:"
+                    ]
+                  },
+                  " ⭐⭐ IMPORTANT CAVEAT. If standard samplers aren't correct, SAE-guided interventions during sampling could either help (correcting distributional drift) or compound errors. The oracle framework could be used to evaluate whether SAE guidance improves distributional correctness. Also suggests that step-reduction techniques (IDLM, DSL) need careful evaluation beyond standard metrics."
+                ]
+              }
+            ]
+          },
+          {
+            "type": "p",
+            "children": [
+              {
+                "type": "strong",
+                "children": [
+                  "Mar 1 Summary:"
+                ]
+              },
+              " Steerling-8B is the headline: the first diffusion LM with built-in interpretable concept routing at scale. This validates our core thesis (Idea 1) that structured concept spaces work for diffusion text generation. The field is also maturing rapidly with unified tooling (dLLM), faster inference (IDLM), and deeper mechanistic understanding (asymmetry exploitation, sampler correctness)."
+            ]
           }
         ]
       }
