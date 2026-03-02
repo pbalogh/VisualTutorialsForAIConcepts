@@ -4033,11 +4033,11 @@
       },
       {
         "type": "Section",
-        "title": "📡 Feb 26, 2026 (1pm): VDLM, Semantic Bottleneck & Simplified USDM Training",
+        "title": "\ud83d\udce1 Feb 26, 2026 (1pm): VDLM, Semantic Bottleneck & Simplified USDM Training",
         "children": [
           {
             "type": "p",
-            "content": "🔴 **VDLM: Variable Diffusion LMs via Robust Latent-to-Text Rendering** (arXiv:2602.15870, Jan 27 2026): Separates semantic planning from text rendering — applies LLaDA-style masked diffusion over *semantic variable embeddings* for iterative refinement in latent space, then uses a Vec2Text renderer to decode. Post-trains the planner with embedding-space RL rewards, avoiding text decoding inside the RL loop. Competitive on 9 benchmarks spanning reasoning, math, and code."
+            "content": "\ud83d\udd34 **VDLM: Variable Diffusion LMs via Robust Latent-to-Text Rendering** (arXiv:2602.15870, Jan 27 2026): Separates semantic planning from text rendering \u2014 applies LLaDA-style masked diffusion over *semantic variable embeddings* for iterative refinement in latent space, then uses a Vec2Text renderer to decode. Post-trains the planner with embedding-space RL rewards, avoiding text decoding inside the RL loop. Competitive on 9 benchmarks spanning reasoning, math, and code."
           },
           {
             "type": "DeepDive",
@@ -4045,13 +4045,13 @@
             "children": [
               {
                 "type": "p",
-                "content": "VDLM is a strong validation of Idea 1 (Structured Latent Spaces). Their architecture explicitly separates diffusion planning in embedding space from text rendering — exactly the modular design we envision. The key insight: you can do RL post-training entirely in embedding space without decoding to text. For our SAE-guided approach, this suggests: (1) diffuse in SAE feature space for planning, (2) use a separate renderer to produce text. Their Vec2Text + embedding perturbations for robustness is relevant to Idea 4 — the renderer must be robust to noisy/approximate latent representations, just as our dictionary-guided denoising would produce approximate feature activations."
+                "content": "VDLM is a strong validation of Idea 1 (Structured Latent Spaces). Their architecture explicitly separates diffusion planning in embedding space from text rendering \u2014 exactly the modular design we envision. The key insight: you can do RL post-training entirely in embedding space without decoding to text. For our SAE-guided approach, this suggests: (1) diffuse in SAE feature space for planning, (2) use a separate renderer to produce text. Their Vec2Text + embedding perturbations for robustness is relevant to Idea 4 \u2014 the renderer must be robust to noisy/approximate latent representations, just as our dictionary-guided denoising would produce approximate feature activations."
               }
             ]
           },
           {
             "type": "p",
-            "content": "🟡 **A Hidden Semantic Bottleneck in Conditional Embeddings of Diffusion Transformers** (arXiv:2602.21596, ICLR 2026): Conditional embeddings in DiTs show extreme angular similarity (>99%) and semantic information concentrates in a small subset of dimensions. Pruning 2/3 of embedding dimensions preserves or improves generation quality."
+            "content": "\ud83d\udfe1 **A Hidden Semantic Bottleneck in Conditional Embeddings of Diffusion Transformers** (arXiv:2602.21596, ICLR 2026): Conditional embeddings in DiTs show extreme angular similarity (>99%) and semantic information concentrates in a small subset of dimensions. Pruning 2/3 of embedding dimensions preserves or improves generation quality."
           },
           {
             "type": "DeepDive",
@@ -4059,23 +4059,23 @@
             "children": [
               {
                 "type": "p",
-                "content": "This directly supports the premise behind all four ideas: diffusion models already learn naturally sparse, low-dimensional conditional representations. If semantic info concentrates in few dimensions, SAE decomposition should be particularly effective — SAEs are designed to find exactly these sparse, meaningful directions. For Idea 1, this suggests the structured latent space may need fewer SAE features than expected. For Idea 3 (noise schedules), the 'head' vs 'tail' dimension distinction maps to destroying low-information dimensions first."
+                "content": "This directly supports the premise behind all four ideas: diffusion models already learn naturally sparse, low-dimensional conditional representations. If semantic info concentrates in few dimensions, SAE decomposition should be particularly effective \u2014 SAEs are designed to find exactly these sparse, meaningful directions. For Idea 1, this suggests the structured latent space may need fewer SAE features than expected. For Idea 3 (noise schedules), the 'head' vs 'tail' dimension distinction maps to destroying low-information dimensions first."
               }
             ]
           },
           {
             "type": "p",
-            "content": "🟢 **Simple Denoising Diffusion Language Models** (arXiv:2510.22926, Oct 2025, updated Feb 2026): Simplifies Uniform State Diffusion Model (USDM) training with a denoising-only loss that optimizes only noise-replaced tokens, plus a regularization term. Scales to larger models. Infrastructure paper supporting Idea 4 — simpler training losses make it easier to add SAE-guided constraints."
+            "content": "\ud83d\udfe2 **Simple Denoising Diffusion Language Models** (arXiv:2510.22926, Oct 2025, updated Feb 2026): Simplifies Uniform State Diffusion Model (USDM) training with a denoising-only loss that optimizes only noise-replaced tokens, plus a regularization term. Scales to larger models. Infrastructure paper supporting Idea 4 \u2014 simpler training losses make it easier to add SAE-guided constraints."
           }
         ]
       },
       {
         "type": "Section",
-        "title": "📡 Feb 27, 2026: Sampler Correctness, Reward Stitching & Conditional Estimators",
+        "title": "\ud83d\udce1 Feb 27, 2026: Sampler Correctness, Reward Stitching & Conditional Estimators",
         "children": [
           {
             "type": "DeepDive",
-            "title": "[Feb 27] ⚠️ Few-Step Discrete Diffusion Samplers Are Distributionally Incorrect (Feb 23, 2026)",
+            "title": "[Feb 27] \u26a0\ufe0f Few-Step Discrete Diffusion Samplers Are Distributionally Incorrect (Feb 23, 2026)",
             "children": [
               {
                 "type": "p",
@@ -4098,7 +4098,7 @@
                       "Key insight:"
                     ]
                   },
-                  " Introduces an oracle evaluation framework using exact HMM posteriors to isolate sampler-induced error from denoiser approximation error. CRITICAL FINDING: few-step discrete diffusion samplers are NOT distributionally correct even under an ORACLE denoiser — transition-level mismatch vanishes only as steps approach sequence length. Moreover, improvements in NLL, generative perplexity, or MAUVE do NOT imply correct sampling. LLaDA shows persistent deviation and entropy collapse even with many steps."
+                  " Introduces an oracle evaluation framework using exact HMM posteriors to isolate sampler-induced error from denoiser approximation error. CRITICAL FINDING: few-step discrete diffusion samplers are NOT distributionally correct even under an ORACLE denoiser \u2014 transition-level mismatch vanishes only as steps approach sequence length. Moreover, improvements in NLL, generative perplexity, or MAUVE do NOT imply correct sampling. LLaDA shows persistent deviation and entropy collapse even with many steps."
                 ]
               },
               {
@@ -4110,14 +4110,14 @@
                       "Relevance:"
                     ]
                   },
-                  " ⭐⭐⭐ IMPORTANT CAVEAT for all ideas. If few-step sampling is fundamentally flawed, SAE-guided interventions at each step interact with an already-incorrect sampling process. This means: (1) for Idea 4 (dictionary-guided denoising), SAE corrections might partially compensate for sampler error — or exacerbate it. (2) for Idea 3 (semantic schedules), the noise schedule interacts with sampler correctness in ways we need to understand. (3) Practical implication: SAE-guided diffusion may need MORE steps than standard to maintain distributional accuracy, offsetting efficiency gains. The LLaDA entropy collapse is especially concerning — it suggests the model converges too aggressively, which SAE guidance could either help (by maintaining diversity through feature steering) or hurt (by adding another convergence pressure)."
+                  " \u2b50\u2b50\u2b50 IMPORTANT CAVEAT for all ideas. If few-step sampling is fundamentally flawed, SAE-guided interventions at each step interact with an already-incorrect sampling process. This means: (1) for Idea 4 (dictionary-guided denoising), SAE corrections might partially compensate for sampler error \u2014 or exacerbate it. (2) for Idea 3 (semantic schedules), the noise schedule interacts with sampler correctness in ways we need to understand. (3) Practical implication: SAE-guided diffusion may need MORE steps than standard to maintain distributional accuracy, offsetting efficiency gains. The LLaDA entropy collapse is especially concerning \u2014 it suggests the model converges too aggressively, which SAE guidance could either help (by maintaining diversity through feature steering) or hurt (by adding another convergence pressure)."
                 ]
               }
             ]
           },
           {
             "type": "DeepDive",
-            "title": "[Feb 27] 🔥 Reward-Guided Stitching: Step-Level Recombination of Diffusion Reasoning (Feb 26, 2026)",
+            "title": "[Feb 27] \ud83d\udd25 Reward-Guided Stitching: Step-Level Recombination of Diffusion Reasoning (Feb 26, 2026)",
             "children": [
               {
                 "type": "p",
@@ -4140,7 +4140,7 @@
                       "Key insight:"
                     ]
                   },
-                  " Proposes 'Stitching Noisy Diffusion Thoughts' — samples many diverse, low-cost reasoning trajectories from a masked DLM, scores every intermediate step with a process reward model (PRM), then stitches highest-quality steps ACROSS trajectories into a composite rationale. An AR solver then recomputes the final answer from the stitched rationale. Training-free, +23.8% average accuracy across 6 math/coding tasks, 1.8x latency reduction vs Dream/LLaDA. Code released."
+                  " Proposes 'Stitching Noisy Diffusion Thoughts' \u2014 samples many diverse, low-cost reasoning trajectories from a masked DLM, scores every intermediate step with a process reward model (PRM), then stitches highest-quality steps ACROSS trajectories into a composite rationale. An AR solver then recomputes the final answer from the stitched rationale. Training-free, +23.8% average accuracy across 6 math/coding tasks, 1.8x latency reduction vs Dream/LLaDA. Code released."
                 ]
               },
               {
@@ -4152,7 +4152,7 @@
                       "Relevance:"
                     ]
                   },
-                  " ⭐⭐⭐ ARCHITECTURE FOR IDEAS 2 & 4. The step-level scoring and stitching framework is a natural fit for SAE-based guidance: (1) Replace the PRM with SAE feature coherence scoring — score each intermediate step by how well its SAE features align with target semantics. (2) The cross-trajectory stitching enables composing best semantic features from different generation attempts. (3) The modular pipeline (diffusion explores, scorer evaluates, AR solver refines) maps to: diffusion generates diverse candidates → SAE features evaluate semantic quality → solver produces final output. The finding that low-confidence diffusion sampling produces more diverse, useful candidates is interesting — it means SAE-guided exploration (deliberately sampling diverse feature configurations) could improve final quality."
+                  " \u2b50\u2b50\u2b50 ARCHITECTURE FOR IDEAS 2 & 4. The step-level scoring and stitching framework is a natural fit for SAE-based guidance: (1) Replace the PRM with SAE feature coherence scoring \u2014 score each intermediate step by how well its SAE features align with target semantics. (2) The cross-trajectory stitching enables composing best semantic features from different generation attempts. (3) The modular pipeline (diffusion explores, scorer evaluates, AR solver refines) maps to: diffusion generates diverse candidates \u2192 SAE features evaluate semantic quality \u2192 solver produces final output. The finding that low-confidence diffusion sampling produces more diverse, useful candidates is interesting \u2014 it means SAE-guided exploration (deliberately sampling diverse feature configurations) could improve final quality."
                 ]
               }
             ]
@@ -4194,8 +4194,37 @@
                       "Relevance:"
                     ]
                   },
-                  " ⭐⭐ THEORETICAL ALTERNATIVE for Idea 4. The single-site conditional estimation approach could be combined with SAE-guided constraints: at each site (token position), the conditional estimator could be augmented with SAE feature information about what that position 'should be' given the current global feature state. The round-robin dynamics (visiting one site at a time) are also interesting for SAE integration — you could check SAE feature coherence after each single-site update, enabling very fine-grained dictionary-guided denoising."
+                  " \u2b50\u2b50 THEORETICAL ALTERNATIVE for Idea 4. The single-site conditional estimation approach could be combined with SAE-guided constraints: at each site (token position), the conditional estimator could be augmented with SAE feature information about what that position 'should be' given the current global feature state. The round-robin dynamics (visiting one site at a time) are also interesting for SAE integration \u2014 you could check SAE feature coherence after each single-site update, enabling very fine-grained dictionary-guided denoising."
                 ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "title": "\ud83d\udce1 Mar 1, 2026: \u03a8-Samplers Challenge Masked Diffusion Dominance",
+        "children": [
+          {
+            "type": "Fragment",
+            "children": [
+              {
+                "type": "paragraph",
+                "text": "One new paper this sweep. The field is consolidating around infrastructure and sampling quality \u2014 good sign for building on top."
+              }
+            ]
+          },
+          {
+            "type": "DeepDive",
+            "title": "The Diffusion Duality Ch. II: \u03a8-Samplers (arXiv:2602.21185)",
+            "children": [
+              {
+                "type": "paragraph",
+                "text": "Sahoo et al. introduce Predictor-Corrector samplers for uniform-state discrete diffusion (Duo) that generalize prior methods. Key result: uniform-state diffusion + PC sampling outperforms masked diffusion (MDLM) on both language and image modeling, and crucially keeps improving with more steps (unlike ancestral sampling which plateaus). Also: 25% training time reduction and 33% memory savings via curriculum."
+              },
+              {
+                "type": "paragraph",
+                "text": "Relevance to our ideas: Uniform-state diffusion's self-correction ability is exactly what SAE-guided generation needs \u2014 the ability to course-correct toward target features mid-denoising. If masked diffusion can't self-correct (tokens once unmasked are fixed), that's a fundamental limitation for Idea 2 (feature steering). This paper argues uniform-state is the better substrate for guided generation. Connects to the Sampler Correctness paper (2602.19619) \u2014 PC sampling may fix the distributional correctness issues that plague few-step samplers."
               }
             ]
           }
@@ -4247,15 +4276,14 @@
             ]
           }
         ]
-      }
-    ,
+      },
       {
         "type": "Section",
-        "title": "📡 Feb 28, 2026: One-Step SAEs, Discrete Diffusion Survey & Scaling to 10B",
+        "title": "\ud83d\udce1 Feb 28, 2026: One-Step SAEs, Discrete Diffusion Survey & Scaling to 10B",
         "children": [
           {
             "type": "DeepDive",
-            "title": "[Feb 28] 🔥🔥 One-Step is Enough: SAEs for T2I Diffusion Models (NeurIPS 2025)",
+            "title": "[Feb 28] \ud83d\udd25\ud83d\udd25 One-Step is Enough: SAEs for T2I Diffusion Models (NeurIPS 2025)",
             "children": [
               {
                 "type": "p",
@@ -4278,7 +4306,7 @@
                       "Key insight:"
                     ]
                   },
-                  " Training SAEs on diffusion model activations does NOT require collecting activations across all denoising steps — a SINGLE timestep's activations suffice for learning interpretable, steerable features. This dramatically reduces the cost of SAE training for diffusion models. Demonstrates decomposition of intermediate representations into sparse sums of interpretable features that enable fine-grained control."
+                  " Training SAEs on diffusion model activations does NOT require collecting activations across all denoising steps \u2014 a SINGLE timestep's activations suffice for learning interpretable, steerable features. This dramatically reduces the cost of SAE training for diffusion models. Demonstrates decomposition of intermediate representations into sparse sums of interpretable features that enable fine-grained control."
                 ]
               },
               {
@@ -4290,7 +4318,7 @@
                       "Relevance:"
                     ]
                   },
-                  " ⭐⭐⭐ CRITICAL PRACTICAL FINDING for all four ideas. The biggest practical concern with SAE+diffusion is cost — if you need to train SAEs across every denoising timestep, it's prohibitive. This paper eliminates that concern: one-step training produces features that generalize across timesteps. For Idea 1 (structured latent spaces), this means SAE feature space is consistent across the denoising trajectory. For Idea 3 (semantic noise schedules), the timestep-invariance of SAE features validates that the same feature vocabulary can guide scheduling at any noise level. For Idea 4 (dictionary-guided denoising), dictionary features learned from one timestep can be applied at every step."
+                  " \u2b50\u2b50\u2b50 CRITICAL PRACTICAL FINDING for all four ideas. The biggest practical concern with SAE+diffusion is cost \u2014 if you need to train SAEs across every denoising timestep, it's prohibitive. This paper eliminates that concern: one-step training produces features that generalize across timesteps. For Idea 1 (structured latent spaces), this means SAE feature space is consistent across the denoising trajectory. For Idea 3 (semantic noise schedules), the timestep-invariance of SAE features validates that the same feature vocabulary can guide scheduling at any noise level. For Idea 4 (dictionary-guided denoising), dictionary features learned from one timestep can be applied at every step."
                 ]
               },
               {
@@ -4344,7 +4372,7 @@
                       "Relevance:"
                     ]
                   },
-                  " ⭐⭐ REFERENCE RESOURCE. Provides the taxonomic framework for positioning our SAE+diffusion work within the broader landscape. Useful for literature review and identifying which diffusion families are most amenable to SAE integration."
+                  " \u2b50\u2b50 REFERENCE RESOURCE. Provides the taxonomic framework for positioning our SAE+diffusion work within the broader landscape. Useful for literature review and identifying which diffusion families are most amenable to SAE integration."
                 ]
               }
             ]
@@ -4362,7 +4390,7 @@
                       "Paper:"
                     ]
                   },
-                  " von Rütte et al., 'Scaling Behavior of Discrete Diffusion Language Models' (arXiv:2512.10858, updated Feb 2026)"
+                  " von R\u00fctte et al., 'Scaling Behavior of Discrete Diffusion Language Models' (arXiv:2512.10858, updated Feb 2026)"
                 ]
               },
               {
@@ -4374,7 +4402,7 @@
                       "Update:"
                     ]
                   },
-                  " Now confirmed as the largest publicly known uniform diffusion model at 10B parameters trained for 10²² FLOPs. Reformulates the discrete diffusion ELBO in terms of signal-to-noise ratio, closing the gap to continuous diffusion theory. Training code and models to be open-sourced. The SNR reformulation simplifies both theory and implementation — relevant for Idea 3 (noise schedules could be expressed in SNR terms)."
+                  " Now confirmed as the largest publicly known uniform diffusion model at 10B parameters trained for 10\u00b2\u00b2 FLOPs. Reformulates the discrete diffusion ELBO in terms of signal-to-noise ratio, closing the gap to continuous diffusion theory. Training code and models to be open-sourced. The SNR reformulation simplifies both theory and implementation \u2014 relevant for Idea 3 (noise schedules could be expressed in SNR terms)."
                 ]
               }
             ]
@@ -4388,12 +4416,12 @@
                   "Summary:"
                 ]
               },
-              " The 'One-Step is Enough' finding is the most impactful new result — it removes a major practical barrier to SAE+diffusion integration. The field continues to mature rapidly with comprehensive surveys and scaling studies confirming discrete diffusion as a viable paradigm."
+              " The 'One-Step is Enough' finding is the most impactful new result \u2014 it removes a major practical barrier to SAE+diffusion integration. The field continues to mature rapidly with comprehensive surveys and scaling studies confirming discrete diffusion as a viable paradigm."
             ]
           },
           {
             "type": "DeepDive",
-            "title": "[Mar 1] 🔥🔥🔥 Steerling-8B: First Inherently Interpretable Diffusion LM with Concept Routing (Feb 23, 2026)",
+            "title": "[Mar 1] \ud83d\udd25\ud83d\udd25\ud83d\udd25 Steerling-8B: First Inherently Interpretable Diffusion LM with Concept Routing (Feb 23, 2026)",
             "children": [
               {
                 "type": "p",
@@ -4440,7 +4468,7 @@
                       "Relevance:"
                     ]
                   },
-                  " ⭐⭐⭐ THIS IS OUR IDEA 1 IMPLEMENTED AT SCALE! Steerling-8B is essentially a diffusion LM with a built-in SAE-like concept bottleneck. Their ~33K supervised + ~100K discovered concepts ARE the structured latent space we proposed. The linear concept-to-logit path ensures decomposability — exactly what SAE features provide. The 84% concept routing means the model doesn't bypass the interpretable pathway. Key difference from our proposal: they train concepts INTO the model architecture rather than extracting them post-hoc via SAEs. This validates the thesis but suggests the most effective approach may be architectural integration rather than post-hoc SAE application."
+                  " \u2b50\u2b50\u2b50 THIS IS OUR IDEA 1 IMPLEMENTED AT SCALE! Steerling-8B is essentially a diffusion LM with a built-in SAE-like concept bottleneck. Their ~33K supervised + ~100K discovered concepts ARE the structured latent space we proposed. The linear concept-to-logit path ensures decomposability \u2014 exactly what SAE features provide. The 84% concept routing means the model doesn't bypass the interpretable pathway. Key difference from our proposal: they train concepts INTO the model architecture rather than extracting them post-hoc via SAEs. This validates the thesis but suggests the most effective approach may be architectural integration rather than post-hoc SAE application."
                 ]
               },
               {
@@ -4459,7 +4487,7 @@
           },
           {
             "type": "DeepDive",
-            "title": "[Mar 1] dLLMs Exploit Asymmetry for Planning — Mechanistic Analysis (Feb 23, 2026)",
+            "title": "[Mar 1] dLLMs Exploit Asymmetry for Planning \u2014 Mechanistic Analysis (Feb 23, 2026)",
             "children": [
               {
                 "type": "p",
@@ -4494,7 +4522,7 @@
                       "Relevance:"
                     ]
                   },
-                  " ⭐⭐ MECHANISTIC INSIGHT for all ideas. This explains WHY diffusion LMs might be better targets for SAE-guided generation than AR LMs: their bidirectional access enables backward decoding from semantic targets. SAE features specifying desired semantics could serve as the 'future tokens' that guide backward planning. Complements the Mechanism Shift paper — another piece of evidence that dLLMs compute fundamentally differently from AR models."
+                  " \u2b50\u2b50 MECHANISTIC INSIGHT for all ideas. This explains WHY diffusion LMs might be better targets for SAE-guided generation than AR LMs: their bidirectional access enables backward decoding from semantic targets. SAE features specifying desired semantics could serve as the 'future tokens' that guide backward planning. Complements the Mechanism Shift paper \u2014 another piece of evidence that dLLMs compute fundamentally differently from AR models."
                 ]
               }
             ]
@@ -4536,7 +4564,7 @@
                       "Relevance:"
                     ]
                   },
-                  " ⭐⭐ PRACTICAL ENABLER. Fewer denoising steps means SAE-guided interventions per step become less costly. Combined with DSL's 4x reduction, total overhead for SAE guidance could be minimal. The gradient-stable relaxations for discrete backprop could also help train SAE-guided denoising objectives."
+                  " \u2b50\u2b50 PRACTICAL ENABLER. Fewer denoising steps means SAE-guided interventions per step become less costly. Combined with DSL's 4x reduction, total overhead for SAE guidance could be minimal. The gradient-stable relaxations for discrete backprop could also help train SAE-guided denoising objectives."
                 ]
               }
             ]
@@ -4578,7 +4606,7 @@
                       "Relevance:"
                     ]
                   },
-                  " ⭐⭐ PRACTICAL INFRASTRUCTURE. A unified framework for DLM experimentation dramatically lowers the barrier to prototyping SAE+diffusion ideas. Could serve as the base for our experimental work — add SAE hooks to dLLM's training/inference pipeline."
+                  " \u2b50\u2b50 PRACTICAL INFRASTRUCTURE. A unified framework for DLM experimentation dramatically lowers the barrier to prototyping SAE+diffusion ideas. Could serve as the base for our experimental work \u2014 add SAE hooks to dLLM's training/inference pipeline."
                 ]
               }
             ]
@@ -4620,7 +4648,7 @@
                       "Relevance:"
                     ]
                   },
-                  " ⭐⭐ IMPORTANT CAVEAT. If standard samplers aren't correct, SAE-guided interventions during sampling could either help (correcting distributional drift) or compound errors. The oracle framework could be used to evaluate whether SAE guidance improves distributional correctness. Also suggests that step-reduction techniques (IDLM, DSL) need careful evaluation beyond standard metrics."
+                  " \u2b50\u2b50 IMPORTANT CAVEAT. If standard samplers aren't correct, SAE-guided interventions during sampling could either help (correcting distributional drift) or compound errors. The oracle framework could be used to evaluate whether SAE guidance improves distributional correctness. Also suggests that step-reduction techniques (IDLM, DSL) need careful evaluation beyond standard metrics."
                 ]
               }
             ]
