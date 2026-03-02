@@ -4203,6 +4203,39 @@
       },
       {
         "type": "Section",
+        "title": "\ud83d\udce1 Mar 2, 2026: Temporal SAEs — Sequential Coherence for Interpretable Features",
+        "children": [
+          {
+            "type": "Fragment",
+            "children": [
+              {
+                "type": "paragraph",
+                "text": "One major find this sweep: Temporal SAEs (T-SAEs) from ICLR 2026 (oral). Updated v2 dropped Feb 25. This directly addresses a core challenge for our SAE+diffusion approach."
+              }
+            ]
+          },
+          {
+            "type": "DeepDive",
+            "title": "\ud83d\udd25\ud83d\udd25\ud83d\udd25 Temporal Sparse Autoencoders: Sequential Coherence Without Supervision (arXiv:2511.05541, ICLR 2026 Oral)",
+            "children": [
+              {
+                "type": "paragraph",
+                "text": "Oesterling et al. introduce T-SAEs that add a contrastive loss encouraging consistent feature activations over adjacent tokens. Standard SAEs treat each token as i.i.d., which produces noisy, token-specific features. T-SAEs recover smoother, more coherent semantic concepts — and crucially, they disentangle semantic from syntactic features in a self-supervised manner. No sacrifice in reconstruction quality."
+              },
+              {
+                "type": "paragraph",
+                "text": "Why this matters for us: This is a DIRECT upgrade for all four of our SAE+diffusion ideas. (1) Structured Latent Spaces: T-SAE features are temporally coherent, meaning diffusion in T-SAE space would produce smoother denoising trajectories — features wouldn't flicker on/off token-by-token. (2) Feature Steering: semantic/syntactic disentanglement means we can steer high-level meaning while letting syntax resolve naturally during denoising. (3) Semantically-Aware Noise Schedules: T-SAEs literally give us the hierarchy we need — semantic features (smooth, high-level) destroyed last, syntactic features (local, token-specific) destroyed first. (4) Dictionary-Guided Denoising: coherent features make better 'parts lists' for projection steps."
+              },
+              {
+                "type": "paragraph",
+                "text": "The paper also notes standard SAEs 'lack utility for steering' (citing Bhalla et al., 2025; Wu et al., 2025) — T-SAEs may fix exactly this. If the features are temporally coherent, activating a feature during generation should produce coherent *passages*, not just token-level effects. This could be the missing piece for Idea 2."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
         "title": "\ud83d\udce1 Mar 1, 2026: \u03a8-Samplers Challenge Masked Diffusion Dominance",
         "children": [
           {
