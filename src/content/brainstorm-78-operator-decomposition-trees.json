@@ -1,0 +1,285 @@
+{
+  "id": "brainstorm-78-operator-decomposition-trees",
+  "title": "Operator Decomposition Trees",
+  "subtitle": "Schankian operators as recursive story plans — from HARM to PROPEL to MOVE to DAMAGE",
+  "readTime": "20 min",
+  "state": {
+    "expandedNodes": [],
+    "activeEntity": null,
+    "treeStep": 0
+  },
+  "content": {
+    "type": "Fragment",
+    "children": [
+      {
+        "type": "Callout",
+        "props": { "type": "info" },
+        "children": "What if every story event could be decomposed into smaller operators, all the way down to concrete actions? Schank's 1970s Conceptual Dependency theory proposed exactly this — and combined with recursive midpoint diffusion and entity-state tracking, it becomes a powerful framework for hierarchical story generation. The decomposition tree is simultaneously a story plan, an interpretable trace, and an editable outline."
+      },
+
+      {
+        "type": "Section",
+        "props": { "title": "1. Schank's Conceptual Dependency" },
+        "children": [
+          {
+            "type": "p",
+            "children": "In 1972, Roger Schank proposed that all human actions could be described using a small set of primitive operators. Instead of having thousands of verbs with subtle differences, you decompose everything into ~11 primitives: ATRANS (transfer of possession), PTRANS (physical transfer), PROPEL (apply force), MOVE (move body part), GRASP, INGEST, EXPEL, MTRANS (mental transfer), MBUILD (create thought), SPEAK, and ATTEND (focus sense organ)."
+          },
+          {
+            "type": "Analogy",
+            "props": {
+              "concept": "Operator Decomposition",
+              "analogy": "Think of a recipe. 'Make a cake' decomposes into 'mix dry ingredients', 'mix wet ingredients', 'combine', 'bake'. Each of those decomposes further: 'mix dry ingredients' → 'measure flour', 'measure sugar', 'sift together'. And 'measure flour' → 'grab bag', 'open bag', 'scoop with cup', 'level off'. The high-level instruction IS the tree of low-level actions. Schankian operators work the same way for stories."
+            }
+          },
+          {
+            "type": "DeepDive",
+            "props": {
+              "title": "Schank's Original CD Theory",
+              "id": "cd-theory"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "Conceptual Dependency (CD) was revolutionary for its time. Schank argued that 'John ate a hamburger', 'John consumed a hamburger', and 'John had a hamburger for lunch' all share the same underlying representation: INGEST(actor=John, object=hamburger, direction=inside(John)). The surface verb doesn't matter — what matters is the primitive operator and its case-frame arguments (actor, object, instrument, direction, etc.)."
+              },
+              {
+                "type": "p",
+                "children": "This also enabled inference: if John INGEST hamburger, then afterwards hamburger is INSIDE John, John's hunger state decreases, and the hamburger no longer exists as a separate object. These state changes are automatic consequences of the primitive operator — no special inference rules needed per verb."
+              }
+            ]
+          },
+          {
+            "type": "Example",
+            "props": {
+              "title": "Decomposing 'John robbed the bank'"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "High level: ROB(actor=John, victim=Bank, object=Money)"
+              },
+              {
+                "type": "p",
+                "children": "Decomposes to: PTRANS(John → Bank) + SPEAK(John, 'Give me money', Teller) + ATRANS(Money, Bank → John) + PTRANS(John → Away)"
+              },
+              {
+                "type": "p",
+                "children": "SPEAK decomposes further: MBUILD(John, threat-plan) + MOVE(John, mouth) + PROPEL(sound-waves) + ATTEND(Teller, ears)"
+              },
+              {
+                "type": "p",
+                "children": "Each level adds concrete detail while preserving the causal structure. The tree IS the story plan."
+              }
+            ]
+          }
+        ]
+      },
+
+      {
+        "type": "Section",
+        "props": { "title": "2. The Decomposition Tree" },
+        "children": [
+          {
+            "type": "p",
+            "children": "The key insight: Schankian operators form RECURSIVE DECOMPOSITION TREES. A high-level operator like HARM decomposes into sub-operators (PROPEL → MOVE → DAMAGE), and each sub-operator can decompose further. This tree has three simultaneous interpretations: it's a story plan (what happens), an interpretable trace (why it happens), and an editable outline (change any node, regenerate its subtree)."
+          },
+          {
+            "type": "InteractiveDemo",
+            "props": {
+              "title": "🌳 Operator Decomposition Tree — Click to Expand",
+              "height": 480,
+              "initialCode": "const canvas = document.createElement('canvas');\ncanvas.width = 600; canvas.height = 440;\ncanvas.style.background = '#0a0a2e';\ncanvas.style.borderRadius = '12px';\ncanvas.style.cursor = 'pointer';\ncontainer.appendChild(canvas);\nconst ctx = canvas.getContext('2d');\n\nconst info = document.createElement('div');\ninfo.style.cssText = 'color:#94a3b8;font-size:13px;margin-top:8px;padding:4px 8px;';\ninfo.innerHTML = '🌳 Click any node to expand/collapse its sub-operators';\ncontainer.appendChild(info);\n\nconst nodes = {\n  HARM: {x:300,y:40,color:'#ef4444',text:'\"John harmed Bill\"',children:['PROPEL','DAMAGE'],expanded:false},\n  PROPEL: {x:180,y:140,color:'#f59e0b',text:'\"John swung fist at Bill\"',children:['MOVE_ARM','APPLY_FORCE'],expanded:false},\n  DAMAGE: {x:420,y:140,color:'#f59e0b',text:'\"Bill\\'s nose broke\"',children:['CONTACT','STATE_CHANGE'],expanded:false},\n  MOVE_ARM: {x:100,y:240,color:'#22c55e',text:'\"John\\'s arm extended rapidly\"',children:['MUSCLE','TRAJECTORY'],expanded:false},\n  APPLY_FORCE: {x:240,y:240,color:'#22c55e',text:'\"Force transferred to Bill\\'s face\"',children:[],expanded:false},\n  CONTACT: {x:360,y:240,color:'#22c55e',text:'\"Fist contacted nose\"',children:[],expanded:false},\n  STATE_CHANGE: {x:500,y:240,color:'#22c55e',text:'\"nose: intact → broken\"',children:[],expanded:false},\n  MUSCLE: {x:60,y:340,color:'#3b82f6',text:'\"Bicep contracted\"',children:[],expanded:false},\n  TRAJECTORY: {x:160,y:340,color:'#3b82f6',text:'\"Arc toward face\"',children:[],expanded:false}\n};\n\nfunction getVisible() {\n  const vis = ['HARM'];\n  const q = ['HARM'];\n  while(q.length) {\n    const id = q.shift();\n    const n = nodes[id];\n    if(n.expanded && n.children.length) {\n      n.children.forEach(c => { vis.push(c); q.push(c); });\n    }\n  }\n  return vis;\n}\n\nfunction draw() {\n  ctx.clearRect(0,0,600,440);\n  const vis = getVisible();\n  // Draw edges\n  vis.forEach(id => {\n    const n = nodes[id];\n    if(n.expanded) {\n      n.children.forEach(cid => {\n        if(vis.includes(cid)) {\n          const c = nodes[cid];\n          ctx.beginPath();\n          ctx.moveTo(n.x, n.y+16);\n          ctx.lineTo(c.x, c.y-16);\n          ctx.strokeStyle = 'rgba(148,163,184,0.3)';\n          ctx.lineWidth = 2;\n          ctx.stroke();\n        }\n      });\n    }\n  });\n  // Draw nodes\n  vis.forEach(id => {\n    const n = nodes[id];\n    const hasKids = n.children.length > 0;\n    ctx.beginPath();\n    const w = ctx.measureText(id).width + 32;\n    const rx = Math.max(w/2, 36);\n    ctx.roundRect(n.x-rx, n.y-16, rx*2, 32, 8);\n    ctx.fillStyle = n.expanded ? n.color+'33' : n.color+'22';\n    ctx.strokeStyle = n.color;\n    ctx.lineWidth = n.expanded ? 2 : 1;\n    ctx.fill(); ctx.stroke();\n    ctx.fillStyle = n.color;\n    ctx.font = 'bold 13px system-ui';\n    ctx.textAlign = 'center';\n    ctx.textBaseline = 'middle';\n    ctx.fillText(id, n.x, n.y);\n    if(hasKids && !n.expanded) {\n      ctx.fillStyle = '#64748b';\n      ctx.font = '10px system-ui';\n      ctx.fillText('+', n.x+rx-10, n.y);\n    }\n  });\n}\n\ncanvas.onclick = (e) => {\n  const rect = canvas.getBoundingClientRect();\n  const mx = (e.clientX - rect.left) * (600/rect.width);\n  const my = (e.clientY - rect.top) * (440/rect.height);\n  const vis = getVisible();\n  for(const id of vis) {\n    const n = nodes[id];\n    if(Math.abs(mx-n.x)<50 && Math.abs(my-n.y)<18) {\n      if(n.children.length > 0) {\n        n.expanded = !n.expanded;\n        info.innerHTML = n.expanded ? '📖 <b>'+id+'</b>: '+n.text : '🌳 Click any node to expand/collapse';\n      } else {\n        info.innerHTML = '🍃 <b>'+id+'</b> (leaf): '+n.text;\n      }\n      draw();\n      return;\n    }\n  }\n};\ndraw();"
+            }
+          },
+          {
+            "type": "Callout",
+            "props": { "type": "key" },
+            "children": "The decomposition tree is the bridge between Schank's 1970s Conceptual Dependency and modern hierarchical generation. The tree simultaneously serves as: (1) a story plan — each node is a narrative beat, (2) an interpretable trace — you can see WHY each event happens, and (3) an editable outline — modify any node and regenerate only its subtree."
+          }
+        ]
+      },
+
+      {
+        "type": "Section",
+        "props": { "title": "3. Entity State Tracking with NEKG" },
+        "children": [
+          {
+            "type": "p",
+            "children": "Operators don't just describe actions — they CHANGE the state of entities. STORYTELLER's Narrative Entity Knowledge Graph (NEKG) tracks these state changes as you walk through the decomposition tree. Each operator has preconditions (what must be true) and postconditions (what becomes true)."
+          },
+          {
+            "type": "InteractiveDemo",
+            "props": {
+              "title": "📊 Entity State Tracker — Walk Through the Tree",
+              "height": 400,
+              "initialCode": "const wrap = document.createElement('div');\nwrap.style.cssText = 'font-family:system-ui;color:#e2e8f0;';\ncontainer.appendChild(wrap);\n\nconst steps = [\n  { op: 'Initial State', entities: { John: {health:'healthy',location:'street',mood:'angry',holding:'nothing'}, Bill: {health:'healthy',location:'street',mood:'unaware',holding:'nothing'} }},\n  { op: 'HARM (begin)', entities: { John: {health:'healthy',location:'street',mood:'angry',holding:'nothing'}, Bill: {health:'healthy',location:'street',mood:'unaware',holding:'nothing'} }, highlight: 'John.mood' },\n  { op: 'PROPEL (swing fist)', entities: { John: {health:'healthy',location:'street',mood:'angry',holding:'fist-clenched'}, Bill: {health:'healthy',location:'street',mood:'alarmed',holding:'nothing'} }, highlight: 'John.holding,Bill.mood', changed: ['John.holding','Bill.mood'] },\n  { op: 'CONTACT (fist hits nose)', entities: { John: {health:'healthy',location:'street',mood:'angry',holding:'fist-clenched'}, Bill: {health:'injured',location:'street',mood:'pain',holding:'nothing'} }, highlight: 'Bill.health,Bill.mood', changed: ['Bill.health','Bill.mood'] },\n  { op: 'STATE_CHANGE (nose breaks)', entities: { John: {health:'healthy',location:'street',mood:'satisfied',holding:'nothing'}, Bill: {health:'nose-broken',location:'street',mood:'agony',holding:'nose'} }, highlight: 'Bill.health,John.mood,Bill.holding', changed: ['Bill.health','John.mood','Bill.holding','John.holding'] },\n  { op: 'HARM (complete)', entities: { John: {health:'healthy',location:'fleeing',mood:'fearful',holding:'nothing'}, Bill: {health:'nose-broken',location:'street',mood:'agony',holding:'nose'} }, highlight: 'John.location,John.mood', changed: ['John.location','John.mood'] }\n];\n\nlet step = 0;\n\nfunction render() {\n  wrap.innerHTML = '';\n  const s = steps[step];\n  const changedSet = new Set(s.changed || []);\n  \n  const header = document.createElement('div');\n  header.style.cssText = 'display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;';\n  header.innerHTML = `<span style=\"font-weight:700;color:#a78bfa;font-size:16px\">Step ${step}: ${s.op}</span><span style=\"color:#64748b;font-size:13px\">${step+1}/${steps.length}</span>`;\n  wrap.appendChild(header);\n  \n  const grid = document.createElement('div');\n  grid.style.cssText = 'display:grid;grid-template-columns:1fr 1fr;gap:12px;';\n  \n  for(const [name, attrs] of Object.entries(s.entities)) {\n    const card = document.createElement('div');\n    card.style.cssText = 'padding:14px;border-radius:10px;background:rgba(30,30,60,0.6);border:1px solid rgba(148,163,184,0.2);';\n    card.innerHTML = `<div style=\"font-weight:700;font-size:15px;margin-bottom:8px\">${name === 'John' ? '🤜' : '😵'} ${name}</div>`;\n    for(const [k,v] of Object.entries(attrs)) {\n      const isChanged = changedSet.has(name+'.'+k);\n      const row = document.createElement('div');\n      row.style.cssText = `display:flex;justify-content:space-between;padding:4px 8px;margin:2px 0;border-radius:4px;font-size:13px;${isChanged ? 'background:rgba(250,204,21,0.15);' : ''}`;\n      row.innerHTML = `<span style=\"color:#94a3b8\">${k}</span><span style=\"color:${isChanged ? '#fbbf24' : '#e2e8f0'};font-weight:${isChanged ? '700' : '400'}\">${v}${isChanged ? ' ⬅' : ''}</span>`;\n      card.appendChild(row);\n    }\n    grid.appendChild(card);\n  }\n  wrap.appendChild(grid);\n  \n  const controls = document.createElement('div');\n  controls.style.cssText = 'display:flex;gap:8px;margin-top:12px;justify-content:center;';\n  const prev = document.createElement('button');\n  prev.textContent = '← Previous';\n  prev.style.cssText = 'padding:8px 16px;border-radius:8px;background:#374151;color:white;border:none;cursor:pointer;font-weight:600;opacity:'+(step>0?'1':'0.4');\n  prev.onclick = () => { if(step>0){step--;render();} };\n  const next = document.createElement('button');\n  next.textContent = 'Next →';\n  next.style.cssText = 'padding:8px 16px;border-radius:8px;background:#7c3aed;color:white;border:none;cursor:pointer;font-weight:600;opacity:'+(step<steps.length-1?'1':'0.4');\n  next.onclick = () => { if(step<steps.length-1){step++;render();} };\n  controls.appendChild(prev); controls.appendChild(next);\n  wrap.appendChild(controls);\n  \n  const note = document.createElement('div');\n  note.style.cssText = 'color:#64748b;font-size:12px;margin-top:8px;text-align:center;';\n  note.textContent = 'Yellow highlights show state changes from the current operator. This is what NEKG tracks.';\n  wrap.appendChild(note);\n}\nrender();"
+            }
+          },
+          {
+            "type": "DeepDive",
+            "props": {
+              "title": "STORYTELLER's NEKG (Narrative Entity Knowledge Graph)",
+              "id": "nekg-deep-dive"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "NEKG maintains a graph where nodes are entities (characters, objects, locations) and edges are relationships (owns, near, angry-at). Each operator application updates this graph: ATRANS changes ownership edges, PTRANS changes location edges, PROPEL/DAMAGE changes health attributes. The graph is the 'world state' at any point in the story."
+              },
+              {
+                "type": "p",
+                "children": "This solves a critical problem in story generation: consistency. If John gives the sword to Mary in Chapter 2, the NEKG ensures John can't use it in Chapter 5 unless it's returned. Every operator checks preconditions against the NEKG and posts its postconditions back. The decomposition tree + NEKG together form a provably consistent story generation system."
+              }
+            ]
+          }
+        ]
+      },
+
+      {
+        "type": "Section",
+        "props": { "title": "4. Bridging 1970s and 2020s" },
+        "children": [
+          {
+            "type": "p",
+            "children": "The operator decomposition tree connects directly to recursive midpoint diffusion (Brainstorm #77). At the coarsest level, operators are abstract (HARM). Recursive midpoint generation fills in the details: what KIND of harm? (PROPEL → physical violence). How specifically? (swing fist → contact nose → break). The recursion levels of midpoint diffusion map exactly to the depth of the decomposition tree."
+          },
+          {
+            "type": "Analogy",
+            "props": {
+              "concept": "Decomposition Tree as Zoom Levels",
+              "analogy": "Think of Google Maps. At zoom level 1, you see continents — that's the HARM operator. Zoom to level 3, you see countries — that's PROPEL + DAMAGE. Zoom to level 5, you see cities — MOVE_ARM + APPLY_FORCE + CONTACT. Zoom to level 8, you see streets — the actual prose sentences. Each zoom level is a valid view of the same story. You can edit at any zoom level and the details below update automatically."
+            }
+          },
+          {
+            "type": "Example",
+            "props": {
+              "title": "Three Simultaneous Interpretations"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "📋 Story Plan: 'In this scene, John harms Bill through physical violence, specifically by punching him in the nose.' — Read the tree top-down for the plan."
+              },
+              {
+                "type": "p",
+                "children": "🔍 Interpretable Trace: 'The generated text describes a punch BECAUSE the planner chose HARM → PROPEL → MOVE_ARM.' — Read the tree to understand WHY."
+              },
+              {
+                "type": "p",
+                "children": "✏️ Editable Outline: 'Change PROPEL to ATRANS? Now John harms Bill by stealing instead of hitting. Only the subtree below ATRANS regenerates.' — Edit any node, keep the rest."
+              }
+            ]
+          },
+          {
+            "type": "Callout",
+            "props": { "type": "tip" },
+            "children": "This is why operator decomposition trees are so powerful: they unify planning, interpretability, and editability into a single data structure. No other generation approach gives you all three simultaneously."
+          }
+        ]
+      },
+
+      {
+        "type": "Section",
+        "props": { "title": "5. The Full Pipeline" },
+        "children": [
+          {
+            "type": "p",
+            "children": "Combining operator decomposition with recursive midpoint diffusion and NEKG gives a complete story generation pipeline:"
+          },
+          {
+            "type": "InteractiveDemo",
+            "props": {
+              "title": "🔄 Generation Pipeline — Click Each Stage",
+              "height": 320,
+              "initialCode": "const wrap = document.createElement('div');\nwrap.style.cssText = 'font-family:system-ui;color:#e2e8f0;display:grid;gap:10px;';\ncontainer.appendChild(wrap);\n\nconst stages = [\n  {name:'1. Set Endpoints',icon:'🎯',color:'#ef4444',desc:'Define start state (\"John is healthy, Bill is healthy\") and end state (\"John is fleeing, Bill has broken nose\"). These are NEKG snapshots.'},\n  {name:'2. Choose Root Operator',icon:'🌳',color:'#f59e0b',desc:'Select the high-level operator that transforms start→end. Here: HARM(John, Bill). This is the Level 0 midpoint.'},\n  {name:'3. Recursive Decomposition',icon:'🔀',color:'#22c55e',desc:'HARM decomposes into sub-operators (PROPEL, DAMAGE). Each sub-operator decomposes further. This builds the tree — done in parallel at each level via midpoint diffusion.'},\n  {name:'4. NEKG Validation',icon:'✅',color:'#3b82f6',desc:'At each tree node, check preconditions against NEKG. If PROPEL requires John near Bill but NEKG says they\\'re apart, insert PTRANS(John→Bill) first. Consistency by construction.'},\n  {name:'5. Leaf → Prose',icon:'✍️',color:'#a855f7',desc:'Leaf operators generate actual text. MOVE_ARM → \"John\\'s fist shot forward.\" Sequential left-to-right for flow, but the PLAN was parallel and hierarchical.'}\n];\n\nstages.forEach(s => {\n  const card = document.createElement('div');\n  card.style.cssText = `padding:14px;border-radius:10px;background:rgba(30,30,60,0.6);border-left:4px solid ${s.color};cursor:pointer;transition:all 0.2s;`;\n  card.innerHTML = `<div style=\"display:flex;justify-content:space-between;align-items:center\"><span style=\"font-weight:700;color:${s.color}\">${s.icon} ${s.name}</span><span style=\"color:#64748b;font-size:11px\">click</span></div><div class=\"desc\" style=\"display:none;margin-top:8px;font-size:13px;color:#cbd5e1;line-height:1.6\">${s.desc}</div>`;\n  card.onclick = () => { const d=card.querySelector('.desc'); d.style.display=d.style.display==='none'?'block':'none'; };\n  wrap.appendChild(card);\n});"
+            }
+          }
+        ]
+      },
+
+      {
+        "type": "Section",
+        "props": { "title": "6. Why This Matters" },
+        "children": [
+          {
+            "type": "p",
+            "children": "Current LLMs generate text autoregressively — one token at a time, no explicit plan, no world model. They can produce locally fluent text but struggle with long-range consistency (characters forget things, plotlines drop). Operator decomposition trees solve this by making the plan explicit and the world state tracked."
+          },
+          {
+            "type": "p",
+            "children": "More importantly, the decomposition tree is INSPECTABLE. When a flat LLM generates a surprising plot twist, you can't ask 'why?' — the reasoning is buried in billions of parameters. With an operator tree, the answer is right there: 'The planner chose HARM → PROPEL because the NEKG showed John's anger state was above threshold and Bill was within reach.'"
+          },
+          {
+            "type": "Callout",
+            "props": { "type": "key" },
+            "children": "Operator decomposition trees bridge Schank's 1970s vision (small set of universal primitives that explain all actions) with modern hierarchical generation (recursive midpoint diffusion for parallel planning). The result: stories that are planned top-down, validated against a world model, and interpretable at every level."
+          }
+        ]
+      },
+
+      {
+        "type": "Section",
+        "props": { "title": "🧠 Test Your Understanding" },
+        "children": [
+          {
+            "type": "Quiz",
+            "props": {
+              "question": "What are the three simultaneous interpretations of an operator decomposition tree?",
+              "options": [
+                "Input, output, and weights",
+                "Story plan, interpretable trace, and editable outline",
+                "Encoder, decoder, and attention",
+                "Training, validation, and testing"
+              ],
+              "correct": 1,
+              "explanation": "The decomposition tree serves three roles at once: a story plan (what happens at each level), an interpretable trace (why each event was chosen), and an editable outline (modify any node and regenerate only its subtree)."
+            }
+          },
+          {
+            "type": "Quiz",
+            "props": {
+              "question": "What role does the NEKG play in the generation pipeline?",
+              "options": [
+                "It generates the final text",
+                "It trains the language model",
+                "It tracks entity states and validates operator preconditions for consistency",
+                "It compresses the story into fewer tokens"
+              ],
+              "correct": 2,
+              "explanation": "The NEKG (Narrative Entity Knowledge Graph) maintains the world state — who is where, who owns what, what condition entities are in. Each operator checks preconditions against the NEKG and posts postconditions back, ensuring story consistency automatically."
+            }
+          },
+          {
+            "type": "Quiz",
+            "props": {
+              "question": "How does operator decomposition connect to recursive midpoint diffusion?",
+              "options": [
+                "They are unrelated techniques",
+                "Decomposition tree depth maps to recursion levels — abstract operators at the top, concrete text at the leaves",
+                "Midpoint diffusion replaces the decomposition tree entirely",
+                "Operator decomposition is only for images, not text"
+              ],
+              "correct": 1,
+              "explanation": "The recursion levels of midpoint diffusion correspond exactly to the depth of the decomposition tree. Level 0 = root operator (HARM), deeper levels = more specific sub-operators, leaves = actual prose. The midpoint diffusion algorithm FILLS IN the tree level by level, in parallel."
+            }
+          },
+          {
+            "type": "Quiz",
+            "props": {
+              "question": "Why is editability a key advantage of the decomposition tree?",
+              "options": [
+                "Because trees are easier to draw than graphs",
+                "Because you can change any node and only its subtree needs regeneration — the rest of the story is preserved",
+                "Because editing is faster than generation",
+                "Because trees have fewer nodes than sequences"
+              ],
+              "correct": 1,
+              "explanation": "If you change PROPEL to ATRANS at level 2, only the subtree below that node regenerates. Everything above (the overall HARM plan) and everything in parallel branches stays the same. This is surgical editing of generated stories — impossible with autoregressive generation where changing one token cascades through everything after it."
+            }
+          }
+        ]
+      }
+    ]
+  }
+}

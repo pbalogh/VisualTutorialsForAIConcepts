@@ -127,6 +127,18 @@ function CreateTutorialModal({ isOpen, onClose }) {
 
 const tutorials = [
   {
+    id: 'brainstorm-78-operator-decomposition-trees',
+    title: 'Operator Decomposition Trees',
+    description: 'How Schankian operators form recursive decomposition trees — simultaneously story plan, interpretable trace, and editable outline',
+    tags: ['Schankian', 'operators', 'trees', 'generation', 'brainstorm'],
+    icon: '🌳',
+    gradient: 'from-emerald-500 to-teal-600',
+    shadowColor: 'rgba(16, 185, 129, 0.3)',
+    glowColor: 'rgba(16, 185, 129, 0.15)',
+    readTime: '20 min',
+    difficulty: 'intermediate',
+  },
+  {
     id: 'brainstorm-77-recursive-midpoint',
     title: 'Recursive Midpoint Diffusion',
     description: 'Brownian lightning for text generation — endpoints first, details last. A radical architecture that generates text from the outside in with O(log n) depth, embarrassing parallelism, and natural global coherence.',
