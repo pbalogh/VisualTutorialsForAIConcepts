@@ -1,0 +1,505 @@
+{
+  "id": "brainstorm-10-hierarchical-operator-trees",
+  "title": "Hierarchical Operator Trees",
+  "subtitle": "Symbolic + Geometric: organizing operators into trees where each node is BOTH a label AND an embedding region",
+  "readTime": "25 min",
+  "state": "brainstorm_10",
+  "content": {
+    "type": "Fragment",
+    "children": [
+      {
+        "type": "Callout",
+        "props": { "type": "info" },
+        "children": "This tutorial explores how Schankian operators can be organized into hierarchical trees that combine symbolic labels with geometric embedding regions. This is the architecture behind Paper 2c — handling polysemy, composition, and generalization in one unified structure."
+      },
+      {
+        "type": "Section",
+        "props": { "title": "1. The Problem: Flat Lists Don't Scale" },
+        "children": [
+          {
+            "type": "p",
+            "children": "Schank originally proposed ~14 primitive operators (ATRANS, PTRANS, PROPEL, MOVE, GRASP, INGEST, EXPEL, MTRANS, MBUILD, SPEAK, ATTEND, SMELL, SEE, HEAR). But this flat list has problems:"
+          },
+          {
+            "type": "DefinitionList",
+            "props": {
+              "items": [
+                {
+                  "term": "Polysemy Problem",
+                  "definition": "'Shot him a glance' vs 'shot him dead' — the same surface verb maps to completely different operators. A flat list forces a hard choice. Which PROPEL is it?"
+                },
+                {
+                  "term": "Granularity Problem",
+                  "definition": "Is 'stab' a kind of PROPEL? Is PROPEL a kind of CAUSE? Flat lists can't represent these IS-A relationships."
+                },
+                {
+                  "term": "Composition Problem",
+                  "definition": "'Chop the onion' = SEPARATE ∘ CONTACT — but where does the composed operator live in a flat list?"
+                }
+              ]
+            }
+          },
+          {
+            "type": "Analogy",
+            "left": {
+              "title": "Flat List (Schank 1975)",
+              "items": [
+                "14 operators, no structure",
+                "Every verb → exactly one primitive",
+                "No way to handle metaphor",
+                "No hierarchy of abstraction",
+                "Like a filing cabinet with 14 folders"
+              ]
+            },
+            "right": {
+              "title": "Hierarchical Tree (Our Approach)",
+              "items": [
+                "Tree with abstract → specific",
+                "Verbs map to REGIONS, not points",
+                "Metaphor = partial tree traversal",
+                "Multiple levels of abstraction",
+                "Like a taxonomy of biology"
+              ]
+            }
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "2. The Key Insight: Nodes Are Dual" },
+        "children": [
+          {
+            "type": "p",
+            "children": "Here's the central idea: each node in the operator tree is BOTH a symbolic label AND a region in embedding space. Not one or the other — both simultaneously."
+          },
+          {
+            "type": "DeepDive",
+            "props": {
+              "title": "🤔 Why both? Can't we just use embeddings?",
+              "id": "why-both-dual"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "Pure embeddings give you similarity and composition, but no human-interpretable labels. Pure symbols give you labels, but no way to handle graded membership or composition. The dual representation gives you:"
+              },
+              {
+                "type": "p",
+                "children": "1. INTERPRETABILITY — every region has a name you can inspect. 2. CONTINUITY — operators blend smoothly at boundaries. 3. COMPOSITIONALITY — geometric composition respects the symbolic tree structure."
+              }
+            ]
+          },
+          {
+            "type": "Example",
+            "props": {
+              "title": "Dual Node in Action: CAUSE"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "The CAUSE node has:"
+              },
+              {
+                "type": "p",
+                "children": "**Symbolic side:** Label = 'CAUSE', children = [LET, HELP, HINDER, PREVENT] (from Talmy's force dynamics). Parent = ROOT."
+              },
+              {
+                "type": "p",
+                "children": "**Geometric side:** A region in operator embedding space (think: a fuzzy ball). All verbs expressing causation land inside this region. 'Make', 'force', 'cause', 'compel' cluster near the center. 'Allow', 'let', 'permit' cluster in the LET sub-region."
+              },
+              {
+                "type": "p",
+                "children": "**The dual constraint:** The geometric sub-regions MUST be nested inside the parent region. LET's embedding ball must be inside CAUSE's embedding ball. This is enforced during training."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "3. Tree Structure: From Abstract to Specific" },
+        "children": [
+          {
+            "type": "p",
+            "children": "The tree has roughly 3-4 levels of abstraction:"
+          },
+          {
+            "type": "DefinitionList",
+            "props": {
+              "items": [
+                {
+                  "term": "Level 0: ROOT",
+                  "definition": "The universal operator — 'something happened'. Encompasses all of embedding space."
+                },
+                {
+                  "term": "Level 1: Macro-Operators (~5)",
+                  "definition": "CAUSE, TRANSFER, MOVE, PERCEIVE, THINK. Broad partitions of the space, roughly corresponding to Dowty's DO/CAUSE/BECOME/GO."
+                },
+                {
+                  "term": "Level 2: Schankian Primitives (~14)",
+                  "definition": "ATRANS, PTRANS, PROPEL, MBUILD, MTRANS, etc. Schank's original level — each is a sub-region of its parent."
+                },
+                {
+                  "term": "Level 3: Specific Operators (open-ended)",
+                  "definition": "CUT, STAB, THROW, KICK under PROPEL. GIVE, SELL, STEAL under ATRANS. Learned from data, not predefined."
+                }
+              ]
+            }
+          },
+          {
+            "type": "Callout",
+            "props": { "type": "warning" },
+            "children": "The tree is NOT a rigid taxonomy! Regions overlap at boundaries. 'Teaching' involves both MTRANS (information transfer) and CAUSE (making someone learn). The geometric representation handles this gracefully — the verb 'teach' lands in the overlap region."
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "4. Polysemy Resolution via Tree Traversal" },
+        "children": [
+          {
+            "type": "p",
+            "children": "This is where hierarchical trees really shine. Consider the word 'shot':"
+          },
+          {
+            "type": "Example",
+            "props": {
+              "title": "Disambiguating 'shot'"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "**'He shot the target'** → CAUSE → PROPEL → SHOOT_PROJECTILE. The object 'target' pulls the embedding toward the physical-harm sub-region."
+              },
+              {
+                "type": "p",
+                "children": "**'She shot him a glance'** → TRANSFER → MTRANS → COMMUNICATE_NONVERBAL. The object 'glance' pulls the embedding toward the information-transfer sub-region."
+              },
+              {
+                "type": "p",
+                "children": "**'The director shot the scene'** → CAUSE → CREATE → RECORD. The subject 'director' + object 'scene' pull toward the creation sub-region."
+              },
+              {
+                "type": "p",
+                "children": "Same surface verb, three completely different tree paths. The arguments (subject, object, context) act as gravitational pulls on the embedding, routing it through different branches of the tree."
+              }
+            ]
+          },
+          {
+            "type": "DeepDive",
+            "props": {
+              "title": "🔍 How does the routing actually work?",
+              "id": "routing-mechanism"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "1. Encode the verb + its arguments into an initial embedding vector. 2. At each tree level, compute similarity to each child node's region center. 3. Soft-route: assign probability weights to each child (not hard argmax). 4. The final operator is a weighted combination of leaf-level operators. This is differentiable end-to-end — the tree structure is learned, not hand-coded."
+              }
+            ]
+          },
+          {
+            "type": "InteractiveDemo",
+            "props": {
+              "title": "🎮 Polysemy Router",
+              "id": "polysemy-router-demo",
+              "height": 320,
+              "code": "// Simulated polysemy resolution via tree routing\nconst verbs = [\n  { verb: 'shot', args: 'the target', path: ['ROOT','CAUSE','PROPEL','SHOOT'], weights: [1,.9,.85,.95] },\n  { verb: 'shot', args: 'him a glance', path: ['ROOT','TRANSFER','MTRANS','COMMUNICATE'], weights: [1,.8,.9,.88] },\n  { verb: 'shot', args: 'the scene', path: ['ROOT','CAUSE','CREATE','RECORD'], weights: [1,.75,.82,.91] },\n  { verb: 'cut', args: 'the rope', path: ['ROOT','CAUSE','PROPEL','SEPARATE'], weights: [1,.88,.79,.93] },\n  { verb: 'cut', args: 'the budget', path: ['ROOT','CAUSE','DECREASE','REDUCE'], weights: [1,.72,.84,.87] },\n  { verb: 'cut', args: 'class today', path: ['ROOT','MOVE','AVOID','SKIP'], weights: [1,.65,.78,.90] },\n  { verb: 'run', args: 'a marathon', path: ['ROOT','MOVE','PTRANS','LOCOMOTE'], weights: [1,.92,.88,.96] },\n  { verb: 'run', args: 'a company', path: ['ROOT','CAUSE','CONTROL','MANAGE'], weights: [1,.7,.81,.89] },\n  { verb: 'run', args: 'a program', path: ['ROOT','CAUSE','ACTIVATE','EXECUTE'], weights: [1,.68,.76,.92] }\n];\nconst idx = Math.floor(Date.now() / 3000) % verbs.length;\nconst v = verbs[idx];\nconst pathStr = v.path.map((p,i) => {\n  const bar = '█'.repeat(Math.round(v.weights[i]*10));\n  return `${'  '.repeat(i)}${p} ${bar} ${(v.weights[i]*100).toFixed(0)}%`;\n}).join('\\n');\nreturn `Verb: \"${v.verb}\" + \"${v.args}\"\\n\\nTree Routing (confidence):\\n${pathStr}\\n\\n→ Final operator: ${v.path[v.path.length-1]}\\n\\n(changes every 3 seconds — watch polysemy resolve!)`;"
+            }
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "5. Geometric Constraints: Nesting and Containment" },
+        "children": [
+          {
+            "type": "p",
+            "children": "The key training constraint: child regions must be geometrically nested inside parent regions. This is what makes the tree meaningful, not just decorative."
+          },
+          {
+            "type": "Example",
+            "props": {
+              "title": "Hyperbolic Embedding for Natural Hierarchy"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "Euclidean space is a poor fit for trees — you need exponentially growing volume for each level. Hyperbolic space (Poincaré ball) naturally has this property: volume grows exponentially with radius. Tree roots near the center, leaves near the boundary."
+              },
+              {
+                "type": "p",
+                "children": "**Poincaré Ball Model:** A unit disk where distances increase near the edge. The center = ROOT (most abstract). The boundary = maximally specific operators. Geodesics (shortest paths) are arcs, not straight lines. This gives us natural containment: a ball of radius r centered at a point contains exponentially more volume in hyperbolic space than Euclidean."
+              }
+            ]
+          },
+          {
+            "type": "InteractiveDemo",
+            "props": {
+              "title": "🎮 Hyperbolic vs Euclidean Nesting",
+              "id": "hyperbolic-nesting-demo",
+              "height": 280,
+              "code": "// Comparing tree embedding in Euclidean vs Hyperbolic space\nconst levels = [\n  { name: 'ROOT', euc_r: 0.5, hyp_r: 0.1, children: 5 },\n  { name: 'CAUSE', euc_r: 0.25, hyp_r: 0.3, children: 4 },\n  { name: 'PROPEL', euc_r: 0.12, hyp_r: 0.6, children: 6 },\n  { name: 'KICK', euc_r: 0.06, hyp_r: 0.85, children: 0 }\n];\nconst eucVol = (r) => (4/3 * Math.PI * r**3).toFixed(3);\nconst hypVol = (r) => (Math.PI * (Math.cosh(2*r*3) - 1)).toFixed(1);\nlet out = 'Level        Euclidean Vol   Hyperbolic Vol   Children Fit?\\n';\nout += '─'.repeat(65) + '\\n';\nfor (const l of levels) {\n  const ev = eucVol(l.euc_r);\n  const hv = hypVol(l.hyp_r);\n  const fit = l.children === 0 ? 'leaf' : (parseFloat(hv) > l.children ? '✅ plenty' : '❌ cramped');\n  out += `${l.name.padEnd(12)} ${ev.padStart(10)}       ${hv.padStart(10)}        ${fit}\\n`;\n}\nout += '\\n💡 Hyperbolic volume grows EXPONENTIALLY with radius —';\nout += '\\n   trees embed naturally without crowding leaves!';\nreturn out;"
+            }
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "6. Composition in the Tree" },
+        "children": [
+          {
+            "type": "p",
+            "children": "Complex events decompose into paths through the tree. 'John taught Mary calculus' isn't a single operator — it's a composition:"
+          },
+          {
+            "type": "Example",
+            "props": {
+              "title": "Decomposing 'teach'"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "teach(John, Mary, calculus) = CAUSE(John, MTRANS(calculus, John → Mary)) ∘ MBUILD(Mary, calculus)"
+              },
+              {
+                "type": "p",
+                "children": "In tree terms: 1) CAUSE branch activates (John is causal agent). 2) MTRANS sub-branch activates (information transfers). 3) MBUILD sub-branch activates (Mary constructs knowledge). The composed operator lives in the INTERSECTION of these branches' geometric regions."
+              }
+            ]
+          },
+          {
+            "type": "DeepDive",
+            "props": {
+              "title": "🧮 How does geometric composition work in hyperbolic space?",
+              "id": "hyperbolic-composition"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "Möbius addition in the Poincaré ball: x ⊕ y = ((1+2⟨x,y⟩+‖y‖²)x + (1-‖x‖²)y) / (1+2⟨x,y⟩+‖x‖²‖y‖²). This replaces vector addition for composing operators in hyperbolic space. The result respects the curvature — composed operators stay inside the ball and inherit the hierarchical structure."
+              }
+            ]
+          },
+          {
+            "type": "InteractiveDemo",
+            "props": {
+              "title": "🎮 Operator Composition Tree",
+              "id": "composition-tree-demo",
+              "height": 350,
+              "code": "// Visualize how complex verbs decompose into operator tree paths\nconst decompositions = {\n  'teach': {\n    primary: ['CAUSE', 'MTRANS'],\n    secondary: ['MBUILD'],\n    formula: 'CAUSE(agent, MTRANS(info, src→dst)) ∘ MBUILD(patient, info)',\n    example: 'John taught Mary calculus'\n  },\n  'steal': {\n    primary: ['CAUSE', 'ATRANS'],\n    secondary: ['MOVE'],\n    formula: 'CAUSE(agent, ATRANS(obj, victim→agent)) ∘ MOVE(agent, loc)',\n    example: 'The thief stole the painting'\n  },\n  'assassinate': {\n    primary: ['CAUSE', 'PROPEL'],\n    secondary: ['HARM', 'TERMINATE'],\n    formula: 'CAUSE(agent, PROPEL(weapon)) → HARM(patient) → TERMINATE(patient.alive)',\n    example: 'The spy assassinated the general'\n  },\n  'bribe': {\n    primary: ['ATRANS', 'CAUSE'],\n    secondary: ['MBUILD'],\n    formula: 'ATRANS(money, agent→target) → CAUSE(target, MBUILD(target, obligation))',\n    example: 'The lobbyist bribed the senator'\n  }\n};\nconst keys = Object.keys(decompositions);\nconst idx = Math.floor(Date.now() / 4000) % keys.length;\nconst verb = keys[idx];\nconst d = decompositions[verb];\nlet out = `Verb: \"${verb}\"\\nExample: ${d.example}\\n\\n`;\nout += `Decomposition:\\n  ${d.formula}\\n\\n`;\nout += `Primary tree paths: ${d.primary.join(' + ')}\\n`;\nout += `Secondary paths:    ${d.secondary.join(' + ')}\\n\\n`;\nout += `Tree visualization:\\n`;\nout += `  ROOT\\n`;\nfor (const p of d.primary) {\n  out += `  ├── ${p} ◀━━ primary\\n`;\n}\nfor (const s of d.secondary) {\n  out += `  └── ${s} ◁── secondary\\n`;\n}\nout += `\\n(cycles every 4s — watch different verbs decompose!)`;\nreturn out;"
+            }
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "7. Handling Metaphor: Partial Tree Traversal" },
+        "children": [
+          {
+            "type": "p",
+            "children": "Metaphor is one of the hardest problems in NLP. Hierarchical operator trees give us an elegant account:"
+          },
+          {
+            "type": "p",
+            "children": "Literal meaning = full traversal to a leaf node. Metaphor = traversal that STOPS at an intermediate level or CROSSES between branches."
+          },
+          {
+            "type": "Example",
+            "props": {
+              "title": "Metaphor as Cross-Branch Mapping"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "**'The news hit me hard'** — Literal: CAUSE → PROPEL → STRIKE (physical). Metaphorical: traverses CAUSE → PROPEL but then JUMPS to PERCEIVE → ATTEND → EMOTIONAL_IMPACT. The tree path starts in one branch but resolves in another."
+              },
+              {
+                "type": "p",
+                "children": "**'She devoured the book'** — Literal: INGEST (eating). Metaphorical: CAUSE → INGEST-pattern but resolves to ATTEND → READ → INTENSE. The INGEST operator's geometric signature (rapid consumption, completeness) carries over even though the domain changed."
+              },
+              {
+                "type": "p",
+                "children": "The higher up the tree the shared ancestor is, the MORE metaphorical the expression. 'Shot him dead' (shared at PROPEL level = literal). 'Shot him a glance' (shared only at ROOT level = highly metaphorical)."
+              }
+            ]
+          },
+          {
+            "type": "Callout",
+            "props": { "type": "success" },
+            "children": "This explains why metaphor comprehension develops later in children — you need to have the full tree structure in place before you can do cross-branch mapping. Children first learn concrete operators (physical branches), then abstract ones (mental branches), then the cross-branch connections."
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "8. Training the Tree" },
+        "children": [
+          {
+            "type": "p",
+            "children": "How do we actually learn this hierarchical structure? Three approaches, each with trade-offs:"
+          },
+          {
+            "type": "DefinitionList",
+            "props": {
+              "items": [
+                {
+                  "term": "Top-Down: Divisive Clustering",
+                  "definition": "Start with all verbs in ROOT. Recursively split into sub-regions using spectral clustering on the operator embedding similarity matrix. Pro: guaranteed hierarchy. Con: splits are greedy and irreversible."
+                },
+                {
+                  "term": "Bottom-Up: Agglomerative",
+                  "definition": "Start with individual verb operators as leaves. Merge the most similar pairs. Pro: fine-grained at bottom. Con: upper levels may be arbitrary."
+                },
+                {
+                  "term": "End-to-End: Differentiable Tree",
+                  "definition": "Use a TreeVAE-like architecture where tree structure is learned jointly with embeddings. Pro: optimal for the task. Con: hard to train, potential mode collapse."
+                }
+              ]
+            }
+          },
+          {
+            "type": "DeepDive",
+            "props": {
+              "title": "💡 The hybrid approach we recommend",
+              "id": "hybrid-training"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "Use linguistic anchor points (Entry 9's KNN approach) for the top 2 levels — initialize Level 1 with Dowty's primitives (DO, CAUSE, BECOME, GO) and Level 2 with Schank's 14. Then let bottom-up agglomerative clustering discover Level 3 from data. Finally, fine-tune end-to-end with a containment loss that enforces nesting. Best of all three worlds."
+              }
+            ]
+          },
+          {
+            "type": "InteractiveDemo",
+            "props": {
+              "title": "🎮 Containment Loss Calculator",
+              "id": "containment-loss-demo",
+              "height": 280,
+              "code": "// Demonstrate the containment loss function\nfunction containmentLoss(parent_center, parent_radius, child_center, child_radius) {\n  const dist = Math.sqrt(parent_center.reduce((s, v, i) => s + (v - child_center[i])**2, 0));\n  const violation = Math.max(0, (dist + child_radius) - parent_radius);\n  return violation;\n}\n\nconst examples = [\n  { parent: 'CAUSE', child: 'PROPEL', pc: [0,0], pr: 3.0, cc: [0.5, 0.3], cr: 1.0 },\n  { parent: 'CAUSE', child: 'LET', pc: [0,0], pr: 3.0, cc: [1.8, 1.2], cr: 0.8 },\n  { parent: 'PROPEL', child: 'KICK', pc: [0.5,0.3], pr: 1.0, cc: [0.7, 0.5], cr: 0.3 },\n  { parent: 'TRANSFER', child: 'KICK', pc: [-2,0], pr: 2.5, cc: [0.7, 0.5], cr: 0.3 }\n];\n\nlet out = 'Parent       Child     Dist   Violation   Status\\n';\nout += '─'.repeat(55) + '\\n';\nfor (const e of examples) {\n  const loss = containmentLoss(e.pc, e.pr, e.cc, e.cr);\n  const dist = Math.sqrt(e.pc.reduce((s, v, i) => s + (v - e.cc[i])**2, 0)).toFixed(2);\n  const status = loss === 0 ? '✅ nested' : '❌ violation';\n  out += `${e.parent.padEnd(12)} ${e.child.padEnd(9)} ${dist.padStart(5)}   ${loss.toFixed(2).padStart(8)}     ${status}\\n`;\n}\nout += '\\nLoss = max(0, dist(parent, child) + child_radius - parent_radius)';\nout += '\\nZero loss = child ball fully inside parent ball';\nreturn out;"
+            }
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "9. Connections to Other Entries" },
+        "children": [
+          {
+            "type": "p",
+            "children": "The hierarchical operator tree connects to many other brainstorm entries:"
+          },
+          {
+            "type": "DefinitionList",
+            "props": {
+              "items": [
+                {
+                  "term": "Entry 9 (KNN Linguistic Anchors)",
+                  "definition": "Provides the initialization strategy — Dowty primitives as anchor points for Level 1-2."
+                },
+                {
+                  "term": "Entry 11 (Talmy's Force Dynamics)",
+                  "definition": "Refines the CAUSE branch: LET, HELP, HINDER, PREVENT as sub-nodes with distinct force-dynamic geometry."
+                },
+                {
+                  "term": "Entry 12 (Disentangled Dimensions)",
+                  "definition": "Each tree level corresponds to factoring out one dimension: Level 1 = domain, Level 2 = transformation type, Level 3 = specific manner."
+                },
+                {
+                  "term": "Entry 44 (Periodic Table)",
+                  "definition": "The tree IS the periodic table — organized by domain × transformation type, with gaps predicting missing operators."
+                },
+                {
+                  "term": "Entry 45 (MDL)",
+                  "definition": "MDL determines the optimal tree depth — too shallow = underfitting, too deep = overfitting."
+                }
+              ]
+            }
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "10. Why This Matters" },
+        "children": [
+          {
+            "type": "p",
+            "children": "Hierarchical operator trees solve three fundamental problems simultaneously:"
+          },
+          {
+            "type": "Callout",
+            "props": { "type": "success" },
+            "children": "1. POLYSEMY: Same verb → different tree paths based on context. No more forced disambiguation. 2. GRANULARITY: Operate at whatever level of abstraction the task requires. Coarse reasoning uses Level 1, detailed analysis uses Level 3. 3. GENERALIZATION: Novel verbs are placed in the tree by geometric similarity — even if never seen in training. If 'yeet' is geometrically near PROPEL/THROW, it inherits PROPEL's properties."
+          },
+          {
+            "type": "p",
+            "children": "This is why it was PROMOTED TO PAPER 2c — it's the architectural backbone that makes everything else work. The tree provides the organizational principle; the geometric embeddings provide the computational mechanism; together they give us a system that's both interpretable (symbolic labels) and powerful (continuous representations)."
+          }
+        ]
+      },
+      {
+        "type": "Quiz",
+        "props": {
+          "questions": [
+            {
+              "question": "Why can't a flat list of Schankian primitives handle the word 'shot' in different contexts?",
+              "options": [
+                "Because 'shot' isn't a real primitive",
+                "Because a flat list forces each verb to map to exactly one operator, but 'shot' needs different operators in different contexts",
+                "Because flat lists can't be embedded in vector space",
+                "Because Schank didn't include 'shot' in his original list"
+              ],
+              "correct": 1,
+              "explanation": "A flat list provides no mechanism for context-dependent disambiguation. 'Shot him dead' (PROPEL) and 'shot him a glance' (MTRANS) need different operators, but a flat list offers only one slot per verb."
+            },
+            {
+              "question": "What does it mean for a tree node to be 'dual' (symbolic + geometric)?",
+              "options": [
+                "It has two parents in the tree",
+                "It stores both a human-readable label AND an embedding region in vector space",
+                "It can be used in two different languages",
+                "It has both a forward and inverse operator"
+              ],
+              "correct": 1,
+              "explanation": "Each node carries a symbolic label (like 'CAUSE') for interpretability AND a geometric region in embedding space for continuous computation. This gives the best of both symbolic AI and neural approaches."
+            },
+            {
+              "question": "Why is hyperbolic space better than Euclidean space for embedding operator trees?",
+              "options": [
+                "Hyperbolic space is faster to compute",
+                "Euclidean space can't represent distances",
+                "Hyperbolic space has exponentially growing volume with radius, naturally fitting tree branching",
+                "Hyperbolic space has fewer dimensions"
+              ],
+              "correct": 2,
+              "explanation": "Trees have exponentially many nodes at each level. Euclidean space grows polynomially (r³ in 3D), causing crowding at lower levels. Hyperbolic space grows exponentially — exactly matching tree structure. This is why Poincaré embeddings revolutionized hierarchy learning."
+            },
+            {
+              "question": "How does the hierarchical tree account for metaphor?",
+              "options": [
+                "Metaphors are stored as a separate flat list",
+                "The tree has a special 'metaphor' branch",
+                "Metaphor involves partial traversal or cross-branch mapping — the literal path starts in one branch but resolves in another",
+                "Metaphors can't be represented in the tree"
+              ],
+              "correct": 2,
+              "explanation": "'The news hit me hard' starts traversing the physical PROPEL branch but jumps to EMOTIONAL_IMPACT. The height of the shared ancestor measures how metaphorical an expression is — higher ancestor = more metaphorical."
+            },
+            {
+              "question": "What does the containment loss enforce during training?",
+              "options": [
+                "That all operators have the same size",
+                "That child embedding regions are geometrically nested inside parent regions",
+                "That the tree is perfectly balanced",
+                "That operators don't overlap"
+              ],
+              "correct": 1,
+              "explanation": "Containment loss = max(0, dist(parent,child) + child_radius - parent_radius). It's zero when the child ball fits entirely inside the parent ball, and positive (penalizing) when the child sticks out. This enforces the tree structure geometrically."
+            }
+          ]
+        }
+      }
+    ]
+  }
+}

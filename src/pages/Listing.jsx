@@ -127,6 +127,18 @@ function CreateTutorialModal({ isOpen, onClose }) {
 
 const tutorials = [
   {
+    id: 'brainstorm-10-hierarchical-operator-trees',
+    title: 'Hierarchical Operator Trees',
+    description: 'Symbolic + Geometric: organizing Schankian operators into trees where each node is BOTH a label AND an embedding region. Handles polysemy, composition, and metaphor.',
+    tags: ['Schankian', 'operators', 'hierarchy', 'hyperbolic', 'polysemy', 'brainstorm'],
+    icon: '🌲',
+    gradient: 'from-amber-500 to-orange-600',
+    shadowColor: 'rgba(245, 158, 11, 0.3)',
+    glowColor: 'rgba(245, 158, 11, 0.15)',
+    readTime: '25 min',
+    difficulty: 'intermediate',
+  },
+  {
     id: 'brainstorm-78-operator-decomposition-trees',
     title: 'Operator Decomposition Trees',
     description: 'How Schankian operators form recursive decomposition trees — simultaneously story plan, interpretable trace, and editable outline',
