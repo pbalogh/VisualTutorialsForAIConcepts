@@ -4203,7 +4203,7 @@
       },
       {
         "type": "Section",
-        "title": "\ud83d\udce1 Mar 2, 2026: Temporal SAEs — Sequential Coherence for Interpretable Features",
+        "title": "\ud83d\udce1 Mar 2, 2026: Temporal SAEs \u2014 Sequential Coherence for Interpretable Features",
         "children": [
           {
             "type": "Fragment",
@@ -4220,15 +4220,15 @@
             "children": [
               {
                 "type": "paragraph",
-                "text": "Oesterling et al. introduce T-SAEs that add a contrastive loss encouraging consistent feature activations over adjacent tokens. Standard SAEs treat each token as i.i.d., which produces noisy, token-specific features. T-SAEs recover smoother, more coherent semantic concepts — and crucially, they disentangle semantic from syntactic features in a self-supervised manner. No sacrifice in reconstruction quality."
+                "text": "Oesterling et al. introduce T-SAEs that add a contrastive loss encouraging consistent feature activations over adjacent tokens. Standard SAEs treat each token as i.i.d., which produces noisy, token-specific features. T-SAEs recover smoother, more coherent semantic concepts \u2014 and crucially, they disentangle semantic from syntactic features in a self-supervised manner. No sacrifice in reconstruction quality."
               },
               {
                 "type": "paragraph",
-                "text": "Why this matters for us: This is a DIRECT upgrade for all four of our SAE+diffusion ideas. (1) Structured Latent Spaces: T-SAE features are temporally coherent, meaning diffusion in T-SAE space would produce smoother denoising trajectories — features wouldn't flicker on/off token-by-token. (2) Feature Steering: semantic/syntactic disentanglement means we can steer high-level meaning while letting syntax resolve naturally during denoising. (3) Semantically-Aware Noise Schedules: T-SAEs literally give us the hierarchy we need — semantic features (smooth, high-level) destroyed last, syntactic features (local, token-specific) destroyed first. (4) Dictionary-Guided Denoising: coherent features make better 'parts lists' for projection steps."
+                "text": "Why this matters for us: This is a DIRECT upgrade for all four of our SAE+diffusion ideas. (1) Structured Latent Spaces: T-SAE features are temporally coherent, meaning diffusion in T-SAE space would produce smoother denoising trajectories \u2014 features wouldn't flicker on/off token-by-token. (2) Feature Steering: semantic/syntactic disentanglement means we can steer high-level meaning while letting syntax resolve naturally during denoising. (3) Semantically-Aware Noise Schedules: T-SAEs literally give us the hierarchy we need \u2014 semantic features (smooth, high-level) destroyed last, syntactic features (local, token-specific) destroyed first. (4) Dictionary-Guided Denoising: coherent features make better 'parts lists' for projection steps."
               },
               {
                 "type": "paragraph",
-                "text": "The paper also notes standard SAEs 'lack utility for steering' (citing Bhalla et al., 2025; Wu et al., 2025) — T-SAEs may fix exactly this. If the features are temporally coherent, activating a feature during generation should produce coherent *passages*, not just token-level effects. This could be the missing piece for Idea 2."
+                "text": "The paper also notes standard SAEs 'lack utility for steering' (citing Bhalla et al., 2025; Wu et al., 2025) \u2014 T-SAEs may fix exactly this. If the features are temporally coherent, activating a feature during generation should produce coherent *passages*, not just token-level effects. This could be the missing piece for Idea 2."
               }
             ]
           }
@@ -4259,6 +4259,61 @@
                 "type": "paragraph",
                 "text": "Relevance to our ideas: Uniform-state diffusion's self-correction ability is exactly what SAE-guided generation needs \u2014 the ability to course-correct toward target features mid-denoising. If masked diffusion can't self-correct (tokens once unmasked are fixed), that's a fundamental limitation for Idea 2 (feature steering). This paper argues uniform-state is the better substrate for guided generation. Connects to the Sampler Correctness paper (2602.19619) \u2014 PC sampling may fix the distributional correctness issues that plague few-step samplers."
               }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "title": "\ud83d\udce1 Mar 3, 2026: NAP Parallel Decoding & DLM Survey",
+        "children": [
+          {
+            "type": "p",
+            "children": [
+              "Two notable finds this sweep:"
+            ]
+          },
+          {
+            "type": "p",
+            "children": [
+              {
+                "type": "strong",
+                "children": [
+                  "1. NAP: Non-Autoregressive Parallel DLMs"
+                ]
+              },
+              " (Li et al., Feb 26, arXiv:2602.23225): Diagnoses why DLMs converge to AR-like decoding \u2014 mismatch between DLM objectives and sequential training data. Proposes NAP: curate training data as multiple independent reasoning trajectories + parallel-forced decoding. Gains grow with parallelism. ",
+              {
+                "type": "em",
+                "children": [
+                  "For us:"
+                ]
+              },
+              " Data-centric fix for parallel generation aligns with our SAE-guided approach \u2014 SAE features could provide the 'independent trajectory' structure NAP needs. Our recursive midpoint idea (Entry 77) naturally decomposes into parallel-friendly subtrees."
+            ]
+          },
+          {
+            "type": "p",
+            "children": [
+              {
+                "type": "strong",
+                "children": [
+                  "2. 'A Survey on Diffusion Language Models'"
+                ]
+              },
+              " (VILA-Lab, arXiv:2508.10875, Aug 2025 but updated): Comprehensive survey covering MDLM, SEDD, LLaDA, Dream-7B, DiffuGPT/DiffuLLaMA. Dream-7B (from Qwen 2.5 7B) outperforms both LLaDA-8B and LLaMA3-8B. Useful reference for positioning our work."
+            ]
+          },
+          {
+            "type": "p",
+            "children": [
+              {
+                "type": "strong",
+                "children": [
+                  "Also noted:"
+                ]
+              },
+              " AR-MAP (2602.02178, Feb 2026) \u2014 AR LLMs as implicit teachers for DLMs. Already in Awesome-DLMs list. Steering Diffusion Transformers with SAEs (OpenReview, Oct 2025) \u2014 multi-layer SAE steering for image diffusion, not text. Tangential."
             ]
           }
         ]
