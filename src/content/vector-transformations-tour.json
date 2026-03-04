@@ -424,7 +424,18 @@
             "children": [
               {
                 "type": "p",
-                "children": "The key insight is that dot products in the high-dimensional feature space can be computed using only the original low-dimensional inputs — you never actually build the expensive transformed vectors. So when an SVM needs to measure similarity between two data points (which is all dot products really are), it just plugs the original coordinates into (x·y + 1)² instead of mapping to 6D and dotting there. This is why kernel methods scale to infinite-dimensional feature spaces (like Gaussian/RBF kernels): if the dot product has a closed-form shortcut, the dimensionality of φ's output literally doesn't matter."
+                "children": [
+                  "The key insight is that dot products in the high-dimensional feature space can be computed using only the original low-dimensional inputs — you never actually build the expensive transformed vectors. So when an SVM needs to measure similarity between two data points (which is all dot products really are), it just plugs the original coordinates into (x·y + 1)² instead of mapping to 6D and dotting there. This is why kernel methods scale to infinite-dimensional feature spaces (like Gaussian/RBF kernels): if the dot product has a closed-form shortcut",
+                  {
+                    "type": "FootnoteRef",
+                    "props": {
+                      "id": "source-ann-1772634300735-j1ynwt",
+                      "targetId": "ann-1772634300735-j1ynwt",
+                      "type": "ask"
+                    }
+                  },
+                  ", the dimensionality of φ's output literally doesn't matter."
+                ]
               },
               {
                 "type": "p",
@@ -432,6 +443,37 @@
                   "className": "text-xs text-gray-400 mt-2"
                 },
                 "children": "Added 3/4/2026, 9:21:40 AM"
+              }
+            ]
+          },
+          {
+            "type": "Sidebar",
+            "props": {
+              "type": "note",
+              "title": "Q: Does this mean that no matter how complex the formula that lifts x and y to higher-dimensional space, their distance in that space will always be (x dot y + 1)^2?",
+              "expanded": true,
+              "id": "ann-1772634300735-j1ynwt",
+              "sourceId": "source-ann-1772634300735-j1ynwt"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "No — (x·y + 1)² is the shortcut for one specific kernel, the degree-2 polynomial kernel. Different lifting maps get different shortcuts. The Gaussian/RBF kernel, for instance, uses exp(-||x - y||² / 2σ²), which corresponds to a lifting into an infinite-dimensional space. A degree-3 polynomial kernel would be (x·y + 1)³. Each kernel function IS its own closed-form shortcut for its own particular high-dimensional mapping."
+              },
+              {
+                "type": "p",
+                "children": "What \"closed-form shortcut\" means here is that for any given kernel, there exists a simple formula you can evaluate on the original low-dimensional inputs that gives you the exact same answer as if you had done the full expensive lifting and then computed the dot product up there. The miracle is not that one formula works for all liftings — it's that for each lifting, such a compact formula exists at all."
+              },
+              {
+                "type": "p",
+                "children": "Think of it like travel distances. If you want the driving distance between two cities, you'd normally need to trace every road. But for straight-line distance, you have the Pythagorean formula — a closed-form shortcut. A different notion of distance (say, walking time) would need a different shortcut formula. The kernel trick is the same idea: each type of high-dimensional similarity has its own compact formula, and you pick the kernel that matches the feature space you care about."
+              },
+              {
+                "type": "p",
+                "props": {
+                  "className": "text-xs text-gray-400 mt-2"
+                },
+                "children": "Asked about \"closed-form shortcut\" — 3/4/2026, 9:23:40 AM"
               }
             ]
           },
