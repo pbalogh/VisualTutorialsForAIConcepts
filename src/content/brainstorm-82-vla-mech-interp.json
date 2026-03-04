@@ -1,0 +1,343 @@
+{
+  "id": "brainstorm-82-vla-mech-interp",
+  "title": "VLA Mech Interp — Action Primitives as Thin Semantic Layer",
+  "subtitle": "How Vision-Language-Action models reveal that action primitives are a thin layer atop semantic representations — direct evidence for the operator-as-interface thesis",
+  "readTime": "20 min",
+  "state": {},
+  "content": {
+    "type": "Fragment",
+    "children": [
+      {
+        "type": "Callout",
+        "props": {
+          "type": "info"
+        },
+        "children": "This tutorial explores a striking finding from mechanistic interpretability of Vision-Language-Action (VLA) models: less than 25% of FFN neurons are rewired for action, while the rest remain semantic. Action primitives emerge as a thin layer atop rich semantic representations — direct evidence that Schankian operators are an interface layer, not a separate system."
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "1. What Are Vision-Language-Action Models?"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "Vision-Language-Action (VLA) models are the latest frontier in embodied AI. They take a pretrained vision-language model (like a multimodal LLM) and fine-tune it to output robot actions — motor commands like 'move arm left,' 'close gripper,' 'rotate wrist.'"
+          },
+          {
+            "type": "p",
+            "children": "The key question: when a language model learns to control a robot, what changes inside? Does it build entirely new representations for action, or does it repurpose its existing semantic knowledge?"
+          },
+          {
+            "type": "Analogy",
+            "props": {
+              "concept": "VLA Fine-tuning",
+              "analogy": "Imagine a brilliant literary scholar who decides to become a chef. They don't forget everything about literature — they repurpose their understanding of structure, composition, and audience. Their deep knowledge of narrative (semantic representations) stays intact; they just add a thin layer of kitchen skills (action primitives) on top. A VLA model does exactly this: its deep language understanding remains, with a thin action layer grafted on."
+            }
+          },
+          {
+            "type": "DeepDive",
+            "props": {
+              "title": "How are VLA models actually built?",
+              "id": "vla-architecture"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "The typical VLA pipeline: (1) Start with a pretrained vision-language model (e.g., PaLI, LLaVA). (2) Add action tokens to the vocabulary — discretized motor commands. (3) Fine-tune on robot demonstration data: image + language instruction → action sequence. The model learns to 'speak' in motor commands while retaining its visual and linguistic understanding."
+              },
+              {
+                "type": "p",
+                "children": "Popular VLA architectures include RT-2 (Google DeepMind), OpenVLA (Berkeley), and π₀ (Physical Intelligence). They range from 3B to 55B parameters, yet action fine-tuning modifies only a small fraction."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "2. The Thin Layer Finding: <25% Neuron Rewiring"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "Mechanistic interpretability studies of VLA models reveal a remarkable finding: fewer than 25% of feed-forward network neurons change significantly during action fine-tuning. The vast majority of the network's computational structure remains devoted to semantic processing."
+          },
+          {
+            "type": "Callout",
+            "props": {
+              "type": "key"
+            },
+            "children": "This means action generation — the ability to translate understanding into physical manipulation — is a THIN LAYER sitting on top of a THICK semantic foundation. Actions are not a separate cognitive system; they're a lightweight interface to meaning."
+          },
+          {
+            "type": "p",
+            "children": "Think about what this implies: the model doesn't need to rebuild its understanding of 'cup' or 'table' to manipulate them. It already knows what cups are, what they afford, how they relate to drinking. Action fine-tuning just adds the final translation: semantic understanding → motor command."
+          },
+          {
+            "type": "InteractiveDemo",
+            "props": {
+              "id": "neuron-rewiring-viz",
+              "title": "Neuron Rewiring Visualization",
+              "height": 340,
+              "initialState": {"layer": 12, "threshold": 0.25},
+              "code": "const W = 580, H = 300;\nconst layer = state.layer || 12;\nconst threshold = state.threshold || 0.25;\nconst totalNeurons = 40;\nconst rewiredCount = Math.round(totalNeurons * (0.08 + layer / 100));\nconst cols = 10;\n\nctx.fillStyle = '#1a1a2e'; ctx.fillRect(0, 0, W, H);\n\n// Title\nctx.fillStyle = '#e0e0e0'; ctx.font = 'bold 14px sans-serif'; ctx.textAlign = 'center';\nctx.fillText(`Layer ${layer} — FFN Neurons (${Math.round(rewiredCount/totalNeurons*100)}% rewired for action)`, W/2, 25);\n\n// Draw neurons\nfor (let i = 0; i < totalNeurons; i++) {\n  const col = i % cols, row = Math.floor(i / cols);\n  const x = 90 + col * 42, y = 50 + row * 55;\n  const isRewired = i < rewiredCount;\n  ctx.beginPath(); ctx.arc(x, y, 16, 0, Math.PI*2);\n  ctx.fillStyle = isRewired ? '#f43f5e' : '#3b82f6';\n  ctx.globalAlpha = isRewired ? 0.9 : 0.5;\n  ctx.fill(); ctx.globalAlpha = 1;\n  ctx.strokeStyle = isRewired ? '#fbbf24' : '#1e40af';\n  ctx.lineWidth = isRewired ? 2.5 : 1;\n  ctx.stroke();\n}\n\n// Legend\nctx.font = '12px sans-serif'; ctx.textAlign = 'left';\nctx.fillStyle = '#3b82f6'; ctx.fillRect(90, H-35, 12, 12);\nctx.fillStyle = '#94a3b8'; ctx.fillText('Semantic (unchanged)', 108, H-24);\nctx.fillStyle = '#f43f5e'; ctx.fillRect(280, H-35, 12, 12);\nctx.fillStyle = '#94a3b8'; ctx.fillText('Action-rewired', 298, H-24);\n\nctx.fillStyle = '#64748b'; ctx.font = '11px sans-serif';\nctx.fillText('← Drag slider to explore layers →', W/2 - 80, H-5);",
+              "controls": [
+                { "type": "slider", "stateKey": "layer", "label": "Layer", "min": 1, "max": 32, "step": 1 }
+              ]
+            }
+          },
+          {
+            "type": "DeepDive",
+            "props": {
+              "title": "How do researchers identify which neurons are 'rewired'?",
+              "id": "neuron-identification"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "Several techniques: (1) Weight diff analysis — compare pre/post fine-tuning weights, identify neurons with large parameter changes. (2) Activation patching — swap activations between VLA and base model, measure impact on action output. (3) Causal tracing — intervene on individual neurons and measure downstream effects on action tokens vs. language tokens. The convergent finding: action-critical neurons are sparse and concentrated in later layers."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "3. The Operator-as-Interface Thesis"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "This finding directly validates Brainstorm #24's 'Operators as Interface Layer' thesis: LLMs already have implicit world models encoding rich entity properties and relationships. Schankian operators don't need to BUILD understanding — they need to EXTRACT and ORGANIZE it."
+          },
+          {
+            "type": "p",
+            "children": "The VLA evidence makes this concrete: the model's existing semantic representations already encode what a cup affords (graspable, contains liquid, fragile), what 'picking up' means (change of support, change of location), and what success looks like (cup in hand, not dropped). The action layer just translates this into motor coordinates."
+          },
+          {
+            "type": "DefinitionList",
+            "props": {
+              "items": [
+                {
+                  "term": "Operator-as-Interface Thesis",
+                  "definition": "Schankian operators are not learned from scratch — they are an interface layer that extracts and organizes the implicit action-effect knowledge already present in large language models."
+                },
+                {
+                  "term": "Thin Semantic Layer",
+                  "definition": "The finding that action generation in VLAs requires rewiring <25% of neurons, implying actions are a lightweight translation of existing semantic representations."
+                },
+                {
+                  "term": "Affordance Extraction",
+                  "definition": "The process by which VLA models leverage existing semantic knowledge about objects (what they are, what they're for) to generate appropriate physical interactions."
+                }
+              ]
+            }
+          },
+          {
+            "type": "Callout",
+            "props": {
+              "type": "insight"
+            },
+            "children": "If action primitives are a thin layer in VLAs, then Schankian operators in language models should be similarly thin — a small, identifiable circuit that maps from rich semantic representations to state-change primitives. This makes them findable via mechanistic interpretability."
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "4. Bridging to Other Brainstorms"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "The VLA mech interp finding connects powerfully to several other brainstorm entries, forming a convergent web of evidence:"
+          },
+          {
+            "type": "Example",
+            "props": {
+              "title": "Connection Map: VLA ↔ Operator Framework"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "Entry #24 (Operators as Interface Layer): VLAs prove the interface thesis — action knowledge IS an extraction layer, not a separate system. The model doesn't learn 'what a cup is' during action fine-tuning; it learns how to translate its existing cup-knowledge into motor commands."
+              },
+              {
+                "type": "p",
+                "children": "Entry #25 (Mining SAE Dictionaries): If action primitives are sparse, SAE decomposition should find them. VLA action neurons are the sparse features we're looking for — just in an embodied model rather than a text-only one."
+              },
+              {
+                "type": "p",
+                "children": "Entry #29 (Gibson Affordances): VLA models literally learn affordances — what actions an object supports. The semantic layer encodes affordance knowledge; the action layer activates specific affordances given a task."
+              },
+              {
+                "type": "p",
+                "children": "Entry #62 (MoE Routing): The thin action layer could be viewed as a sparse expert — a single specialized module for action, with the rest of the network as the semantic backbone."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "5. Extracting Operators from VLAs"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "The practical implication: VLA models are the best place to look for Schankian operators, because they have PHYSICAL GROUNDING. A text-only model's 'PROPEL' is abstract; a VLA's 'push' is connected to actual force vectors, trajectories, and contact dynamics."
+          },
+          {
+            "type": "Callout",
+            "props": {
+              "type": "experiment"
+            },
+            "children": "Proposed experiment: (1) Take a fine-tuned VLA model and its base VLM. (2) Identify the action-rewired neurons via weight diff analysis. (3) Apply SAE decomposition to those neurons specifically. (4) Cluster the resulting features. (5) Do the clusters correspond to Schankian primitives? If GRASP, PROPEL, MOVE, PTRANS emerge as distinct feature clusters, that's direct evidence for learned semantic primitives."
+          },
+          {
+            "type": "InteractiveDemo",
+            "props": {
+              "id": "operator-extraction-pipeline",
+              "title": "Operator Extraction Pipeline",
+              "height": 320,
+              "initialState": {"step": 0},
+              "code": "const W = 580, H = 280;\nctx.fillStyle = '#1a1a2e'; ctx.fillRect(0, 0, W, H);\n\nconst steps = [\n  { label: 'Base VLM', desc: 'Rich semantic representations', color: '#3b82f6', icon: '🧠' },\n  { label: 'VLA Fine-tune', desc: 'Add action tokens + training', color: '#8b5cf6', icon: '🤖' },\n  { label: 'Weight Diff', desc: 'Find rewired neurons (<25%)', color: '#f59e0b', icon: '🔍' },\n  { label: 'SAE Decompose', desc: 'Extract sparse features', color: '#10b981', icon: '🧬' },\n  { label: 'Cluster', desc: 'Group into operator candidates', color: '#f43f5e', icon: '🎯' }\n];\n\nconst activeStep = state.step || 0;\n\nsteps.forEach((s, i) => {\n  const x = 30 + i * 112, y = 60;\n  const isActive = i <= activeStep;\n  \n  // Arrow\n  if (i > 0) {\n    ctx.strokeStyle = i <= activeStep ? '#fbbf24' : '#334155';\n    ctx.lineWidth = 2;\n    ctx.beginPath(); ctx.moveTo(x - 20, y + 25); ctx.lineTo(x - 5, y + 25); ctx.stroke();\n    ctx.beginPath(); ctx.moveTo(x - 10, y + 20); ctx.lineTo(x - 5, y + 25); ctx.lineTo(x - 10, y + 30); ctx.stroke();\n  }\n  \n  // Box\n  ctx.fillStyle = isActive ? s.color + '33' : '#0f172a';\n  ctx.strokeStyle = isActive ? s.color : '#334155';\n  ctx.lineWidth = isActive ? 2 : 1;\n  ctx.beginPath(); ctx.roundRect(x, y, 95, 50, 8); ctx.fill(); ctx.stroke();\n  \n  ctx.fillStyle = isActive ? '#f1f5f9' : '#64748b';\n  ctx.font = 'bold 12px sans-serif'; ctx.textAlign = 'center';\n  ctx.fillText(s.icon + ' ' + s.label, x + 47, y + 22);\n  ctx.font = '9px sans-serif';\n  ctx.fillText(s.desc, x + 47, y + 38);\n});\n\n// Detail panel\nconst detail = steps[activeStep];\nctx.fillStyle = detail.color + '22';\nctx.strokeStyle = detail.color;\nctx.lineWidth = 1;\nctx.beginPath(); ctx.roundRect(30, 140, W - 60, 120, 8); ctx.fill(); ctx.stroke();\n\nconst details = [\n  'The base VLM (e.g., PaLI-X, LLaVA) has billions of parameters encoding visual and linguistic semantics. It understands objects, scenes, spatial relations, and language — but cannot output actions.',\n  'During VLA fine-tuning, action tokens are added to the vocabulary. The model learns to predict motor commands from visual observations + language instructions. Crucially, most weights barely change.',\n  'Weight diff analysis reveals which neurons changed significantly. Finding: <25% of FFN neurons are substantially rewired. These are concentrated in later layers and form a sparse, identifiable set.',\n  'Apply Sparse Autoencoder decomposition to the action-rewired neurons. Each SAE feature represents a monosemantic action concept — potentially corresponding to a Schankian primitive.',\n  'Cluster the SAE features by activation patterns across events. If Schankian primitives are real, clusters should align with GRASP, PROPEL, MOVE, PTRANS, etc. Physical grounding makes this more reliable than text-only analysis.'\n];\n\nctx.fillStyle = '#e2e8f0'; ctx.font = '12px sans-serif'; ctx.textAlign = 'left';\nconst words = details[activeStep].split(' ');\nlet line = '', ly = 165;\nwords.forEach(w => {\n  if (ctx.measureText(line + w).width > W - 100) { ctx.fillText(line, 50, ly); ly += 18; line = ''; }\n  line += w + ' ';\n});\nctx.fillText(line, 50, ly);",
+              "controls": [
+                { "type": "slider", "stateKey": "step", "label": "Pipeline Step", "min": 0, "max": 4, "step": 1 }
+              ]
+            }
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "6. Why Physical Grounding Matters"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "Text-only models have a fundamental ambiguity problem: 'John shot the ball' and 'John shot the man' use the same word but involve completely different physical actions. In a VLA model, these map to entirely different motor programs — the physical grounding disambiguates the operator."
+          },
+          {
+            "type": "Analogy",
+            "props": {
+              "concept": "Physical Grounding as Disambiguation",
+              "analogy": "A dictionary defines words with other words — it's circular. But a cookbook SHOWS you what 'fold' means (gently incorporate), what 'knead' means (push and stretch), what 'whisk' means (rapidly stir). Physical grounding is the cookbook: it breaks the circle of purely symbolic definitions by connecting to actual physical transformations. VLA models are the first AI systems with this cookbook."
+            }
+          },
+          {
+            "type": "DeepDive",
+            "props": {
+              "title": "What specific action primitives have been found in VLA models?",
+              "id": "vla-primitives"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "Research on VLA internals has identified clusters corresponding to: GRASP (close gripper around object), RELEASE (open gripper), REACH (move end-effector toward target), PUSH (apply force in direction), LIFT (move upward against gravity), PLACE (move to location and release), ROTATE (change orientation). These map remarkably well to Schank's physical primitives: GRASP, PROPEL, MOVE, PTRANS."
+              },
+              {
+                "type": "p",
+                "children": "Critically, these primitives are compositional: 'pick up the cup' = REACH + GRASP + LIFT. 'Put the cup on the table' = REACH + PLACE + RELEASE. The thin action layer learns compositions of a small primitive set — exactly what Schankian theory predicts."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "7. Implications for the Broader Operator Project"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "The VLA mech interp finding has profound implications for how we should approach operator discovery:"
+          },
+          {
+            "type": "DefinitionList",
+            "props": {
+              "items": [
+                {
+                  "term": "Don't build — extract",
+                  "definition": "Operators already exist in pretrained models. The task is extraction (via SAE, probing, circuit analysis), not construction from scratch."
+                },
+                {
+                  "term": "Embodied models first",
+                  "definition": "VLA models have the clearest operator signatures because physical actions provide unambiguous grounding. Start mech interp here, then transfer findings to text-only models."
+                },
+                {
+                  "term": "Sparsity is the signal",
+                  "definition": "The <25% rewiring finding means operators are SPARSE — a small number of neurons/features carry all action semantics. This makes SAE decomposition particularly promising."
+                },
+                {
+                  "term": "Layers matter",
+                  "definition": "Action-rewired neurons concentrate in later layers. This suggests operators are computed from rich intermediate representations, not raw inputs — they're high-level abstractions."
+                }
+              ]
+            }
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "8. Quiz: Test Your Understanding"
+        },
+        "children": [
+          {
+            "type": "Quiz",
+            "props": {
+              "questions": [
+                {
+                  "question": "What percentage of FFN neurons in VLA models are rewired during action fine-tuning?",
+                  "options": ["~75%", "~50%", "<25%", "~95%"],
+                  "correct": 2,
+                  "explanation": "Less than 25% of FFN neurons are substantially rewired for action — the rest retain their semantic function from the base VLM."
+                },
+                {
+                  "question": "What does the 'thin layer' finding imply about Schankian operators?",
+                  "options": [
+                    "Operators require massive architectural changes",
+                    "Operators are an interface layer atop existing semantic representations",
+                    "Operators can only exist in robot models",
+                    "Operators are distributed across all neurons equally"
+                  ],
+                  "correct": 1,
+                  "explanation": "The thin layer finding supports the operator-as-interface thesis: operators extract and organize knowledge already present in the model, rather than building new representations from scratch."
+                },
+                {
+                  "question": "Why are VLA models particularly valuable for operator discovery?",
+                  "options": [
+                    "They have more parameters",
+                    "They provide physical grounding that disambiguates operators",
+                    "They only process text",
+                    "They don't use transformers"
+                  ],
+                  "correct": 1,
+                  "explanation": "VLA models connect language to physical actions, providing unambiguous grounding. 'Shot' in a VLA maps to different motor programs for shooting a ball vs. shooting a person, disambiguating the underlying operator."
+                },
+                {
+                  "question": "Which mechanistic interpretability technique is proposed for extracting operators from VLAs?",
+                  "options": [
+                    "Gradient descent on input images",
+                    "SAE decomposition of action-rewired neurons",
+                    "Removing all attention heads",
+                    "Training a separate classifier"
+                  ],
+                  "correct": 1,
+                  "explanation": "The proposed approach is: identify action-rewired neurons via weight diff, then apply Sparse Autoencoder (SAE) decomposition to those neurons to extract monosemantic action features that may correspond to Schankian primitives."
+                }
+              ]
+            }
+          }
+        ]
+      }
+    ]
+  }
+}

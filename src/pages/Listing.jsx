@@ -247,6 +247,18 @@ const tutorials = [
     difficulty: 3,
   },
   {
+    id: 'brainstorm-82-vla-mech-interp',
+    title: 'VLA Mech Interp — Action Primitives as Thin Semantic Layer',
+    description: 'How Vision-Language-Action models reveal action primitives are a thin layer atop semantic representations — direct evidence for the operator-as-interface thesis.',
+    tags: ['VLA', 'mech interp', 'operators', 'embodied AI', 'SAE'],
+    icon: '🤖',
+    gradient: 'from-cyan-500 to-blue-600',
+    shadowColor: 'shadow-cyan-500/30',
+    glowColor: 'rgba(6, 182, 212, 0.4)',
+    readTime: '20 min',
+    difficulty: 3,
+  },
+  {
     id: 'brainstorm-62-moe-routing-operators',
     title: 'Operators as Semantic Expert Modules',
     description: 'How Mixture-of-Experts routing is structurally identical to Schankian primitive selection — constrain experts to ~14 and rediscover semantic primitives.',
