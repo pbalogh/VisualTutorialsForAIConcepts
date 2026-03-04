@@ -222,6 +222,41 @@
             }
           },
           {
+            "type": "Sidebar",
+            "props": {
+              "type": "note",
+              "title": "Q: Can we think of a clearer example?",
+              "expanded": true,
+              "id": "ann-1772659899968-210gon",
+              "sourceId": "source-ann-1772659899968-210gon"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "Sure. Imagine you have a photo of a cat sitting on a rug, and you run it through a neural network that draws a bounding box around the cat. Now slide the entire photo 50 pixels to the right. An equivariant detector would output a bounding box that also moved exactly 50 pixels to the right, without retraining or any special handling. The function \"commutes\" with the transformation: it does not matter whether you shift first and then detect, or detect first and then shift. You get the same answer either way."
+              },
+              {
+                "type": "p",
+                "children": "That is all the equation f(g·x) = g·f(x) is saying. g is the shift, f is the network, and the two sides of the equation represent the two orders of operation. Equivariance means those two orders always agree."
+              },
+              {
+                "type": "p",
+                "children": "The segmentation map example in the tutorial is the same idea applied pixel by pixel. Every pixel gets a label like \"cat\" or \"rug,\" so the output is an image-shaped map. Shifting the input photo should shift every label by the same amount. But a bounding box is often easier to visualize because you can literally see one rectangle slide across the frame, whereas a segmentation map is thousands of tiny labels moving together."
+              },
+              {
+                "type": "p",
+                "children": "A non-equivariant network, by contrast, might re-detect the cat in a slightly different position or even miss it after the shift, because it learned brittle spatial patterns rather than respecting the underlying symmetry. That fragility is exactly what geometric deep learning tries to eliminate by building equivariance into the architecture itself."
+              },
+              {
+                "type": "p",
+                "props": {
+                  "className": "text-xs text-gray-400 mt-2"
+                },
+                "children": "Asked about \"a segmentation map should shif...\" — 3/4/2026, 4:31:25 PM"
+              }
+            ]
+          },
+          {
             "type": "Formula",
             "props": {
               "label": "Equivariance condition"
