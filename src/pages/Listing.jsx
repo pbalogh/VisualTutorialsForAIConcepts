@@ -127,6 +127,19 @@ function CreateTutorialModal({ isOpen, onClose }) {
 
 const tutorials = [
   {
+    id: 'fine-tuning-mechanics',
+    title: 'Fine-Tuning LLMs: Mechanics, Myths, and the Knowledgebase Dream',
+    description: 'What actually happens to weights during fine-tuning, why LoRA works, what you can and can\'t achieve, and the realistic path to turning a small LLM into a domain expert.',
+    tags: ['fine-tuning', 'LoRA', 'LLM', 'deep learning', 'fundamentals'],
+    icon: '🔧',
+    gradient: 'from-orange-500 to-red-600',
+    shadowColor: 'rgba(249, 115, 22, 0.3)',
+    glowColor: 'rgba(249, 115, 22, 0.15)',
+    readTime: '25 min',
+    difficulty: 2,
+    featured: true,
+  },
+  {
     id: 'geometric-deep-learning',
     title: 'Geometric Deep Learning: From Symmetry to Neural Networks',
     description: 'How symmetry principles unify CNNs, GNNs, Transformers, and beyond — the Bronstein et al. blueprint, representation theory, gauge equivariance, and connections to polysemy.',

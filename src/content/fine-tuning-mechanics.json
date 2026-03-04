@@ -1,0 +1,515 @@
+{
+  "id": "fine-tuning-mechanics",
+  "title": "Fine-Tuning LLMs: Mechanics, Myths, and the Knowledgebase Dream",
+  "subtitle": "What actually happens to weights during fine-tuning, why LoRA works, what you can and can't achieve, and the realistic path to turning a small LLM into a domain expert",
+  "readTime": "25 min",
+  "state": {},
+  "content": {
+    "type": "Fragment",
+    "children": [
+      {
+        "type": "Section",
+        "props": { "title": "What Fine-Tuning Actually Does to a Neural Network" },
+        "children": [
+          {
+            "type": "p",
+            "children": "Fine-tuning is conceptually simple: take a pretrained model, run gradient descent on new data, update the weights. But the devil is in the details — WHERE do the weights change? How much? And what does that mean geometrically in weight space?"
+          },
+          {
+            "type": "Analogy",
+            "props": {
+              "concept": "Fine-tuning vs pretraining",
+              "analogy": "Pretraining is like spending 20 years becoming a general-purpose doctor — you learn anatomy, physiology, pharmacology, thousands of disease patterns. Fine-tuning is like doing a 6-month fellowship in cardiology. You don't forget anatomy. You SPECIALIZE. The deep foundational knowledge stays intact; what changes is which knowledge gets activated first, how you frame problems, and the specific patterns you're most sensitive to."
+            }
+          },
+          {
+            "type": "p",
+            "children": "During pretraining, a model like Llama 3 8B processes trillions of tokens. Its weights encode a vast, compressed representation of language patterns, factual associations, and reasoning heuristics. These weights live in a specific region of a mind-bogglingly high-dimensional space — for an 8B parameter model, that's a point in 8-billion-dimensional space."
+          },
+          {
+            "type": "p",
+            "children": "Fine-tuning nudges this point to a NEARBY location. Not across the landscape to somewhere entirely different, but to a neighboring basin that's been sculpted by your new data. The pretrained knowledge isn't erased — it's gently reshaped."
+          },
+          {
+            "type": "DeepDive",
+            "props": {
+              "title": "Which Layers Change Most? The Outer-Adapts-Inner-Preserves Pattern",
+              "id": "layer-changes"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "Research consistently shows that during fine-tuning, different layers change by different amounts:"
+              },
+              {
+                "type": "p",
+                "children": "EARLY LAYERS (embeddings, first few transformer blocks): These encode low-level linguistic features — tokenization patterns, basic syntax, part-of-speech signals. They change LEAST during fine-tuning. Think of them as the alphabet and grammar — you don't need to relearn English to specialize in legal writing."
+              },
+              {
+                "type": "p",
+                "children": "MIDDLE LAYERS: These encode semantic representations — conceptual relationships, entity types, factual associations. They change moderately. This is where domain-specific knowledge adaptation happens."
+              },
+              {
+                "type": "p",
+                "children": "LATER LAYERS (final transformer blocks, output head): These handle task-specific computation — mapping internal representations to output tokens. They change MOST. This is where the model learns HOW you want it to respond: format, style, what to emphasize."
+              },
+              {
+                "type": "p",
+                "children": "This gradient of plasticity isn't designed — it emerges naturally. Early layers have already converged to robust features that are useful for everything. Changing them requires strong, consistent signal. Later layers are more task-specific by nature and more easily redirected."
+              },
+              {
+                "type": "p",
+                "children": "Empirically, studies measuring the Frobenius norm of weight changes (||W_finetuned - W_pretrained||) show the final layers can change 5-10x more than the first layers. This is why techniques like freezing early layers during fine-tuning often work with minimal quality loss — those layers didn't want to change anyway."
+              }
+            ]
+          },
+          {
+            "type": "Callout",
+            "props": { "type": "key" },
+            "children": "Fine-tuning is not 'retraining.' It's gradient descent with a very small learning rate, starting from an already-excellent initialization. The model moves to a nearby point in weight space that better fits your data while preserving most of what it already knows."
+          },
+          {
+            "type": "p",
+            "children": "The geometry matters. Loss landscapes of large neural networks have a fascinating structure: broad, flat basins connected by narrow ridges. Pretraining finds a good basin. Fine-tuning explores the local neighborhood of that basin. With a well-chosen learning rate, you stay in the basin (good generalization). With too high a learning rate, you jump out and land somewhere unpredictable (catastrophic forgetting)."
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "LoRA and Parameter-Efficient Fine-Tuning" },
+        "children": [
+          {
+            "type": "p",
+            "children": "Here's a striking empirical finding: you don't need to update all 8 billion parameters. In fact, updating a tiny fraction — sometimes less than 1% — achieves nearly identical results. This isn't just a practical convenience; it tells us something deep about what fine-tuning actually does."
+          },
+          {
+            "type": "Analogy",
+            "props": {
+              "concept": "LoRA (Low-Rank Adaptation)",
+              "analogy": "Imagine you're a skilled painter who needs to adapt your style from landscapes to portraits. You don't need to relearn how to hold a brush, mix colors, or apply texture. You need a small 'adjustment lens' that modifies your existing skills. LoRA is that lens — a thin adapter that sits alongside the existing weights and makes targeted corrections. The original painting skills (weights) are frozen; the adapter learns the delta between 'general painter' and 'portrait painter.'"
+            }
+          },
+          {
+            "type": "p",
+            "children": "LoRA works by decomposing the weight update into two small matrices. Instead of learning a full weight change ΔW (which for a single layer might be 4096×4096 = 16 million parameters), LoRA learns two matrices: A (4096×r) and B (r×4096), where r is the 'rank' — typically 8 to 64. The effective update is ΔW = BA, which has the same dimensions as the original weight matrix but is constructed from only 2 × 4096 × r parameters."
+          },
+          {
+            "type": "p",
+            "children": "For rank 16: that's 2 × 4096 × 16 = 131,072 parameters per layer instead of 16,777,216. That's a 128x reduction."
+          },
+          {
+            "type": "Callout",
+            "props": { "type": "info" },
+            "children": "Why does low-rank work? Because fine-tuning doesn't need to make arbitrary changes to the weight matrices. The adaptation for most tasks lives in a low-dimensional subspace. Think of it this way: going from 'general English' to 'medical English' doesn't require changing every aspect of how the model processes language — just a few key directions in weight space."
+          },
+          {
+            "type": "DeepDive",
+            "props": {
+              "title": "The Intrinsic Dimensionality of Fine-Tuning",
+              "id": "intrinsic-dimensionality"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "Aghajanyan et al. (2020) demonstrated something remarkable: the 'intrinsic dimensionality' of fine-tuning tasks is often shockingly low. They projected gradient updates into random low-dimensional subspaces and found that for many NLP tasks, you can match 90% of full fine-tuning performance using just a few hundred to a few thousand trainable dimensions — out of millions or billions total."
+              },
+              {
+                "type": "p",
+                "children": "This means the useful adaptation signal is concentrated in a very small number of directions in parameter space. LoRA's low-rank decomposition captures exactly this: it parameterizes the update as living in a rank-r subspace, and empirically, rank 8-64 is enough to capture most of the useful signal."
+              },
+              {
+                "type": "p",
+                "children": "Why specifically rank 8-64? Below rank 8, you start losing meaningful adaptation capacity — the subspace is too constrained to capture the task. Above 64, you get diminishing returns — you're adding capacity to represent directions that don't carry much useful signal. The sweet spot depends on task complexity: simple format changes might need rank 4, while complex domain adaptation might need rank 32-64."
+              },
+              {
+                "type": "p",
+                "children": "This also explains why larger pretrained models need FEWER additional parameters for fine-tuning. They've already learned richer representations during pretraining, so the 'delta' to adapt to a new task is smaller and lower-dimensional."
+              }
+            ]
+          },
+          {
+            "type": "p",
+            "children": "QLoRA goes further: it quantizes the frozen base weights to 4-bit precision (shrinking memory ~4x) while keeping the LoRA adapters in full precision. This means you can fine-tune a 70B parameter model on a single 48GB GPU, or a 7B model on a gaming GPU with 24GB VRAM. The quantization adds some noise to the base model, but the full-precision adapters learn to compensate."
+          },
+          {
+            "type": "Example",
+            "props": { "title": "QLoRA in Practice: Fine-Tuning Llama 3 8B" },
+            "children": [
+              {
+                "type": "p",
+                "children": "Base model: 8B parameters × 2 bytes (float16) = 16GB VRAM. Too big for a 16GB GPU with overhead."
+              },
+              {
+                "type": "p",
+                "children": "QLoRA: 8B parameters × 0.5 bytes (4-bit) = 4GB for base weights. LoRA adapters at rank 16 across all attention layers: ~20M parameters × 2 bytes = 40MB. Plus optimizer states and activations: ~4-6GB. Total: ~10GB. Fits on a single RTX 4070."
+              },
+              {
+                "type": "p",
+                "children": "This democratization is why LoRA/QLoRA exploded in popularity. A $500 consumer GPU can fine-tune models that previously required $50,000 server hardware."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "What Fine-Tuning CAN Realistically Do" },
+        "children": [
+          {
+            "type": "p",
+            "children": "Not all fine-tuning effects are equal. There's a clear hierarchy of what responds best to fine-tuning, and understanding it will save you enormous amounts of wasted effort."
+          },
+          {
+            "type": "Callout",
+            "props": { "type": "key" },
+            "children": "The Fine-Tuning Effectiveness Hierarchy (strongest to weakest): 1) Style & format adaptation, 2) Task specialization, 3) Behavior alignment, 4) Knowledge injection. Most people want #4 but should be investing in #1 and #2."
+          },
+          {
+            "type": "p",
+            "children": "STYLE AND FORMAT ADAPTATION is where fine-tuning shines brightest. Want the model to always respond in JSON? Always use a specific medical report format? Adopt a particular tone? Include specific sections in every response? This is fine-tuning's sweet spot. You're teaching the model HOW to respond, not WHAT to know. The outer layers that control output formatting are highly responsive to fine-tuning."
+          },
+          {
+            "type": "Example",
+            "props": { "title": "Style Adaptation: Medical Report Generator" },
+            "children": [
+              {
+                "type": "p",
+                "children": "A hospital fine-tunes Llama 3 8B on 5,000 radiology reports. The model already knows anatomy, pathology terms, and medical reasoning from pretraining. Fine-tuning teaches it: always start with 'FINDINGS:', use specific abbreviations (e.g., 'NAD' for 'no abnormality detected'), structure sections in the hospital's preferred order, and match the terse, professional style radiologists expect."
+              },
+              {
+                "type": "p",
+                "children": "Result: 95%+ format compliance from just 2 epochs of training. The model's medical KNOWLEDGE didn't change much — it was already there. What changed is how it PRESENTS that knowledge."
+              }
+            ]
+          },
+          {
+            "type": "p",
+            "children": "TASK SPECIALIZATION means focusing the model's existing capabilities on a narrower domain. A general model can write code, answer questions, summarize text, and chat. Fine-tuning can sharpen it for one task: become exceptional at SQL generation, or medical Q&A, or legal document analysis. You're not adding new capabilities — you're adjusting the probability landscape so the model preferentially activates the right knowledge and reasoning patterns."
+          },
+          {
+            "type": "p",
+            "children": "BEHAVIOR ALIGNMENT is what ChatGPT's training process uses. Reinforcement Learning from Human Feedback (RLHF) and Direct Preference Optimization (DPO) are fine-tuning variants that teach the model to prefer certain behaviors: be helpful, refuse harmful requests, acknowledge uncertainty, follow instructions. Technically, these work by adjusting the model's output distribution based on preference data rather than simple next-token prediction."
+          },
+          {
+            "type": "p",
+            "children": "KNOWLEDGE INJECTION — teaching the model new facts — IS possible, but comes with serious caveats that we need to examine carefully. This is the 'knowledgebase' use case, and it deserves its own deep treatment."
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "What Fine-Tuning CANNOT Do" },
+        "children": [
+          {
+            "type": "p",
+            "children": "Understanding the limitations mechanistically — not just as rules of thumb — will help you make better engineering decisions."
+          },
+          {
+            "type": "p",
+            "children": "FINE-TUNING CANNOT ADD CAPABILITIES THE ARCHITECTURE DOESN'T SUPPORT. A model with a 2048 context window can't be fine-tuned to handle 100K tokens. A model without vision encoders can't be fine-tuned to see images. Fine-tuning adjusts weights within the existing computational graph — it can't add new nodes to that graph. This seems obvious, but people regularly try to fine-tune small models to 'be as good as GPT-4' at complex reasoning chains that require more computational depth than the smaller architecture provides."
+          },
+          {
+            "type": "Analogy",
+            "props": {
+              "concept": "Catastrophic forgetting",
+              "analogy": "Imagine a path worn through a meadow — that's the model's learned behavior. Fine-tuning is like redirecting foot traffic to wear a new path nearby. With gentle traffic (small learning rate, few epochs), both paths coexist — the old one fades slightly but remains walkable. With heavy traffic (high learning rate, many epochs), the new path is deeply worn but the old one gets overgrown and disappears. That's catastrophic forgetting: the gradient updates that create new behaviors literally overwrite the weights that encoded old ones."
+            }
+          },
+          {
+            "type": "DeepDive",
+            "props": {
+              "title": "Why Catastrophic Forgetting Happens Mechanistically",
+              "id": "catastrophic-forgetting"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "Neural networks store knowledge in a distributed, superposed manner. The same weights participate in multiple behaviors. When you update weights to improve performance on task B, you're necessarily perturbing the computations that supported task A."
+              },
+              {
+                "type": "p",
+                "children": "Formally: the loss landscape for task A has a basin around the pretrained weights. The loss landscape for task B has a basin nearby but not identical. If these basins overlap significantly, you can find weights that work for both. If they don't overlap, optimizing for B requires leaving A's basin entirely."
+              },
+              {
+                "type": "p",
+                "children": "This is why learning rate is so critical. A small learning rate takes small steps, exploring the local region where the basins overlap. A large learning rate takes big jumps, easily escaping A's basin. It's also why LoRA helps with forgetting: by constraining updates to a low-rank subspace, you limit HOW MUCH the weights can change, making it harder to leave the pretrained basin entirely."
+              },
+              {
+                "type": "p",
+                "children": "Concrete example: if you fine-tune a general-purpose model exclusively on French medical text with too high a learning rate, it might 'forget' how to write English or how to discuss non-medical topics. The weights that encoded English grammar and general knowledge get overwritten by weights optimized purely for French medical output."
+              }
+            ]
+          },
+          {
+            "type": "Callout",
+            "props": { "type": "warning" },
+            "children": "OVERFITTING ON SMALL DATASETS is the most common fine-tuning failure. With 500 training examples and 3+ epochs, the model memorizes your exact training examples instead of learning generalizable patterns. Signs: training loss near zero, but the model regurgitates training examples verbatim or produces incoherent outputs for novel inputs. The model has moved to a narrow, sharp minimum that doesn't generalize."
+          },
+          {
+            "type": "p",
+            "children": "THE KNOWLEDGE INJECTION PROBLEM deserves special attention. Facts learned via fine-tuning are encoded differently than facts learned during pretraining, and this difference has real consequences."
+          },
+          {
+            "type": "p",
+            "children": "During pretraining, a fact like 'Paris is the capital of France' is encountered hundreds or thousands of times across diverse contexts: geography articles, travel guides, news reports, history books, quiz questions. Each encounter reinforces the association from a different angle, creating a robust, multiply-connected representation. The fact is woven into the model's knowledge fabric from many directions."
+          },
+          {
+            "type": "p",
+            "children": "During fine-tuning, a fact might be encountered a handful of times in similar phrasings. The model learns a shallow association: when you see context X, output fact Y. But this association is fragile. Ask the question differently, approach it from an unexpected angle, or embed it in a reasoning chain, and the model may fail to retrieve the fine-tuned fact — or worse, confidently produce a hallucinated answer blended from its pretrained knowledge and the weakly-encoded fine-tuned fact."
+          },
+          {
+            "type": "Callout",
+            "props": { "type": "key" },
+            "children": "Pretraining knowledge is like a deeply embedded memory formed over years of experience. Fine-tuned knowledge is like something you crammed the night before an exam — you can recall it if the question matches your study format, but you can't flexibly reason with it or access it from unexpected angles."
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "The 'LLM as Knowledgebase' Dream vs Reality" },
+        "children": [
+          {
+            "type": "p",
+            "children": "Let's address the specific dream head-on: 'I want to take a 7B or 13B model, fine-tune it on my company's documentation, product specs, and internal knowledge, and create a domain-specific expert that just KNOWS our stuff.' How realistic is this?"
+          },
+          {
+            "type": "p",
+            "children": "The honest answer: PARTIALLY realistic, if you understand which parts of 'knowing' respond to fine-tuning and which don't."
+          },
+          {
+            "type": "Analogy",
+            "props": {
+              "concept": "Fine-tuned knowledge vs RAG knowledge",
+              "analogy": "Fine-tuning is like training a new employee for 6 months. They absorb your company culture, learn the jargon, understand how things connect, develop intuitions about common problems. But ask them the exact part number for a specific widget and they'll need to look it up. RAG (Retrieval-Augmented Generation) is the lookup — it's giving the employee access to the company wiki during conversations. The best employees (and the best LLM systems) combine deep understanding WITH the ability to look things up."
+            }
+          },
+          {
+            "type": "p",
+            "children": "WHAT FINE-TUNING HANDLES WELL for the knowledgebase use case:"
+          },
+          {
+            "type": "p",
+            "children": "• DOMAIN TERMINOLOGY AND JARGON: Fine-tuning excels at teaching the model your specific vocabulary. If your company calls something a 'flux capacitor integration module,' fine-tuning will make the model fluent with that term, understand it in context, and use it naturally."
+          },
+          {
+            "type": "p",
+            "children": "• RESPONSE PATTERNS AND PROCEDURES: 'When a customer asks about X, first check Y, then explain Z' — this procedural knowledge fine-tunes beautifully because it's fundamentally about pattern and format."
+          },
+          {
+            "type": "p",
+            "children": "• DOMAIN REASONING STYLE: How experts in your field structure arguments, what counts as a good explanation, what level of detail to provide, when to add caveats. This is style adaptation applied to domain expertise."
+          },
+          {
+            "type": "p",
+            "children": "• CONCEPTUAL RELATIONSHIPS: 'Module A depends on Module B' or 'Product X is the successor to Product Y' — broad relational knowledge that appears repeatedly in your training data can be internalized."
+          },
+          {
+            "type": "Callout",
+            "props": { "type": "warning" },
+            "children": "WHAT'S FRAGILE: Specific facts, exact numbers, dates, version numbers, precise configurations. 'The API rate limit is 1000 requests/minute' — this kind of fact needs to appear in many varied contexts during fine-tuning to stick, and even then may be hallucination-prone. A minor version update means your fine-tuned 'knowledge' is now wrong, with no easy way to correct it without retraining."
+          },
+          {
+            "type": "Example",
+            "props": { "title": "The Knowledgebase Experiment: What Actually Happened" },
+            "children": [
+              {
+                "type": "p",
+                "children": "A SaaS company fine-tuned Mistral 7B on 10,000 support tickets, product docs, and internal wikis. Results after evaluation:"
+              },
+              {
+                "type": "p",
+                "children": "✅ The model correctly used all product-specific terminology (95% accuracy). ✅ It followed the company's preferred response structure for support queries. ✅ It understood the conceptual architecture of the product and could explain how components relate. ✅ It adopted the right tone — professional but friendly, technically precise."
+              },
+              {
+                "type": "p",
+                "children": "❌ It confused version-specific features (said v3.2 had features from v3.4). ❌ It hallucinated configuration values that SOUNDED right but were wrong. ❌ It couldn't reliably cite specific documentation pages. ❌ When asked about recently added features not in training data, it confidently made things up."
+              },
+              {
+                "type": "p",
+                "children": "The fix: Keep the fine-tuned model for tone/format/reasoning, but add RAG for factual lookups. The combined system outperformed either approach alone."
+              }
+            ]
+          },
+          {
+            "type": "p",
+            "children": "THE RAG vs FINE-TUNING vs BOTH DECISION:"
+          },
+          {
+            "type": "p",
+            "children": "USE RAG ALONE when: your knowledge base changes frequently, factual accuracy is critical, you need source attribution, or your domain knowledge is mostly declarative facts."
+          },
+          {
+            "type": "p",
+            "children": "USE FINE-TUNING ALONE when: you need consistent style/format, your task is well-defined and repetitive, you want to reduce inference costs (no retrieval overhead), or you're adapting behavior patterns rather than injecting facts."
+          },
+          {
+            "type": "p",
+            "children": "USE BOTH when: you need a domain expert that also gets details right. Fine-tune for FORMAT + DOMAIN REASONING + TERMINOLOGY. Use RAG for SPECIFIC FACTS + CURRENT DATA + CITATIONS. This is almost always the right answer for the 'knowledgebase' use case."
+          },
+          {
+            "type": "Callout",
+            "props": { "type": "tip" },
+            "children": "The sweet spot formula: Fine-tune to teach the model HOW to be your domain expert (style, reasoning patterns, terminology, procedures). Use RAG to give it access to WHAT it needs to know (specific facts, current data, exact numbers). The fine-tuned model becomes dramatically better at USING the retrieved information because it understands the domain context."
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "Practical Mechanics: The Settings That Matter" },
+        "children": [
+          {
+            "type": "p",
+            "children": "If you're going to fine-tune, the hyperparameters you choose can be the difference between a great model and a useless one. Here's what matters and why."
+          },
+          {
+            "type": "p",
+            "children": "LEARNING RATE is the single most important hyperparameter. For fine-tuning, typical values are 1e-5 to 5e-5 (0.00001 to 0.00005). For comparison, pretraining often uses 1e-3 to 3e-4 — that's 100-1000x larger."
+          },
+          {
+            "type": "p",
+            "children": "Why so small? Remember the loss basin geometry. The pretrained model sits in a good basin. Your learning rate determines step size. A step of 1e-3 might jump you clean out of the basin into a random part of the landscape — catastrophic forgetting. A step of 2e-5 explores the local neighborhood gently, finding a nearby point that's good for your task while staying close to the pretrained solution."
+          },
+          {
+            "type": "Callout",
+            "props": { "type": "info" },
+            "children": "Rule of thumb: if your fine-tuned model suddenly becomes incoherent or loses basic abilities, your learning rate is too high. If it barely changes behavior after training, it's too low. Start at 2e-5 and adjust. For LoRA specifically, you can often go slightly higher (1e-4 to 3e-4) because the low-rank constraint acts as an implicit regularizer."
+          },
+          {
+            "type": "p",
+            "children": "EPOCHS — how many times you pass through the training data — should almost always be 1-3 for fine-tuning. This is radically different from training small models from scratch, where you might train for 100+ epochs."
+          },
+          {
+            "type": "p",
+            "children": "Why so few? The pretrained model already understands language. It doesn't need to see your examples many times to get the idea. After 1-2 passes, it's learned the patterns. By epoch 3-4, it starts memorizing specifics. By epoch 5+, it's badly overfit — it can reproduce your training data but can't generalize."
+          },
+          {
+            "type": "Example",
+            "props": { "title": "The Overfitting Trajectory" },
+            "children": [
+              {
+                "type": "p",
+                "children": "Fine-tuning on 2,000 customer support examples:"
+              },
+              {
+                "type": "p",
+                "children": "Epoch 1: Model adopts the right format and tone. Responds well to novel questions. Training loss: 1.8 → 0.9."
+              },
+              {
+                "type": "p",
+                "children": "Epoch 2: Slightly more polished responses. Terminology use improves. Training loss: 0.9 → 0.5. ← Sweet spot for most tasks."
+              },
+              {
+                "type": "p",
+                "children": "Epoch 3: Training loss: 0.5 → 0.2. Starting to see memorized phrases from training data appearing verbatim."
+              },
+              {
+                "type": "p",
+                "children": "Epoch 5: Training loss: 0.05. Model regurgitates training examples when prompted with similar queries. Novel questions get confused, generic responses. ← Overfit."
+              }
+            ]
+          },
+          {
+            "type": "p",
+            "children": "DATA QUALITY >> DATA QUANTITY. This is the single most underappreciated principle in fine-tuning. 500 carefully crafted, high-quality examples consistently outperform 50,000 noisy, inconsistent ones."
+          },
+          {
+            "type": "p",
+            "children": "Why? Because the model is learning patterns from your data. If your data contains contradictory formats, inconsistent terminology, or sloppy examples, the model learns those patterns too. Garbage in, garbage out — but worse, because the model will GENERALIZE the garbage."
+          },
+          {
+            "type": "Callout",
+            "props": { "type": "tip" },
+            "children": "Data quality checklist: 1) Every example demonstrates EXACTLY the behavior you want. 2) Format is consistent across all examples. 3) No contradictory information. 4) Diverse inputs covering the range of expected use cases. 5) Good examples of edge cases and how to handle them. 6) If injecting knowledge, each fact appears in multiple varied contexts."
+          },
+          {
+            "type": "p",
+            "children": "OTHER SETTINGS WORTH KNOWING: Warmup steps (5-10% of training) gradually increase learning rate from zero, preventing early instability. Weight decay (0.01-0.1) adds mild regularization. Batch size affects gradient noise — smaller batches add regularization through noise but train slower. For LoRA, rank 16 is a safe default; go to 32-64 for complex tasks, down to 4-8 for simple format changes."
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "Putting It All Together: A Decision Framework" },
+        "children": [
+          {
+            "type": "p",
+            "children": "Here's the practical decision tree for whether and how to fine-tune:"
+          },
+          {
+            "type": "p",
+            "children": "STEP 1: Can you solve it with prompting? Good few-shot prompts + a strong base model handle many use cases without any fine-tuning. Try this first. If prompting gets you 80%+ of the way there, fine-tuning might not be worth the effort."
+          },
+          {
+            "type": "p",
+            "children": "STEP 2: Is your need mainly FACTUAL (specific data, current information, citations needed)? → RAG is your primary tool. Fine-tuning won't reliably store facts."
+          },
+          {
+            "type": "p",
+            "children": "STEP 3: Is your need mainly BEHAVIORAL (format, style, reasoning patterns, domain language)? → Fine-tuning is your primary tool. This is where it excels."
+          },
+          {
+            "type": "p",
+            "children": "STEP 4: Do you need both? → Fine-tune for behavior, RAG for facts. The fine-tuned model will be dramatically better at interpreting and using retrieved context because it understands the domain."
+          },
+          {
+            "type": "p",
+            "children": "STEP 5: Choosing model size. For fine-tuning as knowledgebase: 7-13B models are the sweet spot for most use cases. They're large enough to retain broad capabilities through fine-tuning, small enough to serve affordably, and with QLoRA, trainable on consumer hardware. Going smaller (1-3B) works for narrow, well-defined tasks but loses flexibility. Going larger (70B+) adds cost without proportional benefit for most domain-specific tasks."
+          },
+          {
+            "type": "Callout",
+            "props": { "type": "key" },
+            "children": "The realistic path to an 'LLM knowledgebase': Start with a capable 7-13B base model. Fine-tune with QLoRA (rank 16-32) on high-quality examples that demonstrate your desired FORMAT, TERMINOLOGY, and REASONING PATTERNS. Add RAG for factual grounding. Evaluate rigorously on held-out examples. Iterate on data quality, not quantity."
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "Test Your Understanding" },
+        "children": [
+          {
+            "type": "Quiz",
+            "props": {
+              "question": "Why do fine-tuning learning rates (1e-5 to 5e-5) need to be so much smaller than pretraining learning rates (1e-3)?",
+              "options": [
+                "Fine-tuning datasets are smaller, so you need proportionally smaller steps",
+                "Large steps can push the model out of the pretrained loss basin, causing catastrophic forgetting",
+                "Smaller learning rates make training faster for fine-tuning",
+                "The model's weights are frozen during fine-tuning so only small updates are possible"
+              ],
+              "correctIndex": 1,
+              "explanation": "The pretrained model sits in a good basin in the loss landscape. Small learning rates keep you exploring the local neighborhood of this basin — finding a nearby point that's good for your task while preserving pretrained knowledge. Large learning rates can jump you out of this basin entirely, causing catastrophic loss of previously learned capabilities."
+            }
+          },
+          {
+            "type": "Quiz",
+            "props": {
+              "question": "You want to build a customer support bot that knows your product's specific features and responds in your company's style. What's the best approach?",
+              "options": [
+                "Fine-tune on all your product documentation to inject knowledge",
+                "Use RAG only — retrieve relevant docs and feed them to a base model",
+                "Fine-tune for style/format/terminology, use RAG for specific product facts",
+                "Use a larger base model with detailed system prompts"
+              ],
+              "correctIndex": 2,
+              "explanation": "The combined approach leverages each technique's strength. Fine-tuning excels at teaching style, format, terminology, and reasoning patterns — the model learns HOW to be your support agent. RAG excels at providing specific, current, citable facts — ensuring the model has accurate product details. Together, the fine-tuned model is better at using retrieved context because it understands the domain."
+            }
+          },
+          {
+            "type": "Quiz",
+            "props": {
+              "question": "Why does LoRA work with such low rank (8-64) when the weight matrices it modifies have thousands of dimensions?",
+              "options": [
+                "Most of the weight matrix dimensions are unused",
+                "The task-specific adaptation signal lives in a low-dimensional subspace of parameter space",
+                "LoRA compresses the weight matrices using lossless compression",
+                "Low rank forces the model to use simpler, more generalizable representations"
+              ],
+              "correctIndex": 1,
+              "explanation": "Research on intrinsic dimensionality shows that fine-tuning adaptations are concentrated in a surprisingly small number of directions in parameter space. Going from 'general English' to 'medical English' doesn't require changing every aspect of language processing — just a few key directions. LoRA's low-rank decomposition directly captures this structure, parameterizing the update as living in a rank-r subspace."
+            }
+          }
+        ]
+      }
+    ]
+  }
+}
