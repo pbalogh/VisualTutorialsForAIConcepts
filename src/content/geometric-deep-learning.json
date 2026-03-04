@@ -1,0 +1,913 @@
+{
+  "id": "geometric-deep-learning",
+  "title": "Geometric Deep Learning: From Symmetry to Neural Networks",
+  "subtitle": "A comprehensive tour of how symmetry principles unify modern deep learning architectures — from CNNs to transformers to equivariant networks",
+  "content": {
+    "type": "Fragment",
+    "children": [
+      {
+        "type": "Section",
+        "props": { "title": "1. The Symmetry Principle", "number": "1" },
+        "children": [
+          {
+            "type": "Blockquote",
+            "children": "The unreasonable effectiveness of deep learning is, at its core, the unreasonable effectiveness of symmetry."
+          },
+          {
+            "type": "p",
+            "children": [
+              "Why do convolutional neural networks work so well on images? Why do graph neural networks generalize across different graph sizes? Why does the same transformer architecture work for language, vision, and protein folding? The answer, in every case, is ",
+              { "type": "strong", "children": "symmetry" },
+              "."
+            ]
+          },
+          {
+            "type": "p",
+            "children": "Geometric Deep Learning (GDL) is the program of understanding deep learning through the lens of symmetry and geometry. Its central thesis: every successful neural network architecture encodes symmetries of its data domain. Once you see this, the zoo of architectures becomes a single, unified framework."
+          },
+          {
+            "type": "DeepDive",
+            "props": { "title": "Group Theory Crash Course", "defaultOpen": true },
+            "children": [
+              {
+                "type": "p",
+                "children": [
+                  "A ",
+                  { "type": "strong", "children": "group" },
+                  " (G, ·) is a set G with a binary operation · satisfying: (1) closure, (2) associativity, (3) identity element, (4) inverses. That's it. But this minimal structure captures the essence of symmetry."
+                ]
+              },
+              {
+                "type": "DefinitionList",
+                "props": {
+                  "items": [
+                    { "term": "Group Action", "definition": "A group G acts on a set X if there's a map G × X → X satisfying g·(h·x) = (gh)·x and e·x = x. This is how symmetries transform your data." },
+                    { "term": "Orbit", "definition": "The orbit of x ∈ X under G is {g·x : g ∈ G} — all the places x can be moved to by the symmetry group. Points in the same orbit are 'equivalent' under the symmetry." },
+                    { "term": "Stabilizer", "definition": "The stabilizer of x is {g ∈ G : g·x = x} — the symmetries that leave x fixed. By the orbit-stabilizer theorem: |G| = |Orbit(x)| × |Stabilizer(x)|." }
+                  ]
+                }
+              },
+              {
+                "type": "Example",
+                "props": { "title": "Key Groups in Deep Learning" },
+                "children": [
+                  {
+                    "type": "ComparisonTable",
+                    "props": {
+                      "headers": ["Group", "Elements", "Where It Appears"],
+                      "rows": [
+                        ["Sₙ (symmetric group)", "All permutations of n elements", "GNNs, DeepSets, attention"],
+                        ["ℤ² (translation group)", "Integer shifts (dx, dy)", "CNNs on grids"],
+                        ["SO(3) (3D rotations)", "All rotations in 3D", "Molecular modeling, point clouds"],
+                        ["SE(3) (rigid motions)", "Rotations + translations in 3D", "Protein structure, robotics"],
+                        ["E(3) (Euclidean group)", "Rotations + translations + reflections", "Physical simulations"],
+                        ["GL(n) (general linear)", "All invertible n×n matrices", "Representation theory"]
+                      ]
+                    }
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "Analogy",
+            "children": [
+              { "type": "strong", "children": "Noether's theorem analogy:" },
+              " In physics, every continuous symmetry corresponds to a conservation law (translation symmetry → conservation of momentum, rotation symmetry → conservation of angular momentum). In deep learning, every symmetry of your data domain corresponds to a weight-sharing pattern in your architecture. CNNs share weights across spatial positions (translation symmetry). GNNs share weights across nodes (permutation symmetry). This isn't a coincidence — it's the same principle."
+            ]
+          },
+          {
+            "type": "Callout",
+            "props": { "type": "important" },
+            "children": [
+              { "type": "strong", "children": "The key insight:" },
+              " If your data has symmetries, your model should respect them. This reduces the hypothesis space, improves sample efficiency, and guarantees generalization properties that unconstrained models can't achieve."
+            ]
+          }
+        ]
+      },
+
+      { "type": "Divider", "props": { "label": "from symmetry to architecture" } },
+
+      {
+        "type": "Section",
+        "props": { "title": "2. Invariance vs Equivariance", "number": "2" },
+        "children": [
+          {
+            "type": "p",
+            "children": "There are two ways a function can 'respect' a symmetry, and the distinction is crucial:"
+          },
+          {
+            "type": "DefinitionList",
+            "props": {
+              "items": [
+                { "term": "Invariance", "definition": "f(g·x) = f(x) for all g ∈ G. The output is unchanged by the symmetry. Example: classifying whether an image contains a cat — the label shouldn't change if you translate the image." },
+                { "term": "Equivariance", "definition": "f(g·x) = g·f(x) for all g ∈ G. The output transforms predictably with the input. Example: a segmentation map should shift when the image shifts." }
+              ]
+            }
+          },
+          {
+            "type": "Formula",
+            "props": { "label": "Equivariance condition" },
+            "children": "f(ρ_in(g) · x) = ρ_out(g) · f(x)  ∀g ∈ G"
+          },
+          {
+            "type": "p",
+            "children": [
+              "Here ρ_in and ρ_out are ",
+              { "type": "em", "children": "representations" },
+              " of G — they tell you how G acts on the input and output spaces respectively. They don't have to be the same! A convolution layer is translation-equivariant (features shift with the image), while a global average pooling layer is translation-invariant (output is the same regardless of position)."
+            ]
+          },
+          {
+            "type": "Callout",
+            "props": { "type": "tip" },
+            "children": [
+              { "type": "strong", "children": "Why equivariance is usually what you want:" },
+              " Invariance throws away information about where the symmetry-related features are. Equivariance preserves this information in a structured way. You typically want equivariant intermediate layers and invariant final layers (for classification) or equivariant throughout (for structured prediction)."
+            ]
+          },
+          {
+            "type": "Example",
+            "props": { "title": "Equivariance in Standard Architectures" },
+            "children": [
+              {
+                "type": "ComparisonTable",
+                "props": {
+                  "headers": ["Architecture", "Symmetry Group", "Equivariance Type"],
+                  "rows": [
+                    ["CNN", "Translation group ℤ²", "Feature maps shift when input shifts"],
+                    ["GNN", "Permutation group Sₙ", "Node features permute when graph nodes permute"],
+                    ["DeepSets", "Permutation group Sₙ", "Output invariant to input ordering"],
+                    ["Transformer (no pos. enc.)", "Permutation group Sₙ", "Self-attention is permutation-equivariant"],
+                    ["SE(3)-Transformer", "SE(3)", "Outputs rotate/translate with inputs"]
+                  ]
+                }
+              }
+            ]
+          },
+          {
+            "type": "DeepDive",
+            "props": { "title": "Why CNNs Are Translation-Equivariant" },
+            "children": [
+              {
+                "type": "p",
+                "children": "A convolution is defined as (f * k)(x) = Σ_τ f(τ)k(x - τ). If we translate the input by t, so f'(x) = f(x - t), then:"
+              },
+              {
+                "type": "Formula",
+                "children": "(f' * k)(x) = Σ_τ f(τ - t)k(x - τ) = Σ_τ' f(τ')k(x - t - τ') = (f * k)(x - t)"
+              },
+              {
+                "type": "p",
+                "children": "The output shifts by the same amount t. This is equivariance! And it's why convolutional layers share weights across spatial positions — the same filter is applied everywhere. Weight sharing IS equivariance."
+              }
+            ]
+          }
+        ]
+      },
+
+      { "type": "Divider", "props": { "label": "the unifying framework" } },
+
+      {
+        "type": "Section",
+        "props": { "title": "3. The GDL Blueprint (Bronstein et al.)", "number": "3" },
+        "children": [
+          {
+            "type": "p",
+            "children": [
+              "The landmark paper ",
+              { "type": "em", "children": "\"Geometric Deep Learning: Grids, Groups, Graphs, Geodesics, and Gauges\"" },
+              " (Bronstein, Bruna, Cohen, Veličković, 2021) showed that virtually all successful deep learning architectures are instances of a single blueprint: build equivariant maps on geometric domains."
+            ]
+          },
+          {
+            "type": "p",
+            "children": "The five geometric domains, ordered by increasing structure:"
+          },
+          {
+            "type": "ComparisonTable",
+            "props": {
+              "headers": ["Domain", "Symmetry Group", "Standard Architecture", "Key Operation"],
+              "rows": [
+                ["Sets", "Sₙ (permutations)", "DeepSets", "Σ (sum aggregation)"],
+                ["Sequences", "Time translation", "RNNs / Transformers", "Causal convolution / Attention"],
+                ["Grids", "ℤ² (translations)", "CNNs", "Convolution"],
+                ["Graphs", "Sₙ (node permutations)", "GNNs (MPNN)", "Message passing"],
+                ["Manifolds", "Gauge group (local frames)", "Mesh CNNs / Gauge CNNs", "Parallel transport + convolution"]
+              ]
+            }
+          },
+          {
+            "type": "Callout",
+            "props": { "type": "info" },
+            "children": "Each row in this table is a special case of the same principle: define a local operation that commutes with the symmetry group. The only thing that changes is the domain and the group."
+          },
+          {
+            "type": "DeepDive",
+            "props": { "title": "The Blueprint in Detail" },
+            "children": [
+              {
+                "type": "p",
+                "children": "The GDL blueprint says: given a domain Ω with symmetry group G, build your network from layers of the form:"
+              },
+              {
+                "type": "Steps",
+                "props": {
+                  "steps": [
+                    { "title": "Linear equivariant map", "description": "A linear map between feature spaces that commutes with G. For grids, this is convolution. For graphs, this is neighborhood aggregation." },
+                    { "title": "Nonlinearity", "description": "A pointwise nonlinearity σ (ReLU, GELU, etc.). Pointwise maps are automatically equivariant to any group!" },
+                    { "title": "Local pooling / coarsening", "description": "Reduce resolution while preserving equivariance. For grids: strided convolution. For graphs: graph coarsening. For sets: just pool." },
+                    { "title": "Global pooling (if needed)", "description": "Aggregate over the entire domain to get an invariant output. For graphs: sum/mean over nodes. For sets: sum. This is where equivariance becomes invariance." }
+                  ]
+                }
+              },
+              {
+                "type": "p",
+                "children": "The remarkable insight is that finding all possible linear equivariant maps is a solved problem in representation theory. For each domain and group, there's essentially a unique (up to parameters) linear equivariant operation. This is why we keep rediscovering convolution in different guises."
+              }
+            ]
+          },
+          {
+            "type": "Analogy",
+            "children": "Think of the GDL blueprint like the periodic table of chemistry. Before Mendeleev, elements seemed like unrelated substances. After the periodic table, you could see the underlying pattern and even predict missing elements. The GDL blueprint does the same for neural network architectures — it reveals the hidden structure and even suggests architectures for new domains."
+          }
+        ]
+      },
+
+      { "type": "Divider", "props": { "label": "graphs in depth" } },
+
+      {
+        "type": "Section",
+        "props": { "title": "4. Graphs and Message Passing", "number": "4" },
+        "children": [
+          {
+            "type": "p",
+            "children": "Graph Neural Networks (GNNs) are perhaps the purest expression of the GDL principle: the symmetry group is the permutation group Sₙ acting on nodes, and the equivariant linear maps are exactly the message-passing operations."
+          },
+          {
+            "type": "DeepDive",
+            "props": { "title": "The Message Passing Framework", "defaultOpen": true },
+            "children": [
+              {
+                "type": "p",
+                "children": "A Message Passing Neural Network (MPNN) updates node features in three steps:"
+              },
+              {
+                "type": "Steps",
+                "props": {
+                  "steps": [
+                    { "title": "Message", "description": "For each edge (i,j), compute a message: mᵢⱼ = φ(hᵢ, hⱼ, eᵢⱼ) where φ is a learned function and eᵢⱼ are edge features." },
+                    { "title": "Aggregate", "description": "Collect messages from neighbors: Mᵢ = ⊕ⱼ∈N(i) mᵢⱼ where ⊕ is a permutation-invariant aggregation (sum, mean, max)." },
+                    { "title": "Update", "description": "Update node features: hᵢ' = ψ(hᵢ, Mᵢ) where ψ is a learned update function." }
+                  ]
+                }
+              },
+              {
+                "type": "Formula",
+                "props": { "label": "Message Passing (compact form)" },
+                "children": "hᵢ' = ψ(hᵢ, ⊕ⱼ∈N(i) φ(hᵢ, hⱼ, eᵢⱼ))"
+              },
+              {
+                "type": "p",
+                "children": [
+                  "The key insight: this is automatically ",
+                  { "type": "strong", "children": "permutation-equivariant" },
+                  " because the aggregation ⊕ is permutation-invariant, and each node's update only depends on its local neighborhood (which is defined by the graph structure, not by any arbitrary node ordering)."
+                ]
+              }
+            ]
+          },
+          {
+            "type": "Example",
+            "props": { "title": "Concrete Example: GCN Layer" },
+            "children": [
+              {
+                "type": "p",
+                "children": "The Graph Convolutional Network (Kipf & Welling, 2017) is the simplest MPNN:"
+              },
+              {
+                "type": "Formula",
+                "children": "H' = σ(D̃⁻¹/²ÃD̃⁻¹/²HW)"
+              },
+              {
+                "type": "p",
+                "children": "where à = A + I (adjacency + self-loops), D̃ is the degree matrix, H is the node feature matrix, and W is a learnable weight matrix. This is literally neighborhood averaging followed by a linear transform — the simplest possible message-passing."
+              }
+            ]
+          },
+          {
+            "type": "DeepDive",
+            "props": { "title": "The Weisfeiler-Leman Hierarchy and Expressivity" },
+            "children": [
+              {
+                "type": "p",
+                "children": "How powerful are MPNNs? The answer is tied to the Weisfeiler-Leman (WL) graph isomorphism test:"
+              },
+              {
+                "type": "ul",
+                "children": [
+                  { "type": "li", "children": "The 1-WL test iteratively refines node colors based on neighbor multisets. Two graphs are '1-WL equivalent' if this process can't distinguish them." },
+                  { "type": "li", "children": [{ "type": "strong", "children": "Theorem (Xu et al., Morris et al., 2019):" }, " Standard MPNNs are at most as powerful as 1-WL. They cannot distinguish graphs that 1-WL can't distinguish."] },
+                  { "type": "li", "children": "Higher-order k-WL tests (operating on k-tuples of nodes) are strictly more powerful. k-GNNs that pass messages between k-tuples match k-WL." },
+                  { "type": "li", "children": "This creates a hierarchy of expressivity: 1-WL < 2-WL < 3-WL < ... with diminishing returns and increasing computational cost." }
+                ]
+              },
+              {
+                "type": "Callout",
+                "props": { "type": "warning" },
+                "children": "1-WL can't distinguish some simple graphs (e.g., two different regular graphs with the same degree sequence). This means standard GNNs have fundamental blind spots. Fixing this is an active research area."
+              }
+            ]
+          },
+          {
+            "type": "DeepDive",
+            "props": { "title": "The Over-Smoothing Problem" },
+            "children": [
+              {
+                "type": "p",
+                "children": "As you stack more message-passing layers, node representations converge to the same vector — they become indistinguishable. This is called over-smoothing."
+              },
+              {
+                "type": "p",
+                "children": "Intuitively: each layer averages over neighbors. After k layers, each node's representation is a weighted average over its k-hop neighborhood. For small-world graphs, k-hop neighborhoods quickly cover the whole graph, so everything converges."
+              },
+              {
+                "type": "p",
+                "children": "This is analogous to heat diffusion: message passing is like applying the heat equation on the graph, and everything equilibrates. Solutions include: residual connections, normalization, jumping knowledge (concatenating all layers), and graph transformers that bypass the local message-passing paradigm."
+              }
+            ]
+          },
+          {
+            "type": "Callout",
+            "props": { "type": "tip" },
+            "children": [
+              { "type": "strong", "children": "Connection to your research:" },
+              " The tension between local message passing and global reasoning in GNNs mirrors the tension between local attention patterns and global coherence in transformers. Over-smoothing in GNNs is conceptually similar to the 'representation collapse' you might see when all token representations converge in deep transformer layers. The solutions are similar too: residual connections, normalization, and architectural innovations that maintain diversity."
+            ]
+          }
+        ]
+      },
+
+      { "type": "Divider", "props": { "label": "deeper into group theory" } },
+
+      {
+        "type": "Section",
+        "props": { "title": "5. Groups and Representations", "number": "5" },
+        "children": [
+          {
+            "type": "p",
+            "children": "To build equivariant networks for groups beyond permutations, we need the language of representation theory. This is where linear algebra meets group theory — and where the real power of GDL emerges."
+          },
+          {
+            "type": "DefinitionList",
+            "props": {
+              "items": [
+                { "term": "Representation", "definition": "A representation of a group G is a homomorphism ρ: G → GL(V), mapping each group element to an invertible linear map on a vector space V. It tells you how the group acts on vectors." },
+                { "term": "Irreducible Representation (irrep)", "definition": "A representation with no proper invariant subspaces. These are the 'atoms' of representation theory — every representation decomposes into a direct sum of irreps." },
+                { "term": "Character", "definition": "The character of a representation is χ(g) = Tr(ρ(g)). Characters completely determine representations (up to isomorphism) and are much easier to work with." }
+              ]
+            }
+          },
+          {
+            "type": "Example",
+            "props": { "title": "Representations of SO(3)" },
+            "children": [
+              {
+                "type": "p",
+                "children": "The rotation group SO(3) has irreps labeled by ℓ = 0, 1, 2, ... with dimensions 2ℓ+1:"
+              },
+              {
+                "type": "ul",
+                "children": [
+                  { "type": "li", "children": [{ "type": "strong", "children": "ℓ = 0 (dim 1):" }, " Scalars. Invariant under rotation. (e.g., energy, charge)"] },
+                  { "type": "li", "children": [{ "type": "strong", "children": "ℓ = 1 (dim 3):" }, " Vectors. Transform like (x,y,z) under rotation. (e.g., position, velocity, force)"] },
+                  { "type": "li", "children": [{ "type": "strong", "children": "ℓ = 2 (dim 5):" }, " Rank-2 symmetric traceless tensors. (e.g., quadrupole moments, stress tensors)"] },
+                  { "type": "li", "children": "And so on: spherical harmonics Yₗᵐ form a basis for each irrep." }
+                ]
+              },
+              {
+                "type": "p",
+                "children": "This is why spherical harmonics appear everywhere in equivariant networks for 3D data — they're the natural basis for SO(3) representations."
+              }
+            ]
+          },
+          {
+            "type": "DeepDive",
+            "props": { "title": "Schur's Lemma and Equivariant Linear Maps" },
+            "children": [
+              {
+                "type": "p",
+                "children": [
+                  { "type": "strong", "children": "Schur's Lemma:" },
+                  " If ρ₁ and ρ₂ are irreducible representations and f: V₁ → V₂ is a linear map satisfying f ∘ ρ₁(g) = ρ₂(g) ∘ f for all g (i.e., f is equivariant), then:"
+                ]
+              },
+              {
+                "type": "ul",
+                "children": [
+                  { "type": "li", "children": "If ρ₁ ≇ ρ₂ (non-isomorphic irreps), then f = 0 (the only equivariant map is the zero map)." },
+                  { "type": "li", "children": "If ρ₁ ≅ ρ₂ (isomorphic irreps), then f = λI (equivariant maps are just scalar multiples of the identity)." }
+                ]
+              },
+              {
+                "type": "Callout",
+                "props": { "type": "important" },
+                "children": "This is incredibly constraining — and incredibly useful! It means the space of equivariant linear maps between irreps is at most 1-dimensional. Once you decompose your input and output into irreps, the structure of equivariant maps is completely determined. The only freedom is in choosing the scalar coefficients."
+              },
+              {
+                "type": "p",
+                "children": "In practice: decompose your feature space into irreps of G. Then the most general equivariant linear map is block-diagonal, with each block either zero (between different irrep types) or a scalar multiple of the identity (between matching irrep types). This gives you the minimal number of learnable parameters while guaranteeing equivariance."
+              }
+            ]
+          },
+          {
+            "type": "DeepDive",
+            "props": { "title": "Steerable CNNs: Equivariance Beyond Translation" },
+            "children": [
+              {
+                "type": "p",
+                "children": "Standard CNNs are only translation-equivariant. What if we also want rotation equivariance? Steerable CNNs (Cohen & Welling, 2016) solve this using representation theory:"
+              },
+              {
+                "type": "Steps",
+                "props": {
+                  "steps": [
+                    { "title": "Choose representations", "description": "Assign input/output features irrep types. E.g., scalar fields (ℓ=0), vector fields (ℓ=1)." },
+                    { "title": "Solve the equivariance constraint", "description": "Find all linear maps W satisfying ρ_out(g)W = Wρ_in(g). By Schur's lemma, this space is small and well-characterized." },
+                    { "title": "Parameterize steerable kernels", "description": "Express convolution kernels as linear combinations of a basis of equivariant kernels. Only the coefficients are learned." }
+                  ]
+                }
+              },
+              {
+                "type": "p",
+                "children": "The result: a CNN that is equivariant to both translations AND rotations, with fewer parameters than a standard CNN (because equivariance constraints reduce the parameter space)."
+              }
+            ]
+          }
+        ]
+      },
+
+      { "type": "Divider", "props": { "label": "curved spaces" } },
+
+      {
+        "type": "Section",
+        "props": { "title": "6. Gauge Equivariance on Manifolds", "number": "6" },
+        "children": [
+          {
+            "type": "p",
+            "children": "When your data lives on a curved surface — a mesh, a molecular surface, the surface of the Earth — the notion of 'direction' becomes subtle. There's no global coordinate system. This is where differential geometry enters GDL."
+          },
+          {
+            "type": "DefinitionList",
+            "props": {
+              "items": [
+                { "term": "Tangent Bundle", "definition": "At each point p on a manifold M, there's a tangent space TₚM — the space of directions you can move from p. The tangent bundle TM is the collection of all tangent spaces. Features on manifolds are sections of vector bundles over M." },
+                { "term": "Frame (Gauge)", "definition": "A choice of basis for each tangent space. On a sphere, this could be (north, east) at each point. But there's no canonical choice! Any rotation of the frame at any point gives an equally valid frame. This ambiguity is the gauge freedom." },
+                { "term": "Parallel Transport", "definition": "How to compare vectors at different points. Moving a vector along a path on a curved surface, keeping it 'as parallel as possible.' On a flat surface this is trivial; on a curved surface, the result depends on the path (this is curvature!)." },
+                { "term": "Gauge Transformation", "definition": "A change of frame at each point. If you rotate your local coordinate system by angle θ(p) at each point p, that's a gauge transformation. Physical (and network) quantities should be independent of this arbitrary choice." }
+              ]
+            }
+          },
+          {
+            "type": "Analogy",
+            "children": "Imagine you're on the surface of the Earth. At the North Pole, 'south' points in every direction. At the equator, 'north' is well-defined. When you walk along a path, your sense of 'forward' rotates relative to the global coordinates. There's no single, consistent 'north' everywhere — that's the gauge problem. A gauge-equivariant network doesn't care which direction you call 'north' at each point."
+          },
+          {
+            "type": "DeepDive",
+            "props": { "title": "Why Gauge Equivariance Matters" },
+            "children": [
+              {
+                "type": "p",
+                "children": "On a flat grid (like an image), convolution kernels have a fixed orientation — '3 pixels right, 2 pixels up' means the same thing everywhere. On a curved surface, there is no global 'right' or 'up'. You need to:"
+              },
+              {
+                "type": "ol",
+                "children": [
+                  { "type": "li", "children": "Choose a local frame at each point (gauge choice)" },
+                  { "type": "li", "children": "Express your convolution kernel in that frame" },
+                  { "type": "li", "children": "Ensure your output is independent of the frame choice (gauge equivariance)" }
+                ]
+              },
+              {
+                "type": "p",
+                "children": "This is exactly what Gauge Equivariant Mesh CNNs (de Haan, Weiler, Cohen, Welling, 2021) do. They use parallel transport to move features between neighboring points and express kernels using steerable filters that transform correctly under gauge transformations."
+              },
+              {
+                "type": "Callout",
+                "props": { "type": "info" },
+                "children": "Applications: molecular surface analysis (predicting binding sites), weather prediction on the sphere, cortical surface analysis in neuroscience, protein structure prediction (where amino acid features live on a manifold)."
+              }
+            ]
+          }
+        ]
+      },
+
+      { "type": "Divider", "props": { "label": "attention meets geometry" } },
+
+      {
+        "type": "Section",
+        "props": { "title": "7. Geometric Transformers", "number": "7" },
+        "children": [
+          {
+            "type": "p",
+            "children": "The transformer architecture, viewed through the GDL lens, is a permutation-equivariant set operation. This perspective reveals deep connections between attention, message passing, and geometric structure."
+          },
+          {
+            "type": "DeepDive",
+            "props": { "title": "Self-Attention as a Permutation-Equivariant Operation", "defaultOpen": true },
+            "children": [
+              {
+                "type": "p",
+                "children": "Consider self-attention without positional encodings. Given a set of tokens {x₁, ..., xₙ}:"
+              },
+              {
+                "type": "Formula",
+                "children": "Attention(Q, K, V) = softmax(QKᵀ/√d)V"
+              },
+              {
+                "type": "p",
+                "children": [
+                  "If we permute the input tokens by π ∈ Sₙ, then Q, K, V all permute the same way, the attention matrix permutes as π·A·πᵀ, and the output permutes by π. This is ",
+                  { "type": "strong", "children": "permutation equivariance" },
+                  " — the transformer is a set operation!"
+                ]
+              },
+              {
+                "type": "p",
+                "children": "But wait — language has order. Positional encodings break the permutation symmetry deliberately, making the transformer sensitive to sequence position. This is an example of symmetry breaking: you start with a more symmetric architecture and selectively break symmetries that shouldn't be preserved."
+              }
+            ]
+          },
+          {
+            "type": "Example",
+            "props": { "title": "SE(3)-Transformers" },
+            "children": [
+              {
+                "type": "p",
+                "children": "SE(3)-Transformers (Fuchs et al., 2020) extend the transformer to be equivariant to 3D rotations and translations. Key ideas:"
+              },
+              {
+                "type": "ul",
+                "children": [
+                  { "type": "li", "children": "Features at each point are decomposed into SO(3) irreps (scalars, vectors, tensors)" },
+                  { "type": "li", "children": "Attention weights depend only on invariant quantities (distances, angles)" },
+                  { "type": "li", "children": "Value projections are equivariant linear maps (constrained by Schur's lemma)" },
+                  { "type": "li", "children": "The result: attention scores are invariant to rotations/translations, but value aggregation is equivariant" }
+                ]
+              },
+              {
+                "type": "p",
+                "children": "This architecture processes 3D point clouds (atoms in a molecule, particles in a simulation) while guaranteeing that rotating the input rotates the output by the same rotation."
+              }
+            ]
+          },
+          {
+            "type": "Callout",
+            "props": { "type": "tip" },
+            "children": [
+              { "type": "strong", "children": "Connection to your work on attention heads as geometric operations:" },
+              " In a standard transformer, each attention head can be viewed as a geometric operation on the residual stream. The QK circuit selects which information to move (a permutation-equivariant soft selection), and the OV circuit determines what to write (a linear map on the selected features). From the GDL perspective, the residual stream is a vector bundle over token positions, attention heads are sections of a hom-bundle, and the QK/OV decomposition corresponds to separating the 'where' (equivariant routing) from the 'what' (equivariant transformation)."
+            ]
+          },
+          {
+            "type": "DeepDive",
+            "props": { "title": "Positional Encodings as Symmetry Breaking" },
+            "children": [
+              {
+                "type": "p",
+                "children": "Positional encodings in transformers are a controlled symmetry-breaking mechanism:"
+              },
+              {
+                "type": "ul",
+                "children": [
+                  { "type": "li", "children": [{ "type": "strong", "children": "No positional encoding:" }, " Full Sₙ permutation equivariance. The transformer is a set function (like DeepSets with attention)."] },
+                  { "type": "li", "children": [{ "type": "strong", "children": "Absolute positional encoding:" }, " Breaks all permutation symmetry. Each position is unique."] },
+                  { "type": "li", "children": [{ "type": "strong", "children": "Relative positional encoding (RoPE, ALiBi):" }, " Preserves translation equivariance while breaking full permutation symmetry. The model cares about relative position, not absolute."] },
+                  { "type": "li", "children": [{ "type": "strong", "children": "Graph positional encoding (Laplacian eigenvectors):" }, " For graph transformers — breaks permutation symmetry just enough to encode graph structure."] }
+                ]
+              },
+              {
+                "type": "p",
+                "children": "The choice of positional encoding is a choice of which symmetries to preserve and which to break. This is a design decision that should be informed by the actual symmetries of your data."
+              }
+            ]
+          }
+        ]
+      },
+
+      { "type": "Divider", "props": { "label": "practice" } },
+
+      {
+        "type": "Section",
+        "props": { "title": "8. Equivariant Neural Networks in Practice", "number": "8" },
+        "children": [
+          {
+            "type": "p",
+            "children": "The GDL principles have spawned a family of practical architectures for scientific applications. Here's a tour of the most important ones:"
+          },
+          {
+            "type": "ComparisonTable",
+            "props": {
+              "headers": ["Architecture", "Group", "Key Innovation", "Application"],
+              "rows": [
+                ["SchNet (2017)", "E(3)-invariant", "Continuous convolution with radial basis functions", "Molecular energy/force prediction"],
+                ["TFN (2018)", "SE(3)-equivariant", "Tensor field convolutions using spherical harmonics", "Molecular property prediction"],
+                ["DimeNet (2020)", "E(3)-invariant", "Uses angles between bonds (not just distances)", "Molecular property prediction"],
+                ["EGNN (2021)", "E(n)-equivariant", "Simple coordinate updates, no spherical harmonics needed", "Molecular dynamics, generation"],
+                ["SE(3)-Transformer (2020)", "SE(3)-equivariant", "Attention with equivariant type-mixing", "Protein structure, materials"],
+                ["PaiNN (2021)", "E(3)-equivariant", "Scalar/vector feature interactions", "Molecular dynamics"],
+                ["MACE (2022)", "E(3)-equivariant", "Higher body-order messages via tensor products", "Interatomic potentials"]
+              ]
+            }
+          },
+          {
+            "type": "DeepDive",
+            "props": { "title": "EGNN: The Elegant Minimal Architecture" },
+            "children": [
+              {
+                "type": "p",
+                "children": "E(n) Equivariant Graph Neural Networks (Satorras et al., 2021) are beautiful in their simplicity. Instead of spherical harmonics and Clebsch-Gordan coefficients, they just update node positions and features:"
+              },
+              {
+                "type": "Code",
+                "props": { "language": "python", "filename": "EGNN update" },
+                "children": "# Message: use distance (invariant) and node features\nm_ij = MLP([h_i, h_j, ||x_i - x_j||², e_ij])\n\n# Aggregate messages\nm_i = sum(m_ij for j in neighbors(i))\n\n# Update features (invariant)\nh_i = h_i + MLP([h_i, m_i])\n\n# Update positions (equivariant!)\nx_i = x_i + sum((x_i - x_j) * MLP(m_ij) for j in neighbors(i))"
+              },
+              {
+                "type": "p",
+                "children": "The position update is equivariant because (x_i - x_j) is an equivariant vector (it rotates/translates with the input) and MLP(m_ij) is an invariant scalar (it depends only on distances and features). Scalar × vector = equivariant vector. No representation theory needed!"
+              }
+            ]
+          },
+          {
+            "type": "DeepDive",
+            "props": { "title": "Applications: Why Symmetry Matters in Practice" },
+            "children": [
+              {
+                "type": "p",
+                "children": "Equivariant architectures don't just satisfy mathematical aesthetics — they deliver concrete practical benefits:"
+              },
+              {
+                "type": "ul",
+                "children": [
+                  { "type": "li", "children": [{ "type": "strong", "children": "Data efficiency:" }, " Equivariance means you don't need to learn the symmetry from data. A single training example teaches the model about all its symmetric copies. For SO(3), that's an infinite continuous group — infinite 'free' data augmentation baked into the architecture."] },
+                  { "type": "li", "children": [{ "type": "strong", "children": "Guaranteed generalization:" }, " An equivariant model gives correct outputs for any rotation/translation of its input, not just rotations seen during training. This is a guarantee, not a hope."] },
+                  { "type": "li", "children": [{ "type": "strong", "children": "Physical consistency:" }, " If you're predicting forces (which are vectors), your model MUST be equivariant — forces rotate when you rotate the system. An invariant model can't predict forces. A non-equivariant model might predict forces that violate Newton's third law."] },
+                  { "type": "li", "children": [{ "type": "strong", "children": "Fewer parameters:" }, " Equivariance constraints reduce the number of free parameters, often dramatically. This makes models faster and less prone to overfitting."] }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+
+      { "type": "Divider", "props": { "label": "connecting to your research" } },
+
+      {
+        "type": "Section",
+        "props": { "title": "9. The Representation Theory of Transformers", "number": "9" },
+        "children": [
+          {
+            "type": "Blockquote",
+            "children": "The transformer is a geometric machine. Its representations aren't just vectors — they're sections of a vector bundle over token positions, transformed by attention as parallel transport."
+          },
+          {
+            "type": "p",
+            "children": "This section connects GDL concepts to your work on polysemy and representation geometry in transformers. These connections are speculative but precise — they suggest new ways to think about what transformers are doing geometrically."
+          },
+          {
+            "type": "DeepDive",
+            "props": { "title": "The Residual Stream as a Vector Bundle", "defaultOpen": true },
+            "children": [
+              {
+                "type": "p",
+                "children": [
+                  "In the GDL framework, the residual stream can be viewed as a ",
+                  { "type": "strong", "children": "vector bundle" },
+                  " over the discrete 'manifold' of token positions:"
+                ]
+              },
+              {
+                "type": "ul",
+                "children": [
+                  { "type": "li", "children": [{ "type": "strong", "children": "Base space:" }, " The sequence of token positions {1, 2, ..., n}"] },
+                  { "type": "li", "children": [{ "type": "strong", "children": "Fiber:" }, " At each position, the d-dimensional residual stream vector. This is like the tangent space at each point on a manifold."] },
+                  { "type": "li", "children": [{ "type": "strong", "children": "Sections:" }, " A residual stream state (vectors at all positions) is a section of this bundle."] }
+                ]
+              },
+              {
+                "type": "p",
+                "children": "This isn't just a metaphor — it has structural consequences. The fact that transformers process features 'attached to positions' and move information between positions is exactly the structure of a vector bundle with a connection."
+              }
+            ]
+          },
+          {
+            "type": "DeepDive",
+            "props": { "title": "Attention as Parallel Transport" },
+            "children": [
+              {
+                "type": "p",
+                "children": "On a manifold, parallel transport moves vectors from one tangent space to another along a path. In a transformer, attention moves information from one position to another:"
+              },
+              {
+                "type": "ComparisonTable",
+                "props": {
+                  "headers": ["Manifold Concept", "Transformer Analog"],
+                  "rows": [
+                    ["Point on manifold", "Token position"],
+                    ["Tangent vector at p", "Residual stream vector at position i"],
+                    ["Parallel transport along γ", "Attention-weighted value projection (OV circuit)"],
+                    ["Connection (Christoffel symbols)", "QK circuit (determines transport routes)"],
+                    ["Curvature", "Non-commutativity of sequential attention heads"],
+                    ["Holonomy (transport around a loop)", "Information routing cycles across layers"]
+                  ]
+                }
+              },
+              {
+                "type": "p",
+                "children": "The OV circuit (W_OV = W_V · W_O) acts as a linear map that 'transports' a value vector from the source position to the destination position. The QK circuit determines the 'connection' — which paths information flows along. Different attention heads define different connections, and their non-commutativity is analogous to curvature."
+              }
+            ]
+          },
+          {
+            "type": "DeepDive",
+            "props": { "title": "Layer Norm as Gauge Fixing" },
+            "children": [
+              {
+                "type": "p",
+                "children": "Layer normalization projects residual stream vectors onto a sphere (by normalizing their magnitude) and recenters them (by subtracting the mean). In gauge theory terms:"
+              },
+              {
+                "type": "ul",
+                "children": [
+                  { "type": "li", "children": "The 'gauge freedom' is the arbitrary scale and shift of residual stream vectors at each position." },
+                  { "type": "li", "children": "Layer norm is a 'gauge fixing' — it chooses a canonical representative from each equivalence class of vectors that differ only by scale and shift." },
+                  { "type": "li", "children": "The learnable scale (γ) and shift (β) parameters re-introduce controlled degrees of freedom after gauge fixing." }
+                ]
+              },
+              {
+                "type": "p",
+                "children": "This explains why layer norm is so important: without it, the residual stream has too much gauge freedom (scale can grow unboundedly across layers). Layer norm tames this by fixing the gauge at each layer."
+              }
+            ]
+          },
+          {
+            "type": "DeepDive",
+            "props": { "title": "Polysemy Clusters as Orbits Under Context Transformations", "defaultOpen": true },
+            "children": [
+              {
+                "type": "p",
+                "children": [
+                  "Here's where GDL connects most directly to your polysemy research. Consider a polysemous word like 'bank'. In the residual stream, its representation varies with context. The key GDL insight: ",
+                  { "type": "strong", "children": "the different sense-representations form an orbit under the action of context transformations." }
+                ]
+              },
+              {
+                "type": "ul",
+                "children": [
+                  { "type": "li", "children": [{ "type": "strong", "children": "The 'group':" }, " Context-dependent transformations of word representations. Not literally a group (it's approximate and learned), but it acts like one."] },
+                  { "type": "li", "children": [{ "type": "strong", "children": "The 'orbit':" }, " All representations of 'bank' across contexts. Sense clusters are sub-orbits — the representation of 'bank' in financial contexts forms one cluster, river contexts another."] },
+                  { "type": "li", "children": [{ "type": "strong", "children": "The 'stabilizer':" }, " Context transformations that don't change the sense. Replacing 'big bank' with 'large bank' shouldn't change the sense — this is a stabilizer element."] },
+                  { "type": "li", "children": [{ "type": "strong", "children": "Invariants:" }, " Features that are constant across all senses of a word (its 'core meaning') are invariants of the context group action."] }
+                ]
+              },
+              {
+                "type": "Callout",
+                "props": { "type": "important" },
+                "children": "This suggests a concrete research direction: decompose polysemy representations into irreps of the context transformation group. The invariant component (ℓ=0 irrep) is the context-independent meaning. Higher irreps capture context-dependent sense variations. If this decomposition is clean, it would provide a principled way to separate core meaning from contextual modulation — and to measure polysemy as the 'size' of the orbit."
+              }
+            ]
+          }
+        ]
+      },
+
+      { "type": "Divider", "props": { "label": "frontiers" } },
+
+      {
+        "type": "Section",
+        "props": { "title": "10. Open Problems", "number": "10" },
+        "children": [
+          {
+            "type": "p",
+            "children": "Geometric Deep Learning is a vibrant, rapidly evolving field. Here are some of the most important open questions:"
+          },
+          {
+            "type": "DeepDive",
+            "props": { "title": "Expressivity vs Efficiency", "defaultOpen": true },
+            "children": [
+              {
+                "type": "p",
+                "children": "Higher-order equivariant features (higher ℓ irreps, higher-order tensors) are more expressive but more expensive. The fundamental tradeoff:"
+              },
+              {
+                "type": "ul",
+                "children": [
+                  { "type": "li", "children": "Tensor products of irreps have O(ℓ³) cost via Clebsch-Gordan coefficients" },
+                  { "type": "li", "children": "But many applications need only ℓ ≤ 2 for good accuracy" },
+                  { "type": "li", "children": "EGNN avoids higher-order tensors entirely and still works well — is there a theoretical explanation?" },
+                  { "type": "li", "children": "Can we find efficient approximations to high-order equivariant operations?" }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "DeepDive",
+            "props": { "title": "Learning Symmetries vs Imposing Them" },
+            "children": [
+              {
+                "type": "p",
+                "children": "Should we hard-code symmetries into the architecture (equivariant networks) or let the model learn them from data (data augmentation, relaxed equivariance)?"
+              },
+              {
+                "type": "ComparisonTable",
+                "props": {
+                  "headers": ["Hard-coded (Equivariant)", "Learned (Augmentation)"],
+                  "rows": [
+                    ["Guaranteed equivariance", "Approximate equivariance"],
+                    ["Fewer parameters", "More parameters needed"],
+                    ["Can't handle broken symmetries", "Can learn partial symmetries"],
+                    ["Requires knowing the group", "Works with unknown symmetries"],
+                    ["Exact for clean data", "More robust to noise"]
+                  ]
+                }
+              },
+              {
+                "type": "p",
+                "children": [
+                  "Recent work on ",
+                  { "type": "strong", "children": "relaxed equivariance" },
+                  " and ",
+                  { "type": "strong", "children": "approximately equivariant networks" },
+                  " tries to get the best of both worlds: start with equivariance as an inductive bias but allow the model to learn soft symmetry-breaking where the data requires it."
+                ]
+              }
+            ]
+          },
+          {
+            "type": "DeepDive",
+            "props": { "title": "Geometric Foundations for Interpretability" },
+            "children": [
+              {
+                "type": "p",
+                "children": "Perhaps the most exciting frontier for your research: can GDL provide principled foundations for mechanistic interpretability?"
+              },
+              {
+                "type": "ul",
+                "children": [
+                  { "type": "li", "children": [{ "type": "strong", "children": "Representation decomposition:" }, " Decomposing neural representations into irreps of relevant symmetry groups could provide a principled basis for understanding what features a network has learned."] },
+                  { "type": "li", "children": [{ "type": "strong", "children": "Equivariant probes:" }, " Instead of training linear probes, train equivariant probes that respect the symmetries of the target concept. This could give more meaningful readouts."] },
+                  { "type": "li", "children": [{ "type": "strong", "children": "Geometric circuits:" }, " Understand transformer circuits not just as computational graphs but as geometric transformations. Each head is a map between representation spaces, constrained by the symmetries it respects."] },
+                  { "type": "li", "children": [{ "type": "strong", "children": "Symmetry-based feature selection:" }, " SAE (Sparse Autoencoder) features that align with irreps of natural symmetry groups may be more 'natural' or interpretable than arbitrary directions."] }
+                ]
+              },
+              {
+                "type": "Callout",
+                "props": { "type": "tip" },
+                "children": "Concrete idea: take your polysemy clusters and check whether they're approximately orbits under some identifiable group action. If so, the irrep decomposition gives you a principled basis for the 'sense space' of a polysemous word, and the group elements that connect senses tell you what contextual operations are doing geometrically."
+              }
+            ]
+          },
+          {
+            "type": "DeepDive",
+            "props": { "title": "Beyond Current Frontiers" },
+            "children": [
+              {
+                "type": "ul",
+                "children": [
+                  { "type": "li", "children": [{ "type": "strong", "children": "Categorical symmetries:" }, " Beyond groups — what about groupoids, categories, higher algebraic structures?"] },
+                  { "type": "li", "children": [{ "type": "strong", "children": "Topological deep learning:" }, " Extending GNNs to simplicial complexes, cell complexes, and higher-order topological structures."] },
+                  { "type": "li", "children": [{ "type": "strong", "children": "Geometric diffusion models:" }, " Score-based generative models with equivariance constraints for molecular generation."] },
+                  { "type": "li", "children": [{ "type": "strong", "children": "Symmetry discovery:" }, " Automatically discovering the symmetry group of a dataset from data."] },
+                  { "type": "li", "children": [{ "type": "strong", "children": "GDL for language:" }, " What are the 'natural symmetries' of language? Are there useful equivariances beyond permutation?"] }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+
+      { "type": "Divider", "props": { "label": "further reading" } },
+
+      {
+        "type": "Section",
+        "props": { "title": "References & Further Reading" },
+        "children": [
+          {
+            "type": "ul",
+            "children": [
+              { "type": "li", "children": "Bronstein, Bruna, Cohen, Veličković (2021). \"Geometric Deep Learning: Grids, Groups, Graphs, Geodesics, and Gauges\" — The definitive survey." },
+              { "type": "li", "children": "Weiler, Cesa (2019). \"General E(2)-Equivariant Steerable CNNs\" — The steerable CNN framework." },
+              { "type": "li", "children": "Satorras, Hoogeboom, Welling (2021). \"E(n) Equivariant Graph Neural Networks\" — Elegant simplicity." },
+              { "type": "li", "children": "Fuchs, Worrall, Fischer, Welling (2020). \"SE(3)-Transformers\" — Attention meets equivariance." },
+              { "type": "li", "children": "Xu, Hu, Leskovec, Jegelka (2019). \"How Powerful are Graph Neural Networks?\" — WL hierarchy for GNNs." },
+              { "type": "li", "children": "Batatia et al. (2022). \"MACE: Higher Order Equivariant Message Passing\" — State-of-the-art for interatomic potentials." },
+              { "type": "li", "children": "Cohen, Welling (2016). \"Group Equivariant Convolutional Networks\" — Where it all started." },
+              { "type": "li", "children": "Elhage et al. (2021). \"A Mathematical Framework for Transformer Circuits\" — Mechanistic interpretability foundations." }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}

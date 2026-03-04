@@ -127,6 +127,19 @@ function CreateTutorialModal({ isOpen, onClose }) {
 
 const tutorials = [
   {
+    id: 'geometric-deep-learning',
+    title: 'Geometric Deep Learning: From Symmetry to Neural Networks',
+    description: 'How symmetry principles unify CNNs, GNNs, Transformers, and beyond — the Bronstein et al. blueprint, representation theory, gauge equivariance, and connections to polysemy.',
+    tags: ['geometric deep learning', 'group theory', 'equivariance', 'GNN', 'transformers', 'manifolds'],
+    icon: '💎',
+    gradient: 'from-indigo-500 to-violet-600',
+    shadowColor: 'rgba(99, 102, 241, 0.3)',
+    glowColor: 'rgba(99, 102, 241, 0.15)',
+    readTime: '60 min',
+    difficulty: 3,
+    featured: true,
+  },
+  {
     id: 'brainstorm-10-hierarchical-operator-trees',
     title: 'Hierarchical Operator Trees',
     description: 'Symbolic + Geometric: organizing Schankian operators into trees where each node is BOTH a label AND an embedding region. Handles polysemy, composition, and metaphor.',
