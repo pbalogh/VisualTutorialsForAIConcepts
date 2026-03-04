@@ -4814,6 +4814,78 @@
             ]
           }
         ]
+      },
+      {
+        "type": "Section",
+        "title": "🔬 March 4, 2026: CoDAR — Continuous Diffusion Closes the Gap",
+        "children": [
+          {
+            "type": "DeepDive",
+            "title": "CoDAR: Token Rounding Is the Bottleneck for Continuous Diffusion (Mar 3, 2026)",
+            "children": [
+              {
+                "type": "p",
+                "children": [
+                  {
+                    "type": "strong",
+                    "children": [
+                      "Paper:"
+                    ]
+                  },
+                  " Shen et al., 'CoDAR: Continuous Diffusion Language Models are More Powerful Than You Think' (arXiv:2603.02547, Mar 3, 2026)"
+                ]
+              },
+              {
+                "type": "p",
+                "children": [
+                  {
+                    "type": "strong",
+                    "children": [
+                      "Key insight:"
+                    ]
+                  },
+                  " Through controlled token-recovery experiments, identifies TOKEN ROUNDING (the final projection from denoised embeddings to discrete tokens) as the primary bottleneck preventing continuous diffusion LMs from matching discrete approaches. Proposes a two-stage fix: keep diffusion entirely continuous in embedding space, then use a context-conditional AR decoder that cross-attends to denoised embeddings for contextualized rounding. Becomes competitive with strong discrete DLMs on LM1B and OpenWebText."
+                ]
+              },
+              {
+                "type": "p",
+                "children": [
+                  {
+                    "type": "strong",
+                    "children": [
+                      "Relevance:"
+                    ]
+                  },
+                  " ⭐⭐⭐ DIRECT INSIGHT FOR IDEA 1. The rounding bottleneck is exactly the problem SAE features could help solve. SAE feature activations are continuous but semantically structured — they provide a RICHER intermediate representation than raw embeddings for the rounding step. Instead of CoDAR's generic contextual decoder, SAE features could serve as an interpretable bridge between continuous diffusion and discrete tokens: diffuse in SAE space → SAE features naturally decompose into semantic components → each component maps to token distributions more cleanly than raw embeddings. Also reinforces FLM's finding that continuous diffusion for text is viable when the discretization step is handled properly."
+                ]
+              },
+              {
+                "type": "p",
+                "children": [
+                  {
+                    "type": "strong",
+                    "children": [
+                      "New question:"
+                    ]
+                  },
+                  " Could SAE feature space serve as a 'structured rounding' mechanism? If SAE features decompose embeddings into interpretable dimensions, projecting denoised embeddings through the SAE before rounding could improve token recovery — combining CoDAR's insight with our Idea 1."
+                ]
+              }
+            ]
+          },
+          {
+            "type": "p",
+            "children": [
+              {
+                "type": "strong",
+                "children": [
+                  "Mar 4 Summary:"
+                ]
+              },
+              " CoDAR identifies the specific failure mode of continuous text diffusion (token rounding) and fixes it, making continuous diffusion competitive with discrete. This strengthens the case for our SAE-in-continuous-space approach (Idea 1) — the field is converging on continuous representations even for discrete text, and SAE features could provide the structured bridge between continuous diffusion and discrete tokens."
+            ]
+          }
+        ]
       }
     ]
   }
