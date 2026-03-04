@@ -4874,6 +4874,60 @@
             ]
           },
           {
+            "type": "DeepDive",
+            "title": "GSAE: Graph-Regularized SAEs Double Steering Effectiveness (Dec 2025)",
+            "children": [
+              {
+                "type": "p",
+                "children": [
+                  {
+                    "type": "strong",
+                    "children": [
+                      "Paper:"
+                    ]
+                  },
+                  " Sun et al., 'GSAE: Graph-Regularized Sparse Autoencoders for Robust LLM Safety Steering' (arXiv:2512.06655, Dec 2025)"
+                ]
+              },
+              {
+                "type": "p",
+                "children": [
+                  {
+                    "type": "strong",
+                    "children": [
+                      "Key insight:"
+                    ]
+                  },
+                  " Standard SAE features lack semantic clustering — related concepts scatter across the feature space. GSAE adds graph regularization during SAE training: semantically related features are encouraged to cluster, while unrelated features are pushed apart. Result: GSAE steering achieves 82% selective refusal rate vs 42% for standard SAE steering, while maintaining strong task accuracy (70% TriviaQA, 65% TruthfulQA, 74% GSM8K). The graph structure is derived from feature co-activation patterns."
+                ]
+              },
+              {
+                "type": "p",
+                "children": [
+                  {
+                    "type": "strong",
+                    "children": [
+                      "Relevance:"
+                    ]
+                  },
+                  " ⭐⭐ QUALITY IMPROVEMENT FOR ALL IDEAS. If we use SAE features as a diffusion latent space (Idea 1) or for steering (Idea 2), the quality of SAE feature structure matters enormously. GSAE's graph regularization nearly doubles steering effectiveness — suggesting that for SAE+diffusion, we should use graph-regularized SAEs rather than vanilla ones. The co-activation graph captures feature interdependencies that a diffusion model could exploit: features that co-activate form natural 'modes' in the latent space. For Idea 3 (semantic noise schedules), the graph structure could define which feature clusters to noise/denoise together."
+                ]
+              },
+              {
+                "type": "p",
+                "children": [
+                  {
+                    "type": "strong",
+                    "children": [
+                      "New question:"
+                    ]
+                  },
+                  " Could the GSAE co-activation graph serve as the structure for a graph-based diffusion process over SAE features? Graph diffusion (denoising on a graph) is well-studied — combining it with SAE feature graphs could yield a principled architecture for our Idea 1."
+                ]
+              }
+            ]
+          },
+          {
             "type": "p",
             "children": [
               {
@@ -4882,7 +4936,7 @@
                   "Mar 4 Summary:"
                 ]
               },
-              " CoDAR identifies the specific failure mode of continuous text diffusion (token rounding) and fixes it, making continuous diffusion competitive with discrete. This strengthens the case for our SAE-in-continuous-space approach (Idea 1) — the field is converging on continuous representations even for discrete text, and SAE features could provide the structured bridge between continuous diffusion and discrete tokens."
+              " CoDAR identifies the specific failure mode of continuous text diffusion (token rounding) and fixes it, making continuous diffusion competitive with discrete. GSAE shows that graph-regularized SAEs nearly double steering effectiveness over vanilla SAEs — suggesting that SAE feature quality is a key lever for our SAE+diffusion ideas. Together: the field is converging on continuous representations for text, and structured (graph-regularized) SAE features could provide the optimal bridge between continuous diffusion and discrete tokens."
             ]
           }
         ]
