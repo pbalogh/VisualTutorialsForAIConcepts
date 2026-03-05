@@ -333,6 +333,18 @@ const tutorials = [
     difficulty: 2,
   },
   {
+    id: 'brainstorm-34-semantic-intervals',
+    title: 'Operators as Semantic Intervals — The Music Theory of Meaning',
+    description: 'How transposition-invariant transformations connect word2vec analogies, Schankian operators, and musical harmony. Melodies are interval sequences; narratives are operator sequences.',
+    tags: ['Schankian', 'operators', 'music theory', 'analogy', 'word2vec', 'intervals', 'brainstorm'],
+    icon: '🎵',
+    gradient: 'from-pink-500 to-rose-600',
+    shadowColor: 'shadow-pink-500/30',
+    glowColor: 'rgba(236, 72, 153, 0.4)',
+    readTime: '25 min',
+    difficulty: 2,
+  },
+  {
     id: 'geometry-of-polysemy',
     title: 'The Geometry of Polysemy',
     description: 'How raw cosine similarity achieves 99.8%+ accuracy for word sense disambiguation in GPT-2 — no classifier needed. The sense inventory was the bottleneck, not the classifier.',

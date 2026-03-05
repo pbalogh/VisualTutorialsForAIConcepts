@@ -1,0 +1,310 @@
+{
+  "id": "brainstorm-34-semantic-intervals",
+  "title": "Operators as Semantic Intervals",
+  "subtitle": "The Music Theory of Meaning — how transposition-invariant transformations connect word2vec, Schankian operators, and musical harmony",
+  "readTime": "25 min",
+  "state": {},
+  "content": {
+    "type": "Fragment",
+    "children": [
+      {
+        "type": "Callout",
+        "props": { "type": "info" },
+        "children": "Musical intervals (like a perfect fifth) sound 'the same' in any key — they're transposition-invariant relationships. Schankian operators work the same way: HARM(wolf, sheep) and HARM(virus, cell) are the same transformation applied to different entities. This tutorial explores the deep structural parallel between music theory and semantic operators."
+      },
+      {
+        "type": "Section",
+        "props": { "title": "1. The Core Insight: Relationships Over Absolutes" },
+        "children": [
+          {
+            "type": "p",
+            "children": "When you hear a melody, you don't remember absolute pitches — you remember the intervals between notes. Transpose a song up three semitones and it's instantly recognizable. The melody IS the pattern of intervals, not the specific frequencies."
+          },
+          {
+            "type": "p",
+            "children": "Language works the same way. The relationship between 'king' and 'queen' is the same as between 'man' and 'woman' — a gender transformation that's invariant to which specific entities you apply it to. Word2vec famously captured this: king − man + woman ≈ queen."
+          },
+          {
+            "type": "Analogy",
+            "props": {
+              "concept": "Semantic Intervals",
+              "analogy": "Musical Intervals",
+              "explanation": "A perfect fifth (7 semitones up) sounds 'the same' whether you play C→G or D→A or E→B. Similarly, ATRANS (transfer of possession) IS the same operator whether it's 'give a gift', 'sell a car', or 'donate to charity'. The operator is the interval — the invariant relationship between before-state and after-state."
+            }
+          },
+          {
+            "type": "InteractiveDemo",
+            "props": {
+              "id": "interval-transposition",
+              "title": "🎹 Interval Transposition Explorer",
+              "height": 400,
+              "code": "function IntervalTransposition() {\n  const [baseNote, setBaseNote] = React.useState(0);\n  const noteNames = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];\n  const intervals = [\n    { name: 'Unison', semitones: 0, semantic: 'IDENTITY (no change)' },\n    { name: 'Minor 2nd', semitones: 1, semantic: 'NUDGE (slight shift)' },\n    { name: 'Major 3rd', semitones: 4, semantic: 'ATRANS (possession transfer)' },\n    { name: 'Perfect 5th', semitones: 7, semantic: 'PROPEL (force application)' },\n    { name: 'Octave', semitones: 12, semantic: 'METAPHOR (same pattern, new domain)' }\n  ];\n  const [selectedInterval, setSelectedInterval] = React.useState(2);\n  const interval = intervals[selectedInterval];\n  const targetNote = (baseNote + interval.semitones) % 12;\n  \n  return React.createElement('div', { style: { fontFamily: 'system-ui', padding: '16px' } },\n    React.createElement('p', { style: { marginBottom: 12, color: '#94a3b8', fontSize: 14 } }, 'Change the base note — the interval relationship stays the same, just like operators stay the same across different entities.'),\n    React.createElement('div', { style: { display: 'flex', gap: 8, marginBottom: 16, flexWrap: 'wrap' } },\n      noteNames.map(function(name, i) {\n        return React.createElement('button', {\n          key: i,\n          onClick: function() { setBaseNote(i); },\n          style: {\n            padding: '6px 12px', borderRadius: 6, cursor: 'pointer', border: 'none',\n            background: i === baseNote ? '#6366f1' : (i === targetNote ? '#10b981' : '#1e293b'),\n            color: 'white', fontWeight: i === baseNote || i === targetNote ? 'bold' : 'normal',\n            fontSize: 13\n          }\n        }, name);\n      })\n    ),\n    React.createElement('div', { style: { display: 'flex', gap: 8, marginBottom: 16, flexWrap: 'wrap' } },\n      intervals.map(function(iv, i) {\n        return React.createElement('button', {\n          key: i,\n          onClick: function() { setSelectedInterval(i); },\n          style: {\n            padding: '6px 10px', borderRadius: 6, cursor: 'pointer', border: 'none',\n            background: i === selectedInterval ? '#f59e0b' : '#1e293b',\n            color: 'white', fontSize: 12\n          }\n        }, iv.name);\n      })\n    ),\n    React.createElement('div', { style: { background: '#0f172a', borderRadius: 12, padding: 20, marginBottom: 16 } },\n      React.createElement('div', { style: { display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 20 } },\n        React.createElement('div', { style: { textAlign: 'center' } },\n          React.createElement('div', { style: { fontSize: 36, fontWeight: 'bold', color: '#6366f1' } }, noteNames[baseNote]),\n          React.createElement('div', { style: { fontSize: 11, color: '#94a3b8' } }, 'Source')\n        ),\n        React.createElement('div', { style: { textAlign: 'center' } },\n          React.createElement('div', { style: { fontSize: 14, color: '#f59e0b', fontWeight: 'bold' } }, interval.name),\n          React.createElement('div', { style: { fontSize: 20, color: '#f59e0b' } }, '→'),\n          React.createElement('div', { style: { fontSize: 11, color: '#94a3b8' } }, '+' + interval.semitones + ' semitones')\n        ),\n        React.createElement('div', { style: { textAlign: 'center' } },\n          React.createElement('div', { style: { fontSize: 36, fontWeight: 'bold', color: '#10b981' } }, noteNames[targetNote]),\n          React.createElement('div', { style: { fontSize: 11, color: '#94a3b8' } }, 'Target')\n        )\n      )\n    ),\n    React.createElement('div', { style: { background: '#1e1b4b', borderRadius: 12, padding: 16, textAlign: 'center' } },\n      React.createElement('div', { style: { fontSize: 13, color: '#c4b5fd' } }, 'Semantic parallel:'),\n      React.createElement('div', { style: { fontSize: 16, color: '#fbbf24', fontWeight: 'bold', marginTop: 4 } }, interval.semantic)\n    )\n  );\n}\nrender(React.createElement(IntervalTransposition));"
+            }
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "2. Word2vec Was Doing Music Theory All Along" },
+        "children": [
+          {
+            "type": "p",
+            "children": "The famous word2vec analogy king − man + woman = queen is literally interval arithmetic. In music: if you know that C + perfect_fifth = G, then D + perfect_fifth = A. The 'perfect fifth' is the invariant — the operator."
+          },
+          {
+            "type": "p",
+            "children": "In vector space: king − man gives you a direction vector. That direction IS the operator. Apply it to 'woman' and you get 'queen'. The direction is invariant — it doesn't depend on which entity you started with."
+          },
+          {
+            "type": "Example",
+            "props": {
+              "title": "Vector Arithmetic = Interval Arithmetic"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "Music: C + 7 semitones = G,  D + 7 semitones = A  (same interval, different keys)"
+              },
+              {
+                "type": "p",
+                "children": "Word2vec: man + gender_vector = woman,  king + gender_vector = queen  (same operator, different entities)"
+              },
+              {
+                "type": "p",
+                "children": "Schank: ATRANS(John, book, Mary) and ATRANS(Amazon, package, customer)  (same primitive, different participants)"
+              }
+            ]
+          },
+          {
+            "type": "InteractiveDemo",
+            "props": {
+              "id": "vector-analogy-2d",
+              "title": "🧭 Vector Analogy as Interval Application",
+              "height": 420,
+              "code": "function VectorAnalogy() {\n  const [dragIdx, setDragIdx] = React.useState(-1);\n  const pairs = [\n    { label: 'Gender', a: 'man', b: 'woman', c: 'king', d: 'queen', color: '#6366f1' },\n    { label: 'Royalty', a: 'man', b: 'king', c: 'woman', d: 'queen', color: '#10b981' },\n    { label: 'Country→Capital', a: 'France', b: 'Paris', c: 'Japan', d: 'Tokyo', color: '#f59e0b' },\n    { label: 'HARM operator', a: 'wolf', b: 'sheep', c: 'virus', d: 'cell', color: '#ef4444' },\n    { label: 'ATRANS operator', a: 'seller', b: 'buyer', c: 'donor', d: 'recipient', color: '#8b5cf6' }\n  ];\n  const [selected, setSelected] = React.useState(0);\n  var p = pairs[selected];\n  \n  return React.createElement('div', { style: { fontFamily: 'system-ui', padding: '16px' } },\n    React.createElement('div', { style: { display: 'flex', gap: 6, marginBottom: 16, flexWrap: 'wrap' } },\n      pairs.map(function(pair, i) {\n        return React.createElement('button', {\n          key: i,\n          onClick: function() { setSelected(i); },\n          style: {\n            padding: '6px 12px', borderRadius: 6, border: 'none', cursor: 'pointer',\n            background: i === selected ? pair.color : '#1e293b',\n            color: 'white', fontSize: 12\n          }\n        }, pair.label);\n      })\n    ),\n    React.createElement('svg', { width: '100%', height: 280, viewBox: '0 0 500 280', style: { background: '#0f172a', borderRadius: 12 } },\n      React.createElement('defs', null,\n        React.createElement('marker', { id: 'arrowG', markerWidth: 8, markerHeight: 6, refX: 8, refY: 3, orient: 'auto' },\n          React.createElement('path', { d: 'M0,0 L8,3 L0,6', fill: p.color })\n        ),\n        React.createElement('marker', { id: 'arrowW', markerWidth: 8, markerHeight: 6, refX: 8, refY: 3, orient: 'auto' },\n          React.createElement('path', { d: 'M0,0 L8,3 L0,6', fill: '#94a3b8' })\n        )\n      ),\n      React.createElement('line', { x1: 80, y1: 200, x2: 220, y2: 200, stroke: '#94a3b8', strokeWidth: 2, strokeDasharray: '6,4', markerEnd: 'url(#arrowW)' }),\n      React.createElement('line', { x1: 280, y1: 200, x2: 420, y2: 200, stroke: '#94a3b8', strokeWidth: 2, strokeDasharray: '6,4', markerEnd: 'url(#arrowW)' }),\n      React.createElement('line', { x1: 80, y1: 200, x2: 280, y2: 80, stroke: p.color, strokeWidth: 3, markerEnd: 'url(#arrowG)' }),\n      React.createElement('line', { x1: 220, y1: 200, x2: 420, y2: 80, stroke: p.color, strokeWidth: 3, strokeDasharray: '8,4', markerEnd: 'url(#arrowG)' }),\n      React.createElement('line', { x1: 280, y1: 80, x2: 420, y2: 80, stroke: '#94a3b8', strokeWidth: 2, strokeDasharray: '6,4', markerEnd: 'url(#arrowW)' }),\n      React.createElement('circle', { cx: 80, cy: 200, r: 6, fill: '#fff' }),\n      React.createElement('circle', { cx: 220, cy: 200, r: 6, fill: '#fff' }),\n      React.createElement('circle', { cx: 280, cy: 80, r: 6, fill: p.color }),\n      React.createElement('circle', { cx: 420, cy: 80, r: 6, fill: p.color }),\n      React.createElement('text', { x: 80, y: 230, textAnchor: 'middle', fill: '#fff', fontSize: 14, fontWeight: 'bold' }, p.a),\n      React.createElement('text', { x: 220, y: 230, textAnchor: 'middle', fill: '#fff', fontSize: 14, fontWeight: 'bold' }, p.b),\n      React.createElement('text', { x: 280, y: 65, textAnchor: 'middle', fill: p.color, fontSize: 14, fontWeight: 'bold' }, p.c),\n      React.createElement('text', { x: 420, y: 65, textAnchor: 'middle', fill: p.color, fontSize: 14, fontWeight: 'bold' }, p.d),\n      React.createElement('text', { x: 150, y: 190, textAnchor: 'middle', fill: '#94a3b8', fontSize: 11 }, 'same relation'),\n      React.createElement('text', { x: 350, y: 190, textAnchor: 'middle', fill: '#94a3b8', fontSize: 11 }, 'same relation'),\n      React.createElement('text', { x: 165, y: 130, textAnchor: 'middle', fill: p.color, fontSize: 13, fontWeight: 'bold', transform: 'rotate(-28, 165, 130)' }, 'OPERATOR'),\n      React.createElement('text', { x: 305, y: 130, textAnchor: 'middle', fill: p.color, fontSize: 13, fontWeight: 'bold', transform: 'rotate(-28, 305, 130)', opacity: 0.6 }, 'OPERATOR')\n    ),\n    React.createElement('p', { style: { marginTop: 12, color: '#94a3b8', fontSize: 13, textAlign: 'center' } },\n      'The ', React.createElement('span', { style: { color: p.color, fontWeight: 'bold' } }, 'operator'), ' (diagonal arrows) is the same regardless of which entities it connects — just like a musical interval is the same in any key.'\n    )\n  );\n}\nrender(React.createElement(VectorAnalogy));"
+            }
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "3. Melodies = Operator Sequences = Narratives" },
+        "children": [
+          {
+            "type": "p",
+            "children": "A melody is a sequence of intervals. A narrative is a sequence of operators. 'Twinkle Twinkle Little Star' is [unison, +P5, unison, +M2, unison, −M2, ...]. The restaurant script is [PTRANS(enter), MBUILD(decide), MTRANS(order), INGEST(eat), ATRANS(pay)]. Both are recognizable patterns of transformations."
+          },
+          {
+            "type": "DeepDive",
+            "props": {
+              "title": "Why Sequences of Intervals Are More Memorable Than Sequences of Notes",
+              "defaultOpen": false
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "You can sing 'Happy Birthday' starting on any note. That's because your memory stores the interval sequence, not the absolute pitches. Similarly, you understand 'the restaurant script' regardless of whether it's John at McDonald's or Marie at Le Bernardin — because you store the operator sequence, not the specific entities."
+              },
+              {
+                "type": "p",
+                "children": "This is why Schankian operators are powerful for story understanding: they're the invariant 'melody' underlying surface-level narrative variation. Ten thousand different restaurant stories share one operator sequence, just as ten thousand renditions of a song share one interval sequence."
+              }
+            ]
+          },
+          {
+            "type": "InteractiveDemo",
+            "props": {
+              "id": "narrative-melody",
+              "title": "🎵 Narrative as Melody — Operator Sequences",
+              "height": 480,
+              "code": "function NarrativeMelody() {\n  var scripts = [\n    {\n      name: 'Restaurant Script',\n      steps: [\n        { op: 'PTRANS', label: 'Enter restaurant', note: 0 },\n        { op: 'ATTEND', label: 'Read menu', note: 2 },\n        { op: 'MBUILD', label: 'Decide order', note: 4 },\n        { op: 'MTRANS', label: 'Tell waiter', note: 7 },\n        { op: 'ATTEND', label: 'Wait / talk', note: 5 },\n        { op: 'INGEST', label: 'Eat food', note: 9 },\n        { op: 'ATRANS', label: 'Pay bill', note: 11 },\n        { op: 'PTRANS', label: 'Leave', note: 0 }\n      ]\n    },\n    {\n      name: 'Heist Script',\n      steps: [\n        { op: 'MBUILD', label: 'Plan the job', note: 4 },\n        { op: 'PTRANS', label: 'Approach target', note: 2 },\n        { op: 'ATTEND', label: 'Case the joint', note: 5 },\n        { op: 'PROPEL', label: 'Break in', note: 9 },\n        { op: 'ATRANS', label: 'Grab the loot', note: 11 },\n        { op: 'PTRANS', label: 'Escape', note: 7 },\n        { op: 'MBUILD', label: 'Lay low', note: 2 },\n        { op: 'ATRANS', label: 'Fence goods', note: 0 }\n      ]\n    },\n    {\n      name: 'Love Story Script',\n      steps: [\n        { op: 'ATTEND', label: 'Notice someone', note: 2 },\n        { op: 'MBUILD', label: 'Feel attraction', note: 5 },\n        { op: 'MTRANS', label: 'Introduce self', note: 4 },\n        { op: 'MTRANS', label: 'Share stories', note: 7 },\n        { op: 'MBUILD', label: 'Fall in love', note: 9 },\n        { op: 'MTRANS', label: 'Declare feelings', note: 11 },\n        { op: 'ATRANS', label: 'Commit', note: 12 },\n        { op: 'MBUILD', label: 'Build life together', note: 14 }\n      ]\n    }\n  ];\n  var [scriptIdx, setScriptIdx] = React.useState(0);\n  var [highlight, setHighlight] = React.useState(-1);\n  var script = scripts[scriptIdx];\n  var opColors = { PTRANS: '#6366f1', ATRANS: '#10b981', MTRANS: '#f59e0b', MBUILD: '#8b5cf6', ATTEND: '#06b6d4', INGEST: '#ec4899', PROPEL: '#ef4444' };\n  \n  return React.createElement('div', { style: { fontFamily: 'system-ui', padding: '16px' } },\n    React.createElement('div', { style: { display: 'flex', gap: 8, marginBottom: 16 } },\n      scripts.map(function(s, i) {\n        return React.createElement('button', {\n          key: i,\n          onClick: function() { setScriptIdx(i); setHighlight(-1); },\n          style: { padding: '6px 14px', borderRadius: 6, border: 'none', cursor: 'pointer', background: i === scriptIdx ? '#6366f1' : '#1e293b', color: 'white', fontSize: 13 }\n        }, s.name);\n      })\n    ),\n    React.createElement('svg', { width: '100%', height: 200, viewBox: '0 0 520 200', style: { background: '#0f172a', borderRadius: 12 } },\n      [0,2,4,5,7,9,11,12,14].map(function(n) {\n        return React.createElement('line', { key: 'g'+n, x1: 30, y1: 180 - n * 12, x2: 500, y2: 180 - n * 12, stroke: '#1e293b', strokeWidth: 1 });\n      }),\n      script.steps.map(function(step, i) {\n        var x = 50 + i * 60;\n        var y = 180 - step.note * 12;\n        var c = opColors[step.op] || '#94a3b8';\n        var isHl = highlight === i;\n        var els = [\n          React.createElement('circle', { key: 'c'+i, cx: x, cy: y, r: isHl ? 10 : 7, fill: c, opacity: isHl ? 1 : 0.8, style: { cursor: 'pointer', transition: 'r 0.2s' }, onMouseEnter: function() { setHighlight(i); }, onMouseLeave: function() { setHighlight(-1); } })\n        ];\n        if (i > 0) {\n          var px = 50 + (i-1) * 60;\n          var py = 180 - script.steps[i-1].note * 12;\n          els.unshift(React.createElement('line', { key: 'l'+i, x1: px, y1: py, x2: x, y2: y, stroke: c, strokeWidth: 2, opacity: 0.5 }));\n        }\n        if (isHl) {\n          els.push(React.createElement('text', { key: 't'+i, x: x, y: y - 16, textAnchor: 'middle', fill: c, fontSize: 11, fontWeight: 'bold' }, step.op));\n        }\n        return React.createElement('g', { key: 'g'+i }, els);\n      })\n    ),\n    highlight >= 0 ? React.createElement('div', { style: { background: '#1e1b4b', borderRadius: 8, padding: 12, marginTop: 12, textAlign: 'center' } },\n      React.createElement('span', { style: { color: opColors[script.steps[highlight].op], fontWeight: 'bold' } }, script.steps[highlight].op),\n      React.createElement('span', { style: { color: '#94a3b8' } }, ' — ' + script.steps[highlight].label)\n    ) : React.createElement('p', { style: { color: '#64748b', fontSize: 12, textAlign: 'center', marginTop: 8 } }, 'Hover over notes to see the operator at each step'),\n    React.createElement('p', { style: { color: '#94a3b8', fontSize: 12, marginTop: 8 } }, 'Each script is a \"melody\" of operators. Different stories using the same script are like the same song in different keys — the intervals (operators) are invariant.')\n  );\n}\nrender(React.createElement(NarrativeMelody));"
+            }
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "4. Harmony = Simultaneous Operators" },
+        "children": [
+          {
+            "type": "p",
+            "children": "In music, harmony is what happens when multiple notes sound simultaneously — chords. In narratives, harmony is what happens when multiple operators apply simultaneously. 'John sold Mary the car' involves ATRANS(car: John→Mary) AND ATRANS(money: Mary→John) happening together — a semantic 'chord'."
+          },
+          {
+            "type": "Callout",
+            "props": { "type": "warning" },
+            "children": "This is where the multi-entity insight (brainstorm note) connects: real events are semantic chords, not single notes. Every 'give' simultaneously plays ATRANS on the object, reverse-ATRANS on payment, and state changes for all participants."
+          },
+          {
+            "type": "InteractiveDemo",
+            "props": {
+              "id": "semantic-chords",
+              "title": "🎶 Semantic Chords — Simultaneous Operators",
+              "height": 380,
+              "code": "function SemanticChords() {\n  var chords = [\n    {\n      event: '\"John sold Mary the car\"',\n      notes: [\n        { op: 'ATRANS', detail: 'car: John → Mary', y: 40 },\n        { op: 'ATRANS', detail: 'money: Mary → John', y: 100 },\n        { op: 'MBUILD', detail: 'Mary: intent to own', y: 160 },\n        { op: 'MTRANS', detail: 'agreement exchanged', y: 220 }\n      ],\n      musicChord: 'C major (C-E-G)'\n    },\n    {\n      event: '\"The teacher explained the theorem\"',\n      notes: [\n        { op: 'MTRANS', detail: 'knowledge: teacher → students', y: 40 },\n        { op: 'MBUILD', detail: 'students: understanding forms', y: 100 },\n        { op: 'ATTEND', detail: 'students: focus on explanation', y: 160 }\n      ],\n      musicChord: 'A minor (A-C-E)'\n    },\n    {\n      event: '\"The army invaded the country\"',\n      notes: [\n        { op: 'PTRANS', detail: 'army: across border', y: 40 },\n        { op: 'PROPEL', detail: 'force: against defenders', y: 100 },\n        { op: 'ATRANS', detail: 'territory: country → army', y: 160 },\n        { op: 'MBUILD', detail: 'citizens: fear', y: 220 }\n      ],\n      musicChord: 'D diminished (D-F-A♭)'\n    }\n  ];\n  var [idx, setIdx] = React.useState(0);\n  var chord = chords[idx];\n  var opColors = { PTRANS: '#6366f1', ATRANS: '#10b981', MTRANS: '#f59e0b', MBUILD: '#8b5cf6', ATTEND: '#06b6d4', PROPEL: '#ef4444' };\n  \n  return React.createElement('div', { style: { fontFamily: 'system-ui', padding: '16px' } },\n    React.createElement('div', { style: { display: 'flex', gap: 8, marginBottom: 16 } },\n      chords.map(function(c, i) {\n        return React.createElement('button', {\n          key: i, onClick: function() { setIdx(i); },\n          style: { padding: '6px 12px', borderRadius: 6, border: 'none', cursor: 'pointer', background: i === idx ? '#6366f1' : '#1e293b', color: 'white', fontSize: 12, flex: 1 }\n        }, c.event.replace(/\"/g, ''));\n      })\n    ),\n    React.createElement('div', { style: { background: '#0f172a', borderRadius: 12, padding: 20 } },\n      React.createElement('div', { style: { textAlign: 'center', marginBottom: 16 } },\n        React.createElement('div', { style: { color: '#e2e8f0', fontSize: 16, fontStyle: 'italic' } }, chord.event),\n        React.createElement('div', { style: { color: '#64748b', fontSize: 12, marginTop: 4 } }, 'Musical analogy: ' + chord.musicChord)\n      ),\n      chord.notes.map(function(note, i) {\n        var c = opColors[note.op] || '#94a3b8';\n        return React.createElement('div', { key: i, style: { display: 'flex', alignItems: 'center', gap: 12, marginBottom: 10, padding: '8px 12px', background: 'rgba(255,255,255,0.03)', borderRadius: 8, borderLeft: '3px solid ' + c } },\n          React.createElement('div', { style: { minWidth: 70, color: c, fontWeight: 'bold', fontSize: 13, fontFamily: 'monospace' } }, note.op),\n          React.createElement('div', { style: { color: '#cbd5e1', fontSize: 13 } }, note.detail)\n        );\n      })\n    ),\n    React.createElement('p', { style: { color: '#94a3b8', fontSize: 12, marginTop: 12 } }, 'Just as a chord is multiple notes sounding simultaneously, a complex event is multiple operators firing together. The \"chord quality\" (major/minor/diminished) maps to the emotional valence of the event.')\n  );\n}\nrender(React.createElement(SemanticChords));"
+            }
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "5. Key Signatures = Domains" },
+        "children": [
+          {
+            "type": "p",
+            "children": "A key signature tells you the context — which sharps and flats are in effect. Similarly, a domain (business, medicine, sports) establishes which operator specializations are active. 'Running' means PTRANS in sports but MANAGE in business. The operator intervals are the same; the key signature (domain) determines the specific realization."
+          },
+          {
+            "type": "Example",
+            "props": {
+              "title": "Same Intervals, Different Keys (Domains)"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "ATRANS in Business key: 'The company acquired the startup' (possession of equity transfers)"
+              },
+              {
+                "type": "p",
+                "children": "ATRANS in Biology key: 'The virus hijacked the cell's machinery' (control of resources transfers)"
+              },
+              {
+                "type": "p",
+                "children": "ATRANS in Social key: 'She inherited her grandmother's wisdom' (knowledge/trait transfers)"
+              },
+              {
+                "type": "p",
+                "children": "Same operator, same transformation pattern — just transposed into a different domain 'key'. This is why understanding one domain helps you reason about analogous situations in another."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "6. Dissonance = Operator Conflict" },
+        "children": [
+          {
+            "type": "p",
+            "children": "Musical dissonance creates tension that demands resolution. Semantic dissonance works the same way. 'The doctor harmed the patient' creates dissonance because HARM conflicts with the expected HEAL operator for doctors. Stories USE this tension — it's what makes narratives interesting."
+          },
+          {
+            "type": "DeepDive",
+            "props": {
+              "title": "Consonance, Dissonance, and Narrative Tension",
+              "defaultOpen": false
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "In music theory, consonant intervals (octaves, perfect fifths) are 'stable' — they don't demand resolution. Dissonant intervals (minor seconds, tritones) create tension that pulls toward resolution."
+              },
+              {
+                "type": "p",
+                "children": "In narrative: expected operator sequences are consonant ('doctor HEALED patient' — no surprise). Unexpected operators create dissonance ('doctor HARMED patient' — tension!). Resolution comes from additional operators that explain the dissonance ('doctor HARMED patient [with painful surgery] to HEAL [the cancer]')."
+              },
+              {
+                "type": "p",
+                "children": "This maps precisely to Schank's expectation-failure model of understanding: scripts set up consonant expectations, violations create dissonance, and explanation restores consonance."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "7. Implications & Connections" },
+        "children": [
+          {
+            "type": "Callout",
+            "props": { "type": "success" },
+            "children": "The music theory analogy isn't just pretty — it gives us concrete mathematical tools. Group theory describes both musical transposition and semantic operator application. Fourier analysis decomposes both waveforms and semantic signals. Set theory classifies both pitch-class sets and operator families."
+          },
+          {
+            "type": "p",
+            "children": "Key connections to other brainstorm entries:"
+          },
+          {
+            "type": "Example",
+            "props": { "title": "Cross-References" },
+            "children": [
+              {
+                "type": "p",
+                "children": "→ Entry #37 (Lie Algebra): Musical transposition forms a Lie group; operator composition forms the same algebraic structure"
+              },
+              {
+                "type": "p",
+                "children": "→ Entry #12 (Disentangled Dimensions): Musical dimensions (pitch, duration, dynamics) are independent, just as operator dimensions (polarity, volitionality, completion) should be"
+              },
+              {
+                "type": "p",
+                "children": "→ Entry #44 (Periodic Table): Musical pitch classes form a 12-element cyclic group; operators may form their own finite group structure"
+              },
+              {
+                "type": "p",
+                "children": "→ Entry #43 (ADSR Envelopes): Already uses audio envelope terminology for operator temporal profiles — the music analogy runs deep"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "🧪 Test Your Understanding" },
+        "children": [
+          {
+            "type": "Quiz",
+            "props": {
+              "questions": [
+                {
+                  "question": "Why is the word2vec analogy (king − man + woman = queen) equivalent to musical transposition?",
+                  "options": [
+                    "Because both use neural networks",
+                    "Because both preserve invariant relationships (intervals/operators) across different base elements (keys/entities)",
+                    "Because word embeddings encode sound frequencies",
+                    "Because language and music activate the same brain region"
+                  ],
+                  "correct": 1,
+                  "explanation": "Just as transposing a melody preserves the intervals between notes, applying a semantic operator preserves the relationship regardless of which entities it connects. The operator IS the invariant, just like the interval IS the invariant."
+                },
+                {
+                  "question": "In the music theory analogy, what corresponds to a 'chord' (multiple simultaneous notes)?",
+                  "options": [
+                    "A word with multiple meanings",
+                    "A sentence with multiple clauses",
+                    "Multiple operators applying simultaneously in a single event",
+                    "A sequence of events in a script"
+                  ],
+                  "correct": 2,
+                  "explanation": "'John sold Mary the car' simultaneously activates ATRANS(car), ATRANS(money), MBUILD(intent), and MTRANS(agreement) — multiple operators sounding together like notes in a chord."
+                },
+                {
+                  "question": "What is the semantic equivalent of musical dissonance?",
+                  "options": [
+                    "Grammatically incorrect sentences",
+                    "Operator sequences that violate script expectations, creating narrative tension",
+                    "Words that sound similar but mean different things",
+                    "Long, complex sentences"
+                  ],
+                  "correct": 1,
+                  "explanation": "Just as dissonant intervals create musical tension demanding resolution, unexpected operators (like HARM where HEAL was expected) create narrative tension that the story must resolve."
+                },
+                {
+                  "question": "Why does the music analogy suggest operators should be studied using group theory?",
+                  "options": [
+                    "Because group theory was invented for music",
+                    "Because both musical transpositions and semantic operators are invertible, composable transformations forming algebraic groups",
+                    "Because operators need to be organized into groups",
+                    "Because group theory is the most popular math framework"
+                  ],
+                  "correct": 1,
+                  "explanation": "Musical transpositions form the cyclic group Z₁₂. Semantic operators form transformation groups with the same key properties: closure (composing two operators gives another operator), identity (the null operator), inverses (every GIVE has a TAKE), and associativity."
+                }
+              ]
+            }
+          }
+        ]
+      }
+    ]
+  }
+}
