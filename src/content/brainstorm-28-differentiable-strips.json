@@ -1,0 +1,413 @@
+{
+  "id": "brainstorm-28-differentiable-strips",
+  "title": "Operators as Differentiable STRIPS",
+  "subtitle": "The neuro-symbolic bridge — from classical AI planning to learned semantic operators",
+  "readTime": "25 min",
+  "state": {},
+  "content": {
+    "type": "Fragment",
+    "children": [
+      {
+        "type": "Callout",
+        "props": { "type": "info" },
+        "children": "STRIPS gave AI planning its foundation: actions with preconditions and effects. Schankian operators are the neural equivalent — learned, soft, compositional. This tutorial bridges classical AI planning and modern deep learning through the lens of semantic operators."
+      },
+
+      {
+        "type": "Section",
+        "props": { "title": "1. STRIPS: The Original Action Language" },
+        "children": [
+          {
+            "type": "p",
+            "children": "In 1971, Fikes and Nilsson created STRIPS (Stanford Research Institute Problem Solver) — a formalism where every action has three parts: preconditions (what must be true), add effects (what becomes true), and delete effects (what stops being true)."
+          },
+          {
+            "type": "InteractiveDemo",
+            "props": {
+              "title": "🧱 Classical STRIPS Action Builder",
+              "stateKey": "strips",
+              "inputs": [
+                {
+                  "type": "select",
+                  "key": "action",
+                  "label": "Choose an action",
+                  "options": [
+                    { "value": "pick-up", "label": "Pick Up (block)" },
+                    { "value": "put-down", "label": "Put Down (block)" },
+                    { "value": "stack", "label": "Stack (block on block)" },
+                    { "value": "give", "label": "Give (object to person)" },
+                    { "value": "teach", "label": "Teach (concept to student)" }
+                  ]
+                }
+              ],
+              "computeFn": "(() => {\n  const actions = {\n    'pick-up': {\n      name: 'PICK-UP(x)',\n      pre: ['on-table(x)', 'clear(x)', 'arm-empty'],\n      add: ['holding(x)'],\n      del: ['on-table(x)', 'clear(x)', 'arm-empty'],\n      schank: 'GRASP — physical control transfer',\n      neural: 'Precondition region in embedding space where graspable objects live'\n    },\n    'put-down': {\n      name: 'PUT-DOWN(x)',\n      pre: ['holding(x)'],\n      add: ['on-table(x)', 'clear(x)', 'arm-empty'],\n      del: ['holding(x)'],\n      schank: 'UNGRASP — release of physical control',\n      neural: 'Inverse rotation of GRASP operator'\n    },\n    'stack': {\n      name: 'STACK(x, y)',\n      pre: ['holding(x)', 'clear(y)'],\n      add: ['on(x,y)', 'clear(x)', 'arm-empty'],\n      del: ['holding(x)', 'clear(y)'],\n      schank: 'PTRANS + GRASP composition',\n      neural: 'Sequential operator application: move then release'\n    },\n    'give': {\n      name: 'GIVE(agent, object, recipient)',\n      pre: ['has(agent, object)', 'near(agent, recipient)'],\n      add: ['has(recipient, object)'],\n      del: ['has(agent, object)'],\n      schank: 'ATRANS — abstract possession transfer',\n      neural: 'Rotation in possession subspace: donor→recipient'\n    },\n    'teach': {\n      name: 'TEACH(teacher, concept, student)',\n      pre: ['knows(teacher, concept)', '¬knows(student, concept)'],\n      add: ['knows(student, concept)'],\n      del: [],\n      schank: 'MTRANS — mental information transfer',\n      neural: 'Non-destructive: teacher keeps knowledge (no delete effects!)'\n    }\n  };\n  const a = actions[state.action || 'pick-up'];\n  return `━━━ ${a.name} ━━━\\n\\n📋 PRECONDITIONS (must be true):\\n${a.pre.map(p => '   ✓ ' + p).join('\\n')}\\n\\n➕ ADD EFFECTS (become true):\\n${a.add.map(p => '   + ' + p).join('\\n')}\\n\\n➖ DELETE EFFECTS (stop being true):\\n${a.del.length ? a.del.map(p => '   − ' + p).join('\\n') : '   (none — non-destructive!)'}\\n\\n🔗 Schankian equivalent: ${a.schank}\\n🧠 Neural interpretation: ${a.neural}`;\n})()",
+              "display": "pre"
+            }
+          },
+          {
+            "type": "Callout",
+            "props": { "type": "key-insight" },
+            "children": "Notice TEACH has no delete effects — the teacher doesn't lose knowledge by sharing it. GIVE deletes from donor and adds to recipient. This asymmetry is exactly what Schank captured: ATRANS (possession transfer) vs MTRANS (information transfer) are fundamentally different operator types."
+          }
+        ]
+      },
+
+      {
+        "type": "Section",
+        "props": { "title": "2. The Problem with Symbolic Planning" },
+        "children": [
+          {
+            "type": "p",
+            "children": "STRIPS is elegant but brittle. Every action, precondition, and effect must be hand-specified as crisp logical propositions. Real language is messy: 'She slid the book across the table to him' involves PTRANS + ATRANS, but no STRIPS planner would figure that out without someone explicitly encoding it."
+          },
+          {
+            "type": "DefinitionList",
+            "props": {
+              "items": [
+                {
+                  "term": "Symbol Grounding Problem",
+                  "definition": "How do formal symbols like 'on(A,B)' connect to actual perception and language? STRIPS assumes someone already solved this."
+                },
+                {
+                  "term": "Combinatorial Explosion",
+                  "definition": "With N predicates and M objects, the state space grows exponentially. Planning becomes intractable for realistic domains."
+                },
+                {
+                  "term": "Closed World Assumption",
+                  "definition": "Anything not stated is false. But in natural language, most information is implicit — the Frame Problem in disguise."
+                },
+                {
+                  "term": "No Generalization",
+                  "definition": "A STRIPS planner for cooking can't help with chemistry, even though both involve COMBINE and SEPARATE operators."
+                }
+              ]
+            }
+          },
+          {
+            "type": "Analogy",
+            "props": {
+              "source": "STRIPS planning",
+              "target": "Following IKEA instructions",
+              "title": "The IKEA Problem"
+            },
+            "children": "STRIPS is like IKEA instructions: every step precisely specified, works perfectly IF you have exactly the right pieces, but completely useless if your situation deviates even slightly. Neural operators are like an experienced carpenter — they understand the PRINCIPLES of assembly and can improvise."
+          }
+        ]
+      },
+
+      {
+        "type": "Section",
+        "props": { "title": "3. The Neural Upgrade: Preconditions as Regions, Effects as Rotations" },
+        "children": [
+          {
+            "type": "p",
+            "children": "Here's the key insight: replace every crisp component of STRIPS with a soft, learned equivalent. Preconditions become regions in embedding space. Effects become geometric transformations (rotations). The result: operators that work on real language, generalize across domains, and compose naturally."
+          },
+          {
+            "type": "InteractiveDemo",
+            "props": {
+              "title": "🔄 Symbolic → Neural Translation",
+              "stateKey": "translation",
+              "inputs": [
+                {
+                  "type": "select",
+                  "key": "component",
+                  "label": "STRIPS Component",
+                  "options": [
+                    { "value": "preconditions", "label": "Preconditions" },
+                    { "value": "add-effects", "label": "Add Effects" },
+                    { "value": "delete-effects", "label": "Delete Effects" },
+                    { "value": "action-schema", "label": "Action Schema" },
+                    { "value": "planning", "label": "Plan Search" }
+                  ]
+                }
+              ],
+              "computeFn": "(() => {\n  const components = {\n    'preconditions': {\n      symbolic: 'Logical conjunction: on(A,B) ∧ clear(A) ∧ arm-empty',\n      neural: 'Embedding region: state vector falls within learned activation zone',\n      mechanism: 'σ(W_pre · state + b) > threshold',\n      advantage: 'Soft boundaries → graceful degradation, handles uncertainty',\n      example: 'HARM applicable when entity embeddings are in the \"vulnerable + agent-near\" region — no need to enumerate every possible harm scenario'\n    },\n    'add-effects': {\n      symbolic: 'Set union: State ∪ {holding(A)}',\n      neural: 'Rotation: R_op · state_vector → new_state_vector',\n      mechanism: 'Learned rotation matrix selectively activates dimensions',\n      advantage: 'Continuous effects → partial state changes, intensity variation',\n      example: 'HARM rotation: health dimension decreases, damage dimension increases — by a LEARNED amount proportional to context'\n    },\n    'delete-effects': {\n      symbolic: 'Set difference: State \\\\ {clear(A), arm-empty}',\n      neural: 'Same rotation handles both: dims that increase = add, dims that decrease = delete',\n      mechanism: 'No separate delete mechanism needed — rotation IS add+delete simultaneously',\n      advantage: 'Unified mechanism eliminates the frame problem: untouched dimensions stay unchanged',\n      example: 'ATRANS rotation: donor\\'s possession dims decrease WHILE recipient\\'s increase — one transform, both effects'\n    },\n    'action-schema': {\n      symbolic: 'Parameterized template: MOVE(?x, ?from, ?to)',\n      neural: 'Operator matrix R ∈ SO(d) applied to concatenated participant embeddings',\n      mechanism: 'R_ATRANS · [agent ⊕ patient ⊕ object] → [agent\\' ⊕ patient\\' ⊕ object\\']',\n      advantage: 'Entity-types learned, not declared — same operator auto-adapts to different participants',\n      example: 'Same ATRANS operator handles giving a book, selling a car, transferring money — adapts via entity embeddings'\n    },\n    'planning': {\n      symbolic: 'Graph search through state space (BFS, A*, etc.)',\n      neural: 'Gradient descent through differentiable operator sequences',\n      mechanism: 'Loss = distance(final_state, goal_state); backprop through operator chain',\n      advantage: 'Continuous relaxation → can optimize over plan structure itself',\n      example: 'Restaurant script: gradient descent finds ENTER→SIT→ORDER→EAT→PAY as the operator sequence minimizing goal-distance'\n    }\n  };\n  const c = components[state.component || 'preconditions'];\n  return `━━━ ${(state.component || 'preconditions').toUpperCase()} ━━━\\n\\n📐 SYMBOLIC (STRIPS):\\n   ${c.symbolic}\\n\\n🧠 NEURAL (Operators):\\n   ${c.neural}\\n\\n⚙️ Mechanism:\\n   ${c.mechanism}\\n\\n✨ Advantage:\\n   ${c.advantage}\\n\\n💡 Example:\\n   ${c.example}`;\n})()",
+              "display": "pre"
+            }
+          },
+          {
+            "type": "Callout",
+            "props": { "type": "warning" },
+            "children": "The delete-effects translation is particularly elegant: rotations naturally handle adds and deletes in one operation. Dimensions that rotate 'toward' a value are adds; dimensions that rotate 'away' are deletes. The frame problem — what doesn't change — is solved by default: unrotated dimensions are preserved automatically."
+          }
+        ]
+      },
+
+      {
+        "type": "Section",
+        "props": { "title": "4. The Frame Problem: STRIPS' Achilles Heel, Operators' Free Lunch" },
+        "children": [
+          {
+            "type": "p",
+            "children": "The Frame Problem asks: when an action occurs, what DOESN'T change? In STRIPS, you must explicitly list every unchanged fact (frame axioms). With N predicates, this means O(N) frame axioms per action. In neural operators, unchanged dimensions are preserved by default — rotation only affects the subspace it acts on."
+          },
+          {
+            "type": "InteractiveDemo",
+            "props": {
+              "title": "🖼️ Frame Problem Comparison",
+              "stateKey": "frame",
+              "inputs": [
+                {
+                  "type": "slider",
+                  "key": "numFacts",
+                  "label": "Number of world facts",
+                  "min": 5,
+                  "max": 50,
+                  "step": 5,
+                  "defaultValue": 20
+                },
+                {
+                  "type": "slider",
+                  "key": "numActions",
+                  "label": "Number of action types",
+                  "min": 3,
+                  "max": 20,
+                  "step": 1,
+                  "defaultValue": 8
+                }
+              ],
+              "computeFn": "(() => {\n  const facts = state.numFacts || 20;\n  const actions = state.numActions || 8;\n  const avgEffects = 3;\n  const frameAxioms = actions * (facts - avgEffects);\n  const effectAxioms = actions * avgEffects;\n  const totalSTRIPS = frameAxioms + effectAxioms;\n  const neuralParams = actions * facts;\n  const ratio = (frameAxioms / totalSTRIPS * 100).toFixed(0);\n  const bar = (val, max, char) => char.repeat(Math.round(val / max * 40));\n  return `With ${facts} facts and ${actions} actions:\\n\\n📐 STRIPS AXIOMS NEEDED:\\n   Effect axioms:  ${effectAxioms.toString().padStart(5)} ${bar(effectAxioms, totalSTRIPS, '█')}\\n   Frame axioms:   ${frameAxioms.toString().padStart(5)} ${bar(frameAxioms, totalSTRIPS, '░')}\\n   Total:          ${totalSTRIPS.toString().padStart(5)}\\n\\n   ${ratio}% of all axioms just say \"nothing changed\"! 😱\\n\\n🧠 NEURAL OPERATORS:\\n   Rotation params: ${neuralParams} (each dimension handled implicitly)\\n   Frame axioms:    0 (unchanged dims preserved by rotation)\\n   Total:           ${neuralParams}\\n\\n📉 Savings: ${((1 - neuralParams/totalSTRIPS) * 100).toFixed(0)}% fewer parameters\\n\\n💡 As the world gets bigger, STRIPS drowns in frame axioms.\\n   Neural operators scale gracefully — O(d²) per operator regardless.`;\n})()",
+              "display": "pre"
+            }
+          },
+          {
+            "type": "DeepDive",
+            "props": {
+              "title": "Why rotations solve the frame problem",
+              "defaultOpen": false
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "A rotation matrix R in SO(d) can be decomposed into block-diagonal form: some 2×2 blocks rotate (these are the effects), and the remaining dimensions get identity blocks (these are the frame axioms — for free). The rank of (R - I) tells you how many dimensions the operator actually affects. A good operator should have low rank: it changes only what it needs to."
+              },
+              {
+                "type": "p",
+                "children": "This connects to Entry #12 (Disentangled Operator Dimensions): if each dimension encodes an independent semantic property, then a sparse rotation means the operator only touches the relevant properties. Polarity, volitionality, completion — each gets its own dimension, and most operators only rotate a few."
+              }
+            ]
+          }
+        ]
+      },
+
+      {
+        "type": "Section",
+        "props": { "title": "5. Composition: Where Neural Operators Really Shine" },
+        "children": [
+          {
+            "type": "p",
+            "children": "In STRIPS, composing actions means chaining: apply action 1, check preconditions for action 2, apply it. In neural operators, composition is matrix multiplication: R_combined = R₂ · R₁. This enables gradient-based plan optimization — you can differentiate through the entire plan."
+          },
+          {
+            "type": "InteractiveDemo",
+            "props": {
+              "title": "🔗 Operator Composition Lab",
+              "stateKey": "compose",
+              "inputs": [
+                {
+                  "type": "select",
+                  "key": "scenario",
+                  "label": "Scenario",
+                  "options": [
+                    { "value": "restaurant", "label": "Restaurant Script" },
+                    { "value": "cooking", "label": "Cooking a Meal" },
+                    { "value": "trade", "label": "Trade / Commerce" },
+                    { "value": "learning", "label": "Learning Process" }
+                  ]
+                },
+                {
+                  "type": "slider",
+                  "key": "step",
+                  "label": "Step in sequence",
+                  "min": 0,
+                  "max": 4,
+                  "step": 1,
+                  "defaultValue": 0
+                }
+              ],
+              "computeFn": "(() => {\n  const scenarios = {\n    restaurant: {\n      title: 'Restaurant Script',\n      steps: [\n        { op: 'PTRANS', desc: 'Enter restaurant', state: 'location: outside→inside, hunger: high' },\n        { op: 'PTRANS+GRASP', desc: 'Walk to table, sit', state: 'location: entrance→table, seated: true' },\n        { op: 'MTRANS+ATRANS', desc: 'Order food (tell waiter, promise payment)', state: 'waiter.knows(order): true, commitment: pay' },\n        { op: 'INGEST', desc: 'Eat the meal', state: 'hunger: high→low, food: present→consumed' },\n        { op: 'ATRANS', desc: 'Pay the bill', state: 'money: customer→restaurant, debt: cleared' }\n      ]\n    },\n    cooking: {\n      title: 'Cooking a Meal',\n      steps: [\n        { op: 'PTRANS', desc: 'Gather ingredients', state: 'ingredients: stored→workspace' },\n        { op: 'PROPEL+MOVE', desc: 'Chop vegetables', state: 'vegetables: whole→chopped' },\n        { op: 'PROPEL(heat)', desc: 'Apply heat', state: 'temperature: cold→hot, state: raw→cooking' },\n        { op: 'ATTEND', desc: 'Monitor cooking', state: 'cook.knows(doneness): updating' },\n        { op: 'MOVE', desc: 'Plate the dish', state: 'food: pan→plate, state: cooking→finished' }\n      ]\n    },\n    trade: {\n      title: 'Trade / Commerce',\n      steps: [\n        { op: 'MBUILD', desc: 'Decide to buy', state: 'buyer.intent: acquire(item)' },\n        { op: 'MTRANS', desc: 'Negotiate price', state: 'agreement: forming, price: converging' },\n        { op: 'ATRANS', desc: 'Transfer payment', state: 'money: buyer→seller' },\n        { op: 'ATRANS', desc: 'Transfer goods', state: 'item: seller→buyer' },\n        { op: 'MBUILD', desc: 'Evaluate satisfaction', state: 'buyer.satisfaction: assessed' }\n      ]\n    },\n    learning: {\n      title: 'Learning Process',\n      steps: [\n        { op: 'ATTEND', desc: 'Notice something new', state: 'attention: unfocused→focused' },\n        { op: 'MTRANS', desc: 'Receive information', state: 'student.knowledge: ¬concept→raw_input' },\n        { op: 'MBUILD', desc: 'Build understanding', state: 'student.model: none→partial→integrated' },\n        { op: 'MTRANS', desc: 'Explain to someone else', state: 'other.knowledge: ¬concept→concept' },\n        { op: 'MBUILD', desc: 'Deeper understanding from teaching', state: 'student.model: integrated→deep' }\n      ]\n    }\n  };\n  const s = scenarios[state.scenario || 'restaurant'];\n  const currentStep = Math.min(state.step || 0, s.steps.length - 1);\n  let result = `━━━ ${s.title} ━━━\\n\\n`;\n  const composedOps = [];\n  for (let i = 0; i < s.steps.length; i++) {\n    const step = s.steps[i];\n    const marker = i < currentStep ? '✅' : i === currentStep ? '👉' : '⬜';\n    result += `${marker} Step ${i+1}: ${step.op}\\n   ${step.desc}\\n   State: ${step.state}\\n\\n`;\n    if (i <= currentStep) composedOps.push(step.op);\n  }\n  result += `━━━ Composed Operator ━━━\\n`;\n  result += `R_total = ${composedOps.join(' ∘ ')}\\n\\n`;\n  result += `In STRIPS: ${currentStep + 1} separate action applications,\\n`;\n  result += `   each requiring precondition checks.\\n`;\n  result += `In neural: R_total = R_${currentStep+1} · ... · R_1\\n`;\n  result += `   One matrix multiply, fully differentiable!`;\n  return result;\n})()",
+              "display": "pre"
+            }
+          }
+        ]
+      },
+
+      {
+        "type": "Section",
+        "props": { "title": "6. Three Communities, One Framework" },
+        "children": [
+          {
+            "type": "p",
+            "children": "Positioning operators as 'differentiable STRIPS' connects three traditionally separate communities, each of which has something the others need."
+          },
+          {
+            "type": "InteractiveDemo",
+            "props": {
+              "title": "🌐 Community Bridge Explorer",
+              "stateKey": "community",
+              "inputs": [
+                {
+                  "type": "select",
+                  "key": "community",
+                  "label": "Community perspective",
+                  "options": [
+                    { "value": "planning", "label": "AI Planning (STRIPS/PDDL)" },
+                    { "value": "nlp", "label": "Natural Language Processing" },
+                    { "value": "robotics", "label": "Robotics & Embodied AI" }
+                  ]
+                }
+              ],
+              "computeFn": "(() => {\n  const communities = {\n    planning: {\n      has: 'Formal action models with guarantees (completeness, soundness)',\n      needs: 'Symbol grounding, scalability to real-world complexity',\n      operators_give: 'Learned preconditions/effects from text — no manual PDDL authoring',\n      key_paper: 'LLM+P (Liu et al. 2023): LLMs generate PDDL, but brittle',\n      our_advantage: 'Operators ARE the PDDL, learned end-to-end from natural language',\n      connection: 'Entry #57: Reward Machine transitions = operator applications'\n    },\n    nlp: {\n      has: 'Massive pretrained models that understand language surface forms',\n      needs: 'Structured action/event representations for reasoning',\n      operators_give: 'Explicit state-change semantics missing from transformer representations',\n      key_paper: 'Entry #24: Operators extract what LLMs implicitly know',\n      our_advantage: 'Goes beyond SRL (Entry #26): not just who-did-what, but what-changed',\n      connection: 'Entry #32: Operators as Semantic IR — the LLVM of language'\n    },\n    robotics: {\n      has: 'Rich sensorimotor data, physical grounding',\n      needs: 'High-level action abstractions that transfer across tasks',\n      operators_give: 'Language-grounded action primitives that compose hierarchically',\n      key_paper: 'SayCan (Ahn et al. 2022): LLM planning + robot affordances',\n      our_advantage: 'Operators bridge semantic intent and motor execution (Entry #29)',\n      connection: 'Entry #82: VLA models show action primitives are thin semantic layer'\n    }\n  };\n  const c = communities[state.community || 'planning'];\n  return `━━━ ${(state.community || 'planning').toUpperCase()} PERSPECTIVE ━━━\\n\\n✅ What they HAVE:\\n   ${c.has}\\n\\n❌ What they NEED:\\n   ${c.needs}\\n\\n🎁 What operators GIVE them:\\n   ${c.operators_give}\\n\\n📄 Key prior work:\\n   ${c.key_paper}\\n\\n⚡ Our advantage:\\n   ${c.our_advantage}\\n\\n🔗 Connection:\\n   ${c.connection}`;\n})()",
+              "display": "pre"
+            }
+          }
+        ]
+      },
+
+      {
+        "type": "Section",
+        "props": { "title": "7. The Differentiable Action Language" },
+        "children": [
+          {
+            "type": "p",
+            "children": "Putting it all together, here's the architecture: operators as a differentiable action language that combines the precision of STRIPS with the flexibility of neural networks."
+          },
+          {
+            "type": "Example",
+            "props": {
+              "title": "From sentence to state change"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "Input: 'The thief snatched the old woman's purse and ran.'"
+              },
+              {
+                "type": "p",
+                "children": "Step 1 — Parse participants: thief (agent), old woman (source), purse (object)"
+              },
+              {
+                "type": "p",
+                "children": "Step 2 — Embed: [e_thief ⊕ e_woman ⊕ e_purse] → state vector s₀"
+              },
+              {
+                "type": "p",
+                "children": "Step 3 — Classify operator: context → ATRANS (forced possession transfer)"
+              },
+              {
+                "type": "p",
+                "children": "Step 4 — Apply: s₁ = R_ATRANS · s₀"
+              },
+              {
+                "type": "p",
+                "children": "Step 5 — Decode state change: thief.has(purse)=true, woman.has(purse)=false"
+              },
+              {
+                "type": "p",
+                "children": "Step 6 — Implicit states: woman.distress=high, thief.fleeing=true (inferred by operator!)"
+              }
+            ]
+          },
+          {
+            "type": "Callout",
+            "props": { "type": "key-insight" },
+            "children": "The implicit states in Step 6 are the magic. STRIPS would need explicit rules for every emotional consequence. Neural operators LEARN these from data — the rotation naturally encodes that forced ATRANS (theft) produces distress in the source, because that pattern appears consistently in training narratives."
+          }
+        ]
+      },
+
+      {
+        "type": "Section",
+        "props": { "title": "8. Quiz: Test Your Understanding" },
+        "children": [
+          {
+            "type": "Quiz",
+            "props": {
+              "questions": [
+                {
+                  "question": "What are the three components of a STRIPS action?",
+                  "options": [
+                    "Input, output, side-effect",
+                    "Preconditions, add effects, delete effects",
+                    "Subject, verb, object",
+                    "Encoder, decoder, attention"
+                  ],
+                  "correct": 1,
+                  "explanation": "STRIPS actions have preconditions (what must be true), add effects (what becomes true), and delete effects (what ceases to be true)."
+                },
+                {
+                  "question": "How do neural operators solve the frame problem?",
+                  "options": [
+                    "By listing all unchanged facts explicitly",
+                    "By assuming everything changes",
+                    "By using rotation matrices that preserve unaffected dimensions automatically",
+                    "By ignoring it"
+                  ],
+                  "correct": 2,
+                  "explanation": "Rotation matrices only affect the subspace they act on. Unrotated dimensions are preserved by the identity — the frame problem is solved by the geometry itself."
+                },
+                {
+                  "question": "Why is MTRANS (information transfer) fundamentally different from ATRANS (possession transfer)?",
+                  "options": [
+                    "MTRANS is faster",
+                    "ATRANS requires physical contact",
+                    "MTRANS has no delete effects — the source keeps what they share",
+                    "There's no real difference"
+                  ],
+                  "correct": 2,
+                  "explanation": "When you teach someone, you don't lose the knowledge (no delete effect). When you give someone an object, you no longer have it (delete effect). This is a fundamental structural difference captured by different operator geometries."
+                },
+                {
+                  "question": "What makes operator composition superior to STRIPS action chaining?",
+                  "options": [
+                    "It's faster to compute",
+                    "It's fully differentiable — you can backpropagate through the entire plan",
+                    "It requires fewer operators",
+                    "It doesn't need preconditions"
+                  ],
+                  "correct": 1,
+                  "explanation": "Matrix multiplication is differentiable, so you can optimize plan structure via gradient descent. STRIPS chaining requires discrete search through state space."
+                }
+              ]
+            }
+          }
+        ]
+      },
+
+      {
+        "type": "Section",
+        "props": { "title": "Connections & Further Reading" },
+        "children": [
+          {
+            "type": "DefinitionList",
+            "props": {
+              "items": [
+                {
+                  "term": "Entry #24: Operators as Interface Layer",
+                  "definition": "Operators extract what LLMs already know about action effects — we're not teaching, we're organizing."
+                },
+                {
+                  "term": "Entry #26: Operators Complete SRL",
+                  "definition": "SRL tells you who-did-what-to-whom. Operators add: and here's what CHANGED."
+                },
+                {
+                  "term": "Entry #32: Semantic IR",
+                  "definition": "Operators as the LLVM of language — an intermediate representation between surface text and world-state computation."
+                },
+                {
+                  "term": "Entry #57: Reward Machine Transitions",
+                  "definition": "Scripts are reward machines; operators are the transition functions. Bridges event semantics and reinforcement learning."
+                },
+                {
+                  "term": "Entry #73: Differentiable Event Calculus",
+                  "definition": "The Event Calculus's Initiates/Terminates predicates are exactly our operators — learned geometrically."
+                }
+              ]
+            }
+          }
+        ]
+      }
+    ]
+  }
+}

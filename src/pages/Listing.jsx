@@ -321,6 +321,18 @@ const tutorials = [
     difficulty: 3,
   },
   {
+    id: 'brainstorm-28-differentiable-strips',
+    title: 'Operators as Differentiable STRIPS',
+    description: 'The neuro-symbolic bridge — how classical AI planning actions (preconditions + effects) become learned geometric transformations. Solves the frame problem for free.',
+    tags: ['Schankian', 'operators', 'STRIPS', 'planning', 'neuro-symbolic', 'brainstorm'],
+    icon: '🗺️',
+    gradient: 'from-teal-500 to-cyan-600',
+    shadowColor: 'shadow-teal-500/30',
+    glowColor: 'rgba(20, 184, 166, 0.4)',
+    readTime: '25 min',
+    difficulty: 3,
+  },
+  {
     id: 'ff-key-value-memories',
     title: 'Feed-Forward Layers as Key-Value Memories',
     description: 'The landmark paper revealing that MLP layers are giant lookup tables — each neuron stores a pattern (key) and a prediction (value)',
