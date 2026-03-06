@@ -9,7 +9,9 @@
     "children": [
       {
         "type": "Section",
-        "props": { "title": "What Fine-Tuning Actually Does to a Neural Network" },
+        "props": {
+          "title": "What Fine-Tuning Actually Does to a Neural Network"
+        },
         "children": [
           {
             "type": "p",
@@ -65,7 +67,9 @@
           },
           {
             "type": "Callout",
-            "props": { "type": "key" },
+            "props": {
+              "type": "key"
+            },
             "children": "Fine-tuning is not 'retraining.' It's gradient descent with a very small learning rate, starting from an already-excellent initialization. The model moves to a nearby point in weight space that better fits your data while preserving most of what it already knows."
           },
           {
@@ -76,7 +80,9 @@
       },
       {
         "type": "Section",
-        "props": { "title": "LoRA and Parameter-Efficient Fine-Tuning" },
+        "props": {
+          "title": "LoRA and Parameter-Efficient Fine-Tuning"
+        },
         "children": [
           {
             "type": "p",
@@ -91,7 +97,40 @@
           },
           {
             "type": "p",
-            "children": "LoRA works by decomposing the weight update into two small matrices. Instead of learning a full weight change ΔW (which for a single layer might be 4096×4096 = 16 million parameters), LoRA learns two matrices: A (4096×r) and B (r×4096), where r is the 'rank' — typically 8 to 64. The effective update is ΔW = BA, which has the same dimensions as the original weight matrix but is constructed from only 2 × 4096 × r parameters."
+            "children": [
+              "LoRA",
+              {
+                "type": "FootnoteRef",
+                "props": {
+                  "id": "source-ann-1772801078431-73ijif",
+                  "targetId": "ann-1772801078431-73ijif",
+                  "type": "explain"
+                }
+              },
+              " works by decomposing the weight update into two small matrices. Instead of learning a full weight change ΔW (which for a single layer might be 4096×4096 = 16 million parameters), LoRA learns two matrices: A (4096×r) and B (r×4096), where r is the 'rank' — typically 8 to 64. The effective update is ΔW = BA, which has the same dimensions as the original weight matrix but is constructed from only 2 × 4096 × r parameters."
+            ]
+          },
+          {
+            "type": "Sidebar",
+            "props": {
+              "type": "note",
+              "title": "About \"LoRA\"",
+              "id": "ann-1772801078431-73ijif",
+              "sourceId": "source-ann-1772801078431-73ijif"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "LoRA (Low-Rank Adaptation) is the most widely used parameter-efficient fine-tuning method — it's how you get fine-tuning results without touching most of the model's weights. The key insight this passage is building toward: LoRA bets that the *change* a model needs for a new task lives in a much lower-dimensional space than the full weight matrix, so you can capture it with two skinny matrices multiplied together instead of updating millions of parameters directly."
+              },
+              {
+                "type": "p",
+                "props": {
+                  "className": "text-xs text-gray-400 mt-2"
+                },
+                "children": "Added 3/6/2026, 7:44:27 AM"
+              }
+            ]
           },
           {
             "type": "p",
@@ -99,7 +138,9 @@
           },
           {
             "type": "Callout",
-            "props": { "type": "info" },
+            "props": {
+              "type": "info"
+            },
             "children": "Why does low-rank work? Because fine-tuning doesn't need to make arbitrary changes to the weight matrices. The adaptation for most tasks lives in a low-dimensional subspace. Think of it this way: going from 'general English' to 'medical English' doesn't require changing every aspect of how the model processes language — just a few key directions in weight space."
           },
           {
@@ -133,7 +174,9 @@
           },
           {
             "type": "Example",
-            "props": { "title": "QLoRA in Practice: Fine-Tuning Llama 3 8B" },
+            "props": {
+              "title": "QLoRA in Practice: Fine-Tuning Llama 3 8B"
+            },
             "children": [
               {
                 "type": "p",
@@ -153,7 +196,9 @@
       },
       {
         "type": "Section",
-        "props": { "title": "What Fine-Tuning CAN Realistically Do" },
+        "props": {
+          "title": "What Fine-Tuning CAN Realistically Do"
+        },
         "children": [
           {
             "type": "p",
@@ -161,7 +206,9 @@
           },
           {
             "type": "Callout",
-            "props": { "type": "key" },
+            "props": {
+              "type": "key"
+            },
             "children": "The Fine-Tuning Effectiveness Hierarchy (strongest to weakest): 1) Style & format adaptation, 2) Task specialization, 3) Behavior alignment, 4) Knowledge injection. Most people want #4 but should be investing in #1 and #2."
           },
           {
@@ -170,7 +217,9 @@
           },
           {
             "type": "Example",
-            "props": { "title": "Style Adaptation: Medical Report Generator" },
+            "props": {
+              "title": "Style Adaptation: Medical Report Generator"
+            },
             "children": [
               {
                 "type": "p",
@@ -198,7 +247,9 @@
       },
       {
         "type": "Section",
-        "props": { "title": "What Fine-Tuning CANNOT Do" },
+        "props": {
+          "title": "What Fine-Tuning CANNOT Do"
+        },
         "children": [
           {
             "type": "p",
@@ -242,7 +293,9 @@
           },
           {
             "type": "Callout",
-            "props": { "type": "warning" },
+            "props": {
+              "type": "warning"
+            },
             "children": "OVERFITTING ON SMALL DATASETS is the most common fine-tuning failure. With 500 training examples and 3+ epochs, the model memorizes your exact training examples instead of learning generalizable patterns. Signs: training loss near zero, but the model regurgitates training examples verbatim or produces incoherent outputs for novel inputs. The model has moved to a narrow, sharp minimum that doesn't generalize."
           },
           {
@@ -259,14 +312,18 @@
           },
           {
             "type": "Callout",
-            "props": { "type": "key" },
+            "props": {
+              "type": "key"
+            },
             "children": "Pretraining knowledge is like a deeply embedded memory formed over years of experience. Fine-tuned knowledge is like something you crammed the night before an exam — you can recall it if the question matches your study format, but you can't flexibly reason with it or access it from unexpected angles."
           }
         ]
       },
       {
         "type": "Section",
-        "props": { "title": "The 'LLM as Knowledgebase' Dream vs Reality" },
+        "props": {
+          "title": "The 'LLM as Knowledgebase' Dream vs Reality"
+        },
         "children": [
           {
             "type": "p",
@@ -305,12 +362,16 @@
           },
           {
             "type": "Callout",
-            "props": { "type": "warning" },
+            "props": {
+              "type": "warning"
+            },
             "children": "WHAT'S FRAGILE: Specific facts, exact numbers, dates, version numbers, precise configurations. 'The API rate limit is 1000 requests/minute' — this kind of fact needs to appear in many varied contexts during fine-tuning to stick, and even then may be hallucination-prone. A minor version update means your fine-tuned 'knowledge' is now wrong, with no easy way to correct it without retraining."
           },
           {
             "type": "Example",
-            "props": { "title": "The Knowledgebase Experiment: What Actually Happened" },
+            "props": {
+              "title": "The Knowledgebase Experiment: What Actually Happened"
+            },
             "children": [
               {
                 "type": "p",
@@ -348,14 +409,18 @@
           },
           {
             "type": "Callout",
-            "props": { "type": "tip" },
+            "props": {
+              "type": "tip"
+            },
             "children": "The sweet spot formula: Fine-tune to teach the model HOW to be your domain expert (style, reasoning patterns, terminology, procedures). Use RAG to give it access to WHAT it needs to know (specific facts, current data, exact numbers). The fine-tuned model becomes dramatically better at USING the retrieved information because it understands the domain context."
           }
         ]
       },
       {
         "type": "Section",
-        "props": { "title": "Practical Mechanics: The Settings That Matter" },
+        "props": {
+          "title": "Practical Mechanics: The Settings That Matter"
+        },
         "children": [
           {
             "type": "p",
@@ -371,7 +436,9 @@
           },
           {
             "type": "Callout",
-            "props": { "type": "info" },
+            "props": {
+              "type": "info"
+            },
             "children": "Rule of thumb: if your fine-tuned model suddenly becomes incoherent or loses basic abilities, your learning rate is too high. If it barely changes behavior after training, it's too low. Start at 2e-5 and adjust. For LoRA specifically, you can often go slightly higher (1e-4 to 3e-4) because the low-rank constraint acts as an implicit regularizer."
           },
           {
@@ -384,7 +451,9 @@
           },
           {
             "type": "Example",
-            "props": { "title": "The Overfitting Trajectory" },
+            "props": {
+              "title": "The Overfitting Trajectory"
+            },
             "children": [
               {
                 "type": "p",
@@ -418,7 +487,9 @@
           },
           {
             "type": "Callout",
-            "props": { "type": "tip" },
+            "props": {
+              "type": "tip"
+            },
             "children": "Data quality checklist: 1) Every example demonstrates EXACTLY the behavior you want. 2) Format is consistent across all examples. 3) No contradictory information. 4) Diverse inputs covering the range of expected use cases. 5) Good examples of edge cases and how to handle them. 6) If injecting knowledge, each fact appears in multiple varied contexts."
           },
           {
@@ -429,7 +500,9 @@
       },
       {
         "type": "Section",
-        "props": { "title": "Putting It All Together: A Decision Framework" },
+        "props": {
+          "title": "Putting It All Together: A Decision Framework"
+        },
         "children": [
           {
             "type": "p",
@@ -457,14 +530,18 @@
           },
           {
             "type": "Callout",
-            "props": { "type": "key" },
+            "props": {
+              "type": "key"
+            },
             "children": "The realistic path to an 'LLM knowledgebase': Start with a capable 7-13B base model. Fine-tune with QLoRA (rank 16-32) on high-quality examples that demonstrate your desired FORMAT, TERMINOLOGY, and REASONING PATTERNS. Add RAG for factual grounding. Evaluate rigorously on held-out examples. Iterate on data quality, not quantity."
           }
         ]
       },
       {
         "type": "Section",
-        "props": { "title": "Test Your Understanding" },
+        "props": {
+          "title": "Test Your Understanding"
+        },
         "children": [
           {
             "type": "Quiz",
