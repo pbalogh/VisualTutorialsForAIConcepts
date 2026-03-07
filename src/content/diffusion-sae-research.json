@@ -5043,6 +5043,117 @@
             "children": "Running total: 45 tracked papers. SSAE + DLM-Scope + EoS scratchpad = three complementary lenses on diffusion LM internals."
           }
         ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "📅 March 7, 2026 — Two New Findings"
+        },
+        "children": [
+          {
+            "type": "DeepDive",
+            "title": "[Mar 7] 🔥🔥 CoDAR: Token Rounding Is the Bottleneck for Continuous Diffusion (Mar 3, 2026)",
+            "children": [
+              {
+                "type": "p",
+                "children": [
+                  {
+                    "type": "strong",
+                    "children": [
+                      "Paper:"
+                    ]
+                  },
+                  " Shen et al., 'CoDAR: Continuous Diffusion Language Models are More Powerful Than You Think' (arXiv:2603.02547, Mar 3, 2026)"
+                ]
+              },
+              {
+                "type": "p",
+                "children": [
+                  {
+                    "type": "strong",
+                    "children": [
+                      "Key insight:"
+                    ]
+                  },
+                  " Continuous diffusion LMs have underperformed discrete diffusion NOT because continuous dynamics are wrong, but because TOKEN ROUNDING (projecting denoised embeddings to discrete tokens) is the bottleneck. CoDAR fixes this with a context-conditional AR decoder that cross-attends to the denoised embedding sequence for contextualized rounding. Becomes competitive with strong discrete DLMs on LM1B and OpenWebText."
+                ]
+              },
+              {
+                "type": "p",
+                "children": [
+                  {
+                    "type": "strong",
+                    "children": [
+                      "Relevance:"
+                    ]
+                  },
+                  " ⭐⭐⭐ CRITICAL FOR IDEA 1. If continuous diffusion's only problem was token rounding, then diffusing in SAE feature space (continuous) + using a strong decoder for discretization could be the RIGHT architecture. SAE features are inherently continuous-valued — CoDAR proves continuous diffusion works when you solve the rounding step. Combined with FLM (Feb 2026), this is strong evidence that our Idea 1 should target CONTINUOUS diffusion in SAE space + learned decoder, not discrete masking. The decoder-temperature knob for fluency-diversity tradeoff maps to SAE feature constraint strength."
+                ]
+              },
+              {
+                "type": "p",
+                "children": [
+                  {
+                    "type": "strong",
+                    "children": [
+                      "New question:"
+                    ]
+                  },
+                  " Could the CoDAR decoder be conditioned on SAE feature activations (instead of raw embeddings)? If SAE features provide cleaner, more interpretable signals, the contextual rounding might improve further."
+                ]
+              }
+            ]
+          },
+          {
+            "type": "DeepDive",
+            "title": "[Mar 7] MetaState: Persistent Working Memory for dLLMs (Mar 2, 2026)",
+            "children": [
+              {
+                "type": "p",
+                "children": [
+                  {
+                    "type": "strong",
+                    "children": [
+                      "Paper:"
+                    ]
+                  },
+                  " Xia et al., 'MetaState: Persistent Working Memory for Discrete Diffusion Language Models' (arXiv:2603.01331, Mar 2, 2026)"
+                ]
+              },
+              {
+                "type": "p",
+                "children": [
+                  {
+                    "type": "strong",
+                    "children": [
+                      "Key insight:"
+                    ]
+                  },
+                  " Standard dLLMs discard intermediate continuous representations after each denoising step — the 'Information Island' problem. MetaState adds a lightweight GRU-style recurrent memory (cross-attention Mixer → GRU Updater → cross-attention Injector) that persists across denoising steps. Fixed-size, sequence-length-independent. Keeps backbone frozen. Consistently improves accuracy on LLaDA-8B and Dream-7B."
+                ]
+              },
+              {
+                "type": "p",
+                "children": [
+                  {
+                    "type": "strong",
+                    "children": [
+                      "Relevance:"
+                    ]
+                  },
+                  " ⭐⭐ SUPPORTS IDEAS 1 & 4. MetaState's persistent memory across denoising steps is exactly where SAE feature tracking would live. Instead of generic memory slots, populate them with SAE feature activations that accumulate and refine across steps. The 'Information Island' problem they identify explains why single-step SAE guidance might be insufficient — cross-step SAE feature persistence could improve coherence. Complements CaDDi's non-Markovian approach (trajectory conditioning) with a more lightweight mechanism."
+                ]
+              }
+            ]
+          },
+          {
+            "type": "Callout",
+            "props": {
+              "type": "info"
+            },
+            "children": "Running total: 47 tracked papers. CoDAR validates continuous diffusion for text (solving rounding bottleneck), strengthening the case for continuous SAE feature space as diffusion latent space."
+          }
+        ]
       }
     ]
   }
