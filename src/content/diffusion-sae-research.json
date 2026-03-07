@@ -5152,6 +5152,73 @@
               "type": "info"
             },
             "children": "Running total: 47 tracked papers. CoDAR validates continuous diffusion for text (solving rounding bottleneck), strengthening the case for continuous SAE feature space as diffusion latent space."
+          },
+          {
+            "type": "Section",
+            "title": "📅 March 7, 2026 1:00 PM — Three New Findings",
+            "children": [
+              {
+                "type": "Section",
+                "title": "[Mar 7] 🔥 GDPO: Group Diffusion Policy Optimization for DLM Reasoning (arXiv:2510.08554, updated Feb 2026)",
+                "children": [
+                  {
+                    "type": "p",
+                    "children": [
+                      "Key insight: RL fine-tuning for DLMs requires careful variance control. GDPO revisits ELBO estimation, decomposes variance sources, and uses Semi-deterministic Monte Carlo schemes to avoid the variance explosion of naive double MC sampling. Outperforms diffu-GRPO (previously tracked) on math, reasoning, and coding benchmarks. Provably lower-variance estimator under tight evaluation budgets."
+                    ]
+                  },
+                  {
+                    "type": "p",
+                    "children": [
+                      "⭐ SUPPORTS IDEA 4 (Dictionary-Guided Denoising). GDPO's principled ELBO estimation could be combined with SAE feature-based rewards — instead of just outcome-level rewards, use SAE feature activations as process-level signal for RL. The variance reduction techniques would be essential for stable training when adding SAE-based guidance terms to the RL objective."
+                    ]
+                  }
+                ]
+              },
+              {
+                "type": "Section",
+                "title": "[Mar 7] D3LM: Discrete Diffusion for DNA — Masked Diffusion Generalizes Beyond Text (arXiv:2603.01780, Mar 3 2026)",
+                "children": [
+                  {
+                    "type": "p",
+                    "children": [
+                      "Key insight: Takes an existing discriminative model (Nucleotide Transformer v2) and reformulates its training as masked diffusion in discrete DNA space. Same architecture, different objective → gains both understanding AND generation. Outperforms specialized DNA generation models including AR and continuous latent diffusion approaches."
+                    ]
+                  },
+                  {
+                    "type": "p",
+                    "children": [
+                      "⭐ SUPPORTS IDEA 1 (Structured Latent Spaces). Demonstrates that discrete diffusion is domain-agnostic — the same framework works for DNA sequences with small vocabularies. For SAE+diffusion, this suggests SAE feature spaces (which are inherently discrete/sparse) could serve as diffusion targets even for non-NLP domains. The 'same architecture, different objective' finding parallels our idea of repurposing SAE features."
+                    ]
+                  }
+                ]
+              },
+              {
+                "type": "Section",
+                "title": "[Mar 7] Information-Theoretic Discrete Diffusion: Mutual Information Bounds for Score Entropy (arXiv:2510.24088, Oct 2025)",
+                "children": [
+                  {
+                    "type": "p",
+                    "children": [
+                      "Key insight: Establishes I-MDSE (Information-Minimum Denoising Score Entropy) relation linking mutual information between data and its diffused version to the minimum DSE loss. Extends to masked diffusion with I-MDCE relation connecting cross-entropy losses to mutual information. Provides information-theoretic foundations for understanding what discrete diffusion models actually learn."
+                    ]
+                  },
+                  {
+                    "type": "p",
+                    "children": [
+                      "⭐ SUPPORTS IDEAS 3 & 4 (Semantic Noise Schedules & Dictionary-Guided Denoising). The mutual information framework could guide semantic-aware noise schedules: schedule noise to maximize mutual information preservation of SAE-identified features at each step. The I-MDCE relation for masked diffusion provides theoretical grounding for measuring how much 'semantic content' (as captured by SAE features) is preserved vs. destroyed at each noise level."
+                    ]
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "Callout",
+            "props": {
+              "type": "info"
+            },
+            "children": "Running total: 50 tracked papers. GDPO provides principled RL for DLMs (potential SAE-reward integration), D3LM shows discrete diffusion generalizes beyond text, and Information-Theoretic DD provides mutual information foundations for semantic noise scheduling."
           }
         ]
       }
