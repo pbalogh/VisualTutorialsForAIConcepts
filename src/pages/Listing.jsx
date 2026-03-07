@@ -832,6 +832,18 @@ const tutorials = [
     difficulty: 3,
   },
   {
+    id: 'brainstorm-37-lie-algebra',
+    title: 'Lie Algebra Structure — Commutators Capture Order Effects',
+    description: 'Why "harm then heal" ≠ "heal then harm" — how Lie algebras formalize non-commutativity of Schankian operators, with commutators as emergent semantic primitives.',
+    tags: ['Lie algebra', 'operators', 'Schank', 'commutator', 'non-commutativity', 'rotation matrices'],
+    icon: '🔄',
+    gradient: 'from-violet-500 to-purple-600',
+    shadowColor: 'shadow-violet-500/30',
+    glowColor: 'rgba(139, 92, 246, 0.4)',
+    readTime: '25 min',
+    difficulty: 4,
+  },
+  {
     id: 'brainstorm-63-operators-as-options',
     title: 'Operators as Options',
     description: 'Temporal abstraction as event semantics — how Schankian operators ARE Sutton\'s options, with initiation sets, policies, and termination conditions',

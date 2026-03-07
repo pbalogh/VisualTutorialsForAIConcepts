@@ -1,0 +1,532 @@
+{
+  "id": "brainstorm-37-lie-algebra",
+  "title": "Lie Algebra Structure — Commutators Capture Order Effects",
+  "subtitle": "Why 'harm then heal' ≠ 'heal then harm' — and how Lie algebras formalize the non-commutativity of Schankian operators",
+  "readTime": "25 min",
+  "state": "brainstorm_37",
+  "content": {
+    "type": "Fragment",
+    "children": [
+      {
+        "type": "Section",
+        "props": { "title": "Order Matters: The Core Insight" },
+        "children": [
+          {
+            "type": "p",
+            "children": "Consider two events: 'The doctor healed Frank, then the attacker harmed Frank' versus 'The attacker harmed Frank, then the doctor healed Frank.' The final state of Frank is different — even though the same two operators were applied. This is NON-COMMUTATIVITY, and it's everywhere in language."
+          },
+          {
+            "type": "p",
+            "children": "Lie algebras are the mathematical framework built specifically for this. They formalize how transformations interact when their order matters — and the commutator [A, B] = AB − BA captures exactly what's different."
+          },
+          {
+            "type": "Callout",
+            "props": {
+              "type": "key",
+              "title": "The Central Claim"
+            },
+            "children": "Schankian operators form a Lie algebra. The commutator [HARM, HEAL] is not zero — it IS a semantic primitive capturing the asymmetry of damage-then-repair vs repair-then-damage. Non-commutativity isn't a nuisance; it's a feature that encodes causal order."
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "Lie Groups & Lie Algebras: The Quick Version" },
+        "children": [
+          {
+            "type": "DefinitionList",
+            "props": {
+              "items": [
+                {
+                  "term": "Lie Group",
+                  "definition": "A continuous group of transformations — like all possible rotations of a sphere. Smooth, invertible, composable. Our operators live here: each operator is a rotation matrix acting on entity embeddings."
+                },
+                {
+                  "term": "Lie Algebra",
+                  "definition": "The 'tangent space' of a Lie group at the identity — the set of infinitesimal generators. If the Lie group is all rotations, the Lie algebra is all angular velocities. Operators in the Lie algebra generate operators in the Lie group via the exponential map."
+                },
+                {
+                  "term": "Exponential Map",
+                  "definition": "exp(tA) turns a Lie algebra element A into a Lie group element. Small t = small transformation, large t = big transformation. Think: angular velocity × time = rotation angle."
+                },
+                {
+                  "term": "Commutator [A, B]",
+                  "definition": "Defined as AB − BA. Measures how much A and B fail to commute. If [A, B] = 0, order doesn't matter. If [A, B] ≠ 0, the commutator tells you exactly WHAT changes when you swap the order."
+                }
+              ]
+            }
+          },
+          {
+            "type": "Analogy",
+            "left": {
+              "title": "Physical Rotations",
+              "items": [
+                "Rotate a book 90° around X-axis",
+                "Then rotate 90° around Y-axis",
+                "Compare: Y first, then X",
+                "Different final orientation!",
+                "[Rx, Ry] = Rz — the commutator IS a rotation around Z"
+              ]
+            },
+            "right": {
+              "title": "Semantic Operators",
+              "items": [
+                "Apply HARM to Frank's state",
+                "Then apply HEAL to Frank's state",
+                "Compare: HEAL first, then HARM",
+                "Different final state!",
+                "[HARM, HEAL] captures the asymmetry — damage leaves scars"
+              ]
+            },
+            "bridgeText": "In both cases, the commutator is itself a meaningful transformation — not noise, but signal."
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "Why Matrices Don't Commute" },
+        "children": [
+          {
+            "type": "p",
+            "children": "If operators are rotation matrices (as argued in Entry 55), matrix multiplication is generally non-commutative: AB ≠ BA. Let's see this concretely with 2×2 rotation matrices."
+          },
+          {
+            "type": "Example",
+            "props": {
+              "title": "Matrix Non-Commutativity",
+              "language": "python"
+            },
+            "children": "import numpy as np\n\n# HARM operator: rotate 30° in embedding space\ntheta_harm = np.radians(30)\nHARM = np.array([[np.cos(theta_harm), -np.sin(theta_harm)],\n                  [np.sin(theta_harm),  np.cos(theta_harm)]])\n\n# HEAL operator: rotate -45° in embedding space  \ntheta_heal = np.radians(-45)\nHEAL = np.array([[np.cos(theta_heal), -np.sin(theta_heal)],\n                  [np.sin(theta_heal),  np.cos(theta_heal)]])\n\n# Frank's initial state\nfrank = np.array([1.0, 0.0])\n\n# Path 1: HARM then HEAL\npath1 = HEAL @ HARM @ frank\n\n# Path 2: HEAL then HARM  \npath2 = HARM @ HEAL @ frank\n\n# The commutator\ncommutator = HARM @ HEAL - HEAL @ HARM\nprint(f'Path 1 (harm→heal): {path1}')\nprint(f'Path 2 (heal→harm): {path2}')\nprint(f'Same result? {np.allclose(path1, path2)}')\nprint(f'Commutator [HARM, HEAL]:\\n{commutator}')"
+          },
+          {
+            "type": "p",
+            "children": "Wait — for pure 2D rotations, matrices actually DO commute (rotations in 2D form an abelian group). The non-commutativity emerges in 3+ dimensions, or when operators aren't pure rotations but include stretching and shearing. Real Schankian operators act in high-dimensional space where non-commutativity is the norm."
+          },
+          {
+            "type": "DeepDive",
+            "props": { "title": "Why 2D Rotations Commute but 3D Don't" },
+            "children": [
+              {
+                "type": "p",
+                "children": "SO(2) — the group of 2D rotations — is abelian because there's only one axis to rotate around. Every rotation is parameterized by a single angle, and angles just add: R(α)R(β) = R(α+β) = R(β+α) = R(β)R(α)."
+              },
+              {
+                "type": "p",
+                "children": "SO(3) — 3D rotations — is non-abelian because there are three independent axes. The generators Lx, Ly, Lz satisfy [Lx, Ly] = Lz (and cyclic permutations). This is the fundamental structure constant of the rotation Lie algebra so(3)."
+              },
+              {
+                "type": "p",
+                "children": "For Schankian operators in d-dimensional embedding space (d ≈ 768 for BERT), the Lie algebra so(d) has d(d−1)/2 generators. That's 294,528 independent 'directions' of non-commutativity — a vast space for encoding order effects."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "The Commutator as Semantic Primitive" },
+        "children": [
+          {
+            "type": "p",
+            "children": "Here's the radical claim: commutators of operators are themselves operators — emergent interaction primitives that Schank never listed because they arise from PAIRS of transformations, not single events."
+          },
+          {
+            "type": "p",
+            "children": "Consider these commutators and what they might mean:"
+          },
+          {
+            "type": "DefinitionList",
+            "props": {
+              "items": [
+                {
+                  "term": "[HARM, HEAL]",
+                  "definition": "The 'scarring' operator — damage-then-repair leaves traces that repair-then-damage doesn't. Captures irreversibility, trauma, resilience."
+                },
+                {
+                  "term": "[ATRANS, ATRANS⁻¹]",
+                  "definition": "Give then take-back ≠ take-back then give. The first is generosity-then-betrayal; the second is theft-then-restitution. Same objects move, different emotional residue."
+                },
+                {
+                  "term": "[MBUILD, MTRANS]",
+                  "definition": "Build a thought then communicate it ≠ receive a thought then process it. The first is invention; the second is learning. [MBUILD, MTRANS] captures the creativity–receptivity axis."
+                },
+                {
+                  "term": "[PROPEL, MOVE]",
+                  "definition": "Push then reposition ≠ reposition then push. In sports: pass to where a player IS vs pass to where a player WILL BE. The commutator encodes anticipation."
+                }
+              ]
+            }
+          },
+          {
+            "type": "Callout",
+            "props": {
+              "type": "insight",
+              "title": "Emergent Operators"
+            },
+            "children": "Lie algebra structure means commutators of base operators generate NEW operators — potentially expanding Schank's original ~14 primitives into a richer algebra. The 'missing' primitives might be commutators of the ones we know."
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "The Baker-Campbell-Hausdorff Formula" },
+        "children": [
+          {
+            "type": "p",
+            "children": "When you compose two Lie group transformations, the BCH formula tells you what single transformation is equivalent:"
+          },
+          {
+            "type": "Example",
+            "props": {
+              "title": "BCH Formula (First Few Terms)",
+              "language": "text"
+            },
+            "children": "exp(A) · exp(B) = exp(A + B + ½[A,B] + ¹⁄₁₂[A,[A,B]] − ¹⁄₁₂[B,[A,B]] + ...)\n\nIf A and B commute: [A,B] = 0\n  → exp(A)·exp(B) = exp(A+B)  (simple addition!)\n\nIf they DON'T commute:\n  → The composed effect includes correction terms\n  → First correction: ½[A,B] — the commutator itself\n  → Higher terms: nested commutators of commutators"
+          },
+          {
+            "type": "p",
+            "children": "The BCH formula is why narrative order matters mathematically. 'John was harmed then healed' applies exp(HEAL)·exp(HARM), which BCH expands to include the [HARM, HEAL] correction. The correction IS the narrative meaning that pure operator addition would miss."
+          },
+          {
+            "type": "DeepDive",
+            "props": { "title": "BCH and Narrative Surprisal" },
+            "children": [
+              {
+                "type": "p",
+                "children": "The higher-order BCH terms (nested commutators) get increasingly small. This maps beautifully to narrative processing: the FIRST-order commutator is the main 'order effect' readers notice. Higher-order effects are subtle and often ignored."
+              },
+              {
+                "type": "p",
+                "children": "Narratively surprising sequences might be exactly those where higher-order BCH terms are unusually large — where the interaction between operators is complex and unexpected. A 'plot twist' could be a sequence where [A, [B, C]] dominates the low-order terms."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "Structure Constants: The DNA of the Operator Algebra" },
+        "children": [
+          {
+            "type": "p",
+            "children": "Every Lie algebra is completely determined by its structure constants — the numbers f_{ij}^k that define how basis elements combine:"
+          },
+          {
+            "type": "Example",
+            "props": {
+              "title": "Structure Constants",
+              "language": "text"
+            },
+            "children": "[eᵢ, eⱼ] = Σₖ fᵢⱼᵏ eₖ\n\nFor so(3) rotations:\n  [Lx, Ly] = Lz    →  fxy^z = 1\n  [Ly, Lz] = Lx    →  fyz^x = 1  \n  [Lz, Lx] = Ly    →  fzx^y = 1\n\nFor Schankian operators (hypothetical):\n  [HARM, HEAL] = α·SCAR + β·RESILIENCE\n  [ATRANS, PTRANS] = γ·DELIVER\n  [MBUILD, ATTEND] = δ·INSIGHT"
+          },
+          {
+            "type": "p",
+            "children": "If we could learn the structure constants of the Schankian operator algebra from data, we'd have a complete theory of how event operators interact — a periodic table of semantic interactions."
+          },
+          {
+            "type": "Callout",
+            "props": {
+              "type": "experiment",
+              "title": "Testable Prediction"
+            },
+            "children": "Train operator embeddings as Lie algebra elements. Compute commutators. If the resulting vectors cluster into interpretable categories (scarring, anticipation, irony, etc.), the Lie algebra hypothesis is validated. The structure constants become empirical data about how meaning composes."
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "Interactive: Operator Composition Lab" },
+        "children": [
+          {
+            "type": "p",
+            "children": "Explore how operator order affects outcomes. Pick two operators and see the commutator — then try to interpret what the asymmetry means narratively."
+          },
+          {
+            "type": "InteractiveDemo",
+            "props": {
+              "id": "operator-commutator-lab",
+              "title": "Commutator Calculator",
+              "height": 340,
+              "initialCode": "// Pick two operators (as 3x3 rotation matrices)\nconst angle = (deg) => deg * Math.PI / 180;\n\n// HARM: rotate around X-axis by 60°\nconst a = angle(60);\nconst HARM = [\n  [1, 0, 0],\n  [0, Math.cos(a), -Math.sin(a)],\n  [0, Math.sin(a), Math.cos(a)]\n];\n\n// HEAL: rotate around Y-axis by 45°\nconst b = angle(45);\nconst HEAL = [\n  [Math.cos(b), 0, Math.sin(b)],\n  [0, 1, 0],\n  [-Math.sin(b), 0, Math.cos(b)]\n];\n\n// Matrix multiply\nfunction mm(A, B) {\n  return A.map((row, i) =>\n    B[0].map((_, j) =>\n      row.reduce((s, _, k) => s + A[i][k] * B[k][j], 0)\n    )\n  );\n}\n\n// Matrix subtract\nfunction ms(A, B) {\n  return A.map((row, i) => row.map((v, j) => v - B[i][j]));\n}\n\nconst AB = mm(HARM, HEAL);\nconst BA = mm(HEAL, HARM);\nconst comm = ms(AB, BA);\n\n// Frobenius norm of commutator\nconst norm = Math.sqrt(\n  comm.flat().reduce((s, v) => s + v * v, 0)\n).toFixed(4);\n\nreturn `[HARM, HEAL] commutator norm: ${norm}\\n` +\n  `(0 = commutes perfectly, >0 = order matters)\\n\\n` +\n  `Commutator matrix:\\n` +\n  comm.map(r => r.map(v => v.toFixed(3)).join('  ')).join('\\n') +\n  `\\n\\n→ Try changing the angles to see how\\n  non-commutativity changes!`;"
+            }
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "Lie Groups for Knowledge Graphs" },
+        "children": [
+          {
+            "type": "p",
+            "children": "The connection isn't just theoretical. Recent work on knowledge graph embeddings uses Lie groups directly:"
+          },
+          {
+            "type": "DefinitionList",
+            "props": {
+              "items": [
+                {
+                  "term": "RotatE (Sun et al., 2019)",
+                  "definition": "Models relations as rotations in complex space — Lie group SO(2) per dimension. Handles symmetry, antisymmetry, inversion, composition. But each dimension rotates independently (abelian), missing cross-dimension interactions."
+                },
+                {
+                  "term": "Lie Group KG Embeddings",
+                  "definition": "Upgrade to full SO(n) rotations. Relations are elements of a non-abelian Lie group. Captures cross-dimensional interactions. The commutator [r₁, r₂] of two relations IS a derived relation — exactly our claim about operator interactions."
+                },
+                {
+                  "term": "QuatE / DualE",
+                  "definition": "Quaternion and dual-quaternion embeddings. Quaternions = SU(2), the double cover of SO(3). Richer rotation structure in fewer parameters. Dual part adds translations (position changes alongside orientation changes)."
+                }
+              ]
+            }
+          },
+          {
+            "type": "DeepDive",
+            "props": { "title": "From RotatE to Full Lie Group Operators" },
+            "children": [
+              {
+                "type": "p",
+                "children": "RotatE uses diagonal rotation matrices: each dimension rotates independently. This is the maximal torus of SO(d) — the abelian subgroup. It misses cross-dimensional coupling."
+              },
+              {
+                "type": "p",
+                "children": "Full SO(d) operators add off-diagonal rotations: dimension i and dimension j can interact. This is crucial for encoding that HARM affects both 'health' and 'emotional state' dimensions simultaneously, in a coupled way."
+              },
+              {
+                "type": "p",
+                "children": "The tradeoff: RotatE needs d parameters per relation, full SO(d) needs d(d−1)/2. For d=768, that's 768 vs 294,528. Practical middle ground: block-diagonal SO(d) with small blocks (SO(4) or SO(8) per block), capturing local cross-dimensional coupling without full quadratic cost."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "Interactive: Lie Group Embedding Explorer" },
+        "children": [
+          {
+            "type": "p",
+            "children": "See how entity embeddings transform under different Lie group operator structures — from abelian (RotatE-style) to non-abelian (full rotation)."
+          },
+          {
+            "type": "InteractiveDemo",
+            "props": {
+              "id": "lie-group-explorer",
+              "title": "RotatE vs Full Rotation",
+              "height": 320,
+              "initialCode": "// Compare RotatE (diagonal) vs full SO(3) rotation\nconst a = Math.PI / 4; // 45 degrees\n\n// RotatE: independent rotations per dimension\nconst rotatE = [\n  [Math.cos(a), 0, 0],\n  [0, Math.cos(2*a), 0],\n  [0, 0, Math.cos(3*a)]\n];\n\n// Full SO(3): coupled rotation (around axis [1,1,1]/√3)\nconst c = Math.cos(a), s = Math.sin(a);\nconst fullSO3 = [\n  [(2*c+1)/3, (1-c-s*Math.sqrt(3))/3, (1-c+s*Math.sqrt(3))/3],\n  [(1-c+s*Math.sqrt(3))/3, (2*c+1)/3, (1-c-s*Math.sqrt(3))/3],\n  [(1-c-s*Math.sqrt(3))/3, (1-c+s*Math.sqrt(3))/3, (2*c+1)/3]\n];\n\n// Entity vector\nconst entity = [0.8, 0.3, 0.5];\n\nfunction apply(M, v) {\n  return M.map(row => row.reduce((s, m, i) => s + m * v[i], 0));\n}\n\nconst r1 = apply(rotatE, entity);\nconst r2 = apply(fullSO3, entity);\n\nreturn `Entity:   [${entity.map(v=>v.toFixed(2)).join(', ')}]\\n` +\n  `RotatE:   [${r1.map(v=>v.toFixed(3)).join(', ')}]\\n` +\n  `Full SO3: [${r2.map(v=>v.toFixed(3)).join(', ')}]\\n\\n` +\n  `Key difference: RotatE transforms each\\n` +\n  `dimension independently. Full SO(3) couples\\n` +\n  `them — dimension 1 affects dimension 2.\\n\\n` +\n  `This coupling is HOW operators encode that\\n` +\n  `harming someone's body also affects their\\n` +\n  `emotional state.`;"
+            }
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "Connections to Other Brainstorm Entries" },
+        "children": [
+          {
+            "type": "p",
+            "children": "The Lie algebra perspective unifies several other ideas in this brainstorm series:"
+          },
+          {
+            "type": "DefinitionList",
+            "props": {
+              "items": [
+                {
+                  "term": "Entry 12: Disentangled Dimensions",
+                  "definition": "Disentangled operator dimensions correspond to Cartan subalgebra elements — the maximal commuting set. Dimensions that DON'T interact are exactly those in the Cartan subalgebra."
+                },
+                {
+                  "term": "Entry 31: Conservation Laws",
+                  "definition": "Noether's theorem connects symmetries to conserved quantities. In Lie theory: Casimir elements (center of the universal enveloping algebra) are the conserved quantities. If the operator algebra has a Casimir element, there's a semantic conservation law."
+                },
+                {
+                  "term": "Entry 36: Eigenoperators",
+                  "definition": "Eigenvectors of the adjoint representation ad(A)(B) = [A, B] are operators that have clean interaction with A. The eigenvalues are the 'roots' of the Lie algebra — they organize the entire structure."
+                },
+                {
+                  "term": "Entry 55: Rotation Matrices",
+                  "definition": "Full rotation matrices live in SO(d), whose Lie algebra is so(d) — antisymmetric matrices. Every operator is exp(X) for some antisymmetric X. The X matrices are the 'infinitesimal operators' we should be learning."
+                },
+                {
+                  "term": "Entry 69: Clifford Algebra",
+                  "definition": "Clifford algebra Cl(p,q) contains the spin group Spin(p,q) as a Lie subgroup. The Clifford product subsumes both Lie bracket and geometric operations. Moving from SO(d) to Spin(d) via Clifford algebra gives double cover — capturing sign/orientation information rotations lose."
+                }
+              ]
+            }
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "The Adjoint Representation: Operators Acting on Operators" },
+        "children": [
+          {
+            "type": "p",
+            "children": "There's a beautiful recursive structure: operators act on entity states, but operators also act on OTHER OPERATORS via the adjoint representation. The adjoint action of A on B is simply the commutator: ad(A)(B) = [A, B]."
+          },
+          {
+            "type": "p",
+            "children": "This means: 'How does HARM change HEAL?' is answered by [HARM, HEAL]. The same mathematical operation that transforms entities also transforms the operator space itself. It's operators all the way down."
+          },
+          {
+            "type": "Callout",
+            "props": {
+              "type": "insight",
+              "title": "Meta-Operators"
+            },
+            "children": "The adjoint representation gives us meta-operators for free. 'How does experiencing harm change one's capacity to heal?' is ad(HARM)(HEAL) = [HARM, HEAL]. Character development in narratives might be sequences of adjoint actions — events that change not just states but CAPABILITIES."
+          },
+          {
+            "type": "Example",
+            "props": {
+              "title": "Character Development as Adjoint Action",
+              "language": "text"
+            },
+            "children": "Initial HEAL operator: effective, optimistic\n\nAfter experiencing HARM (adjoint action):\n  HEAL' = HEAL + ε·[HARM, HEAL]\n  → HEAL' is modified — perhaps more cautious, or stronger\n\nAfter repeated HARM:\n  HEAL'' = exp(t·ad(HARM))(HEAL)\n  → Continuous deformation of healing capacity\n  → t > threshold: HEAL collapses → PTSD\n  → Small t: HEAL strengthens → resilience\n\nThe TRAJECTORY through operator-space IS the character arc."
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "Interactive: Adjoint Action Visualizer" },
+        "children": [
+          {
+            "type": "InteractiveDemo",
+            "props": {
+              "id": "adjoint-action-viz",
+              "title": "How Operators Change Operators",
+              "height": 300,
+              "initialCode": "// Simulate adjoint action: how HARM modifies HEAL over time\nconst steps = 8;\nconst epsilon = 0.15; // strength of adjoint action\n\n// Represent operators as 2D vectors in 'operator space'\n// (massive simplification of the real Lie algebra)\nlet heal = { effectiveness: 1.0, caution: 0.0 };\nconst harm_adjoint = { effectiveness: -0.3, caution: 0.7 };\n\nlet trajectory = [`t=0: eff=${heal.effectiveness.toFixed(2)}, ` +\n  `caut=${heal.caution.toFixed(2)} — naive healer`];\n\nfor (let t = 1; t <= steps; t++) {\n  heal.effectiveness += epsilon * harm_adjoint.effectiveness;\n  heal.caution += epsilon * harm_adjoint.caution;\n  \n  let label = '';\n  if (heal.caution > 0.8) label = ' — burned out';\n  else if (heal.caution > 0.5) label = ' — cautious expert';\n  else if (heal.caution > 0.2) label = ' — learning boundaries';\n  \n  trajectory.push(\n    `t=${t}: eff=${heal.effectiveness.toFixed(2)}, ` +\n    `caut=${heal.caution.toFixed(2)}${label}`\n  );\n}\n\nreturn `How repeated HARM modifies the HEAL operator:\\n` +\n  `(via adjoint action ad(HARM)(HEAL))\\n\\n` +\n  trajectory.join('\\n') +\n  `\\n\\n→ The operator itself evolves!\\n` +\n  `  This IS character development.`;"
+            }
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "Practical Architecture: Learning in the Lie Algebra" },
+        "children": [
+          {
+            "type": "p",
+            "children": "Instead of learning operators directly as rotation matrices in SO(d), learn them as elements of the Lie algebra so(d) — antisymmetric matrices — and use the exponential map to get the actual operator. This has concrete advantages:"
+          },
+          {
+            "type": "DefinitionList",
+            "props": {
+              "items": [
+                {
+                  "term": "Unconstrained optimization",
+                  "definition": "so(d) is a vector space — any linear combination of antisymmetric matrices is antisymmetric. No need for constrained optimization or projection onto SO(d) after gradient steps."
+                },
+                {
+                  "term": "Composition via BCH",
+                  "definition": "Composing operators in the Lie algebra (via BCH approximation) is cheaper than matrix multiplication in the group. First-order BCH: A∘B ≈ A + B + ½[A,B]."
+                },
+                {
+                  "term": "Interpolation",
+                  "definition": "Linear interpolation in so(d) gives geodesic interpolation in SO(d). Operator blending (partially HARM, partially HEAL) is just weighted averaging of antisymmetric matrices."
+                },
+                {
+                  "term": "Interpretation",
+                  "definition": "Structure constants are directly readable. If we learn K operators as Lie algebra elements, the K×K matrix of commutator norms IS the interaction table."
+                }
+              ]
+            }
+          },
+          {
+            "type": "Example",
+            "props": {
+              "title": "Learning in so(d) — PyTorch Sketch",
+              "language": "python"
+            },
+            "children": "import torch\nimport torch.nn as nn\n\nclass LieAlgebraOperator(nn.Module):\n    def __init__(self, dim, num_operators):\n        super().__init__()\n        # Learn antisymmetric matrices (upper triangular, then skew-symmetrize)\n        self.upper = nn.Parameter(\n            torch.randn(num_operators, dim, dim) * 0.01\n        )\n    \n    def get_algebra_element(self, op_idx):\n        \"\"\"Get antisymmetric matrix (Lie algebra element)\"\"\"\n        U = self.upper[op_idx]\n        return U - U.T  # Skew-symmetrize\n    \n    def get_group_element(self, op_idx):\n        \"\"\"Get rotation matrix via matrix exponential\"\"\"\n        return torch.matrix_exp(self.get_algebra_element(op_idx))\n    \n    def commutator(self, i, j):\n        \"\"\"Compute [op_i, op_j] in the Lie algebra\"\"\"\n        A = self.get_algebra_element(i)\n        B = self.get_algebra_element(j)\n        return A @ B - B @ A  # Also antisymmetric!\n    \n    def apply(self, op_idx, entity_embedding):\n        \"\"\"Apply operator to entity\"\"\"\n        R = self.get_group_element(op_idx)\n        return R @ entity_embedding"
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "Quiz: Test Your Understanding" },
+        "children": [
+          {
+            "type": "Quiz",
+            "props": {
+              "questions": [
+                {
+                  "question": "What does the commutator [A, B] = AB − BA measure?",
+                  "options": [
+                    "The average of operators A and B",
+                    "How much A and B fail to commute — the difference that order makes",
+                    "The inverse of operator A applied to B",
+                    "The dot product of A and B in operator space"
+                  ],
+                  "correct": 1,
+                  "explanation": "The commutator captures exactly what changes when you swap the order of two operators. If [A,B] = 0, order doesn't matter. Otherwise, the commutator tells you the 'order effect' — itself a new operator."
+                },
+                {
+                  "question": "Why do we learn operators in the Lie algebra so(d) instead of directly in the Lie group SO(d)?",
+                  "options": [
+                    "The Lie algebra is always smaller",
+                    "The Lie algebra is a vector space, enabling unconstrained optimization",
+                    "The Lie group doesn't support matrix multiplication",
+                    "The Lie algebra is discrete, making computation faster"
+                  ],
+                  "correct": 1,
+                  "explanation": "so(d) is a vector space: any linear combination of antisymmetric matrices is antisymmetric. This means standard gradient descent works without needing to project back onto the rotation manifold. We recover the group element via exp()."
+                },
+                {
+                  "question": "What does the adjoint representation ad(A)(B) = [A, B] capture semantically?",
+                  "options": [
+                    "How entity A transforms entity B",
+                    "How operator A modifies operator B — operators acting on operators",
+                    "The energy cost of applying A after B",
+                    "Whether A and B are the same type of operator"
+                  ],
+                  "correct": 1,
+                  "explanation": "The adjoint representation is operators acting on operators. ad(HARM)(HEAL) = [HARM, HEAL] tells us how experiencing harm modifies one's capacity to heal. This is the mathematical formalization of character development."
+                },
+                {
+                  "question": "In the BCH formula exp(A)·exp(B) = exp(A + B + ½[A,B] + ...), what does the ½[A,B] term represent narratively?",
+                  "options": [
+                    "The average of the two events",
+                    "The first-order correction for ordering — the narrative meaning that operator addition misses",
+                    "A random noise term",
+                    "The probability that both events happen"
+                  ],
+                  "correct": 1,
+                  "explanation": "When we compose two narrative events, simply adding their effects (A + B) misses the interaction. The ½[A,B] correction captures the order-dependent meaning — why 'harm then heal' differs from 'heal then harm'. Higher-order BCH terms capture subtler interactions."
+                },
+                {
+                  "question": "Why are 2D rotations commutative but 3D+ rotations are not?",
+                  "options": [
+                    "2D rotations use smaller numbers",
+                    "2D has only one rotation axis, so there's nothing to not-commute with",
+                    "3D rotations are undefined",
+                    "2D rotations are not actually commutative"
+                  ],
+                  "correct": 1,
+                  "explanation": "In 2D, every rotation is around the same (single) axis — they just add angles. In 3D, there are three independent axes, and rotating around different axes produces different results depending on order. For d-dimensional operator spaces, there are d(d-1)/2 independent rotation planes — massive room for non-commutativity."
+                }
+              ]
+            }
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "What This Means for the Project" },
+        "children": [
+          {
+            "type": "p",
+            "children": "The Lie algebra framework transforms our operator project from 'learn some rotation matrices' to 'discover the algebraic structure of semantic transformations.' The structure constants become empirical data; the commutators become emergent primitives; the adjoint representation becomes character development."
+          },
+          {
+            "type": "Callout",
+            "props": {
+              "type": "next",
+              "title": "Next Steps"
+            },
+            "children": "1. Train Lie algebra operators (antisymmetric matrices) on event pairs. 2. Compute all pairwise commutators. 3. Cluster commutator vectors — do interpretable 'interaction operators' emerge? 4. Extract structure constants. 5. Compare to known Lie algebra classifications (is the operator algebra semisimple? solvable? nilpotent?). The classification constrains what kind of semantic algebra is possible."
+          }
+        ]
+      }
+    ]
+  }
+}
