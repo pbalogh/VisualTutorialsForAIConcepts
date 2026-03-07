@@ -5279,11 +5279,86 @@
             ]
           },
           {
+            "type": "Fragment",
+            "props": {
+              "title": "[Mar 7] Reasoning or Rationalization? MDLMs for Fact Verification (arXiv:2603.01190, Mar 2026)"
+            },
+            "children": [
+              {
+                "type": "DeepDive",
+                "children": [
+                  {
+                    "type": "p",
+                    "children": [
+                      "Key insight: MDLMs converge on verdicts EARLY in the diffusion process, treating them as global anchors resolved before justifications. Forcing reasoning-first (delayed verdict unmasking) HURTS accuracy (86.2% → 71.9%) because accumulating noisy justification tokens override initially correct predictions. The model rationalizes incorrect forced verdicts 56% of the time. Extended deliberation is counterproductive for fact verification."
+                    ]
+                  },
+                  {
+                    "type": "p",
+                    "children": [
+                      "⭐⭐ SUPPORTS IDEAS 1 & 3. Reveals that MDLMs have a natural semantic hierarchy: high-level decisions (verdicts) crystallize first, details (justifications) fill in later — exactly the noise schedule behavior predicted by Idea 3. Also implies SAE features at different denoising steps capture different abstraction levels. For Idea 1, suggests SAE probes should focus on EARLY denoising steps to capture semantic planning features. Complements EoS-scratchpad finding (hidden reasoning in EoS positions) with temporal perspective (reasoning emerges early in denoising)."
+                    ]
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "Fragment",
+            "props": {
+              "title": "[Mar 7] Active Flow Matching: Variational Steering of Discrete Diffusion (arXiv:2603.00877, Mar 2026)"
+            },
+            "children": [
+              {
+                "type": "DeepDive",
+                "children": [
+                  {
+                    "type": "p",
+                    "children": [
+                      "Key insight: Reformulates variational optimization objectives (VSD, CbAS) to operate on conditional endpoint distributions along discrete flows, enabling gradient-based steering of flow matching models toward high-fitness regions. Forward-KL variant with self-normalized importance sampling performs competitively on protein and small molecule design tasks."
+                    ]
+                  },
+                  {
+                    "type": "p",
+                    "children": [
+                      "⭐⭐ SUPPORTS IDEAS 2 & 4. AFM provides a principled variational framework for steering discrete diffusion/flow matching toward desired properties — exactly what's needed for SAE feature-guided generation. The fitness function could be replaced with SAE feature activation targets. The forward-KL variant preserves mode coverage while steering, addressing a key concern with aggressive feature clamping. Complements GDPO (RL-based steering) with a variational alternative."
+                    ]
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "Fragment",
+            "props": {
+              "title": "[Mar 7] CANDI: Hybrid Discrete-Continuous Diffusion via Token Identifiability (arXiv:2510.22510, Oct 2025)"
+            },
+            "children": [
+              {
+                "type": "DeepDive",
+                "children": [
+                  {
+                    "type": "p",
+                    "children": [
+                      "Key insight: Introduces 'token identifiability' framework revealing temporal dissonance in continuous diffusion for discrete data: at noise levels where discrete corruption preserves structure, continuous denoising is trivial; where continuous denoising is meaningful, discrete structure is destroyed. CANDI decouples discrete and continuous corruption rates, enabling both mechanisms to learn effectively. Enables classifier-based guidance with off-the-shelf classifiers via simple gradient addition."
+                    ]
+                  },
+                  {
+                    "type": "p",
+                    "children": [
+                      "⭐⭐⭐ DIRECTLY SUPPORTS IDEA 1 & 3. CANDI's decoupled corruption framework is a theoretical foundation for SAE-guided diffusion: SAE features operate in continuous space while tokens are discrete. The temporal dissonance analysis explains WHY naive continuous diffusion fails for text and HOW to fix it — critical for our Idea 1 architecture. The classifier guidance via gradients enables SAE feature-based steering without retraining (Idea 2). Complements CADD (which augments discrete with continuous latents) by providing the theoretical 'why' behind the architecture."
+                    ]
+                  }
+                ]
+              }
+            ]
+          },
+          {
             "type": "Callout",
             "props": {
               "type": "info"
             },
-            "children": "Running total: 52 tracked papers. DiffuCoder demonstrates MDMs scale to code with diffusion-native RL. SAE-RSV provides a methodology for semantic steering vector refinement via SAE features that could transfer to diffusion LMs."
+            "children": "Running total: 55 tracked papers. Reasoning-or-Rationalization reveals MDLMs resolve high-level semantics early (supporting semantic noise schedules). Active Flow Matching provides variational steering for discrete diffusion. CANDI's token identifiability theory explains the discrete-continuous gap critical for SAE feature integration."
           }
         ]
       }
