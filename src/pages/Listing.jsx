@@ -273,6 +273,18 @@ const tutorials = [
     difficulty: 3,
   },
   {
+    id: 'brainstorm-45-mdl-operator-discovery',
+    title: 'MDL Operator Discovery — Compression as Primitivity Test',
+    description: 'How Minimum Description Length finds the right number of Schankian operators — not too few, not too many. The compression sweet spot reveals true primitives.',
+    tags: ['MDL', 'compression', 'operators', 'Schank', 'Kolmogorov', 'information theory'],
+    icon: '🗜️',
+    gradient: 'from-emerald-500 to-teal-600',
+    shadowColor: 'shadow-emerald-500/30',
+    glowColor: 'rgba(16, 185, 129, 0.4)',
+    readTime: '25 min',
+    difficulty: 3,
+  },
+  {
     id: 'brainstorm-82-vla-mech-interp',
     title: 'VLA Mech Interp — Action Primitives as Thin Semantic Layer',
     description: 'How Vision-Language-Action models reveal action primitives are a thin layer atop semantic representations — direct evidence for the operator-as-interface thesis.',
