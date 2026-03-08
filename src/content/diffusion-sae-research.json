@@ -5466,6 +5466,81 @@
               "type": "info"
             },
             "children": "Running total: 59 tracked papers. Soft-Masked Diffusion creates the continuous corruption space SAE features need. Diffusion-EAGS provides entropy-based semantic scheduling. Categorical Reparameterization bridges continuous-discrete gap with closed-form denoisers. Constrained Language Generation shows how to inject feature constraints directly into discrete diffusion sampling."
+          },
+          {
+            "type": "Section",
+            "props": {
+              "title": "📅 March 7, 2026 9:00 PM — Three New Findings"
+            },
+            "children": [
+              {
+                "type": "DeepDive",
+                "props": {
+                  "title": "[Mar 7] 🔥 D2F: Discrete Diffusion Forcing — AR-Diffusion Hybrid for Faster-Than-AR Inference (arXiv:2508.09192, Aug 2025)"
+                },
+                "children": [
+                  {
+                    "type": "p",
+                    "children": [
+                      "Key insight: Introduces Discrete Diffusion Forcing (D2F), a training paradigm that combines autoregressive block-level generation with diffusion-based parallel refinement within each block. Achieves 2.5x speedup over LLaMA3 and 50x+ over vanilla dLLMs (LLaDA, Dream) while maintaining comparable quality. The key innovation is conditioning on partially predicted tokens from previous blocks, creating a natural AR-diffusion hybrid."
+                    ]
+                  },
+                  {
+                    "type": "p",
+                    "children": [
+                      "⭐⭐⭐ SUPPORTS IDEAS 1 & 3. For Idea 1 (structured latent spaces), the block-level AR + within-block diffusion architecture creates natural boundaries where SAE features could operate — SAE latents could define block-level semantic plans while diffusion handles token-level realization. For Idea 3 (semantic noise schedules), the inter-block conditioning provides a hierarchical denoising structure where different blocks could use different schedules based on semantic complexity."
+                    ]
+                  }
+                ]
+              },
+              {
+                "type": "DeepDive",
+                "props": {
+                  "title": "[Mar 7] 🔥🔥 Does Higher Interpretability Imply Better Utility? Pairwise SAE Analysis (arXiv:2510.03659, ICLR 2026)"
+                },
+                "children": [
+                  {
+                    "type": "p",
+                    "children": [
+                      "Key insight: Published at ICLR 2026, this paper challenges the fundamental assumption that more interpretable SAE features lead to better steering. Through systematic pairwise comparison of SAE architectures, they find interpretability and steering utility are NOT well correlated — some less interpretable features steer better. This implies SAE training objectives need to explicitly optimize for causal utility, not just reconstruction + sparsity."
+                    ]
+                  },
+                  {
+                    "type": "p",
+                    "children": [
+                      "⭐⭐⭐ CRITICAL FOR IDEAS 2 & 4. This is a crucial caveat for our entire research program. For Idea 2 (feature steering), it means we can't simply assume SAE features trained for interpretability will work for diffusion steering — we may need utility-aware SAE training or feature selection (like CorrSteer or CRL approaches). For Idea 4 (dictionary-guided denoising), the dictionary features guiding denoising should be selected for causal impact, not interpretability scores."
+                    ]
+                  }
+                ]
+              },
+              {
+                "type": "DeepDive",
+                "props": {
+                  "title": "[Mar 7] Analyze Feature Flow: Cross-Layer SAE Feature Mapping (OpenReview, Jun 2025)"
+                },
+                "children": [
+                  {
+                    "type": "p",
+                    "children": [
+                      "Key insight: Introduces a data-free cosine similarity technique to trace how SAE features evolve across consecutive layers of LLMs. Maps feature flow without needing activation data, revealing how specific concepts are transformed, merged, or split as they propagate through the model. Enables systematic understanding of feature lifecycles."
+                    ]
+                  },
+                  {
+                    "type": "p",
+                    "children": [
+                      "⭐⭐ SUPPORTS IDEAS 1 & 3. For Idea 1 (structured latent spaces), cross-layer feature flow maps could define how SAE latent dimensions should be connected across diffusion timesteps — features that merge in later layers suggest hierarchical latent structure. For Idea 3 (semantic noise schedules), understanding when features emerge/dissolve across layers could inform when to denoise corresponding semantic concepts during the diffusion process."
+                    ]
+                  }
+                ]
+              },
+              {
+                "type": "Callout",
+                "props": {
+                  "type": "info"
+                },
+                "children": "Running total: 62 tracked papers. D2F's AR-diffusion hybrid creates natural block boundaries for SAE feature planning. The ICLR 2026 interpretability≠utility finding is a critical caveat — we need causally-useful features, not just interpretable ones. Feature Flow mapping provides the cross-layer topology our structured latent space needs."
+              }
+            ]
           }
         ]
       }
