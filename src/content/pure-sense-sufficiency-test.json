@@ -1,0 +1,329 @@
+{
+  "id": "pure-sense-sufficiency-test",
+  "title": "The Sufficiency Test: Did You Cut in the Right Place?",
+  "subtitle": "How to verify that your 'pure sense' embedding actually contains the sense — and only the sense — using surgical ablation with linear probes",
+  "readTime": "18 min",
+  "state": {},
+  "content": {
+    "type": "Fragment",
+    "children": [
+      {
+        "type": "Section",
+        "props": { "title": "The Surgery Metaphor" },
+        "children": [
+          { "type": "p", "children": "You've decomposed a word's representation into two parts: a 'sense component' (the meaning) and a 'context component' (the noise). But how do you know you cut in the right place?" },
+          { "type": "p", "children": "This is the fundamental verification problem in representation analysis. You can't compare against a ground truth 'pure meaning' vector — no such thing exists in the wild. Every observation of 'bank' meaning 'financial institution' happens in some context. The concept never appears naked." },
+          { "type": "p", "children": "The Sufficiency Test solves this with a beautifully simple idea: instead of asking 'is this the right decomposition?', ask 'does this decomposition preserve the information I care about and destroy the information I don't?'" },
+          {
+            "type": "Analogy",
+            "props": { "title": "The X-Ray and the Photograph" },
+            "children": [
+              { "type": "p", "children": "An X-ray separates what a photograph mixes: bone structure vs. surface appearance. How do you verify the X-ray captured the bone correctly?" },
+              { "type": "p", "children": "You don't need a 'ground truth skeleton.' You just check: can a doctor diagnose the fracture from the X-ray alone? (Sufficiency.) Does the discarded soft-tissue image contain any bone information? (Independence.) If both pass, the separation worked." },
+              { "type": "p", "children": "Our linear probe is the doctor. Our sense/context decomposition is the X-ray." }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "Background: What We're Working With" },
+        "children": [
+          { "type": "p", "children": "When GPT-2 processes the sentence 'I deposited money at the bank', the word 'bank' gets a representation at each transformer layer — a vector in 768-dimensional space (or 1280d for GPT-2 Large)." },
+          { "type": "p", "children": "At layer 0, this is just the raw embedding — the same vector regardless of context. But by layer 2, the transformer has mixed in context via attention. The representation now 'knows' this is a financial bank." },
+          {
+            "type": "Callout",
+            "props": { "type": "key-insight", "title": "The Decomposition" },
+            "children": [
+              { "type": "p", "children": "From Paper 1 (Context Residual Decomposition), we know:" },
+              { "type": "p", "children": "V_rich = V_pure + D" },
+              { "type": "ul", "children": [
+                { "type": "li", "children": "V_rich: the full contextual representation (what the model actually computes)" },
+                { "type": "li", "children": "V_pure: the sense prototype (centroid of all financial-bank representations)" },
+                { "type": "li", "children": "D: the context residual (everything else — what makes THIS financial-bank usage different from the average)" }
+              ]},
+              { "type": "p", "children": "The stunning finding: V_pure and D are nearly orthogonal (only 2.8% overlap). Sense and context live in different subspaces." }
+            ]
+          },
+          { "type": "p", "children": "But 'nearly orthogonal' isn't 'perfectly separated.' And the centroid might still have context contamination from uneven sampling. The Sufficiency Test is how we verify the decomposition actually works." }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "Step 1: Train the Judge" },
+        "children": [
+          { "type": "p", "children": "First, we need an independent arbiter — something that can tell us whether sense information is present in a vector, without knowing anything about our decomposition method." },
+          { "type": "p", "children": "A linear probe is perfect for this. It's a simple logistic regression that takes a vector and predicts: 'financial bank' or 'river bank'?" },
+          {
+            "type": "Example",
+            "props": { "title": "Training the Probe" },
+            "children": [
+              { "type": "p", "children": "Collect ~500 layer-2 representations of 'bank' from sentences where we know the ground truth sense (from SemCor or our tagged corpus)." },
+              { "type": "p", "children": "Train a logistic regression: input = 1280-dimensional vector, output = P(financial)." },
+              { "type": "p", "children": "Expected accuracy: ~99%. We know from Paper 1 that GPT-2's representations are almost perfectly disambiguated by layer 2." },
+              { "type": "p", "children": "Crucially: the probe is trained on FULL, UNMODIFIED representations. It has no knowledge of our sense/context decomposition. It's an impartial judge." }
+            ]
+          },
+          {
+            "type": "DeepDive",
+            "props": { "title": "Why Linear? Why Not a Neural Network?" },
+            "children": [
+              { "type": "p", "children": "A linear probe can only detect information that's linearly accessible — meaning the sense information exists as a direction in the vector space, not hidden in some nonlinear fold." },
+              { "type": "p", "children": "This is actually what we want. If a nonlinear probe could classify the sense but a linear one couldn't, that would mean the sense information is entangled with other information in a complex way — exactly the situation where simple decomposition methods would fail." },
+              { "type": "p", "children": "By using a linear probe, we're testing the strong claim: sense information lives along a clean, separable direction. If the linear probe works, our linear decomposition (centroid + residual) is justified." }
+            ]
+          },
+          {
+            "type": "Quiz",
+            "props": {
+              "question": "Why must the probe be trained on full, unmodified representations?",
+              "options": [
+                "To make it more accurate",
+                "Because modified representations might not be valid inputs",
+                "To ensure it's independent of our decomposition method — an impartial judge",
+                "Because the training data is larger that way"
+              ],
+              "correctIndex": 2,
+              "explanation": "If we trained the probe on our decomposed vectors, it might learn to exploit artifacts of our decomposition. By training on unmodified representations, the probe captures whatever linear structure the model ACTUALLY uses for disambiguation. Then we test whether our decomposed pieces preserve that structure."
+            }
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "Step 2: Test the Sense Component" },
+        "children": [
+          { "type": "p", "children": "Now the real test begins. Take real layer-2 representations and zero out the context dimensions, keeping only what we claim is the 'sense component.'" },
+          { "type": "p", "children": "Feed these sense-only vectors to the probe. If it still classifies correctly → the sense component contains the sense information. Our decomposition preserved what matters." },
+          {
+            "type": "Callout",
+            "props": { "type": "warning", "title": "What 'Zero Out' Means" },
+            "children": [
+              { "type": "p", "children": "We identified the context residual subspace via PCA on the D vectors (it lives in ~13 dimensions). 'Zeroing out context' means projecting the full vector into the null space of those 13 dimensions. The remaining ~1267 dimensions are the sense-carrying subspace." },
+              { "type": "p", "children": "Mathematically: V_sense_only = V_rich - Σᵢ (V_rich · eᵢ) eᵢ, where eᵢ are the context PCA basis vectors." }
+            ]
+          },
+          {
+            "type": "InteractiveDemo",
+            "props": {
+              "title": "Sense Component Sufficiency",
+              "description": "Imagine a 1280-dimensional vector. We've identified 13 dimensions as 'context.' The remaining 1267 are 'sense.' We zero out the 13 context dimensions and ask: can the probe still classify?",
+              "steps": [
+                "Full vector → probe → 99.2% accuracy (baseline)",
+                "Sense-only (zero out 13 context dims) → probe → ???%",
+                "If > 95%: ✅ Sense component is SUFFICIENT — it carries the disambiguation signal",
+                "If < 80%: ❌ We accidentally removed sense information — decomposition is wrong"
+              ]
+            }
+          },
+          {
+            "type": "Quiz",
+            "props": {
+              "question": "If the probe gets 97% on sense-only vectors (vs 99% on full vectors), what does that tell us?",
+              "options": [
+                "Our decomposition is perfect",
+                "The sense component carries almost all the sense information, with a tiny leak into context dimensions",
+                "The context component is more important than the sense component",
+                "The probe is broken"
+              ],
+              "correctIndex": 1,
+              "explanation": "A drop from 99% to 97% means ~2% of the sense signal was in the 'context' subspace — a small leak, but not zero. The decomposition is good but not perfect. This is expected: real neural representations don't respect our clean mathematical boundaries perfectly."
+            }
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "Step 3: Test the Context Component" },
+        "children": [
+          { "type": "p", "children": "Now flip it: zero out the sense dimensions and keep ONLY the context component. Feed these context-only vectors to the probe." },
+          { "type": "p", "children": "If the probe drops to chance (50% for a binary classification) → the context component has NO sense information. This is the independence confirmation." },
+          {
+            "type": "Example",
+            "props": { "title": "The Critical Comparison" },
+            "children": [
+              { "type": "p", "children": "Full vector → 99.2% (baseline)" },
+              { "type": "p", "children": "Sense-only → 97.1% (sense is sufficient)" },
+              { "type": "p", "children": "Context-only → 51.3% (context carries no sense info) ✅" },
+              { "type": "p", "children": "This is the dream result. It means:" },
+              { "type": "ul", "children": [
+                { "type": "li", "children": "The sense component is SUFFICIENT (97.1% ≈ 99.2%)" },
+                { "type": "li", "children": "The context component is INDEPENDENT (51.3% ≈ 50% chance)" },
+                { "type": "li", "children": "Together: a clean factorization. Sense and context are separable." }
+              ]}
+            ]
+          },
+          {
+            "type": "DeepDive",
+            "props": { "title": "What If Context-Only Gets 70%?" },
+            "children": [
+              { "type": "p", "children": "That's a problem. It means 'context' dimensions carry real sense information. Possible causes:" },
+              { "type": "ol", "children": [
+                { "type": "li", "children": "Your PCA dimensionality is wrong — you put too few dimensions in the context subspace, so some context-plus-sense dimensions got assigned to 'sense only'" },
+                { "type": "li", "children": "Sense and context aren't actually orthogonal at this layer — try a different layer" },
+                { "type": "li", "children": "The decomposition method is fundamentally wrong — sense isn't a linear subspace" }
+              ]},
+              { "type": "p", "children": "This is why the test is valuable. It doesn't just validate — it diagnoses failure modes." }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "Step 4: The Shuffle Test (The Killer)" },
+        "children": [
+          { "type": "p", "children": "Steps 2 and 3 test sufficiency and independence separately. The shuffle test does both at once, and it's the most convincing." },
+          { "type": "p", "children": "Take 100 financial-bank instances. For each one, keep its sense component intact but RANDOMLY SWAP its context component with another instance's context. Now the sense component says 'financial' but the context might be from 'I deposited money at the bank' paired with the context residual from 'The central bank raised interest rates.'" },
+          {
+            "type": "Callout",
+            "props": { "type": "key-insight", "title": "Why This Is the Killer Test" },
+            "children": [
+              { "type": "p", "children": "If the probe still classifies correctly after shuffling contexts → the sense signal is completely self-contained in the sense dimensions. The context dimensions are truly irrelevant to sense." },
+              { "type": "p", "children": "This is stronger than Steps 2-3 because it tests with REALISTIC context values (not zeros). Zeroing out dimensions creates out-of-distribution inputs. Shuffling keeps the statistical properties intact — same magnitudes, same distribution — but destroys any sense-context correlation." }
+            ]
+          },
+          {
+            "type": "InteractiveDemo",
+            "props": {
+              "title": "The Shuffle Experiment",
+              "description": "We take real instances, decompose them, and randomly reassign context residuals across instances of the SAME word (across senses). Then test the probe.",
+              "steps": [
+                "Instance: 'I deposited money at the bank' → V_sense(financial) + D(deposit-context)",
+                "Shuffle: replace D(deposit-context) with D(central-bank-context) from another instance",
+                "Reconstructed vector: V_sense(financial) + D(central-bank-context)",
+                "Probe prediction: still 'financial'? → ✅ Sense is independent of context",
+                "Now try cross-sense shuffle: V_sense(financial) + D(river-fishing-context)",
+                "Probe prediction: still 'financial'? → ✅✅ Sense is COMPLETELY independent"
+              ]
+            }
+          },
+          {
+            "type": "Quiz",
+            "props": {
+              "question": "Why is shuffling contexts between different SENSES (cross-sense shuffle) a stronger test than shuffling within the same sense?",
+              "options": [
+                "It uses more data",
+                "Same-sense contexts might be similar enough that shuffling doesn't change anything",
+                "Cross-sense shuffling is easier to implement",
+                "It's not stronger — they test the same thing"
+              ],
+              "correctIndex": 1,
+              "explanation": "Financial-bank contexts might cluster together (words like 'money', 'deposit', 'loan'). Shuffling within that cluster barely changes the context residual. But swapping in a river-bank context ('fish', 'water', 'shore') creates a maximally adversarial test: the sense says 'financial' but the context screams 'river'. If the probe still gets it right, the separation is rock-solid."
+            }
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "The Full Protocol" },
+        "children": [
+          { "type": "p", "children": "Putting it all together, here's the complete verification protocol for any sense/context decomposition:" },
+          {
+            "type": "DefinitionList",
+            "props": {
+              "items": [
+                { "term": "1. Train Judge", "definition": "Train a linear probe on full, unmodified layer-2 representations. Verify it gets ~99% accuracy. This is your baseline." },
+                { "term": "2. Sufficiency", "definition": "Feed sense-only vectors (context zeroed out) to the probe. Target: >95%. Measures how much sense information your sense component captures." },
+                { "term": "3. Independence", "definition": "Feed context-only vectors (sense zeroed out) to the probe. Target: ~50% (chance). Measures how much sense information leaked into context." },
+                { "term": "4. Shuffle (within-sense)", "definition": "Randomly swap context residuals between same-sense instances. Target: no accuracy drop. Tests that context carries no sense signal in realistic conditions." },
+                { "term": "5. Shuffle (cross-sense)", "definition": "Swap context residuals between different-sense instances. Target: no accuracy drop. The strongest test — adversarial context, correct sense." },
+                { "term": "6. Ablation sweep", "definition": "Vary the number of PCA dimensions called 'context' (5, 10, 15, 20, 30). Plot sufficiency vs independence. Find the sweet spot where both are satisfied." }
+              ]
+            }
+          },
+          {
+            "type": "Callout",
+            "props": { "type": "tip", "title": "The Ablation Sweep Is Key" },
+            "children": [
+              { "type": "p", "children": "With too few context dimensions (say 3), you'll get great sufficiency (98%) but poor independence (maybe 75%) — sense info is leaking into what you're calling 'context.'" },
+              { "type": "p", "children": "With too many context dimensions (say 100), you'll get great independence (50%) but poor sufficiency (maybe 70%) — you're throwing away sense info along with context." },
+              { "type": "p", "children": "The right number of dimensions is where BOTH sufficiency and independence are satisfied. Our Paper 1 finding (~13 dims) gives us a starting point, but the probe is the arbiter." }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "Why This Matters for Pure Sense Embeddings" },
+        "children": [
+          { "type": "p", "children": "We're trying to create the 'purest' possible embedding for bank_financial — a vector that captures the financial sense with zero context contamination. We have four candidate methods (raw centroid, context-projected centroid, definitional, minimal-context)." },
+          { "type": "p", "children": "The Sufficiency Test tells us WHICH method produced the best separation. For each candidate:" },
+          { "type": "ol", "children": [
+            { "type": "li", "children": "Use it as the sense prototype" },
+            { "type": "li", "children": "Decompose instances relative to it: D = V_instance - prototype" },
+            { "type": "li", "children": "Run the full protocol (sufficiency, independence, shuffle)" },
+            { "type": "li", "children": "The method with the highest sufficiency AND lowest context-sense leakage wins" }
+          ]},
+          { "type": "p", "children": "This is how we objectively choose between initialization methods — not by downstream task performance (which conflates many factors), but by the purity of the decomposition itself." },
+          {
+            "type": "Analogy",
+            "props": { "title": "Choosing a Water Filter" },
+            "children": [
+              { "type": "p", "children": "You're choosing between four water filters. You can't just taste the water (downstream task) — one might taste fine but still contain lead. Instead, you test each filter's output for specific contaminants (context residual) and minerals (sense signal). The filter that preserves all minerals while removing all contaminants is the winner." },
+              { "type": "p", "children": "The linear probe is your water testing kit. The contaminant is context leakage. The mineral is sense information." }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "Edge Cases and Gotchas" },
+        "children": [
+          {
+            "type": "DeepDive",
+            "props": { "title": "The Circularity Trap" },
+            "children": [
+              { "type": "p", "children": "Wait — aren't we using the same data to define the decomposition AND to test it? Isn't that circular?" },
+              { "type": "p", "children": "Almost, but not quite. The key is that the probe is trained on FULL representations, with no knowledge of how we decompose them. It learns whatever linear structure the model actually uses. Then we test whether our decomposition aligns with what the probe found independently." },
+              { "type": "p", "children": "To be rigorous, use k-fold cross-validation: split the data into 5 folds. For each fold, train the probe on 4 folds of full vectors, compute the decomposition on 4 folds, and test on the held-out fold. This eliminates any data leakage." }
+            ]
+          },
+          {
+            "type": "DeepDive",
+            "props": { "title": "What About Nonlinear Sense Structure?" },
+            "children": [
+              { "type": "p", "children": "Our entire approach assumes sense information lives in a linear subspace. What if it doesn't?" },
+              { "type": "p", "children": "Test this directly: train both a linear probe and a small MLP (2-layer, 128 hidden) on the same data. If the MLP substantially outperforms the linear probe on full vectors, there's important nonlinear sense structure that our linear decomposition will miss." },
+              { "type": "p", "children": "In practice, for GPT-2's layer 2 representations, the linear probe gets ~99% — there's almost no room for nonlinear improvement. The linear assumption holds." }
+            ]
+          },
+          {
+            "type": "Quiz",
+            "props": {
+              "question": "You run the full protocol and find: Sufficiency = 98%, Independence = 65% (not chance). What should you do?",
+              "options": [
+                "The decomposition is good enough — 98% sufficiency is great",
+                "Increase the number of context PCA dimensions to capture the leaked sense information",
+                "Decrease the number of context PCA dimensions so less sense info is included",
+                "Switch to a nonlinear decomposition method"
+              ],
+              "correctIndex": 2,
+              "explanation": "65% independence means the 'context' subspace contains real sense information — you're calling too many dimensions 'context.' Reduce the PCA dimensionality until independence approaches 50% while keeping sufficiency high. The ablation sweep helps you find this sweet spot."
+            }
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "Summary" },
+        "children": [
+          { "type": "p", "children": "The Sufficiency Test is a principled framework for verifying any representation decomposition. Its power comes from using an independent judge (the linear probe) that knows nothing about your method." },
+          {
+            "type": "Callout",
+            "props": { "type": "key-insight", "title": "The Three Questions" },
+            "children": [
+              { "type": "p", "children": "Every decomposition must answer:" },
+              { "type": "ol", "children": [
+                { "type": "li", "children": "SUFFICIENCY: Does the 'sense' part contain the sense? (probe accuracy on sense-only)" },
+                { "type": "li", "children": "INDEPENDENCE: Is the 'context' part free of sense? (probe accuracy on context-only ≈ chance)" },
+                { "type": "li", "children": "ROBUSTNESS: Does shuffling context change the answer? (cross-sense shuffle accuracy)" }
+              ]},
+              { "type": "p", "children": "If all three pass, you've found a genuine factorization. Your 'pure sense' embedding is actually pure." }
+            ]
+          },
+          { "type": "p", "children": "This isn't just useful for word sense disambiguation. The same protocol works for any claim of the form 'this part of the representation encodes X and that part encodes Y' — sentiment vs. topic, syntax vs. semantics, factual vs. stylistic information. The linear probe doesn't care what you're decomposing. It just tells you if you did it right." }
+        ]
+      }
+    ]
+  }
+}

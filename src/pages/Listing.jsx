@@ -382,6 +382,18 @@ const tutorials = [
     difficulty: 2,
   },
   {
+    id: 'pure-sense-sufficiency-test',
+    title: 'The Sufficiency Test: Did You Cut in the Right Place?',
+    description: 'How to verify that your pure sense embedding actually contains the sense — and only the sense — using surgical ablation with linear probes.',
+    tags: ['embeddings', 'polysemy', 'probing', 'decomposition', 'verification'],
+    icon: '🔬',
+    gradient: 'from-emerald-500 to-teal-600',
+    shadowColor: 'shadow-emerald-500/30',
+    glowColor: 'rgba(16, 185, 129, 0.4)',
+    readTime: '18 min',
+    difficulty: 3,
+  },
+  {
     id: 'diffusion-models',
     title: 'Diffusion Models: From Images to Text to SAE',
     description: 'Understanding diffusion from first principles — how it conquers images, struggles with text, and how SAE dictionaries could unlock controllable generation',
