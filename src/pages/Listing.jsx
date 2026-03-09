@@ -940,6 +940,18 @@ const tutorials = [
     difficulty: 4,
   },
   {
+    id: 'brainstorm-47-semantic-renormalization',
+    title: 'Semantic Renormalization Group',
+    description: 'Schankian operators as RG fixed points — why different verbs across all languages converge to the same primitives under coarse-graining, just like physical universality classes.',
+    tags: ['Schankian', 'renormalization', 'physics', 'universality', 'coarse-graining'],
+    icon: '🔄',
+    gradient: 'from-rose-500 to-purple-600',
+    shadowColor: 'shadow-rose-500/30',
+    glowColor: 'rgba(244, 63, 94, 0.4)',
+    readTime: '25 min',
+    difficulty: 4,
+  },
+  {
     id: 'thoughtblend',
     title: 'ThoughtBlend',
     description: 'Synthesize perspectives through dialectical color mixing — add sources as color swatches and blend them into structured text or dialogue',
