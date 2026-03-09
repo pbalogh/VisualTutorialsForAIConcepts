@@ -127,6 +127,19 @@ function CreateTutorialModal({ isOpen, onClose }) {
 
 const tutorials = [
   {
+    id: 'symmetry-representations',
+    title: 'Symmetry in Language Statistics → Geometry of Representations',
+    description: 'Why months form circles, years form manifolds, and cities encode lat/long — how translation symmetry in co-occurrence statistics analytically determines representational geometry. Based on Karkada et al. (arXiv:2602.15029).',
+    tags: ['symmetry', 'co-occurrence', 'manifolds', 'Fourier', 'word embeddings', 'LLM representations', 'geometry'],
+    icon: '🔄',
+    gradient: 'from-cyan-500 to-blue-600',
+    shadowColor: 'rgba(6, 182, 212, 0.3)',
+    glowColor: 'rgba(6, 182, 212, 0.15)',
+    readTime: '35 min',
+    difficulty: 3,
+    featured: true,
+  },
+  {
     id: 'fine-tuning-mechanics',
     title: 'Fine-Tuning LLMs: Mechanics, Myths, and the Knowledgebase Dream',
     description: 'What actually happens to weights during fine-tuning, why LoRA works, what you can and can\'t achieve, and the realistic path to turning a small LLM into a domain expert.',

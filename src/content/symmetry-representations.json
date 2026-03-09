@@ -1,0 +1,368 @@
+{
+  "id": "symmetry-representations",
+  "title": "Symmetry in Language Statistics → Geometry of Representations",
+  "subtitle": "Why months form circles, years form manifolds, and cities encode lat/long — all from co-occurrence symmetry",
+  "paperUrl": "https://arxiv.org/abs/2602.15029",
+  "readTime": "35 min",
+  "state": {
+    "monthAngle": 0,
+    "kernelSigma": 0.3,
+    "embeddingDim": 12,
+    "showHigherHarmonics": false,
+    "perturbationStrength": 0
+  },
+  "content": {
+    "type": "Fragment",
+    "children": [
+      {
+        "type": "Callout",
+        "props": { "type": "info" },
+        "children": "Based on Karkada et al. (2026), \"Symmetry in language statistics shapes the geometry of model representations\" (arXiv:2602.15029). This tutorial explains how a single organizing principle — translation symmetry in word co-occurrence statistics — predicts why LLMs encode months as circles, years as 1D manifolds, and cities in 2D latitude/longitude space."
+      },
+
+      {
+        "type": "Section",
+        "props": { "title": "1. The Mystery: Why Do Representations Have Geometry?" },
+        "children": [
+          {
+            "type": "p",
+            "children": "Language models consistently learn representations with striking geometric structure. Calendar months arrange into a circle. Historical years form a smooth one-dimensional curve. Cities' positions can be linearly decoded into latitude and longitude. This isn't engineered — it emerges spontaneously from training on text. Why?"
+          },
+          {
+            "type": "Analogy",
+            "props": {
+              "concept": "Representational Geometry",
+              "analogy": "Imagine throwing 12 magnets onto a table with invisible circular grooves. The magnets snap into a circle not because they \"know\" about circles, but because the forces between them (co-occurrence statistics) have a rotational symmetry. The geometry is dictated by the symmetry of the forces, not by explicit geometric supervision."
+            }
+          },
+          {
+            "type": "p",
+            "children": "The key insight of this paper: the geometry of learned representations is analytically determined by symmetries in pairwise co-occurrence statistics. Specifically, when the co-occurrence probability of two words depends only on their \"distance\" along some underlying continuum (time, space, etc.), the embedding geometry is forced to be Fourier modes — sines and cosines — which produce circles, loops, and smooth manifolds."
+          }
+        ]
+      },
+
+      {
+        "type": "Section",
+        "props": { "title": "2. Translation Symmetry in Co-occurrence Statistics" },
+        "children": [
+          {
+            "type": "h3",
+            "children": "The Core Observation"
+          },
+          {
+            "type": "p",
+            "children": "Consider the 12 calendar months. How often do \"January\" and \"March\" appear near each other in Wikipedia text? What about \"April\" and \"June\"? The paper shows empirically that these co-occurrence probabilities depend almost entirely on the time interval between the months (2 months apart), not on which specific months they are."
+          },
+          {
+            "type": "DefinitionList",
+            "props": {
+              "definitions": [
+                {
+                  "term": "Translation Symmetry",
+                  "definition": "The co-occurrence probability P(i,j) of two words i and j depends only on their distance on an underlying continuum: P(i,j) = P(i)·P(j)·C̃(dist(xᵢ, xⱼ)). The kernel C̃ is the same regardless of absolute position."
+                },
+                {
+                  "term": "Co-occurrence Kernel C(Δx)",
+                  "definition": "A function that maps distance between two words on the semantic continuum to their normalized co-occurrence strength. For months, C depends only on |month_i − month_j| mod 12."
+                },
+                {
+                  "term": "PMI Matrix M*",
+                  "definition": "The pointwise mutual information matrix: M*(i,j) ≈ log(P(i,j) / P(i)P(j)). Under translation symmetry, this matrix inherits the symmetry and becomes circulant (for periodic concepts) or Toeplitz (for open-boundary concepts)."
+                }
+              ]
+            }
+          },
+          {
+            "type": "Callout",
+            "props": { "type": "key" },
+            "children": "Translation symmetry is a strong constraint: it means the PMI matrix M* for a set of words is fully determined by a single 1D function C(Δx) rather than an arbitrary N×N matrix. This is what makes analytical prediction possible."
+          },
+          {
+            "type": "InteractiveDemo",
+            "props": {
+              "id": "cooccurrence-symmetry",
+              "title": "Translation Symmetry in Month Co-occurrences",
+              "height": 380,
+              "code": "() => {\n  const [selectedMonth, setSelectedMonth] = React.useState(0);\n  const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];\n  // Exponential kernel with periodization\n  const sigma = 0.3;\n  const kernel = (d) => {\n    const dd = Math.min(d, 12 - d);\n    return Math.exp(-dd / (sigma * 6));\n  };\n  const cx = 190, cy = 160, r = 120;\n  return React.createElement('div', { style: { display: 'flex', gap: 20, alignItems: 'flex-start' } },\n    React.createElement('svg', { width: 380, height: 340, style: { background: '#1a1a2e', borderRadius: 12 } },\n      // Circle\n      React.createElement('circle', { cx, cy, r, fill: 'none', stroke: '#333', strokeWidth: 1 }),\n      // Month nodes\n      ...months.map((m, i) => {\n        const angle = (i / 12) * 2 * Math.PI - Math.PI / 2;\n        const x = cx + r * Math.cos(angle);\n        const y = cy + r * Math.sin(angle);\n        const dist = Math.min(Math.abs(i - selectedMonth), 12 - Math.abs(i - selectedMonth));\n        const strength = kernel(Math.abs(i - selectedMonth));\n        const isSelected = i === selectedMonth;\n        return React.createElement('g', { key: i, onClick: () => setSelectedMonth(i), style: { cursor: 'pointer' } },\n          // Connection line to selected\n          !isSelected && React.createElement('line', {\n            x1: cx + r * Math.cos((selectedMonth / 12) * 2 * Math.PI - Math.PI / 2),\n            y1: cy + r * Math.sin((selectedMonth / 12) * 2 * Math.PI - Math.PI / 2),\n            x2: x, y2: y,\n            stroke: `rgba(99, 202, 255, ${strength * 0.7})`,\n            strokeWidth: strength * 4\n          }),\n          React.createElement('circle', {\n            cx: x, cy: y, r: isSelected ? 22 : 16,\n            fill: isSelected ? '#4f8fea' : `rgba(79, 143, 234, ${0.2 + strength * 0.8})`,\n            stroke: isSelected ? '#fff' : 'rgba(255,255,255,0.3)', strokeWidth: isSelected ? 2 : 1\n          }),\n          React.createElement('text', {\n            x, y: y + 4, textAnchor: 'middle', fill: '#fff',\n            fontSize: isSelected ? 11 : 9, fontWeight: isSelected ? 'bold' : 'normal'\n          }, m)\n        );\n      }),\n      React.createElement('text', { x: 190, y: 310, textAnchor: 'middle', fill: '#888', fontSize: 12 },\n        'Click a month — line brightness = co-occurrence strength')\n    ),\n    // Kernel plot\n    React.createElement('div', { style: { color: '#ccc', fontSize: 13, maxWidth: 200 } },\n      React.createElement('div', { style: { fontWeight: 'bold', marginBottom: 8, color: '#4f8fea' } }, 'Co-occurrence Kernel'),\n      React.createElement('p', { style: { fontSize: 12, lineHeight: 1.5 } },\n        `Selected: ${months[selectedMonth]}. The brightness of each line shows C(Δ) = exp(−|Δ|/σ). Co-occurrence depends only on interval, not absolute month — that\\'s translation symmetry.`\n      ),\n      React.createElement('div', { style: { marginTop: 12, fontSize: 11 } },\n        ...months.map((m, i) => {\n          const dist = Math.min(Math.abs(i - selectedMonth), 12 - Math.abs(i - selectedMonth));\n          const s = kernel(Math.abs(i - selectedMonth));\n          return React.createElement('div', { key: i, style: { display: 'flex', alignItems: 'center', gap: 6, marginBottom: 2 } },\n            React.createElement('span', { style: { width: 30 } }, m),\n            React.createElement('div', { style: { width: 80, height: 8, background: '#222', borderRadius: 4 } },\n              React.createElement('div', { style: { width: `${s * 100}%`, height: '100%', background: '#4f8fea', borderRadius: 4 } })\n            ),\n            React.createElement('span', { style: { fontSize: 10, color: '#666' } }, `Δ=${dist}`)\n          );\n        })\n      )\n    )\n  );\n}"
+            }
+          }
+        ]
+      },
+
+      {
+        "type": "Section",
+        "props": { "title": "3. From Symmetry to Geometry: The Fourier Connection" },
+        "children": [
+          {
+            "type": "h3",
+            "children": "Circulant Matrices Have Fourier Eigenvectors"
+          },
+          {
+            "type": "p",
+            "children": "Here's the mathematical magic. When the PMI matrix is circulant (translation-symmetric with periodic boundary conditions), its eigenvectors are guaranteed to be discrete Fourier modes — sines and cosines. This is a theorem from linear algebra, not an empirical finding."
+          },
+          {
+            "type": "p",
+            "children": "Word embeddings encode the top eigenmodes of the PMI matrix (this was proven in prior work by Karkada 2024). Combining these two facts: the embedding of each month i is a vector whose μ-th component is proportional to cos(kμ · xᵢ) or sin(kμ · xᵢ), where xᵢ is the month's position on the calendar and kμ is the frequency of the μ-th mode."
+          },
+          {
+            "type": "DeepDive",
+            "props": {
+              "title": "The Fourier Embedding Formula (Equation 4 from the paper)",
+              "defaultOpen": false
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "For a periodic D=1 lattice (like months), the PCA-projected embeddings are:"
+              },
+              {
+                "type": "Callout",
+                "props": { "type": "math" },
+                "children": "w̄ᵢ = √(2/|S|) · [ √λ₁ cos(k₁xᵢ), √λ₁ sin(k₁xᵢ), √λ₂ cos(k₂xᵢ), √λ₂ sin(k₂xᵢ), ... ]"
+              },
+              {
+                "type": "p",
+                "children": "The eigenvalues λμ are the Fourier transform of the kernel C(Δx). For an exponential kernel C(Δx) = exp(−|Δx|/σ), these are: λₙ = 2σ / (1 + σ²kₙ²). Since λ decreases with frequency k, the TOP principal components encode the SLOWEST modes. The first two PCs encode one full cycle of cos and sin → a circle!"
+              },
+              {
+                "type": "p",
+                "children": "For open boundary conditions (like historical years), the eigenmodes are slightly modified sinusoids with a quantization condition on the wavenumbers, but the key insight is the same: low-frequency modes dominate, producing smooth 1D manifolds with higher-frequency 'ripples' from the subleading modes."
+              }
+            ]
+          },
+          {
+            "type": "InteractiveDemo",
+            "props": {
+              "id": "fourier-circle",
+              "title": "How Fourier Modes Build the Month Circle",
+              "height": 400,
+              "code": "() => {\n  const [numModes, setNumModes] = React.useState(1);\n  const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];\n  const colors = ['#ff6b6b','#ff8e53','#ffd93d','#6bcb77','#4ecdc4','#45b7d1','#4f8fea','#7c6fff','#b567f0','#e056a0','#ff6b8a','#ff6b6b'];\n  const sigma = 0.3;\n  // Compute embedding coordinates for each month\n  const embeddings = months.map((m, i) => {\n    const x = i / 12;\n    const coords = [];\n    for (let n = 1; n <= numModes; n++) {\n      const k = 2 * Math.PI * n;\n      const amp = Math.sqrt(2 * sigma / (1 + sigma * sigma * k * k));\n      coords.push(amp * Math.cos(k * x));\n      coords.push(amp * Math.sin(k * x));\n    }\n    return coords;\n  });\n  // Project to 2D (first two components)\n  const cx = 200, cy = 180;\n  const scale = 280;\n  const points = embeddings.map(e => ({\n    x: cx + (e[0] || 0) * scale,\n    y: cy + (e[1] || 0) * scale\n  }));\n  return React.createElement('div', null,\n    React.createElement('div', { style: { display: 'flex', alignItems: 'center', gap: 16, marginBottom: 12 } },\n      React.createElement('label', { style: { color: '#ccc', fontSize: 13 } }, `Fourier modes: ${numModes}`),\n      React.createElement('input', {\n        type: 'range', min: 1, max: 6, value: numModes,\n        onChange: (e) => setNumModes(parseInt(e.target.value)),\n        style: { width: 200 }\n      }),\n      React.createElement('span', { style: { color: '#888', fontSize: 11 } },\n        numModes === 1 ? '→ Perfect circle (fundamental mode)' :\n        numModes <= 3 ? '→ Circle with small perturbations' :\n        '→ Higher harmonics add \"ripples\"'\n      )\n    ),\n    React.createElement('svg', { width: 400, height: 360, style: { background: '#1a1a2e', borderRadius: 12 } },\n      // Connect points in order\n      ...points.map((p, i) => {\n        const next = points[(i + 1) % 12];\n        return React.createElement('line', {\n          key: 'l' + i, x1: p.x, y1: p.y, x2: next.x, y2: next.y,\n          stroke: 'rgba(99,202,255,0.3)', strokeWidth: 1\n        });\n      }),\n      // Points\n      ...points.map((p, i) => React.createElement('g', { key: i },\n        React.createElement('circle', { cx: p.x, cy: p.y, r: 14, fill: colors[i], opacity: 0.9 }),\n        React.createElement('text', {\n          x: p.x, y: p.y + 4, textAnchor: 'middle', fill: '#fff', fontSize: 8, fontWeight: 'bold'\n        }, months[i])\n      )),\n      React.createElement('text', { x: 200, y: 350, textAnchor: 'middle', fill: '#666', fontSize: 11 },\n        'Projection onto first 2 PCA dimensions')\n    )\n  );\n}"
+            }
+          },
+          {
+            "type": "Example",
+            "props": {
+              "title": "Why the First Two PCs Give a Circle"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "The first mode (n=1) has the lowest frequency and largest amplitude. It contributes cos(2π·i/12) and sin(2π·i/12) to the first two embedding dimensions. When you plot these two components against each other, you trace out a circle — this is just the parametric equation of a circle! Higher modes (n=2, 3, ...) add smaller perturbations at higher frequencies, creating subtle 'ripples' on top of the circular structure."
+              }
+            ]
+          }
+        ]
+      },
+
+      {
+        "type": "Section",
+        "props": { "title": "4. Beyond Circles: Years, Cities, and General Manifolds" },
+        "children": [
+          {
+            "type": "h3",
+            "children": "Open Boundary Conditions → 1D Manifolds with Ripples"
+          },
+          {
+            "type": "p",
+            "children": "Historical years don't wrap around — they have open boundary conditions. The PMI matrix is Toeplitz rather than circulant. The eigenmodes are still sinusoidal, but now with modified wavenumber quantization (the wavenumbers satisfy a self-consistent equation involving arctan). The crucial implication is the same: top PCs encode slow variations, producing a smooth 1D manifold. Pairs of PCs form Lissajous curves — parametric curves like (A·sin(at), B·sin(bt+δ)) — which explains the 'rippled' appearance of year manifolds in 3D."
+          },
+          {
+            "type": "h3",
+            "children": "D=2: Geography"
+          },
+          {
+            "type": "p",
+            "children": "For cities, the underlying continuum is 2D (latitude, longitude). The translation symmetry assumption becomes: co-occurrence of two cities depends only on their geographical distance. The PMI matrix's eigenmodes are approximately 2D plane waves — slowly varying spatial modes. The top eigenmodes of US state embeddings show smooth east-west and north-south gradients, which is why a linear probe can decode latitude and longitude from embeddings."
+          },
+          {
+            "type": "Callout",
+            "props": { "type": "key" },
+            "children": "The paper proves a scaling law for linear coordinate decoding: the error scales as ε² ~ r^(−1/D), where r is the number of PCA dimensions used and D is the dimensionality of the underlying continuum. More PCA dimensions → more Fourier modes → finer spatial resolution."
+          },
+          {
+            "type": "InteractiveDemo",
+            "props": {
+              "id": "manifold-types",
+              "title": "Three Types of Representational Manifolds",
+              "height": 300,
+              "code": "() => {\n  const [selected, setSelected] = React.useState('periodic');\n  const configs = {\n    periodic: { label: 'Months (periodic D=1)', desc: 'Circular boundary → circulant PMI → Fourier modes come in cos/sin pairs → circle in top 2 PCs', color: '#4f8fea', example: 'Jan, Feb, ..., Dec → ○' },\n    open: { label: 'Years (open D=1)', desc: 'Open boundary → Toeplitz PMI → modified sinusoids (no degeneracy) → smooth 1D curve with Lissajous ripples', color: '#6bcb77', example: '1700, 1701, ..., 2020 → ~' },\n    geo: { label: 'Cities (open D=2)', desc: '2D geography → distance-dependent PMI → 2D plane waves → linear decoding of lat/long, error ~ r^(−1/2)', color: '#ff8e53', example: 'NYC, LA, Chicago, ... → 🗺️' }\n  };\n  return React.createElement('div', { style: { color: '#ccc' } },\n    React.createElement('div', { style: { display: 'flex', gap: 8, marginBottom: 16 } },\n      Object.entries(configs).map(([k, v]) =>\n        React.createElement('button', {\n          key: k, onClick: () => setSelected(k),\n          style: {\n            padding: '8px 16px', borderRadius: 8, border: 'none', cursor: 'pointer',\n            background: selected === k ? v.color : '#2a2a3e',\n            color: '#fff', fontSize: 13, fontWeight: selected === k ? 'bold' : 'normal'\n          }\n        }, v.label)\n      )\n    ),\n    React.createElement('div', {\n      style: { background: '#1a1a2e', borderRadius: 12, padding: 20, minHeight: 140 }\n    },\n      React.createElement('div', { style: { fontSize: 18, fontWeight: 'bold', color: configs[selected].color, marginBottom: 8 } }, configs[selected].label),\n      React.createElement('div', { style: { fontSize: 40, marginBottom: 12 } }, configs[selected].example),\n      React.createElement('p', { style: { fontSize: 13, lineHeight: 1.6 } }, configs[selected].desc)\n    )\n  );\n}"
+            }
+          }
+        ]
+      },
+
+      {
+        "type": "Section",
+        "props": { "title": "5. Robustness: Why Geometry Survives Perturbation" },
+        "children": [
+          {
+            "type": "p",
+            "children": "Here's a remarkable finding: if you remove ALL sentences where any two months co-occur from the training corpus and retrain word embeddings, the circular geometry of months is preserved. How is this possible if the month-month co-occurrences have been destroyed?"
+          },
+          {
+            "type": "h3",
+            "children": "The Latent Variable Explanation"
+          },
+          {
+            "type": "p",
+            "children": "The answer: months aren't the only seasonal words. \"Ski\", \"beach\", \"hurricane\", \"harvest\" — thousands of words have seasonal co-occurrence patterns. The time-of-year acts as a latent variable that modulates the co-occurrence of ALL seasonal words, not just the 12 month names. This creates a large-rank seasonal signal in the full V×V PMI matrix, with eigenvalues proportional to the vocabulary size N."
+          },
+          {
+            "type": "Callout",
+            "props": { "type": "key" },
+            "children": "The robustness argument (via Weyl/Davis-Kahan theorems): Removing 12² month-month entries from a V×V PMI matrix is a rank-bounded perturbation. When the seasonal eigenvalues scale as O(N) and their gaps scale as O(N), a fixed-rank perturbation cannot move the top eigenvectors significantly. The circular geometry is a collective phenomenon — it's encoded redundantly across thousands of seasonal words."
+          },
+          {
+            "type": "Analogy",
+            "props": {
+              "concept": "Collective Robustness",
+              "analogy": "Imagine a choir singing a chord. If you remove 2 singers, the chord is still clearly audible because dozens of other singers reinforce the same harmonic. Similarly, the 'seasonal signal' in language is carried by thousands of words, so removing the direct month-month co-occurrences barely affects the dominant eigenmodes."
+            }
+          },
+          {
+            "type": "DeepDive",
+            "props": {
+              "title": "The Latent Variable Model (Section 4 of the paper)",
+              "defaultOpen": false
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "The paper formalizes this with a generative model. Each word i has a seasonal center tᵢ on the calendar. Its probability of occurring at season t is: P(i|t) = P(i)·(1 + g(t − tᵢ)), where g is a peaked function. Marginalizing over seasons gives: P(i,j) = P(i)P(j)·[1 + K̃(tᵢ − tⱼ)], where K̃ is the autocorrelation of g. This automatically produces translation symmetry! The PMI is circulant with kernel K(Δ) = log(1 + K̃(Δ)). The seasonal latent variable simultaneously explains (1) why translation symmetry holds, (2) why geometry is robust to perturbation, and (3) why the effect is collective."
+              }
+            ]
+          }
+        ]
+      },
+
+      {
+        "type": "Section",
+        "props": { "title": "6. Deeper Connections" },
+        "children": [
+          {
+            "type": "h3",
+            "children": "Polysemy and Context Disambiguation"
+          },
+          {
+            "type": "p",
+            "children": "\"May\" is both a month and a modal verb. In static word embeddings (word2vec), the representation of May is pulled away from the month-circle by its other meaning. But in LLMs, context resolves the ambiguity: when a prompt makes the month-meaning clear, \"May\" snaps onto the circle as it propagates through layers. This is visible in the Gram matrices — the co-occurrence symmetry predicts the geometry that contextualized representations converge toward."
+          },
+          {
+            "type": "h3",
+            "children": "Fiber Bundles: Latent Variables as Connections"
+          },
+          {
+            "type": "p",
+            "children": "The latent variable (e.g., time-of-year) defines a smooth manifold in representation space. Different words at the same \"season\" form a fiber over that point on the manifold. The latent variable acts like a connection on a fiber bundle — it determines how representations are parallel-transported along the seasonal manifold. Perturbations that don't break the symmetry correspond to gauge transformations that leave the connection (and hence the geometry) invariant."
+          },
+          {
+            "type": "h3",
+            "children": "Renormalization Group and Universality"
+          },
+          {
+            "type": "p",
+            "children": "The paper's findings connect to universality in physics: the same geometric structures emerge across word2vec, GloVe, text embedding models, and LLMs of different sizes. In the renormalization group picture, coarse-graining (reducing embedding dimension, changing architecture) preserves the symmetry-protected modes while washing out non-universal details. The top eigenmodes are the 'relevant operators' — they survive coarse-graining because their eigenvalues are large. This is why a 2B parameter model and a word2vec model agree on the month-circle geometry."
+          },
+          {
+            "type": "h3",
+            "children": "Linearization: Symmetry-Preserving vs. Symmetry-Breaking"
+          },
+          {
+            "type": "p",
+            "children": "The fact that linear probes can decode coordinates from representations is not a coincidence — it's predicted by the theory. Each Fourier mode is a sinusoidal function of the coordinate, and a few sinusoids can approximate any smooth function (including the identity). Layers that preserve the translation symmetry maintain this linear decodability. Layers that break it (e.g., by specializing for a task that distinguishes specific months) destroy the universal manifold structure."
+          }
+        ]
+      },
+
+      {
+        "type": "Section",
+        "props": { "title": "7. Summary and Key Takeaways" },
+        "children": [
+          {
+            "type": "DefinitionList",
+            "props": {
+              "definitions": [
+                {
+                  "term": "1. Translation symmetry → Fourier embeddings",
+                  "definition": "When co-occurrence depends only on distance, the PMI matrix is circulant/Toeplitz, its eigenvectors are Fourier modes, and embeddings are sinusoidal functions of the underlying coordinate."
+                },
+                {
+                  "term": "2. Low-frequency dominance → simple geometry",
+                  "definition": "The exponential kernel's Fourier coefficients decay with frequency, so the top PCs capture the slowest modes: circles for periodic concepts, smooth curves for open ones."
+                },
+                {
+                  "term": "3. Latent variables → collective robustness",
+                  "definition": "Thousands of words share a latent variable (season, location), creating eigenvalues that scale with vocabulary size. This makes the geometry robust to local perturbations."
+                },
+                {
+                  "term": "4. Universality across architectures",
+                  "definition": "The same geometry appears in word2vec, GloVe, text embeddings, and LLMs because all learn from the same co-occurrence statistics. Symmetry is preserved under architectural 'coarse-graining'."
+                }
+              ]
+            }
+          }
+        ]
+      },
+
+      {
+        "type": "Section",
+        "props": { "title": "Quiz" },
+        "children": [
+          {
+            "type": "Quiz",
+            "props": {
+              "questions": [
+                {
+                  "question": "Why do calendar months form a circle in LLM representation space?",
+                  "options": [
+                    "The model is explicitly told months are cyclic",
+                    "The co-occurrence statistics have translation symmetry with periodic boundary conditions, forcing Fourier eigenmodes that trace a circle",
+                    "The tokenizer encodes months as angles",
+                    "Months are trained with a special circular loss function"
+                  ],
+                  "correctIndex": 1,
+                  "explanation": "The circular geometry emerges because month-month co-occurrence depends only on the interval between months (translation symmetry), and with periodic boundary conditions, the eigenmodes of the resulting circulant PMI matrix are cos/sin pairs — which parametrically trace a circle."
+                },
+                {
+                  "question": "What happens when you remove ALL direct month-month co-occurrences from the training data?",
+                  "options": [
+                    "The circular geometry is completely destroyed",
+                    "Months become randomly positioned",
+                    "The circular geometry is preserved because thousands of other seasonal words redundantly encode the same structure",
+                    "The model can no longer represent months at all"
+                  ],
+                  "correctIndex": 2,
+                  "explanation": "The seasonal signal is collective — carried by thousands of words with seasonal patterns (ski, beach, harvest, etc.). Removing the 12² month-month entries is a small perturbation relative to the O(N)-scale seasonal eigenvalues in the full vocabulary PMI matrix."
+                },
+                {
+                  "question": "Why does the linear decoding error for geographic coordinates scale as ε² ~ r^(−1/2)?",
+                  "options": [
+                    "Geography is 2-dimensional (D=2), and each additional PCA mode adds resolution proportional to r^(−1/D)",
+                    "It's a coincidence of the specific dataset used",
+                    "The model uses half its capacity for latitude and half for longitude",
+                    "This is the standard bias-variance tradeoff scaling"
+                  ],
+                  "correctIndex": 0,
+                  "explanation": "The paper proves that for a D-dimensional semantic continuum, the optimal decoding error with r PCA dimensions scales as ε² ~ r^(−1/D). For D=2 (geography), this gives r^(−1/2). Each additional Fourier mode adds spatial resolution, but in 2D you need more modes to tile the space."
+                },
+                {
+                  "question": "In the paper's framework, what role does the 'time of year' play?",
+                  "options": [
+                    "A training objective",
+                    "A continuous latent variable whose modulation of word probabilities produces translation-symmetric co-occurrences",
+                    "A discrete category label",
+                    "A positional encoding dimension"
+                  ],
+                  "correctIndex": 1,
+                  "explanation": "Time-of-year is a continuous latent variable that modulates word occurrence probabilities: P(word|t) = P(word)·(1+g(t−t_word)). Marginalizing over t produces co-occurrence statistics that depend only on the distance between words' seasonal centers — automatically giving translation symmetry."
+                }
+              ]
+            }
+          }
+        ]
+      }
+    ]
+  }
+}
