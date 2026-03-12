@@ -1,0 +1,454 @@
+{
+  "id": "competition-model-bates",
+  "title": "The Competition Model: How Languages Fight Over Meaning",
+  "subtitle": "Bates, MacWhinney, Devescovi & Wulfeck's framework for cross-linguistic sentence processing — and why GPT-2 parses like an English speaker",
+  "readTime": "20 min",
+  "state": {},
+  "content": {
+    "type": "Fragment",
+    "children": [
+      {
+        "type": "Section",
+        "props": { "title": "Who Did What to Whom?" },
+        "children": [
+          {
+            "type": "p",
+            "children": "Here's a sentence:"
+          },
+          {
+            "type": "Callout",
+            "props": { "type": "warning" },
+            "children": [
+              {
+                "type": "p",
+                "children": "The pencil kicked the cow."
+              }
+            ]
+          },
+          {
+            "type": "p",
+            "children": "Quick — who is doing the kicking? If you're an English speaker, you said 'the pencil' without hesitating. Obviously. It's the first noun. Subject-Verb-Object. Done."
+          },
+          {
+            "type": "p",
+            "children": "But here's the thing: show that same sentence to an Italian speaker, and they might say 'the cow.' Why? Because cows can kick. Pencils can't. The ANIMACY of the nouns overrides the word order."
+          },
+          {
+            "type": "p",
+            "children": "Same sentence. Same words. Different languages. Different answers. This isn't a mistake — it reveals something profound about how languages work. Every language gives you CUES to figure out who did what to whom. But languages don't agree on which cues matter most."
+          },
+          {
+            "type": "p",
+            "children": "In the 1980s, Elizabeth Bates, Brian MacWhinney, and their colleagues proposed a framework that explains exactly why: the Competition Model. It's one of the most powerful ideas in psycholinguistics, and it turns out to be eerily relevant to understanding how transformer language models process sentences."
+          },
+          {
+            "type": "InteractiveDemo",
+            "props": {
+              "title": "Who Is the Agent?",
+              "prompt": "For each sentence, guess who is doing the action. Then reveal the answer — which depends on what language you 'think in.'",
+              "scenarios": [
+                {
+                  "input": "The pencil kicked the cow.",
+                  "reveal": "ENGLISH speakers: 'the pencil' (first noun = agent, word order wins). ITALIAN speakers: 'the cow' (cows can kick, pencils can't — animacy wins). HUNGARIAN speakers: might look for case marking and, finding none, fall back on other cues. Same sentence, three different answers."
+                },
+                {
+                  "input": "The eraser sees the horse.",
+                  "reveal": "Again: English = 'the eraser' (word order). Italian = 'the horse' (animacy — horses can see, erasers can't). The pattern is consistent: English locks onto position, Italian locks onto plausibility."
+                },
+                {
+                  "input": "Il cavallo lo vede il cane. (The horse, it sees the dog.)",
+                  "reveal": "Italian speakers parse this easily: the clitic 'lo' (it/him) signals that 'il cavallo' is the OBJECT, not the subject. The dog sees the horse. The pronoun clitic agreement overrides word order — something English has no equivalent for. Agreement is king in Italian."
+                },
+                {
+                  "input": "A tehenet rúgta a ceruza. (The cow-ACC kicked the pencil.)",
+                  "reveal": "Hungarian speakers: 'a ceruza' (the pencil) is the agent. How do they know? The accusative suffix '-t' on 'tehenet' marks the cow as the OBJECT. Case marking is the dominant cue in Hungarian — it's unambiguous and available on the noun itself. Word order is almost irrelevant. (Szia, Hungarian speakers — this one's for you!)"
+                }
+              ]
+            }
+          },
+          {
+            "type": "p",
+            "children": "Notice what just happened. You experienced four different CUE HIERARCHIES — four different ways of answering the same question. English trusts word order. Italian trusts animacy and agreement. Hungarian trusts case marking. None of them are wrong. They're each optimized for the statistical structure of their own language."
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "Cues and Cue Validity" },
+        "children": [
+          {
+            "type": "p",
+            "children": "The Competition Model starts from a simple observation: languages provide MULTIPLE cues to sentence meaning. Word order, animacy, agreement, case marking, stress, pragmatic context — they're all potential signals about who did what to whom."
+          },
+          {
+            "type": "p",
+            "children": "But not all cues are created equal. Three properties determine how much weight a cue carries:"
+          },
+          {
+            "type": "Callout",
+            "props": { "type": "info" },
+            "children": [
+              {
+                "type": "p",
+                "children": "CUE VALIDITY = How reliably does this cue predict the correct interpretation? In English, the pre-verbal noun is the agent about 95% of the time. That's very high validity. In Italian, word order only predicts the agent about 60% of the time — much lower."
+              }
+            ]
+          },
+          {
+            "type": "Callout",
+            "props": { "type": "info" },
+            "children": [
+              {
+                "type": "p",
+                "children": "CUE AVAILABILITY = How often is this cue present? Case marking in Hungarian is available on virtually every noun. Case marking in English? Basically nonexistent (except for pronouns: he/him, she/her). You can't use a cue that isn't there."
+              }
+            ]
+          },
+          {
+            "type": "Callout",
+            "props": { "type": "info" },
+            "children": [
+              {
+                "type": "p",
+                "children": "CUE COST = How much processing effort does the cue require? Word order is cheap — just check which noun came first. Agreement is expensive — you have to hold verb morphology in memory and match it against multiple nouns. Overall cue strength ≈ validity × availability / cost."
+              }
+            ]
+          },
+          {
+            "type": "p",
+            "children": "This equation explains everything. English speakers rely on word order because it's VALID (almost always correct), AVAILABLE (always present — every sentence has word order), and CHEAP (just note position). Italian speakers rely on agreement because Italian verb morphology is VALID (rich conjugation unambiguously marks the subject), AVAILABLE (present on every verb), and worth the COST (because word order isn't reliable enough to use instead)."
+          },
+          {
+            "type": "InteractiveDemo",
+            "props": {
+              "title": "The Cue Hierarchy Across Languages",
+              "prompt": "Compare how four languages rank their cues. Notice how each language's hierarchy reflects its grammar.",
+              "scenarios": [
+                {
+                  "input": "🇬🇧 English: Word Order → Animacy → Agreement → Stress",
+                  "reveal": "English has rigid SVO order (high validity), no case marking on nouns, and weak verb agreement (just 3rd person -s). Word order does almost ALL the work. Animacy is a tiebreaker. Agreement barely registers. English speakers are WORD ORDER MACHINES."
+                },
+                {
+                  "input": "🇮🇹 Italian: Agreement → Animacy → Word Order → Stress",
+                  "reveal": "Italian has rich verb morphology (6 distinct conjugations per tense), flexible word order (SVO, VSO, OVS all grammatical), and strong clitic pronouns. Agreement is king because it's ALWAYS reliable. Word order is demoted because Italian speakers encounter all orders regularly."
+                },
+                {
+                  "input": "🇯🇵 Japanese: Case Marking → Animacy → Word Order → Agreement",
+                  "reveal": "Japanese marks grammatical roles with particles: が (ga) = subject, を (wo) = object. These are nearly 100% valid and always available. Word order is very flexible (SOV is default, but scrambling is common). Japanese speakers are PARTICLE MACHINES — they barely notice word order."
+                },
+                {
+                  "input": "🇭🇺 Hungarian: Case Marking → Agreement → Animacy → Word Order",
+                  "reveal": "Hungarian has an extraordinarily rich case system (18+ cases!) with the accusative -t suffix clearly marking the object. Verb agreement is also rich (definite vs. indefinite conjugation). Word order is almost FREE — it encodes TOPIC and FOCUS, not grammatical roles. Hungarians barely use word order for 'who did what' because case marking handles it completely."
+                }
+              ]
+            }
+          },
+          {
+            "type": "p",
+            "children": "This is the heart of the Competition Model: every language has a CUE HIERARCHY, learned from statistical experience with that language. Speakers don't consciously calculate validity × availability / cost. They absorb these weights through years of listening. By age 5 or 6, children in every language have learned their language's hierarchy. They've become experts at weighting the cues their language provides."
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "Competition and the Coalition" },
+        "children": [
+          {
+            "type": "p",
+            "children": "Now comes the dynamic part. As you read a sentence word by word, multiple cues are firing simultaneously. Sometimes they agree. Sometimes they fight."
+          },
+          {
+            "type": "p",
+            "children": "When cues AGREE, they form a COALITION. The interpretation they all support gets stronger and stronger. Processing is fast and effortless."
+          },
+          {
+            "type": "Example",
+            "props": { "title": "Coalition: All Cues Agree" },
+            "children": [
+              {
+                "type": "p",
+                "children": "'The dog bit the cat.'"
+              },
+              {
+                "type": "p",
+                "children": "Word order: 'dog' is first → dog = agent ✓"
+              },
+              {
+                "type": "p",
+                "children": "Animacy: both are animate → no conflict, tiebreaker not needed ✓"
+              },
+              {
+                "type": "p",
+                "children": "Pragmatics: dogs bite more often than cats → dog = agent ✓"
+              },
+              {
+                "type": "p",
+                "children": "All cues point the same way. Coalition is UNANIMOUS. Processing is instant."
+              }
+            ]
+          },
+          {
+            "type": "p",
+            "children": "But when cues DISAGREE, they create COMPETITION. The cues are fighting over interpretation, and your processor has to resolve the conflict. This takes time, effort, and sometimes leads to errors."
+          },
+          {
+            "type": "Example",
+            "props": { "title": "Competition: Cues Disagree" },
+            "children": [
+              {
+                "type": "p",
+                "children": "'The cat was bitten by the dog.'"
+              },
+              {
+                "type": "p",
+                "children": "Word order: 'cat' is first → cat = agent ✗ (WRONG)"
+              },
+              {
+                "type": "p",
+                "children": "Passive morphology: 'was bitten' → cat = patient ✓"
+              },
+              {
+                "type": "p",
+                "children": "The 'by' phrase: 'by the dog' → dog = agent ✓"
+              },
+              {
+                "type": "p",
+                "children": "Word order says one thing. Morphology says another. COMPETITION. The passive morphology eventually wins, but it takes measurably longer to process than the active version — even for adults, even after a lifetime of hearing passives."
+              }
+            ]
+          },
+          {
+            "type": "Analogy",
+            "props": {
+              "concept": "Cue Competition as Jury Deliberation",
+              "analogy": "Think of it like a jury. Each cue is a juror with an opinion about the verdict (who is the agent?). When all jurors agree — word order, animacy, agreement all say 'the dog did it' — the verdict is INSTANT. Unanimous. No deliberation needed. But when jurors disagree — word order says 'the cat' but morphology says 'the dog' — now you have a HUNG JURY. They have to argue. The juror with the most authority (highest cue validity) eventually wins, but the deliberation takes time. And sometimes, in the heat of argument, the wrong juror wins.",
+              "insight": "This is why passive sentences are harder than actives in English: the most authoritative juror (word order) is giving the WRONG answer. The other jurors have to overrule it. That override costs processing time — measurable in reading experiments as longer fixations, slower reaction times, and more errors."
+            }
+          },
+          {
+            "type": "p",
+            "children": "The Competition Model makes a precise prediction: processing difficulty is proportional to CUE CONFLICT. More conflict = harder processing. And the strength of the conflict depends on the VALIDITY of the disagreeing cues. If a high-validity cue is wrong, the conflict is severe. If a low-validity cue is wrong, nobody cares — the jury barely listens to that juror anyway."
+          },
+          {
+            "type": "Callout",
+            "props": { "type": "success" },
+            "children": [
+              {
+                "type": "p",
+                "children": "KEY PREDICTION: The same sentence will be EASIER or HARDER depending on what language you speak — because different languages have different cue hierarchies. A sentence that creates massive cue conflict in English might be trivial in Italian, and vice versa. Processing difficulty isn't in the sentence. It's in the INTERACTION between the sentence and the listener's cue hierarchy."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "Cross-Linguistic Predictions" },
+        "children": [
+          {
+            "type": "p",
+            "children": "This is where the Competition Model gets genuinely exciting. It doesn't just describe processing — it PREDICTS when and where processing will break down, differently for each language."
+          },
+          {
+            "type": "p",
+            "children": "Take garden-path sentences — those sentences where your parser charges confidently down the wrong interpretation and then has to backtrack. In Competition Model terms, a garden path is what happens when early cues form a strong COALITION that turns out to be wrong. The wrong team of jurors reaches a confident verdict, and then new evidence arrives that overturns it."
+          },
+          {
+            "type": "Example",
+            "props": { "title": "English Garden Path — Reduced Relative" },
+            "children": [
+              {
+                "type": "p",
+                "children": "'The horse raced past the barn fell.'"
+              },
+              {
+                "type": "p",
+                "children": "For English speakers, word order forms an early coalition: 'The horse' = agent, 'raced' = main verb. This coalition is strong because word order is English's DOMINANT cue. When 'fell' arrives and reveals that 'raced' was a reduced relative clause, the entire coalition has to be dismantled. The most trusted juror was wrong. Catastrophic."
+              }
+            ]
+          },
+          {
+            "type": "p",
+            "children": "But here's the prediction: Italian speakers should be LESS fooled by this kind of sentence. Why? Because Italian speakers DON'T trust word order as much. Their dominant cue is agreement, not position. So the word-order coalition that traps English speakers never forms as strongly in Italian. The 'juror' who misleads English speakers barely has a voice in the Italian courtroom."
+          },
+          {
+            "type": "DeepDive",
+            "props": {
+              "title": "Why Italians Don't Fall for Reduced Relatives",
+              "content": "In English, reduced relatives like 'The horse raced past the barn fell' are devastating because they exploit the STRONGEST cue in the language: word order. English speakers see NP-V and immediately commit to a main-clause interpretation. The coalition is so strong that even when 'fell' arrives, many readers never recover — they just judge the sentence as ungrammatical.\n\nIn Italian, the equivalent construction is much less problematic. Italian speakers encounter flexible word orders constantly — SVO, VSO, OVS are all common. So seeing a noun followed by a verb doesn't create the same ironclad commitment to a main-clause reading. The word-order juror says 'maybe this is the main clause' but it's a quiet, uncertain voice, easily overruled by later evidence.\n\nMoreover, Italian has overt relative clause markers and richer verbal morphology that can disambiguate earlier. The cues that RESOLVE the ambiguity are stronger in Italian, while the cue that CREATES the trap (word order) is weaker. It's like the Italian jury has a weak misleading juror and strong corrective jurors — the opposite of English.\n\nExperimental data confirms this: Italian speakers show significantly smaller garden-path effects on reduced relatives compared to English speakers. The Competition Model predicted this decades before the cross-linguistic experiments were run. That's the mark of a good theory."
+            }
+          },
+          {
+            "type": "p",
+            "children": "The model also predicts that DIFFERENT languages should have different garden-path patterns. English speakers stumble on word-order traps. Japanese speakers might stumble on case-particle ambiguities. Hungarian speakers might stumble on the rare cases where their rich case marking is genuinely ambiguous. Each language's vulnerabilities are the FLIP SIDE of its strengths."
+          },
+          {
+            "type": "Analogy",
+            "props": {
+              "concept": "Jury Composition Predicts Errors",
+              "analogy": "If your jury is dominated by one very loud juror (word order, in English), then cases that fool THAT juror will lead to mistrials. A jury with many equally authoritative jurors (like Italian's balanced coalition of agreement, animacy, and word order) is harder to mislead — no single deceptive witness can sway the whole jury. But a balanced jury is also SLOWER on easy cases, because even when the answer is obvious, all jurors still want to weigh in.",
+              "insight": "This predicts that English should be FAST on simple SVO sentences (one loud juror, instant verdict) but VULNERABLE to word-order traps. Italian should be slightly slower on simple sentences (multiple jurors deliberating) but more ROBUST against traps. Experimental data confirms both predictions."
+            }
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "From Cue Validity to L11 Consensus" },
+        "children": [
+          {
+            "type": "p",
+            "children": "Here's where the Competition Model meets our research on transformer language models — and the connection is startling."
+          },
+          {
+            "type": "p",
+            "children": "GPT-2 was trained on English text. Billions of words of English. Through gradient descent, it absorbed the statistical structure of English — including, implicitly, English's cue hierarchy. Word order is king. SVO almost always marks the agent. Animacy matters less. Agreement matters even less. GPT-2 is, in Competition Model terms, an English speaker."
+          },
+          {
+            "type": "Callout",
+            "props": { "type": "info" },
+            "children": [
+              {
+                "type": "p",
+                "children": "GPT-2 didn't learn 'rules' about English cues. It learned STATISTICAL WEIGHTS — exactly what the Competition Model says human speakers learn. The cue hierarchy emerged from experience with the language, not from explicit instruction. This is the Competition Model's core claim about human acquisition, and GPT-2 embodies it perfectly."
+              }
+            ]
+          },
+          {
+            "type": "p",
+            "children": "Now consider what we found in Layer 11. There are neurons that track CONSENSUS — whether the current interpretation of the sentence is coherent, whether the cues are forming a coalition or competing. When consensus is high, the sentence is parsing smoothly. When consensus drops, something has gone wrong."
+          },
+          {
+            "type": "p",
+            "children": "In Competition Model terms, L11 consensus neurons are measuring the state of the JURY. High consensus = unanimous verdict. Low consensus = hung jury, cue conflict, competition."
+          },
+          {
+            "type": "InteractiveDemo",
+            "props": {
+              "title": "Competition Model Predictions → L11 Results",
+              "prompt": "See how the Competition Model's predictions map onto our experimental findings about GPT-2's Layer 11 consensus neurons.",
+              "scenarios": [
+                {
+                  "input": "Prediction: Reduced relatives should cause MAXIMUM conflict in English",
+                  "reveal": "Competition Model reasoning: Reduced relatives exploit WORD ORDER — English's strongest cue. 'The horse raced past the barn fell' creates a powerful wrong coalition (NP + V = main clause) that must be overturned. The strongest juror is wrong. Maximum conflict.\n\nL11 Result: Reduced relatives produce the STRONGEST consensus breakdown in L11. The consensus neurons plummet exactly where the Competition Model predicts maximum cue conflict. The most powerful cue in English (word order) is being contradicted, and L11 registers this as catastrophic disagreement."
+                },
+                {
+                  "input": "Prediction: Simple actives should produce NO conflict",
+                  "reveal": "Competition Model reasoning: 'The dog bit the cat' — word order, animacy, and pragmatics all agree. Coalition is unanimous. No conflict, no competition.\n\nL11 Result: Simple active sentences show HIGH, STABLE consensus throughout. The jury is unanimous. L11 reflects this as a flat, high consensus signal. Processing is smooth."
+                },
+                {
+                  "input": "Prediction: Complement ambiguities (DO/SC) should produce DIFFERENT conflict",
+                  "reveal": "Competition Model reasoning: 'The woman told the man that...' — is 'that' a demonstrative (direct object) or a complementizer (sentential complement)? This isn't a word-order conflict. It's a SUBCATEGORIZATION conflict — what kind of object does the verb take. Different cue, different jury member.\n\nL11 Result: DO/SC ambiguities produce what we call 'Mode 2' — a DIFFERENT pattern of consensus disruption than reduced relatives. Not the same jurors fighting. Not the same kind of conflict. The Competition Model predicts distinct conflict signatures for distinct cue types, and that's exactly what L11 shows."
+                },
+                {
+                  "input": "The big picture: L11 is implementing cue competition",
+                  "reveal": "L11 consensus neurons aren't just detecting 'difficulty.' They're tracking WHICH cues agree and which conflict — the very computation the Competition Model describes. Different types of cue conflict (word order vs. subcategorization) produce different consensus signatures (Mode 1 vs. Mode 2). GPT-2's Layer 11 has learned to be a cue-competition monitor. Bates and MacWhinney described this process theoretically. GPT-2 implemented it through gradient descent."
+                }
+              ]
+            }
+          },
+          {
+            "type": "Callout",
+            "props": { "type": "success" },
+            "children": [
+              {
+                "type": "p",
+                "children": "The Competition Model was proposed in the 1980s to explain human sentence processing across languages. Four decades later, it explains what happens inside GPT-2's neurons. The same principle — cue competition, coalition formation, conflict detection — was discovered independently by psycholinguists studying Italian children and by gradient descent training on English Wikipedia. That convergence is not a coincidence. It's evidence that cue competition is a fundamental principle of language processing."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "Test Your Understanding" },
+        "children": [
+          {
+            "type": "Quiz",
+            "props": {
+              "questions": [
+                {
+                  "question": "Given 'The pencil kicked the cow,' why do English and Italian speakers identify different agents?",
+                  "options": [
+                    "Italian speakers don't understand English word order",
+                    "English prioritizes word order (pencil is first = agent) while Italian prioritizes animacy (cow can kick = agent)",
+                    "Italian has no word order",
+                    "English speakers ignore animacy entirely"
+                  ],
+                  "correctIndex": 1,
+                  "explanation": "Each language has a different CUE HIERARCHY. English speakers trust word order above all — it's their highest-validity cue. Italian speakers weight animacy and agreement more heavily because Italian word order is flexible and unreliable for determining agent roles. Same sentence, different cue hierarchies, different interpretations."
+                },
+                {
+                  "question": "What determines a cue's overall strength in the Competition Model?",
+                  "options": [
+                    "How old the cue is evolutionarily",
+                    "Validity × Availability / Cost",
+                    "How many languages use it",
+                    "Whether it's syntactic or semantic"
+                  ],
+                  "correctIndex": 1,
+                  "explanation": "Cue strength depends on three factors: VALIDITY (how reliably it predicts the correct interpretation), AVAILABILITY (how often it's present in the language), and COST (how much processing effort it requires). Word order is strong in English because it's highly valid, always available, and cheap to process."
+                },
+                {
+                  "question": "Why are passive sentences harder to process than actives in English?",
+                  "options": [
+                    "Passives are longer",
+                    "English speakers rarely hear passives",
+                    "The strongest cue (word order) points to the WRONG answer, creating competition with morphological cues",
+                    "The SSS can't handle passives"
+                  ],
+                  "correctIndex": 2,
+                  "explanation": "In 'The cat was bitten by the dog,' word order (English's dominant cue) says 'cat = agent,' but passive morphology says 'cat = patient.' This creates CUE COMPETITION — the most authoritative 'juror' is giving the wrong verdict and must be overruled. The override takes measurable processing time."
+                },
+                {
+                  "question": "Why do Italian speakers show smaller garden-path effects on reduced relatives?",
+                  "options": [
+                    "Italian doesn't have relative clauses",
+                    "Italian speakers read more slowly in general",
+                    "Word order is a weaker cue in Italian, so word-order-based traps create less conflict",
+                    "Italian speakers are better at parsing"
+                  ],
+                  "correctIndex": 2,
+                  "explanation": "Reduced relatives exploit word order — the dominant cue in English but a WEAK cue in Italian. Italian speakers don't form a strong word-order coalition in the first place, so when the sentence reveals the reduced relative structure, there's less to overturn. The misleading 'juror' has little authority in Italian."
+                },
+                {
+                  "question": "How do GPT-2's Layer 11 consensus neurons relate to the Competition Model?",
+                  "options": [
+                    "They were designed to implement the Competition Model",
+                    "They track whether cues agree (coalition/high consensus) or conflict (competition/low consensus), with different conflict types producing different disruption patterns",
+                    "They only detect word order violations",
+                    "They have no relation — it's a coincidence"
+                  ],
+                  "correctIndex": 1,
+                  "explanation": "L11 consensus neurons track cue agreement and conflict — exactly the computation the Competition Model describes. Reduced relatives (word-order conflict) produce Mode 1 consensus breakdown. DO/SC ambiguities (subcategorization conflict) produce Mode 2. Different cue conflicts produce different neural signatures, just as the Competition Model predicts different jury dynamics for different types of cue disagreement."
+                }
+              ]
+            }
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "Further Reading" },
+        "children": [
+          {
+            "type": "p",
+            "children": "• Bates, E. & MacWhinney, B. (1987). 'Competition, variation, and language learning.' In B. MacWhinney (Ed.), Mechanisms of Language Acquisition."
+          },
+          {
+            "type": "p",
+            "children": "• MacWhinney, B. & Bates, E. (1989). The Crosslinguistic Study of Sentence Processing. Cambridge University Press."
+          },
+          {
+            "type": "p",
+            "children": "• Bates, E., Devescovi, A. & Wulfeck, B. (2001). 'Psycholinguistics: A Cross-Language Perspective.' Annual Review of Psychology, 52, 369–396."
+          },
+          {
+            "type": "p",
+            "children": "• MacWhinney, B. (2005). 'A unified model of language acquisition.' In J. Kroll & A. de Groot (Eds.), Handbook of Bilingualism. Oxford University Press."
+          }
+        ]
+      }
+    ]
+  }
+}

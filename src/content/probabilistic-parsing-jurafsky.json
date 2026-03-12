@@ -1,0 +1,479 @@
+{
+  "id": "probabilistic-parsing-jurafsky",
+  "title": "Probabilistic Parsing: Your Brain's Betting System",
+  "subtitle": "How Jurafsky's probabilistic models explain why you stumble on some sentences but not others — and what this means for transformer language models",
+  "readTime": "25 min",
+  "state": {},
+  "content": {
+    "type": "Fragment",
+    "children": [
+      {
+        "type": "Section",
+        "props": { "title": "Your Brain Runs on Probabilities" },
+        "children": [
+          {
+            "type": "p",
+            "children": "Every word you read right now has a probability. 'The' — you've seen it millions of times. Your brain barely registers it. 'Sesquipedalian' — unless you're a word nerd, that one slowed you down. Not because it's harder to decode letter by letter, but because it's RARE. Your brain had a weaker prediction for it, so processing took more effort."
+          },
+          {
+            "type": "p",
+            "children": "This is the lexical frequency effect, and it's one of the most robust findings in psycholinguistics. High-frequency words are recognized faster, named faster, and read faster than low-frequency words. Your brain is a statistical machine, and it uses those statistics CONSTANTLY."
+          },
+          {
+            "type": "p",
+            "children": "But it's not just individual words. EVERYTHING in language has a frequency distribution:"
+          },
+          {
+            "type": "Callout",
+            "props": { "type": "info" },
+            "children": [
+              {
+                "type": "p",
+                "children": "Word pairs (bigrams): 'of the' is common, 'of sesquipedalian' is not. Syntactic structures: SVO sentences are common in English, OVS is rare. Verb subcategorizations: 'eat' usually takes a direct object, 'sleep' usually doesn't. Your brain tracks ALL of these frequencies and uses them to predict what's coming next."
+              }
+            ]
+          },
+          {
+            "type": "p",
+            "children": "Here's the crucial part: context changes everything. The word 'bank' is moderately common on its own. But P('bank' | 'river') is very different from P('bank' | 'investment'). Your brain doesn't just store word frequencies in isolation — it stores CONDITIONAL probabilities. The probability of a word given its context."
+          },
+          {
+            "type": "InteractiveDemo",
+            "props": {
+              "title": "Same Word, Different Difficulty",
+              "prompt": "Read each sentence and notice how the SAME target word feels different depending on context. The word hasn't changed — but P(word|context) has.",
+              "scenarios": [
+                {
+                  "input": "Context 1: 'She deposited her savings at the ___.'",
+                  "reveal": "If you filled in 'bank,' that was EASY. P(bank | deposited savings) is very high. Your brain predicted it before you even got there. Reading 'bank' here costs almost nothing — it confirms what you already expected."
+                },
+                {
+                  "input": "Context 2: 'The fisherman sat on the grassy ___.'",
+                  "reveal": "Did you think 'bank'? Maybe, but it took more effort. P(bank | fisherman, grassy) is moderate — 'bank' as a river bank is less frequent than 'bank' as a financial institution. Your brain had to access a less common meaning. More processing time."
+                },
+                {
+                  "input": "Context 3: 'The philosopher questioned the very ___.'",
+                  "reveal": "'Bank' here? Probably not your first guess. P(bank | philosopher, questioned) is very low. Your brain was predicting words like 'nature,' 'idea,' 'foundation.' If you encountered 'bank' here, you'd be surprised — and surprise = processing cost."
+                },
+                {
+                  "input": "What this means",
+                  "reveal": "The same word — 'bank' — has different processing costs in different contexts because your brain assigns it different conditional probabilities. This is Daniel Jurafsky's key insight: the human parser doesn't just use grammar rules. It uses PROBABILISTIC grammar rules, weighted by experience. And these probabilities drive everything: what you expect, when you're surprised, and where you stumble."
+                }
+              ]
+            }
+          },
+          {
+            "type": "p",
+            "children": "Think of your brain as a betting system. Before each word arrives, your parser places bets on what's coming. High-frequency, high-probability continuations get big bets. Low-probability ones get small bets — or no bet at all. When a word arrives that you bet heavily on, processing is cheap. When a word arrives that you didn't bet on, processing is expensive. You have to scramble."
+          },
+          {
+            "type": "Analogy",
+            "props": {
+              "concept": "Your Brain as a Betting System",
+              "analogy": "Imagine you're at a horse race with 20 horses. You can't watch all of them — you can only keep your eyes on about 5 at a time. So you watch the favorites: the horses with the best odds. If horse #1 (the favorite) wins, you saw it coming. Easy. But if horse #17 (a long shot you stopped watching) wins, you're scrambling to figure out what happened. That moment of scrambling? That's a garden-path sentence.",
+              "insight": "This horse race analogy is the key to understanding everything that follows. Your parser can't maintain every possible interpretation of a sentence — it tracks the most probable ones and drops the rest. When the dropped interpretation turns out to be correct, you experience processing difficulty."
+            }
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "Subcategorization: What Verbs Expect" },
+        "children": [
+          {
+            "type": "p",
+            "children": "Not all probabilities are created equal. Some of the most powerful predictions your brain makes come from VERBS — specifically, from what structures verbs expect to follow them."
+          },
+          {
+            "type": "p",
+            "children": "Every verb carries a subcategorization frame — a blueprint of what arguments it wants. 'Put' demands a noun phrase AND a prepositional phrase: 'Put the book on the table.' Leave either one out and the sentence crashes. 'Sleep' wants nothing: 'The baby slept.' Give it an object and it sounds weird. 'Know' is more flexible: it can take a direct object ('I know the answer') or a complement clause ('I know that she left')."
+          },
+          {
+            "type": "p",
+            "children": "Here's the critical insight from Jurafsky: these subcategorization frames aren't just present or absent — they have PROBABILITIES. Your brain doesn't just know that 'know' CAN take a direct object or a complement clause. It knows HOW OFTEN each structure occurs."
+          },
+          {
+            "type": "Callout",
+            "props": { "type": "warning" },
+            "children": [
+              {
+                "type": "p",
+                "children": "He knew the girl was tired."
+              }
+            ]
+          },
+          {
+            "type": "p",
+            "children": "Did you garden-path on that? Many readers do. Here's why: when your parser hits 'knew the girl,' it faces a choice. Is 'the girl' a direct object (He knew the girl — simple NP) or the beginning of a complement clause (He knew [that] the girl was tired)? Corpus data shows that 'know' takes a direct object about 60% of the time and a complement clause about 40%. Your parser bets on the favorite: direct object. It commits to 'He knew the girl' as a complete thought. Then 'was tired' arrives and — wait, 'the girl' wasn't the object, it was the SUBJECT of a subordinate clause. The parser backed the wrong horse."
+          },
+          {
+            "type": "InteractiveDemo",
+            "props": {
+              "title": "Verb Betting Odds",
+              "prompt": "For each verb, guess which syntactic structure is most common. Then reveal the actual corpus frequencies. How good is your intuition?",
+              "scenarios": [
+                {
+                  "input": "WANT — Does it prefer: (a) NP object: 'I want a cookie' or (b) Infinitive complement: 'I want to leave'?",
+                  "reveal": "'Want' strongly prefers INFINITIVE complements (~65%) over direct NP objects (~30%). 'I want to...' is far more common than 'I want a...'. This means 'I want the book to...' causes less difficulty than you might expect — the parser is already betting on a complement structure."
+                },
+                {
+                  "input": "BELIEVE — Does it prefer: (a) NP object: 'I believe the story' or (b) S-complement: 'I believe she's right'?",
+                  "reveal": "'Believe' strongly prefers S-COMPLEMENT structures (~70%). 'I believe that...' or 'I believe she...' is much more common than 'I believe the story.' This means 'I believe the man is innocent' causes LESS garden-pathing than 'He knew the girl was tired' — because for 'believe,' the complement clause IS the favorite horse."
+                },
+                {
+                  "input": "PUT — Does it prefer: (a) NP + PP: 'Put the book on the table' or (b) Anything else?",
+                  "reveal": "'Put' is a rare case of near-CERTAINTY: it takes NP + PP almost 100% of the time. You literally can't use 'put' without both a direct object and a location. 'Put the book' is incomplete. 'Put on the table' is incomplete. 'Put' is so predictable that it almost never causes garden paths — there's only one horse in the race."
+                },
+                {
+                  "input": "KNOW — Does it prefer: (a) NP object: 'I know the answer' or (b) S-complement: 'I know she left'?",
+                  "reveal": "'Know' slightly prefers NP DIRECT OBJECTS (~60%) over S-complements (~40%). This relatively close split is exactly why 'He knew the girl was tired' garden-paths — the parser bets on the favorite (direct object), but the underdog (complement clause) has a real chance of winning. If 'know' were 95/5 like 'put,' there'd be no contest."
+                },
+                {
+                  "input": "HOPE — Does it prefer: (a) NP object: 'I hope good things' or (b) S-complement: 'I hope she wins'?",
+                  "reveal": "'Hope' overwhelmingly prefers S-COMPLEMENT structures (~90%+). 'I hope the...' almost always continues as 'I hope the team wins' — a complement clause. This means 'I hope the news is good' causes virtually NO garden-pathing. The parser bets correctly almost every time."
+                }
+              ]
+            }
+          },
+          {
+            "type": "p",
+            "children": "Back to our horse race: each verb is like a different race with different odds. Some races are almost predetermined ('put' — one horse, no contest). Some are tight competitions ('know' — the favorite barely edges out the second choice). The tighter the race, the more likely you'll be watching the wrong horse when the winner crosses the finish line. The tighter the subcategorization split, the more likely you'll garden-path."
+          },
+          {
+            "type": "DeepDive",
+            "props": { "title": "Where Do These Probabilities Come From?" },
+            "children": [
+              {
+                "type": "p",
+                "children": "Jurafsky and colleagues extracted subcategorization frequencies from large text corpora (millions of words of naturally occurring text). But here's what's remarkable: when they compared corpus frequencies to human reading-time data, the match was nearly perfect. Verbs with strong biases toward one structure caused fast reading. Verbs with ambiguous subcategorization biases caused slow reading. Your brain's internal statistics closely mirror the statistics of the language you've been exposed to. You ARE a corpus."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "The Beam Search Parser" },
+        "children": [
+          {
+            "type": "p",
+            "children": "Now we get to the computational heart of the model. Jurafsky (1996) proposed that the human sentence parser works like a BEAM SEARCH — an algorithm from artificial intelligence that maintains multiple hypotheses in parallel but aggressively prunes the losers."
+          },
+          {
+            "type": "p",
+            "children": "Here's how it works: as each word arrives, the parser generates multiple possible analyses — multiple ways the sentence could be going. Each analysis gets a probability score based on everything we've discussed: word frequency, subcategorization bias, syntactic construction frequency. The parser keeps the TOP K analyses (the 'beam') and THROWS AWAY the rest."
+          },
+          {
+            "type": "p",
+            "children": "This is elegant and efficient. You don't need infinite memory. You don't need to consider every logically possible parse. You just track the most likely candidates and discard the long shots."
+          },
+          {
+            "type": "p",
+            "children": "But there's a cost. Sometimes the correct analysis IS a long shot — and the parser throws it away."
+          },
+          {
+            "type": "Callout",
+            "props": { "type": "warning" },
+            "children": [
+              {
+                "type": "p",
+                "children": "Garden-path sentences are what happens when the correct parse gets pruned from the beam."
+              }
+            ]
+          },
+          {
+            "type": "Analogy",
+            "props": {
+              "concept": "Beam Search = Horse Race Watching",
+              "analogy": "Back to the horse race. Twenty horses are running (20 possible parses). You can only watch 5 at a time (beam width = 5). You pick the 5 with the best odds. Horses 1-5 are your beam. Horse #17 — a long shot — is out of your view. The race progresses. At each checkpoint (each new word), you reassess: maybe horse #3 is falling behind and horse #8 looks good now. You swap #3 for #8. But you're NEVER watching #17. Then #17 wins. You're blindsided. You have to rewind, figure out what happened, reconstruct the race. THAT recovery process — that scramble — is the processing difficulty you feel when you hit a garden-path sentence.",
+              "insight": "The beam width is your parser's attention budget. A wider beam means more hypotheses tracked, fewer garden paths, but more computational cost. Evolution tuned the beam width to balance speed against accuracy. Most of the time, the favorites win and the system works great. Garden paths are the price you pay for efficiency."
+            }
+          },
+          {
+            "type": "InteractiveDemo",
+            "props": {
+              "title": "Watch the Beam Search Parse",
+              "prompt": "Follow the sentence 'The horse raced past the barn fell' through a beam search parser with beam width = 3. Watch which analyses survive — and which get pruned.",
+              "scenarios": [
+                {
+                  "input": "Word 1-2: 'The horse' — Beam: 3 slots",
+                  "reveal": "Parse A (p=0.50): [NP: The horse] — start of a main clause subject. Parse B (p=0.30): [NP: The horse] — start of a main clause subject (same so far, but ready for different continuations). Parse C (p=0.20): [NP: The horse] — could be the start of a reduced relative ('The horse [that was] raced...'). All three survive. The beam is full but no analysis has been eliminated yet."
+                },
+                {
+                  "input": "Word 3: 'raced' — The critical moment",
+                  "reveal": "Parse A (p=0.60): [S: [NP: The horse] [VP: raced ...]] — 'raced' is the MAIN VERB. The horse raced somewhere. HIGH probability — active main clauses are common, 'raced' as a simple past tense is the dominant reading. Parse B (p=0.25): [NP: The horse [RC: raced ...]] — 'raced' begins a REDUCED RELATIVE clause. 'The horse [that was] raced past the barn' modifies 'the horse.' LOW probability — reduced relatives are rare, passive 'raced' is uncommon. Parse C (p=0.15): Other analysis. PRUNED — below threshold. ⚠️ Parse B (the correct one!) is barely hanging on. It's the long-shot horse."
+                },
+                {
+                  "input": "Words 4-6: 'past the barn' — Parse B falls off",
+                  "reveal": "Parse A (p=0.75): [S: [NP: The horse] [VP: raced [PP: past the barn]]] — Beautiful! Complete-looking sentence. 'The horse raced past the barn.' High probability, coherent, done. Parse B (p=0.10): [NP: The horse [RC: raced past the barn]] — The reduced relative is still technically alive but its probability has dropped. With a beam width of 3, and Parse A dominating, Parse B gets PRUNED. The parser stops tracking it. Horse #17 leaves your field of view."
+                },
+                {
+                  "input": "Word 7: 'fell' — 💥 CRASH",
+                  "reveal": "'Fell'?! Parse A predicted the sentence was DONE at 'the barn.' There's no slot for another verb. 'The horse raced past the barn fell' makes no sense under Parse A. The parser needs Parse B — the reduced relative reading where 'The horse [that was] raced past the barn' is just the subject, and 'fell' is the main verb. But Parse B was PRUNED. It's gone. The parser has to RECOVER it — reconstruct an analysis it already discarded. This recovery is expensive, effortful, and slow. You experience it as the 'WTF' moment of the garden path."
+                }
+              ]
+            }
+          },
+          {
+            "type": "p",
+            "children": "This is the beam search model's great explanatory power: garden-path difficulty isn't binary (hard/easy). It's GRADIENT — proportional to how long ago the correct parse was pruned and how much probability mass it had when it was eliminated. A parse that was pruned one word ago with probability 0.20 is easy to recover. A parse that was pruned three words ago with probability 0.05 is brutal."
+          },
+          {
+            "type": "DeepDive",
+            "props": { "title": "Beam Width and Individual Differences" },
+            "children": [
+              {
+                "type": "p",
+                "children": "If beam width varies between individuals, this predicts that some people should garden-path less than others — people with wider beams track more hypotheses and prune less aggressively. There IS evidence for this: readers with higher working memory capacity show smaller garden-path effects. They're watching more horses. The beam search model naturally accounts for individual differences in parsing difficulty by varying a single parameter."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "Bayesian Belief Networks: Combining Everything" },
+        "children": [
+          {
+            "type": "p",
+            "children": "The beam search model tells us HOW the parser manages multiple analyses. But what determines the probabilities that drive the beam? Narayanan and Jurafsky (1998, 2001) showed that the parser combines MULTIPLE information sources using Bayes' theorem — the mathematically optimal way to integrate uncertain evidence."
+          },
+          {
+            "type": "p",
+            "children": "Here are the sources the parser integrates:"
+          },
+          {
+            "type": "Callout",
+            "props": { "type": "info" },
+            "children": [
+              {
+                "type": "p",
+                "children": "1. SCFG probabilities — how likely is this syntactic construction in general? 2. Subcategorization frequencies — what does this verb expect? 3. Thematic fit — is this noun a plausible agent/patient/instrument? 4. Tense and aspect — does the verb form favor one reading? All of these combine via Bayes' theorem to produce a single probability for each parse."
+              }
+            ]
+          },
+          {
+            "type": "p",
+            "children": "The key metric is the MC/RR ratio: the ratio of main clause (MC) probability to reduced relative (RR) probability. When this ratio is large (MC >> RR), the main clause reading dominates and the reduced relative gets pruned hard. When the ratio is small (MC ≈ RR), both readings survive on the beam, and there's less garden-pathing."
+          },
+          {
+            "type": "Example",
+            "props": { "title": "The Horse vs. The Evidence" },
+            "children": [
+              {
+                "type": "p",
+                "children": "'The horse raced past the barn fell.' — MC/RR ratio is HUGE. Why? (1) 'Horse' is a great agent — horses race all the time. (2) 'Raced' as active past tense is far more frequent than 'raced' as passive participle. (3) Main clauses are more frequent than reduced relatives. Every information source screams MAIN CLAUSE. The RR reading gets obliterated. Massive garden path."
+              },
+              {
+                "type": "p",
+                "children": "'The evidence examined by the lawyer turned out to be unreliable.' — MC/RR ratio is much SMALLER. Why? (1) 'Evidence' is a terrible agent — evidence doesn't examine things. The thematic fit for MC is poor. (2) 'Examined' as a passive participle is more plausible with an inanimate subject. (3) The verb bias for 'examine' slightly favors passive readings with inanimate subjects. The information sources CONFLICT: syntax says MC, but semantics says RR. Result? The RR reading keeps a higher probability, stays on the beam longer, and the garden-path effect is much weaker."
+              }
+            ]
+          },
+          {
+            "type": "InteractiveDemo",
+            "props": {
+              "title": "Bayesian Horse Racing: Combining the Odds",
+              "prompt": "See how multiple information sources combine to determine parse probabilities. Each factor adjusts the odds.",
+              "scenarios": [
+                {
+                  "input": "Step 1: Base rate — P(Main Clause) vs P(Reduced Relative)",
+                  "reveal": "Before seeing any specific words, main clauses are about 10x more common than reduced relatives in English text. Starting odds: MC = 0.90, RR = 0.10. The main clause horse starts with a massive lead — just based on how English works."
+                },
+                {
+                  "input": "Step 2: Animacy — 'The horse...' vs 'The evidence...'",
+                  "reveal": "FOR 'THE HORSE': Animate nouns are great agents. P(agent | horse) is high. This BOOSTS MC further. Updated: MC = 0.94, RR = 0.06. The favorite extends its lead. FOR 'THE EVIDENCE': Inanimate nouns are poor agents. P(agent | evidence) is low. This DAMPENS MC and boosts RR. Updated: MC = 0.75, RR = 0.25. The race tightens dramatically."
+                },
+                {
+                  "input": "Step 3: Verb form — 'raced' / 'examined'",
+                  "reveal": "FOR 'RACED': P(active past tense | raced) >> P(passive participle | raced). Active reading is dominant. MC gets another boost. Updated: MC = 0.97, RR = 0.03. Horse #17 (RR) is barely visible. FOR 'EXAMINED': P(passive participle | examined) is relatively high, especially with inanimate subjects. Updated: MC = 0.65, RR = 0.35. BOTH horses are still in the race."
+                },
+                {
+                  "input": "Step 4: Pruning decision",
+                  "reveal": "FOR 'THE HORSE RACED': MC/RR ratio = 0.97/0.03 = 32:1. The RR parse is FAR below any reasonable beam threshold. PRUNED immediately. When 'fell' arrives → catastrophic failure, expensive recovery, massive garden path. FOR 'THE EVIDENCE EXAMINED': MC/RR ratio = 0.65/0.35 ≈ 2:1. The RR parse is still ON THE BEAM. When disambiguating information arrives, the parser can smoothly shift to the RR reading. Minimal difficulty. THIS is the power of Bayesian combination: the same syntactic structure produces different difficulty levels because the converging evidence differs."
+                }
+              ]
+            }
+          },
+          {
+            "type": "p",
+            "children": "This is why 'The horse raced past the barn fell' is SO much harder than 'The evidence examined by the lawyer turned out to be unreliable' — even though they have IDENTICAL syntactic structure. The structure is the same, but the probabilistic evidence is completely different. The Bayesian model predicts the gradient: same structure, different difficulty, because different evidence."
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "From Beam Search to L11" },
+        "children": [
+          {
+            "type": "p",
+            "children": "Here's where Jurafsky's probabilistic parsing model connects to something remarkable: what we've found inside transformer language models."
+          },
+          {
+            "type": "p",
+            "children": "Layer 11 of GPT-2 contains neurons that behave like an exception handler — a system that detects when something has gone wrong with the current parse and triggers recovery. When these neurons show high CONSENSUS (agreement), the sentence is parsing smoothly. When consensus DROPS, the model has hit a point of difficulty."
+          },
+          {
+            "type": "p",
+            "children": "The connection to beam search is direct and deep:"
+          },
+          {
+            "type": "Callout",
+            "props": { "type": "success" },
+            "children": [
+              {
+                "type": "p",
+                "children": "L11's exception handler IS the beam search recovery mechanism. When the correct parse gets pruned from the beam (because it was too improbable), and later evidence reveals it was correct after all, the system must recover the pruned analysis. That recovery process — expensive, effortful, disruptive — is exactly what L11's consensus drop detects."
+              }
+            ]
+          },
+          {
+            "type": "p",
+            "children": "John Hale's SURPRISAL theory provides the mathematical bridge: surprisal at a word equals the total probability mass of all parses that were eliminated at that word. When a lot of probability mass gets eliminated (because many analyses die at once), surprisal is high, and processing is hard. L11's consensus drop IS the mechanism by which probability mass gets eliminated."
+          },
+          {
+            "type": "InteractiveDemo",
+            "props": {
+              "title": "Beam Search ↔ L11: The Translation Table",
+              "prompt": "Each beam search concept has a direct counterpart in L11's neural architecture. See how the theoretical model maps onto what we've found in the transformer.",
+              "scenarios": [
+                {
+                  "input": "Beam search concept: Multiple parallel analyses on the beam",
+                  "reveal": "L11 counterpart: CONSENSUS among Layer 11 neurons. When neurons agree, it means one parse dominates — the beam is converging on a single winner. High consensus = the parser is confident."
+                },
+                {
+                  "input": "Beam search concept: Pruning low-probability analyses",
+                  "reveal": "L11 counterpart: CONSENSUS DROP. When consensus falls, it means the dominant parse is losing probability mass — competing analyses are gaining strength, or the dominant analysis has been invalidated. The beam is in flux."
+                },
+                {
+                  "input": "Beam search concept: Garden path = correct parse was pruned",
+                  "reveal": "L11 counterpart: EXCEPTION HANDLER FIRING. The exception handler activates when the parser discovers that its current best analysis doesn't work. The pruned parse must be recovered. L11 detects this moment."
+                },
+                {
+                  "input": "Beam search concept: Recovery of pruned analysis",
+                  "reveal": "L11 counterpart: POST-DROP RECOVERY PATTERN. After a consensus drop, L11 neurons reorganize — they shift from the old parse to the new one. The pattern of this shift tells us HOW the parser recovers: which features are re-evaluated, which structures are rebuilt."
+                },
+                {
+                  "input": "Beam search concept: Hale's surprisal = eliminated probability mass",
+                  "reveal": "L11 counterpart: MAGNITUDE OF CONSENSUS DROP. A small drop = small surprisal = minor reanalysis. A large drop = large surprisal = major reanalysis. The size of L11's consensus drop is proportional to the total probability mass being eliminated — exactly as surprisal theory predicts."
+                }
+              ]
+            }
+          },
+          {
+            "type": "p",
+            "children": "Think about what this means. Jurafsky proposed in the 1990s that the human parser is a beam search that prunes low-probability analyses and sometimes has to recover them. Decades later, we find that transformer language models — trained purely on next-word prediction — have independently evolved a mechanism that does EXACTLY this. Layer 11 monitors the beam. When the correct parse falls off the beam, the exception handler fires."
+          },
+          {
+            "type": "p",
+            "children": "The horse race analogy one final time: L11's consensus neurons are the SPECTATORS at the horse race. When all spectators are watching the same horse (high consensus), the race is going as expected. When the spectators suddenly scatter, looking in different directions (consensus drop), something unexpected has happened — maybe the favorite stumbled, maybe a long shot surged forward. The exception handler is the announcer shouting 'Wait — look at horse #17!' That moment of redirection, of shifting attention from the pruned parse to the correct one, is what L11 detects and manages."
+          },
+          {
+            "type": "Callout",
+            "props": { "type": "info" },
+            "children": [
+              {
+                "type": "p",
+                "children": "The convergence is remarkable: Jurafsky's probabilistic parsing model, Hale's surprisal theory, and L11's consensus mechanism all describe the SAME computational process from different angles. Probabilities drive the beam. The beam determines what gets pruned. Pruning determines surprisal. Surprisal drives L11's consensus drops. It's one system, described at three levels."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "Test Your Understanding" },
+        "children": [
+          {
+            "type": "Quiz",
+            "props": {
+              "questions": [
+                {
+                  "question": "Why does 'He knew the girl was tired' cause a garden-path effect?",
+                  "options": [
+                    "Because 'knew' is a rare word",
+                    "Because 'knew' takes a direct NP object ~60% of the time, so the parser initially interprets 'the girl' as the direct object rather than as the subject of a complement clause",
+                    "Because the sentence is grammatically incorrect",
+                    "Because complement clauses are impossible after 'knew'"
+                  ],
+                  "correctIndex": 1,
+                  "explanation": "The parser bets on the most probable subcategorization: direct NP object (60%) over complement clause (40%). It commits to 'the girl' as the object of 'knew.' When 'was tired' arrives, it reveals 'the girl' was actually the subject of a complement clause — but the parser had already backed the wrong horse."
+                },
+                {
+                  "question": "In the beam search model, what IS a garden-path sentence?",
+                  "options": [
+                    "A sentence that is grammatically ambiguous",
+                    "A sentence where the correct parse was pruned from the beam because it was too improbable, and must later be recovered",
+                    "A sentence that the parser cannot handle at all",
+                    "A sentence with too many words for the parser's memory"
+                  ],
+                  "correctIndex": 1,
+                  "explanation": "Garden paths occur when the beam search parser prunes the correct analysis (because it was low-probability) and then later discovers that the pruned analysis was right. The cost of recovering that pruned analysis is what you experience as processing difficulty."
+                },
+                {
+                  "question": "Why is 'The evidence examined by the lawyer...' easier than 'The horse raced past the barn fell'?",
+                  "options": [
+                    "Because 'evidence' is a more common word than 'horse'",
+                    "Because the first sentence is shorter",
+                    "Because 'evidence' is inanimate and a poor agent, which boosts the reduced relative probability and keeps it on the beam",
+                    "Because 'examined' is easier to parse than 'raced'"
+                  ],
+                  "correctIndex": 2,
+                  "explanation": "The Bayesian model combines multiple information sources. 'Evidence' is inanimate — a bad agent — so P(main clause) drops and P(reduced relative) rises. The MC/RR ratio is only about 2:1 instead of 32:1. The reduced relative stays on the beam instead of being pruned, so there's no costly recovery needed."
+                },
+                {
+                  "question": "What does L11's consensus drop correspond to in the beam search model?",
+                  "options": [
+                    "The parser giving up on the sentence entirely",
+                    "The moment when low-probability analyses are being pruned and the parser's dominant analysis is losing viability",
+                    "The parser successfully completing a parse",
+                    "The parser switching from Stage 1 to Stage 2 processing"
+                  ],
+                  "correctIndex": 1,
+                  "explanation": "L11's consensus drop maps directly onto the beam search's pruning/recovery process. When consensus drops, probability mass is being eliminated — analyses are dying. This corresponds to Hale's surprisal (eliminated probability mass) and signals that the parser may need to recover a previously pruned analysis."
+                },
+                {
+                  "question": "A verb with a 95/5 subcategorization split (strongly favoring one structure) will produce _____ garden-path effects compared to a verb with a 55/45 split.",
+                  "options": [
+                    "Stronger — because the dominant parse is almost always correct, so when it's wrong, recovery is more difficult",
+                    "Weaker — because the parser is more confident",
+                    "Identical — subcategorization probabilities don't affect garden-pathing",
+                    "It depends entirely on the beam width"
+                  ],
+                  "correctIndex": 0,
+                  "explanation": "When a verb strongly favors one structure (95/5), the disfavored parse is pruned aggressively. On the rare occasions when the disfavored structure IS correct, recovery is costly because the parse was pruned early and with high confidence. A 55/45 verb keeps both parses on the beam, so neither is fully committed — making recovery easier. Stronger bias = rarer but MORE SEVERE garden paths."
+                }
+              ]
+            }
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "Further Reading" },
+        "children": [
+          {
+            "type": "p",
+            "children": "• Jurafsky, D. (1996). 'A Probabilistic Model of Lexical and Syntactic Access and Disambiguation.' Cognitive Science, 20(2), 137–194."
+          },
+          {
+            "type": "p",
+            "children": "• Jurafsky, D. (2002). 'Probabilistic Modeling in Psycholinguistics: Linguistic Comprehension and Production.' In R. Bod, J. Hay, & S. Jannedy (Eds.), Probabilistic Linguistics."
+          },
+          {
+            "type": "p",
+            "children": "• Narayanan, S. & Jurafsky, D. (1998). 'Bayesian Models of Human Sentence Processing.' Proceedings of CogSci 1998."
+          },
+          {
+            "type": "p",
+            "children": "• Hale, J. (2001). 'A Probabilistic Earley Parser as a Psycholinguistic Model.' Proceedings of NAACL 2001."
+          },
+          {
+            "type": "p",
+            "children": "• Levy, R. (2008). 'Expectation-based syntactic comprehension.' Cognition, 106(3), 1126–1177."
+          }
+        ]
+      }
+    ]
+  }
+}
