@@ -310,6 +310,18 @@ const tutorials = [
     difficulty: 3,
   },
   {
+    id: 'brainstorm-88-boolean-circuit-extraction',
+    title: 'Boolean Circuit Extraction as Primitive Discovery',
+    description: 'How MLP neurons compose into Boolean lookup tables, and how recurring circuit motifs reveal learned Schankian primitives with inspectable truth tables.',
+    tags: ['mechanistic interpretability', 'Boolean circuits', 'MLPs', 'Schank', 'primitives'],
+    icon: '🔌',
+    gradient: 'from-emerald-500 to-cyan-600',
+    shadowColor: 'shadow-emerald-500/30',
+    glowColor: 'rgba(16, 185, 129, 0.4)',
+    readTime: '22 min',
+    difficulty: 3,
+  },
+  {
     id: 'brainstorm-62-moe-routing-operators',
     title: 'Operators as Semantic Expert Modules',
     description: 'How Mixture-of-Experts routing is structurally identical to Schankian primitive selection — constrain experts to ~14 and rediscover semantic primitives.',

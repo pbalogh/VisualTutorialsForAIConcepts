@@ -1,0 +1,411 @@
+{
+  "id": "brainstorm-88-boolean-circuit-extraction",
+  "title": "Boolean Circuit Extraction as Primitive Discovery",
+  "subtitle": "The Discrete Charm of Schankian MLPs — how MLP neurons compose into Boolean lookup tables, and how recurring circuit motifs reveal learned semantic primitives",
+  "readTime": "22 min",
+  "state": {},
+  "content": {
+    "type": "Fragment",
+    "children": [
+      {
+        "type": "Callout",
+        "props": {
+          "type": "info"
+        },
+        "children": "This tutorial explores a powerful idea: MLP neurons in transformers act as binary feature detectors composing into Boolean lookup tables. Schankian primitives should appear as recurring Boolean circuit motifs — extract them, cluster them, and you've found interpretable semantic primitives with inspectable truth tables."
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "1. MLPs as Boolean Lookup Tables"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "The 'Discrete Charm' finding reveals something striking: individual MLP neurons in transformers behave like binary feature detectors. Each neuron is either 'on' or 'off' for a given input, and the MLP layer composes these binary decisions into what is effectively a Boolean lookup table."
+          },
+          {
+            "type": "Analogy",
+            "props": {
+              "concept": "MLPs as Boolean circuits",
+              "analogy": "Think of a combination lock with multiple dials. Each dial (neuron) is either in the right position or not. The lock opens (produces a specific output) only when a particular combination of dials is correct. An MLP layer works the same way: specific combinations of active neurons produce specific output patterns. The 'meaning' of the layer is encoded not in any single neuron, but in the Boolean combinations."
+            }
+          },
+          {
+            "type": "DeepDive",
+            "props": {
+              "title": "Why do MLP neurons binarize?",
+              "id": "why-binary"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "ReLU and GELU activation functions create a natural binary split: neurons are either active (positive pre-activation) or inactive (zero/near-zero output). In practice, the pre-activation distributions are often bimodal — most inputs push a neuron clearly on or clearly off, with few inputs in the transition zone."
+              },
+              {
+                "type": "Callout",
+                "props": {
+                  "type": "formula"
+                },
+                "children": "ReLU(x) = max(0, x)  →  effectively binary: {0, positive}\nGELU(x) ≈ x · σ(1.702x)  →  smooth but still bimodal in practice"
+              },
+              {
+                "type": "p",
+                "children": "This means an MLP with d_ff neurons can be viewed as operating on binary codes of length d_ff. The number of distinct codes actually used is much smaller than 2^d_ff — giving the lookup table structure."
+              }
+            ]
+          },
+          {
+            "type": "InteractiveDemo",
+            "props": {
+              "title": "Binary Neuron Activation Explorer",
+              "id": "binary-neuron-demo",
+              "height": 340,
+              "initialCode": "// Simulate MLP neurons as binary detectors\nconst neurons = 8; // small MLP for visualization\nconst inputs = ['John kicked the ball', 'Mary gave a book', 'The ice melted slowly', 'He told her a secret'];\n\n// Each input activates a different binary pattern\nconst patterns = [\n  [1,0,1,1,0,0,1,0], // PROPEL pattern\n  [1,1,0,0,1,0,0,1], // ATRANS pattern  \n  [0,0,1,0,0,1,1,0], // STATE-CHANGE pattern\n  [1,1,0,0,0,1,0,1], // MTRANS pattern\n];\n\nlet html = '<div style=\"font-family:monospace;font-size:13px\">';\nhtml += '<b>MLP Neuron Activations (binary view):</b><br><br>';\ninputs.forEach((inp, i) => {\n  const bits = patterns[i].map(b => \n    `<span style=\"background:${b?'#4ade80':'#374151'};color:${b?'#000':'#666'};padding:2px 6px;margin:1px;border-radius:3px\">${b}</span>`\n  ).join('');\n  html += `\"${inp}\"<br>${bits}<br><br>`;\n});\nhtml += '<i>Notice: similar event types activate similar bit patterns!</i></div>';\nreturn html;"
+            }
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "2. From Bits to Circuits — Composing Feature Detectors"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "Individual neurons detect simple features. But semantic primitives require COMBINATIONS of features. A HARM operator isn't just 'agent detected' or 'negative valence detected' — it's the conjunction: agent ∧ patient ∧ negative-state-change ∧ volitional. This is a Boolean circuit."
+          },
+          {
+            "type": "DefinitionList",
+            "props": {
+              "definitions": [
+                {
+                  "term": "Feature Neuron",
+                  "definition": "A single MLP neuron that fires for a specific semantic property (e.g., 'involves physical contact', 'has negative valence')"
+                },
+                {
+                  "term": "Circuit Motif",
+                  "definition": "A recurring pattern of co-activated neurons that together implement a higher-level concept — like an AND gate combining 'physical contact' + 'negative outcome' to detect HARM"
+                },
+                {
+                  "term": "Truth Table",
+                  "definition": "The complete Boolean function mapping every combination of input features to output. For a primitive with 4 binary features, the truth table has 2⁴ = 16 rows"
+                },
+                {
+                  "term": "Subcircuit Clustering",
+                  "definition": "Grouping events by which circuit motifs activate — clusters correspond to semantic primitives"
+                }
+              ]
+            }
+          },
+          {
+            "type": "Example",
+            "props": {
+              "title": "HARM as a Boolean Circuit"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "Consider detecting the HARM primitive. We need several features to co-activate:"
+              },
+              {
+                "type": "Callout",
+                "props": {
+                  "type": "formula"
+                },
+                "children": "HARM(x) = has_agent(x) ∧ has_patient(x) ∧ negative_state_change(x) ∧ (physical_contact(x) ∨ causal_chain(x))\n\nTruth table (simplified):\nagent | patient | neg_Δ | contact∨cause | → HARM?\n  1   |    1    |   1   |      1        |    ✓\n  1   |    1    |   1   |      0        |    ✗ (no mechanism)\n  1   |    1    |   0   |      1        |    ✗ (no harm done)\n  1   |    0    |   1   |      1        |    ✗ (no patient)\n  0   |    1    |   1   |      1        |    ✗ (natural disaster, not HARM)"
+              },
+              {
+                "type": "p",
+                "children": "Each row is a unique binary code. The MLP implements this truth table through its weight matrix — and crucially, this same circuit motif appears across diverse surface forms: 'stabbed', 'insulted', 'burned', 'deceived' all activate the same Boolean pattern."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "3. The Extraction Pipeline"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "The practical pipeline for discovering Schankian primitives via Boolean circuit extraction has four stages:"
+          },
+          {
+            "type": "Callout",
+            "props": {
+              "type": "key"
+            },
+            "children": "Stage 1: Binarize — threshold MLP activations to get binary codes per event.\nStage 2: Extract — identify recurring subcircuit motifs (frequent bit patterns).\nStage 3: Cluster — group motifs by co-occurrence; each cluster = candidate primitive.\nStage 4: Inspect — read out the truth table for each cluster to verify semantic coherence."
+          },
+          {
+            "type": "InteractiveDemo",
+            "props": {
+              "title": "Circuit Extraction Simulator",
+              "id": "circuit-extraction-demo",
+              "height": 420,
+              "initialCode": "// Simulate the extraction pipeline\nconst events = [\n  { text: 'kicked the ball', bits: [1,0,1,1,0,0,1,0], label: 'PROPEL' },\n  { text: 'threw the rock',  bits: [1,0,1,1,0,0,1,0], label: 'PROPEL' },\n  { text: 'gave her flowers', bits: [1,1,0,0,1,0,0,1], label: 'ATRANS' },\n  { text: 'sold the car',    bits: [1,1,0,0,1,0,0,1], label: 'ATRANS' },\n  { text: 'told a story',    bits: [1,1,0,0,0,1,0,1], label: 'MTRANS' },\n  { text: 'taught physics',  bits: [1,1,0,0,0,1,0,1], label: 'MTRANS' },\n  { text: 'punched him',     bits: [1,0,1,1,0,0,1,1], label: 'PROPEL+HARM' },\n  { text: 'melted away',     bits: [0,0,1,0,0,1,1,0], label: 'STATE-Δ' },\n];\n\n// Cluster by Hamming similarity\nconst clusters = {};\nevents.forEach(e => {\n  const key = e.bits.join('');\n  if (!clusters[key]) clusters[key] = { bits: e.bits, events: [], label: e.label };\n  clusters[key].events.push(e.text);\n});\n\nlet html = '<div style=\"font-family:monospace;font-size:12px\">';\nhtml += '<b>Extracted Circuit Motifs:</b><br><br>';\nObject.values(clusters).forEach(c => {\n  const bitStr = c.bits.map(b => \n    `<span style=\"background:${b?'#60a5fa':'#1f2937'};color:${b?'#000':'#555'};padding:1px 4px;border-radius:2px\">${b}</span>`\n  ).join('');\n  html += `<span style=\"color:#fbbf24\">${c.label}</span>: ${bitStr}<br>`;\n  html += `  └ ${c.events.join(', ')}<br><br>`;\n});\nhtml += '<i style=\"color:#a78bfa\">Same bit pattern = same primitive operator!</i></div>';\nreturn html;"
+            }
+          },
+          {
+            "type": "DeepDive",
+            "props": {
+              "title": "How do you find recurring subcircuit motifs in practice?",
+              "id": "motif-mining"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "Several approaches work:"
+              },
+              {
+                "type": "p",
+                "children": "1. **Frequent Itemset Mining**: Treat active neurons as items, events as transactions. Run Apriori or FP-Growth to find frequently co-occurring neuron sets. Each frequent itemset is a circuit motif."
+              },
+              {
+                "type": "p",
+                "children": "2. **Binary Code Clustering**: Binarize all activations, then cluster the binary vectors using Hamming distance. K-means with K ≈ 14 tests the Schankian hypothesis directly."
+              },
+              {
+                "type": "p",
+                "children": "3. **SAE Decomposition**: Use Sparse Autoencoders to decompose MLP activations into interpretable features. SAE features that consistently co-activate form circuit motifs."
+              },
+              {
+                "type": "p",
+                "children": "4. **Causal Scrubbing**: Ablate neuron subsets and measure which combinations are necessary and sufficient for event-type classification. The minimal sufficient set = the circuit."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "4. Why ~11 Primitives? A Binary Feature Argument"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "Here's a provocative prediction: the number of Schankian primitives may be derivable from the number of independent binary semantic features."
+          },
+          {
+            "type": "p",
+            "children": "If events are characterized by K independent binary features (agent-present, physical, volitional, reversible, etc.), then the maximum number of meaningfully distinct primitives is bounded by 2^K — but most combinations are semantically incoherent. The actually-occupied corners of the Boolean hypercube give the primitive count."
+          },
+          {
+            "type": "InteractiveDemo",
+            "props": {
+              "title": "Boolean Hypercube of Primitives",
+              "id": "hypercube-demo",
+              "height": 380,
+              "initialCode": "// How many primitives fit in a Boolean feature space?\nconst features = ['has_agent', 'physical', 'transfer', 'mental', 'volitional'];\nconst K = features.length;\nconst total = Math.pow(2, K);\n\n// Known primitives mapped to features\nconst primitives = [\n  { name: 'ATRANS',  bits: [1,0,1,0,1], desc: 'abstract transfer (give, sell)' },\n  { name: 'PTRANS',  bits: [1,1,1,0,1], desc: 'physical transfer (move, carry)' },\n  { name: 'PROPEL',  bits: [1,1,0,0,1], desc: 'apply force (push, kick)' },\n  { name: 'MTRANS',  bits: [1,0,1,1,1], desc: 'mental transfer (tell, teach)' },\n  { name: 'MBUILD',  bits: [1,0,0,1,1], desc: 'mental build (decide, conclude)' },\n  { name: 'INGEST',  bits: [1,1,0,0,1], desc: 'take in (eat, breathe)' },\n  { name: 'EXPEL',   bits: [1,1,0,0,1], desc: 'push out (spit, exhale)' },\n  { name: 'GRASP',   bits: [1,1,0,0,1], desc: 'grasp object (hold, release)' },\n  { name: 'ATTEND',  bits: [1,0,0,1,0], desc: 'focus sense (look, listen)' },\n  { name: 'SPEAK',   bits: [1,1,0,0,1], desc: 'produce sound' },\n  { name: 'MOVE',    bits: [1,1,0,0,1], desc: 'move body part' },\n];\n\nlet html = '<div style=\"font-family:monospace;font-size:12px\">';\nhtml += `<b>${K} binary features → ${total} possible combos, but only ${primitives.length} are occupied:</b><br><br>`;\nhtml += '<table style=\"border-collapse:collapse\">';\nhtml += '<tr style=\"color:#fbbf24\">' + ['Primitive', ...features.map(f=>f.slice(0,6))].map(h=>`<td style=\"padding:2px 6px;border-bottom:1px solid #444\">${h}</td>`).join('') + '</tr>';\nprimitives.forEach(p => {\n  html += '<tr>';\n  html += `<td style=\"padding:2px 6px;color:#60a5fa\">${p.name}</td>`;\n  p.bits.forEach(b => {\n    html += `<td style=\"padding:2px 6px;text-align:center;background:${b?'#166534':'#1c1917'};color:${b?'#4ade80':'#555'}\">${b?'✓':'·'}</td>`;\n  });\n  html += '</tr>';\n});\nhtml += '</table><br>';\nhtml += `<i style=\"color:#a78bfa\">Occupancy: ${primitives.length}/${total} = ${(100*primitives.length/total).toFixed(1)}% of Boolean space</i></div>`;\nreturn html;"
+            }
+          },
+          {
+            "type": "Callout",
+            "props": {
+              "type": "warning"
+            },
+            "children": "Key insight: if only ~11 out of 32 corners are occupied, this sparsity IS the evidence for primitives. Random verb meanings would fill the space more uniformly. The clustering into a small number of occupied corners shows that language organizes events around a constrained set of prototypical transformations."
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "5. From Truth Tables to Interpretable Primitives"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "The beauty of Boolean circuit extraction is that each discovered primitive becomes an inspectable truth table. No black boxes — you can read exactly what combination of features defines each operator."
+          },
+          {
+            "type": "Example",
+            "props": {
+              "title": "Reading an Extracted Truth Table"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "Suppose circuit extraction finds a cluster that activates for 'gave', 'sold', 'donated', 'lent', 'transferred'. The extracted truth table shows:"
+              },
+              {
+                "type": "Callout",
+                "props": {
+                  "type": "formula"
+                },
+                "children": "Cluster #3 Truth Table:\n  n₁₇ (agent-present)     = 1  ← required\n  n₄₂ (physical-contact)  = 0  ← must be OFF\n  n₈₁ (possession-change)  = 1  ← required\n  n₁₅₃ (volitional)       = 1  ← required\n\n→ This IS the ATRANS primitive: volitional transfer of possession, no physical contact required"
+              },
+              {
+                "type": "p",
+                "children": "The truth table is the primitive's definition. You don't need to name it — the Boolean function IS the meaning. Names like ATRANS are just convenience labels for the underlying circuit."
+              }
+            ]
+          },
+          {
+            "type": "DeepDive",
+            "props": {
+              "title": "Connection to Sparse Autoencoders (SAEs)",
+              "id": "sae-connection"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "SAE features and Boolean circuit motifs are closely related but not identical:"
+              },
+              {
+                "type": "p",
+                "children": "**SAE features** decompose activations into monosemantic directions — each feature captures ONE concept. **Circuit motifs** are COMBINATIONS of features that together implement a function. An SAE might find separate features for 'agent', 'transfer', 'possession' — the circuit motif is their conjunction."
+              },
+              {
+                "type": "p",
+                "children": "The pipeline: SAE decomposes → identify relevant features → find co-activation patterns → extract Boolean circuit → read truth table → label as primitive. SAEs provide the alphabet; circuits spell the words."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "6. Experimental Design"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "Here's a concrete experimental protocol for discovering Schankian primitives via Boolean circuit extraction:"
+          },
+          {
+            "type": "Callout",
+            "props": {
+              "type": "key"
+            },
+            "children": "Step 1: Collect ~10K event sentences spanning diverse verbs.\nStep 2: Run through a transformer (GPT-2 medium is fine). Record MLP activations at layers 8-16.\nStep 3: Binarize activations (threshold at 0).\nStep 4: Apply frequent itemset mining (min support ≈ 2%).\nStep 5: Cluster frequent itemsets by Jaccard similarity.\nStep 6: For each cluster, extract the truth table and test on held-out verbs.\nStep 7: Compare cluster count to Schank's ~14. Compare cluster semantics to known primitives."
+          },
+          {
+            "type": "InteractiveDemo",
+            "props": {
+              "title": "Experiment Parameter Explorer",
+              "id": "experiment-params",
+              "height": 300,
+              "initialCode": "// Explore how parameters affect primitive discovery\nconst configs = [\n  { layers: '1-4', threshold: 0, minSupport: '5%', expected: 'Too few clusters (2-3): surface syntax, not semantics' },\n  { layers: '8-12', threshold: 0, minSupport: '2%', expected: '10-15 clusters: SWEET SPOT — semantic primitives!' },\n  { layers: '20-24', threshold: 0, minSupport: '1%', expected: 'Too many clusters (50+): task-specific, not primitive' },\n  { layers: '8-12', threshold: 0.5, minSupport: '2%', expected: 'Fewer active neurons → cleaner but sparser patterns' },\n];\n\nlet html = '<div style=\"font-family:monospace;font-size:12px\">';\nhtml += '<b>How extraction parameters affect results:</b><br><br>';\nhtml += '<table style=\"border-collapse:collapse;width:100%\">';\nhtml += '<tr style=\"color:#fbbf24;border-bottom:1px solid #555\">';\n['Layers','Thresh','MinSup','Expected Result'].forEach(h => {\n  html += `<td style=\"padding:4px 8px\">${h}</td>`;\n});\nhtml += '</tr>';\nconfigs.forEach((c,i) => {\n  const bg = i===1 ? 'background:#1a3a1a' : '';\n  html += `<tr style=\"${bg}\">`;\n  html += `<td style=\"padding:4px 8px;color:#60a5fa\">${c.layers}</td>`;\n  html += `<td style=\"padding:4px 8px\">${c.threshold}</td>`;\n  html += `<td style=\"padding:4px 8px\">${c.minSupport}</td>`;\n  html += `<td style=\"padding:4px 8px;color:${i===1?'#4ade80':'#ccc'}\">${c.expected}</td>`;\n  html += '</tr>';\n});\nhtml += '</table><br>';\nhtml += '<i style=\"color:#a78bfa\">🎯 Middle layers are where semantic primitives live — early layers handle syntax, late layers handle task specifics.</i></div>';\nreturn html;"
+            }
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "7. Connections to Other Approaches"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "Boolean circuit extraction connects deeply to several other brainstorm entries:"
+          },
+          {
+            "type": "DefinitionList",
+            "props": {
+              "definitions": [
+                {
+                  "term": "SAE Mining (#25)",
+                  "definition": "SAEs find monosemantic features; circuit extraction finds their Boolean compositions. SAEs provide the atoms, circuits provide the molecules."
+                },
+                {
+                  "term": "Information Bottleneck (#39)",
+                  "definition": "The binary codes ARE an information bottleneck — they compress continuous activations to discrete codes, keeping only what matters for event processing."
+                },
+                {
+                  "term": "MDL Discovery (#45)",
+                  "definition": "The optimal number of circuit motifs minimizes description length: enough to cover all events, few enough to be compressive."
+                },
+                {
+                  "term": "DreamCoder (#54)",
+                  "definition": "DreamCoder discovers reusable program primitives via compression; circuit extraction discovers reusable neural primitives via the same principle — in existing models, without retraining."
+                },
+                {
+                  "term": "Attention Motifs (#41)",
+                  "definition": "Attention patterns route information; MLP circuits transform it. Together they form the complete operator: attention selects operands, MLP applies the primitive."
+                }
+              ]
+            }
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "Quiz: Test Your Understanding"
+        },
+        "children": [
+          {
+            "type": "Quiz",
+            "props": {
+              "questions": [
+                {
+                  "question": "Why do MLP neurons behave as binary feature detectors?",
+                  "options": [
+                    "They are explicitly trained with binary labels",
+                    "ReLU/GELU activations create bimodal on/off distributions",
+                    "Binary is more energy-efficient for GPUs",
+                    "The attention layer forces binary inputs"
+                  ],
+                  "correct": 1,
+                  "explanation": "ReLU outputs are exactly zero for negative inputs and positive otherwise, creating a natural binary split. GELU is smooth but empirically shows bimodal activation distributions, with most inputs pushing neurons clearly on or off."
+                },
+                {
+                  "question": "What is a 'circuit motif' in the context of Boolean circuit extraction?",
+                  "options": [
+                    "A single neuron that detects a semantic feature",
+                    "A recurring pattern of co-activated neurons implementing a higher-level concept",
+                    "The wiring diagram of the transformer architecture",
+                    "A graph of attention head connections"
+                  ],
+                  "correct": 1,
+                  "explanation": "A circuit motif is a recurring co-activation pattern — a set of neurons that consistently fire together across diverse inputs sharing the same semantic primitive. It's the Boolean AND of multiple feature detectors."
+                },
+                {
+                  "question": "Why are middle layers (8-12 in GPT-2) the 'sweet spot' for primitive extraction?",
+                  "options": [
+                    "They have the most neurons",
+                    "Early layers encode syntax, late layers encode task specifics; middle layers encode semantic abstractions",
+                    "Middle layers are closest to the attention mechanism",
+                    "They process tokens fastest"
+                  ],
+                  "correct": 1,
+                  "explanation": "There's a well-documented progression: early layers handle surface syntax and local patterns, middle layers develop abstract semantic representations, and later layers specialize for the specific training objective. Schankian primitives are semantic abstractions — they live in the middle."
+                },
+                {
+                  "question": "How does circuit extraction relate to SAE feature decomposition?",
+                  "options": [
+                    "They are identical approaches",
+                    "SAEs replace circuit extraction entirely",
+                    "SAEs find individual features; circuit extraction finds their Boolean compositions",
+                    "Circuit extraction is a type of SAE"
+                  ],
+                  "correct": 2,
+                  "explanation": "SAEs decompose activations into monosemantic features (the 'alphabet'). Circuit extraction identifies which combinations of these features co-activate to implement higher-level functions (the 'words'). SAEs provide atoms; circuits provide molecules."
+                },
+                {
+                  "question": "Why might the number of semantic primitives be ~11 rather than hundreds?",
+                  "options": [
+                    "Transformers can only learn 11 concepts",
+                    "Only ~11 corners of the Boolean feature hypercube correspond to coherent event types",
+                    "Schank arbitrarily chose 11",
+                    "Human memory can only hold 11 items"
+                  ],
+                  "correct": 1,
+                  "explanation": "With K binary features, there are 2^K possible combinations, but most are semantically incoherent (e.g., 'mental + physical-contact + no-agent' doesn't describe a real event type). The sparse occupancy of the Boolean hypercube naturally constrains the primitive count."
+                }
+              ]
+            }
+          }
+        ]
+      }
+    ]
+  }
+}
