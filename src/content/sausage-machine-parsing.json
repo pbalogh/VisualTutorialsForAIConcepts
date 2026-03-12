@@ -1,0 +1,453 @@
+{
+  "id": "sausage-machine-parsing",
+  "title": "The Sausage Machine: How Your Brain Parses Sentences",
+  "subtitle": "Frazier & Fodor's (1978) two-stage parsing model — and why it still explains how transformers read",
+  "readTime": "25 min",
+  "state": {},
+  "content": {
+    "type": "Fragment",
+    "children": [
+      {
+        "type": "Section",
+        "props": { "title": "Why Do We Trip Over Sentences?" },
+        "children": [
+          {
+            "type": "p",
+            "children": "Read this sentence quickly:"
+          },
+          {
+            "type": "Callout",
+            "props": { "type": "warning" },
+            "children": [
+              {
+                "type": "p",
+                "children": "The horse raced past the barn fell."
+              }
+            ]
+          },
+          {
+            "type": "p",
+            "children": "Did you stumble? Good. You just experienced a GARDEN-PATH sentence — your parser charged confidently down one interpretation, hit a wall, and had to backtrack. 'Raced' looked like the main verb. Then 'fell' showed up and everything broke."
+          },
+          {
+            "type": "p",
+            "children": "The correct parse: 'The horse [that was] raced past the barn' — THAT horse — fell. 'Raced' is a reduced relative clause, not the main verb. But your brain didn't see it coming."
+          },
+          {
+            "type": "p",
+            "children": "This isn't a failure of intelligence. It's a feature of ARCHITECTURE. Your sentence parser is built a certain way, and that architecture has predictable blind spots. In 1978, Lyn Frazier and Janet Dean Fodor proposed a model that explains exactly why — and they gave it the best name in the history of linguistics."
+          },
+          {
+            "type": "p",
+            "children": "They called it the Sausage Machine."
+          },
+          {
+            "type": "InteractiveDemo",
+            "props": {
+              "title": "Garden Path Gauntlet",
+              "prompt": "Try to parse each sentence on first reading. Then reveal the correct interpretation. How many fool you?",
+              "scenarios": [
+                {
+                  "input": "The old man the boats.",
+                  "reveal": "'The old' = noun phrase (old people). 'Man' = verb (to man, to operate). The old [people] man the boats. Your parser assumed 'old' was an adjective modifying 'man' — but 'man' is the verb and 'old' is the noun!"
+                },
+                {
+                  "input": "The complex houses married and single soldiers and their families.",
+                  "reveal": "'The complex' = noun (a housing complex). 'Houses' = verb (provides housing for). The complex houses [i.e., provides housing to] married and single soldiers and their families. You probably read 'complex houses' as adjective + noun."
+                },
+                {
+                  "input": "Fat people eat accumulates.",
+                  "reveal": "'Fat' = noun (dietary fat). 'People eat' = relative clause modifying 'fat.' 'Accumulates' = main verb. Fat [that] people eat accumulates [in the body]. You read 'Fat people' as a noun phrase, but 'fat' is the subject and 'people eat' describes it."
+                },
+                {
+                  "input": "While Anna dressed the baby spit up on the bed.",
+                  "reveal": "While Anna dressed, the baby spit up on the bed. Without the comma, you read 'dressed the baby' as a unit — Anna was dressing the baby. But 'dressed' is intransitive here (Anna got dressed), and 'the baby' starts a new clause."
+                }
+              ]
+            }
+          },
+          {
+            "type": "p",
+            "children": "Notice a pattern? In every case, your parser grabbed the SIMPLEST, most LOCAL interpretation — and got burned. This isn't random. Frazier and Fodor showed that these errors are systematic, predictable, and deeply revealing about how the human sentence processor is built."
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "The Sausage Machine: Two Stages" },
+        "children": [
+          {
+            "type": "p",
+            "children": "Here's Frazier and Fodor's key insight: your parser doesn't process a sentence all at once. It has TWO stages, and they have very different abilities."
+          },
+          {
+            "type": "p",
+            "children": "Stage 1: The Preliminary Phrase Packager (PPP). This device is SHORTSIGHTED. It can only see about six words at a time — a narrow window sliding across the sentence. Its job is to grab words and bundle them into small phrase-sized packages. Think of it as a sausage-making machine: words go in, little phrase-sausages come out."
+          },
+          {
+            "type": "Analogy",
+            "props": {
+              "concept": "The PPP's Limited Window",
+              "analogy": "Imagine reading a sentence through a keyhole. You can see five or six words at a time. You do your best to figure out how they fit together — but you can't see what came before or what's coming next. You make LOCAL decisions with LOCAL information. Sometimes that works beautifully. Sometimes you're completely wrong.",
+              "insight": "The PPP's window isn't a bug — it's a feature. Processing a few words at a time is FAST. Speed matters when you're having a conversation and need to understand words as they arrive. The cost is occasional errors."
+            }
+          },
+          {
+            "type": "p",
+            "children": "Stage 2: The Sentence Structure Supervisor (SSS). This device sees the WHOLE sentence — or at least, it sees all the packages the PPP has assembled so far. Its job is to take those sausage-sized packages and fit them into a complete sentence tree. It's the big-picture thinker."
+          },
+          {
+            "type": "Analogy",
+            "props": {
+              "concept": "The SSS as Foreman",
+              "analogy": "The SSS is like a construction foreman who receives pre-cut building materials (sausage packages) and has to assemble them into a building (sentence structure). The foreman never sees the raw lumber — only the pre-cut pieces. If the PPP cut something wrong, the foreman has to work with what they got. Garbage packages in, garbage structure out.",
+              "insight": "The SSS is powerful but DEPENDENT. It can see the big picture, but it can only work with what the PPP gives it. When the PPP makes a mistake — grouping words incorrectly because of its tiny window — the SSS inherits that mistake."
+            }
+          },
+          {
+            "type": "InteractiveDemo",
+            "props": {
+              "title": "The PPP's Sliding Window",
+              "prompt": "Watch how the PPP processes 'While Anna dressed the baby spit up on the bed' through its ~6-word window. Notice where it goes wrong.",
+              "scenarios": [
+                {
+                  "input": "Window 1: [While Anna dressed the baby]",
+                  "reveal": "The PPP sees these 5 words and packages them as: [While] [Anna dressed the baby] — a subordinate clause with 'Anna' as subject, 'dressed' as verb, and 'the baby' as direct object. This looks PERFECTLY REASONABLE within the window. The PPP has no idea that 'dressed' is actually intransitive here."
+                },
+                {
+                  "input": "Window 2: [dressed the baby spit up]",
+                  "reveal": "As the window slides forward, the PPP now sees 'spit' — but it already packaged 'the baby' as the object of 'dressed.' Now 'spit' has no subject! The PPP is confused. It tries to attach 'spit up' somewhere, but the baby was already claimed."
+                },
+                {
+                  "input": "Window 3: [baby spit up on the bed]",
+                  "reveal": "By now, the PPP is trying to make 'spit up on the bed' work with its earlier commitments. It SHOULD have parsed 'the baby' as the subject of 'spit' — but it already gave 'the baby' to 'dressed.' The garden path is complete. The damage was done in Window 1."
+                },
+                {
+                  "input": "What the PPP MISSED",
+                  "reveal": "The PPP never saw the full picture: 'While Anna dressed' is one clause (intransitive), and 'the baby spit up on the bed' is another. But within its 6-word window, 'Anna dressed the baby' was TOO tempting — it looked like a perfect verb phrase. The PPP's blindness to the larger structure caused the error."
+                }
+              ]
+            }
+          },
+          {
+            "type": "Callout",
+            "props": { "type": "info" },
+            "children": [
+              {
+                "type": "p",
+                "children": "The KEY innovation of the Sausage Machine: the PPP's packaging unit is defined by SIZE (roughly 6 words), not by syntactic type. Previous models assumed the parser worked in terms of syntactic constituents (NP, VP, etc.). Frazier and Fodor said no — the parser first chunks by WINDOW SIZE, and syntactic structure is assigned within those chunks. This is why the model is called the 'Sausage Machine' — sausages are defined by their casing size, not by what's inside."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "Minimal Attachment and Late Closure" },
+        "children": [
+          {
+            "type": "p",
+            "children": "The Sausage Machine doesn't just describe the architecture — it PREDICTS specific parsing preferences. Two principles fall out of the model like consequences of physics, not like rules someone invented."
+          },
+          {
+            "type": "p",
+            "children": "Principle 1: MINIMAL ATTACHMENT. When there are two ways to attach an incoming word to the tree, the parser picks the one that creates FEWER new nodes. Why? Because constructing nodes takes time. In the PPP's race to package words before they scroll out of the window, the interpretation that requires fewer steps WINS."
+          },
+          {
+            "type": "Example",
+            "props": { "title": "Minimal Attachment in Action" },
+            "children": [
+              {
+                "type": "p",
+                "children": "Consider: 'We knew the girl...'"
+              },
+              {
+                "type": "p",
+                "children": "Parse A (Minimal Attachment — 2 new nodes): [We] [knew] [the girl] — 'the girl' is the direct object of 'knew.' Simple. Just attach the NP to the VP. Two nodes: the NP node and its attachment to VP."
+              },
+              {
+                "type": "p",
+                "children": "Parse B (Non-minimal — 3 new nodes): [We] [knew] [S̄ [that] [the girl ...]] — 'the girl' is the subject of a complement clause. This requires creating an S̄ node, an invisible 'that,' AND the NP. Three nodes. More structure."
+              },
+              {
+                "type": "p",
+                "children": "The parser picks Parse A every time. It's not making a 'choice' — it's just FASTER to build the simpler structure. If the sentence continues '...the girl left,' the parser has to backtrack. Garden path!"
+              }
+            ]
+          },
+          {
+            "type": "p",
+            "children": "Principle 2: LATE CLOSURE (also called Right Association). When a word can attach to multiple phrases, attach it to the one currently being processed — the most RECENT one. Why? Because the PPP's window favors recent material. The most recent phrase is still in the window; earlier phrases have already scrolled past."
+          },
+          {
+            "type": "Example",
+            "props": { "title": "Late Closure / Right Association" },
+            "children": [
+              {
+                "type": "p",
+                "children": "Consider: 'John said Mary left yesterday.'"
+              },
+              {
+                "type": "p",
+                "children": "Does 'yesterday' modify 'left' or 'said'? That is: did Mary leave yesterday? Or did John say it yesterday?"
+              },
+              {
+                "type": "p",
+                "children": "Late Closure predicts: 'yesterday' attaches to 'left' — the CLOSEST, most recently processed verb. The phrase 'Mary left' is still in the PPP's window. 'John said' has already been packaged and shipped off to the SSS."
+              },
+              {
+                "type": "p",
+                "children": "Experimental evidence confirms this overwhelmingly: readers default to the local attachment. 'Yesterday' goes with 'left.'"
+              }
+            ]
+          },
+          {
+            "type": "InteractiveDemo",
+            "props": {
+              "title": "Count the Nodes",
+              "prompt": "For each sentence, compare the minimal vs. non-minimal parse. Count the structural nodes each requires.",
+              "scenarios": [
+                {
+                  "input": "'The spy saw the cop with the binoculars' — Minimal Attachment",
+                  "reveal": "Minimal: [the cop with the binoculars] — 'with the binoculars' modifies 'the cop.' The PP attaches to the NP that's already there. Cost: just attach the PP to the existing NP node. The cop HAS the binoculars. Simple, local, and sometimes wrong."
+                },
+                {
+                  "input": "'The spy saw the cop with the binoculars' — Non-minimal Attachment",
+                  "reveal": "Non-minimal: [saw [the cop] [with the binoculars]] — 'with the binoculars' modifies 'saw.' This means the spy used the binoculars to do the seeing. Cost: create a new VP attachment point for the PP, separate from the NP. One extra node. The parser avoids this unless forced."
+                },
+                {
+                  "input": "Why does this matter?",
+                  "reveal": "These aren't arbitrary preferences — they're CONSEQUENCES of the architecture. The PPP's tiny window forces local attachment (Late Closure). The PPP's need for speed forces minimal structure (Minimal Attachment). The strategies emerge from the hardware, not from software rules. This is what makes the Sausage Machine elegant: the parsing preferences are FREE. They don't need to be stipulated — they fall out of how the machine is built."
+                }
+              ]
+            }
+          },
+          {
+            "type": "Callout",
+            "props": { "type": "success" },
+            "children": [
+              {
+                "type": "p",
+                "children": "KEY INSIGHT: Minimal Attachment and Late Closure aren't 'strategies' the parser consciously applies. They're automatic consequences of the architecture. A device with a small window WILL prefer local attachments. A device under time pressure WILL prefer simpler structures. The 'strategies' are epiphenomenal — they describe what happens, not what the parser is trying to do."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "Why Center Embedding Breaks Your Brain" },
+        "children": [
+          {
+            "type": "p",
+            "children": "Here's a sentence that's perfectly grammatical but practically impossible to understand:"
+          },
+          {
+            "type": "Callout",
+            "props": { "type": "warning" },
+            "children": [
+              {
+                "type": "p",
+                "children": "The woman the man the girl loved met died."
+              }
+            ]
+          },
+          {
+            "type": "p",
+            "children": "Translation: There's a girl. She loved a man. That man met a woman. That woman died. Three levels of CENTER EMBEDDING — each clause is stuffed inside the previous one like Russian nesting dolls."
+          },
+          {
+            "type": "p",
+            "children": "Now compare this, which is just as complex logically but EASY to read:"
+          },
+          {
+            "type": "Callout",
+            "props": { "type": "info" },
+            "children": [
+              {
+                "type": "p",
+                "children": "I saw the boy who dropped the ball that rolled down the street that led to the river."
+              }
+            ]
+          },
+          {
+            "type": "p",
+            "children": "Same depth of embedding, no problem at all. Why? The Sausage Machine explains this beautifully."
+          },
+          {
+            "type": "InteractiveDemo",
+            "props": {
+              "title": "Why Center Embedding Defeats the PPP",
+              "prompt": "Watch the PPP try to handle center-embedded vs. right-branching sentences.",
+              "scenarios": [
+                {
+                  "input": "Center embedding: 'The woman the man the girl...'",
+                  "reveal": "The PPP's window sees: [The woman the man the girl]. Three noun phrases in a row! The PPP has NO IDEA these belong to different clauses. It looks like a conjunction: 'The woman, the man, and the girl...' The PPP CANNOT package this correctly because it would need to see the whole sentence to know that each NP belongs to a different level of embedding. Its 6-word window is fatally too small."
+                },
+                {
+                  "input": "Right branching: 'I saw the boy who dropped...'",
+                  "reveal": "The PPP's window sees: [I saw the boy who dropped]. Perfect! 'I saw the boy' is a complete package. 'Who dropped' starts a new relative clause. Each package COMPLETES before the next begins. The PPP can happily ship off [I saw the boy] to the SSS and start fresh with [who dropped the ball]. No ambiguity, no confusion."
+                },
+                {
+                  "input": "The critical difference",
+                  "reveal": "In center embedding, the PPP must HOLD OPEN multiple incomplete phrases simultaneously: 'The woman [who?]... the man [who?]... the girl loved [the man] met [the woman] died.' Each clause interrupts the previous one before it's finished. The PPP's window can't hold all these open slots. In right branching, each clause finishes before the next starts — the PPP never needs to hold more than one open slot at a time."
+                },
+                {
+                  "input": "The sausage metaphor",
+                  "reveal": "Right-branching = making sausages one at a time. Each sausage is complete before you start the next. Center-embedding = trying to stuff sausages inside sausages inside sausages before finishing ANY of them. The casing machine jams. Your brain jams for exactly the same reason."
+                }
+              ]
+            }
+          },
+          {
+            "type": "p",
+            "children": "This is one of the Sausage Machine's greatest successes as a theory: it doesn't just predict THAT center embedding is hard — it predicts WHY, and it correctly predicts that right-branching structures of equal depth are easy. The explanation isn't about 'memory limits' in some vague sense. It's about the specific architecture of a two-stage parser with a fixed-width first stage."
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "From Sausages to Transformers" },
+        "children": [
+          {
+            "type": "p",
+            "children": "Here's where it gets wild. The Sausage Machine was proposed in 1978 — decades before neural networks could process language. But its architecture maps onto transformer language models with eerie precision."
+          },
+          {
+            "type": "p",
+            "children": "Consider GPT-2's 12-layer architecture. Recent research into what happens inside these layers reveals a striking division of labor:"
+          },
+          {
+            "type": "InteractiveDemo",
+            "props": {
+              "title": "The PPP-SSS ↔ Transformer Mapping",
+              "prompt": "Compare the Sausage Machine's two stages to what we've discovered about transformer layers.",
+              "scenarios": [
+                {
+                  "input": "PPP ↔ Layers 0–6 (Early/Middle Layers)",
+                  "reveal": "The early layers of GPT-2 do LOCAL processing — they handle syntax, local agreement, phrase structure. They attend primarily to NEARBY tokens. Sound familiar? They're the PPP: shortsighted, fast, processing a limited context window. They chunk the input into local patterns without understanding the global structure."
+                },
+                {
+                  "input": "SSS ↔ Layers 7–11 (Late Layers)",
+                  "reveal": "The late layers handle GLOBAL integration — long-distance dependencies, semantic coherence, cross-sentence reasoning. They attend to tokens far apart in the sequence. They're the SSS: the big-picture supervisor that takes the local packages and assembles them into a coherent whole."
+                },
+                {
+                  "input": "Layer 11's 'Consensus Neurons'",
+                  "reveal": "Layer 11 contains neurons that act like a quality-control system — they measure whether the packages from earlier layers FIT TOGETHER coherently. When consensus is high, the sentence is parsing smoothly. When consensus DROPS, it signals a problem: a garden-path sentence, an unexpected structure, a conflict between local and global interpretation. This is exactly what the SSS does — it checks whether the PPP's packages form a valid sentence."
+                },
+                {
+                  "input": "When the system breaks down",
+                  "reveal": "Garden-path sentences cause the SAME pattern in both systems: early layers (PPP) confidently assign local structure. Late layers (SSS/L11) detect that the packages don't fit. Consensus drops. Processing difficulty spikes. The 'peculiar mix of blindness and intelligence' that Frazier and Fodor described in the human parser — mostly smart, occasionally fooled by local ambiguity — is EXACTLY what we see in L11. It's mostly high-consensus (intelligent) but drops sharply at garden paths (blind)."
+                }
+              ]
+            }
+          },
+          {
+            "type": "Callout",
+            "props": { "type": "success" },
+            "children": [
+              {
+                "type": "p",
+                "children": "This isn't just a loose analogy. The functional division — local-then-global, fast-chunking-then-integration, blind-to-context-then-context-aware — is the SAME computational strategy. Transformers didn't copy Frazier and Fodor. They converged on the same architecture through gradient descent. Evolution and backpropagation independently discovered that two-stage parsing is a good design for processing sequential language under time (or compute) pressure."
+              }
+            ]
+          },
+          {
+            "type": "p",
+            "children": "The Sausage Machine, it turns out, wasn't just a model of human parsing. It was a description of a computational ATTRACTOR — a design that any system processing language under resource constraints will tend to converge toward. Frazier and Fodor found it by studying reading times. Transformers found it by minimizing prediction error. The sausage is universal."
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "Test Your Understanding" },
+        "children": [
+          {
+            "type": "Quiz",
+            "props": {
+              "questions": [
+                {
+                  "question": "What is the PPP's key limitation?",
+                  "options": [
+                    "It can't handle verbs",
+                    "It can only see about 6 words at a time — it has a narrow processing window",
+                    "It doesn't know any grammar rules",
+                    "It only works with English"
+                  ],
+                  "correctIndex": 1,
+                  "explanation": "The Preliminary Phrase Packager (PPP) operates with a window of roughly 6 words. It makes LOCAL packaging decisions based only on what's visible in that window. This is fast and usually correct — but it means the PPP can be fooled by sentences where the correct parse depends on information outside its window."
+                },
+                {
+                  "question": "Why does the parser prefer 'We knew the girl' (direct object) over 'We knew [that] the girl...' (complement clause)?",
+                  "options": [
+                    "Direct objects are more common in English",
+                    "The parser prefers the interpretation that creates FEWER structural nodes (Minimal Attachment)",
+                    "The parser always picks the first interpretation it thinks of",
+                    "The SSS overrides the PPP's decision"
+                  ],
+                  "correctIndex": 1,
+                  "explanation": "Minimal Attachment: the parser attaches incoming material using the fewest possible new nodes. The direct object reading requires 2 new nodes; the complement clause requires 3 (an extra S-bar node and an implicit 'that'). The simpler structure is built faster, so it wins the race. This isn't a rule — it's a consequence of the PPP's need for speed."
+                },
+                {
+                  "question": "Why is center embedding ('The woman the man the girl loved met died') so much harder than right branching ('I saw the boy who dropped the ball that...')?",
+                  "options": [
+                    "Center-embedded sentences are longer",
+                    "Center embedding puts multiple unfinished phrases in the PPP's window simultaneously, while right branching completes each phrase before starting the next",
+                    "Right-branching sentences use simpler vocabulary",
+                    "The SSS can only handle right-branching structures"
+                  ],
+                  "correctIndex": 1,
+                  "explanation": "In center embedding, the PPP's window fills with adjacent noun phrases from different clause levels (e.g., 'The woman the man the girl') — which look like a conjunction, not nested clauses. Each clause interrupts the previous one before completion. In right branching, each clause finishes before the next begins, so the PPP never has to hold multiple incomplete packages simultaneously."
+                },
+                {
+                  "question": "In 'John said Mary left yesterday,' why does 'yesterday' attach to 'left' rather than 'said'?",
+                  "options": [
+                    "Because 'left' is more important than 'said'",
+                    "Because 'yesterday' always modifies the closest verb (Late Closure / Right Association)",
+                    "Because the SSS makes that decision",
+                    "Because 'said' is in the past tense already"
+                  ],
+                  "correctIndex": 1,
+                  "explanation": "Late Closure (Right Association): the parser attaches incoming words to the most recently processed phrase. 'Mary left' is still in the PPP's window; 'John said' has already been packaged and shipped. The PPP attaches 'yesterday' to what it can still see — 'left.' This preference is a direct consequence of the PPP's limited window."
+                },
+                {
+                  "question": "How do transformer language models mirror the Sausage Machine architecture?",
+                  "options": [
+                    "They were explicitly programmed to follow Frazier & Fodor's model",
+                    "Early layers do local processing (like the PPP) while late layers do global integration (like the SSS)",
+                    "They use a 6-word window just like the PPP",
+                    "They don't — the similarity is coincidental"
+                  ],
+                  "correctIndex": 1,
+                  "explanation": "GPT-2's layers 0–6 handle local syntax and nearby dependencies (PPP-like), while layers 7–11 handle global coherence and long-distance relationships (SSS-like). Layer 11's 'consensus neurons' even act like the SSS's quality control — detecting when local packages don't fit into a coherent global parse. This division wasn't designed; it EMERGED through training. Two very different optimization processes — evolution and backpropagation — converged on the same two-stage architecture."
+                }
+              ]
+            }
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "Further Reading" },
+        "children": [
+          {
+            "type": "p",
+            "children": "• Frazier, L. & Fodor, J.D. (1978). 'The Sausage Machine: A New Two-Stage Parsing Model.' Cognition, 6, 291–325."
+          },
+          {
+            "type": "p",
+            "children": "• Bever, T.G. (1970). 'The cognitive basis for linguistic structures.' — The original garden-path research that inspired the Sausage Machine."
+          },
+          {
+            "type": "p",
+            "children": "• Kimball, J. (1973). 'Seven Principles of Surface Structure Parsing.' — The predecessor model that Frazier & Fodor improved upon."
+          },
+          {
+            "type": "p",
+            "children": "• Fodor, J.D. & Frazier, L. (1980). 'Is the Human Sentence Parsing Mechanism an ATN?' — Follow-up work on the computational properties of the model."
+          }
+        ]
+      }
+    ]
+  }
+}

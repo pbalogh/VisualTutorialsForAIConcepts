@@ -1,0 +1,442 @@
+{
+  "id": "surprisal-theory-levy",
+  "title": "Surprisal Theory: Why Some Words Stop You in Your Tracks",
+  "subtitle": "Roger Levy's information-theoretic account of sentence processing — and what it means for transformers",
+  "readTime": "25 min",
+  "state": {},
+  "content": {
+    "type": "Fragment",
+    "children": [
+      {
+        "type": "Section",
+        "props": { "title": "Why Are Some Words Harder Than Others?" },
+        "children": [
+          {
+            "type": "p",
+            "children": "Try this. Complete the sentence: \"The dog bit the...\""
+          },
+          {
+            "type": "p",
+            "children": "You probably thought of something like \"man,\" \"cat,\" or \"ball.\" Normal, expected completions. Now read this:"
+          },
+          {
+            "type": "p",
+            "children": "\"The dog bit the TELEPHONE.\""
+          },
+          {
+            "type": "p",
+            "children": "Feel that little jolt? That moment of \"wait, what?\" That's surprisal — and it's measurable."
+          },
+          {
+            "type": "Callout",
+            "props": { "type": "info" },
+            "children": [
+              {
+                "type": "p",
+                "children": "Surprisal = −log₂ P(word | context). Translation: the less expected a word is given everything you've read so far, the harder it is to process. That's it. That's the whole theory at its core."
+              }
+            ]
+          },
+          {
+            "type": "p",
+            "children": "If a word has probability 0.5 (50% chance), its surprisal is 1 bit. Probability 0.25? That's 2 bits. Probability 0.01? A whopping 6.6 bits. Each halving of probability adds exactly 1 bit of surprisal."
+          },
+          {
+            "type": "InteractiveDemo",
+            "props": {
+              "title": "Rank the Surprise",
+              "prompt": "For each completion of \"The dog bit the...\", think about how difficult it would be to process. Rank them from easiest (1) to hardest (5). Then reveal to see if your intuitions match surprisal predictions.",
+              "scenarios": [
+                {
+                  "input": "\"The dog bit the man.\" — P(man | context) ≈ 0.25",
+                  "reveal": "Surprisal ≈ 2.0 bits. Very expected — dogs bite people all the time. Easy to process. Rank: 1 (easiest)."
+                },
+                {
+                  "input": "\"The dog bit the cat.\" — P(cat | context) ≈ 0.15",
+                  "reveal": "Surprisal ≈ 2.7 bits. Plausible — dogs chase and sometimes bite cats. Still pretty easy. Rank: 2."
+                },
+                {
+                  "input": "\"The dog bit the mailman.\" — P(mailman | context) ≈ 0.08",
+                  "reveal": "Surprisal ≈ 3.6 bits. It's a cliché, but \"mailman\" is a more specific prediction. Slightly harder. Rank: 3."
+                },
+                {
+                  "input": "\"The dog bit the equation.\" — P(equation | context) ≈ 0.001",
+                  "reveal": "Surprisal ≈ 10.0 bits. Dogs don't bite abstract concepts. Your brain has to work hard to make sense of this. Rank: 4."
+                },
+                {
+                  "input": "\"The dog bit the democracy.\" — P(democracy | context) ≈ 0.0005",
+                  "reveal": "Surprisal ≈ 11.0 bits. Even more abstract and unexpected. Maximum processing difficulty. Rank: 5 (hardest)."
+                }
+              ]
+            }
+          },
+          {
+            "type": "p",
+            "children": "If your rankings matched (or were close), congratulations — your intuitions about processing difficulty track surprisal almost perfectly. This is exactly what Levy (2008) demonstrated: reading times on words are linearly proportional to their surprisal."
+          },
+          {
+            "type": "Callout",
+            "props": { "type": "success" },
+            "children": [
+              {
+                "type": "p",
+                "children": "Key insight: processing difficulty isn't about the word itself. \"Telephone\" is an easy word. But \"telephone\" after \"The dog bit the\" is HARD — because it violates your expectations. Surprisal captures this: difficulty is always relative to context."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "Probability Mass and Parse Trees" },
+        "children": [
+          {
+            "type": "p",
+            "children": "Here's where it gets deeper. A sentence isn't just a string of words — it has STRUCTURE. At every point while reading, your brain is maintaining multiple possible structures (parse trees) for the sentence so far."
+          },
+          {
+            "type": "p",
+            "children": "Each parse tree has a probability. And here's the crucial constraint: all the probabilities must sum to 1. There's a fixed amount of probability mass, and it has to be distributed across all the structures you're entertaining."
+          },
+          {
+            "type": "p",
+            "children": "Now consider this sentence, word by word:"
+          },
+          {
+            "type": "p",
+            "children": "\"The dog scratched the vet and his new assistant...\""
+          },
+          {
+            "type": "p",
+            "children": "At this point, your parser is maintaining (at least) two analyses:"
+          },
+          {
+            "type": "InteractiveDemo",
+            "props": {
+              "title": "Two Parse Trees, One Sentence",
+              "prompt": "Look at these two possible structures for \"The dog scratched the vet and his new assistant...\" — which one do you think is more likely?",
+              "scenarios": [
+                {
+                  "input": "Parse A (92% probability): [The dog] scratched [the vet and his new assistant]. The conjoined NP \"the vet and his new assistant\" is the direct object of \"scratched.\" The sentence is almost complete — maybe a period comes next.",
+                  "reveal": "This is overwhelmingly the dominant parse. \"Scratched\" is transitive, \"the vet and his new assistant\" forms a natural direct object, and the sentence feels complete. Your parser assigns about 92% of its probability mass here."
+                },
+                {
+                  "input": "Parse B (8% probability): [The dog scratched the vet] and [his new assistant...]. \"The vet\" is the direct object, and \"his new assistant\" is the SUBJECT of a brand new main clause. The sentence is about to continue with a verb.",
+                  "reveal": "This is the minority parse. It requires \"and\" to conjoin two full clauses rather than two noun phrases. It's grammatically possible but much less expected. Only about 8% of probability mass sits here."
+                }
+              ]
+            }
+          },
+          {
+            "type": "p",
+            "children": "Now the next word arrives: \"...removed.\""
+          },
+          {
+            "type": "p",
+            "children": "\"The dog scratched the vet and his new assistant REMOVED the muzzle.\""
+          },
+          {
+            "type": "p",
+            "children": "Boom. Parse A just died. \"The vet and his new assistant\" CAN'T be the direct object of \"scratched\" — because \"removed\" is a main verb that needs \"his new assistant\" as its subject. ALL 92% of probability mass must instantly shift to Parse B."
+          },
+          {
+            "type": "Callout",
+            "props": { "type": "warning" },
+            "children": [
+              {
+                "type": "p",
+                "children": "Surprisal of \"removed\" = −log₂(0.08) ≈ 3.6 bits. That's a LOT of surprise. And readers show it: eye-tracking studies find dramatically increased reading times at exactly this word."
+              }
+            ]
+          },
+          {
+            "type": "Analogy",
+            "props": {
+              "concept": "Probability mass redistribution",
+              "analogy": "It's like betting 92% of your money on one horse, then watching it fall at the last fence. All that invested probability has to be frantically moved to the horse you barely noticed — and that frantic reallocation IS the processing difficulty you experience."
+            }
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "The PCFG: A Toy Grammar" },
+        "children": [
+          {
+            "type": "p",
+            "children": "Levy formalizes this with a Probabilistic Context-Free Grammar (PCFG). Don't let the name scare you — it's just a set of rules for building sentences, where each rule has a probability. Think of it as a recipe book where some recipes are more popular than others."
+          },
+          {
+            "type": "p",
+            "children": "Here's a simplified version of Levy's grammar:"
+          },
+          {
+            "type": "Example",
+            "props": {
+              "title": "The Grammar Rules",
+              "description": "S → NP VP [0.7] — A sentence is a noun phrase + verb phrase (70% of the time)\nS → S CONJ S [0.3] — A sentence is two sentences joined by \"and\" (30% of the time)\nVP → V NP [0.5] — A verb phrase is a verb + object (50%: transitive)\nVP → V [0.5] — A verb phrase is just a verb (50%: intransitive)\nNP → DET N [0.6] — A noun phrase is a determiner + noun\nNP → NP CONJ NP [0.4] — A noun phrase is two NPs joined by \"and\""
+            }
+          },
+          {
+            "type": "p",
+            "children": "Now let's play a game. We'll walk through our sentence word by word, watching the parse probabilities shift like a live scoreboard."
+          },
+          {
+            "type": "InteractiveDemo",
+            "props": {
+              "title": "Word-by-Word Parse Tracking",
+              "prompt": "Click through each word to see how the parser's probability distribution shifts. Watch Parse A's dominance grow — then collapse.",
+              "scenarios": [
+                {
+                  "input": "Word 1-3: \"The dog scratched\"",
+                  "reveal": "The parser builds: [NP: The dog] [VP: scratched...]. At this point, \"scratched\" could be transitive (takes an object, 50%) or intransitive (done, 50%). Both parses are alive. The grammar's VP rules split probability evenly."
+                },
+                {
+                  "input": "Word 4-5: \"...the vet\"",
+                  "reveal": "\"The vet\" looks like a direct object → VP → V NP parse is now dominant. Probability that this is a simple transitive sentence shoots up. Parse A (single clause) is winning big."
+                },
+                {
+                  "input": "Word 6: \"...and\"",
+                  "reveal": "\"And\" is ambiguous! It could conjoin NPs (\"the vet and X\" = compound object) OR conjoin sentences (\"The dog scratched the vet\" AND \"X did Y\"). NP conjunction is more common here → Parse A (compound object) gets ~92%. Parse B (clause conjunction) gets ~8%."
+                },
+                {
+                  "input": "Word 7-9: \"...his new assistant\"",
+                  "reveal": "Under Parse A (92%): \"his new assistant\" completes the compound object — \"scratched [the vet and his new assistant].\" Sentence feels done. Under Parse B (8%): \"his new assistant\" is the subject of a new clause. Waiting for a verb. The 92/8 split holds."
+                },
+                {
+                  "input": "Word 10: \"...REMOVED\" 💥",
+                  "reveal": "Parse A is IMPOSSIBLE — a completed VP can't have another verb. All 92% of probability mass crashes to zero. Parse B (8%) is now the ONLY viable analysis. Surprisal = −log₂(0.08) ≈ 3.6 bits. Your brain just did an emergency probability redistribution. THIS is why garden-path sentences are hard."
+                }
+              ]
+            }
+          },
+          {
+            "type": "DeepDive",
+            "props": {
+              "title": "Verb Bias: Why \"Scratched\" Creates a Stronger Garden Path Than \"Arrived\"",
+              "content": "The garden-path strength depends on the verb's transitivity bias. \"Scratched\" is strongly transitive — when you hear \"scratched,\" you EXPECT a direct object. This pushes even more probability mass onto Parse A. But consider: \"The dog arrived at the vet and his new assistant removed the muzzle.\" Here \"arrived\" is intransitive — there's no expectation of a direct object. So \"his new assistant\" is less likely to be parsed as part of a compound object, and more probability mass sits on Parse B from the start. Result: \"removed\" is LESS surprising after \"arrived\" than after \"scratched.\" The garden-path effect is weaker. Levy's PCFG captures this elegantly: different verbs have different VP rule probabilities, which cascade through the entire parse."
+            }
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "Two Reasons Surprisal Hurts" },
+        "children": [
+          {
+            "type": "p",
+            "children": "Why does high surprisal cause processing difficulty? There are actually two complementary explanations, and both are probably right."
+          },
+          {
+            "type": "p",
+            "children": "Explanation 1: RE-RANKING COST (Levy 2008)"
+          },
+          {
+            "type": "p",
+            "children": "When a surprising word arrives, probability mass must be massively redistributed across parse trees. The more mass that needs to move, the harder the processing. Difficulty is literally the work of reorganizing your beliefs."
+          },
+          {
+            "type": "Analogy",
+            "props": {
+              "concept": "Re-ranking cost",
+              "analogy": "You're a general who deployed 92% of your troops to the eastern front based on intelligence reports. Suddenly, new intel arrives: the real attack is coming from the WEST. The difficulty isn't understanding the new intel — it's the massive logistical cost of moving 92% of your army to the other side. That troop movement IS the processing cost of a garden-path sentence."
+            }
+          },
+          {
+            "type": "p",
+            "children": "Explanation 2: OPTIMAL PREPARATION (Smith & Levy 2008)"
+          },
+          {
+            "type": "p",
+            "children": "Your perceptual system pre-activates likely continuations. If you're 92% sure the sentence is wrapping up, you've optimized your word recognition for sentence-final words (periods, common endings). When \"removed\" shows up instead, your perceptual system is caught flat-footed — it takes longer to even IDENTIFY the word."
+          },
+          {
+            "type": "Analogy",
+            "props": {
+              "concept": "Optimal preparation",
+              "analogy": "You're a goalkeeper expecting a shot to the left — you've already shifted your weight, your muscles are pre-tensed for a leftward dive. When the shot goes right, your reaction time is slower. Not because the right side is inherently harder to reach, but because you prepared for the wrong direction. The preparation WAS optimal given your prediction — the prediction just turned out to be wrong."
+            }
+          },
+          {
+            "type": "Callout",
+            "props": { "type": "success" },
+            "children": [
+              {
+                "type": "p",
+                "children": "These two explanations are complementary, not competing. Re-ranking is about restructuring your syntactic analysis (top-down). Optimal preparation is about perceptual identification (bottom-up). Both predict that difficulty scales with surprisal, and both are supported by experimental evidence."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "Surprisal Meets Transformers" },
+        "children": [
+          {
+            "type": "p",
+            "children": "Here's where Levy's 2008 theory connects to modern AI. GPT-2 (and every autoregressive language model) computes the probability of the next token at every position. It literally computes surprisal as a byproduct of doing its job."
+          },
+          {
+            "type": "p",
+            "children": "But it gets more specific. In our research on GPT-2's Layer 11, we found something remarkable: \"consensus neurons\" that appear to track whether the current parse is on solid ground."
+          },
+          {
+            "type": "p",
+            "children": "When most neurons agree (high consensus), the model is confident — one parse dominates, surprisal is low. When consensus breaks down, it signals that probability mass is being redistributed — exactly what Levy's theory predicts at garden-path points."
+          },
+          {
+            "type": "InteractiveDemo",
+            "props": {
+              "title": "Levy's Theory → L11 Consensus: A Translation Table",
+              "prompt": "Each row maps a concept from Levy's surprisal theory to what we observe in GPT-2's Layer 11 neurons. Notice how the theoretical framework maps almost perfectly onto the neural architecture.",
+              "scenarios": [
+                {
+                  "input": "Levy: Multiple parse trees maintained in parallel, weighted by probability",
+                  "reveal": "L11: Multiple neuron activation patterns coexist, weighted by activation strength. The \"parse trees\" are distributed across neuron populations."
+                },
+                {
+                  "input": "Levy: Low surprisal = one dominant parse, high confidence",
+                  "reveal": "L11: High consensus = neurons agree on activation direction. The dominant parse has captured most of the representational space."
+                },
+                {
+                  "input": "Levy: High surprisal = probability mass collapsing, major re-ranking",
+                  "reveal": "L11: Consensus breakdown = neurons suddenly disagree. Activation patterns shift dramatically. This IS the re-ranking, happening in real time across the network."
+                },
+                {
+                  "input": "Levy: Predictable words reduce future surprisal (expectation setting)",
+                  "reveal": "L11: \"Either\" reduces surprisal at \"or\" (p=.019) AND boosts L11 consensus (p=.003). The cue word pre-allocates probability mass to the correct parse, reducing the re-ranking needed later."
+                },
+                {
+                  "input": "Levy: Garden-path difficulty = amount of probability mass redistributed",
+                  "reveal": "L11: Processing difficulty correlates with magnitude of consensus shift. Bigger consensus drops = harder sentences. The neural implementation mirrors the mathematical theory."
+                }
+              ]
+            }
+          },
+          {
+            "type": "Callout",
+            "props": { "type": "info" },
+            "children": [
+              {
+                "type": "p",
+                "children": "Our Experiment 06 finding: \"either\" in \"either...or\" constructions reduces surprisal at \"or\" (p=.019) AND boosts L11 consensus (p=.003). This is Levy's theory in action — the early cue pre-distributes probability mass so less re-ranking is needed when \"or\" arrives."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "Why This Matters for Language Models" },
+        "children": [
+          {
+            "type": "p",
+            "children": "Surprisal theory doesn't just explain human processing — it reveals a fundamental vulnerability in autoregressive language models."
+          },
+          {
+            "type": "p",
+            "children": "When humans hit a garden-path sentence, they experience difficulty — but they RECOVER. They re-rank their parse trees, shift probability mass, and arrive at the correct interpretation. The system is self-correcting."
+          },
+          {
+            "type": "p",
+            "children": "LLMs can't do this. They commit to one token at a time, and each commitment is permanent. If the model starts generating based on the wrong parse, it can't go back. The wrong commitment propagates forward, each token building on the mistake."
+          },
+          {
+            "type": "Callout",
+            "props": { "type": "warning" },
+            "children": [
+              {
+                "type": "p",
+                "children": "Hallucination, reframed: the model committed to a high-probability parse that turned out to be wrong. Unlike a human reader who can re-rank at a surprising word, the autoregressive model has already generated tokens based on the wrong analysis. Those tokens are now part of the context, reinforcing the error. It's a garden-path with no recovery mechanism."
+              }
+            ]
+          },
+          {
+            "type": "p",
+            "children": "This is why diffusion language models are so theoretically interesting. Instead of committing to one token at a time (left to right, no take-backs), diffusion models maintain ALL hypotheses simultaneously and resolve them gradually — like a human parser maintaining multiple parse trees."
+          },
+          {
+            "type": "Analogy",
+            "props": {
+              "concept": "Autoregressive vs. diffusion models",
+              "analogy": "An autoregressive model is like writing a story in ink — each word is permanent, and if you realize you took a wrong turn, you have to somehow make it work. A diffusion model is like writing in pencil, starting with a rough sketch of the whole story, then gradually sharpening the details. You can adjust any part at any time, because nothing is committed until the very end."
+            }
+          },
+          {
+            "type": "p",
+            "children": "Levy's surprisal theory, formulated in 2008 for human sentence processing, turns out to be a roadmap for understanding — and fixing — the failure modes of modern AI language models. The math of surprise is the math of intelligence."
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "Quiz" },
+        "children": [
+          {
+            "type": "Quiz",
+            "props": {
+              "questions": [
+                {
+                  "question": "A word has a probability of 0.125 (12.5%) given its context. What is its surprisal?",
+                  "options": [
+                    "1 bit",
+                    "2 bits",
+                    "3 bits",
+                    "8 bits"
+                  ],
+                  "correct": 2,
+                  "explanation": "Surprisal = −log₂(0.125) = −log₂(1/8) = log₂(8) = 3 bits. Each halving of probability adds 1 bit: 0.5 → 1 bit, 0.25 → 2 bits, 0.125 → 3 bits."
+                },
+                {
+                  "question": "In the garden-path sentence \"The dog scratched the vet and his new assistant removed the muzzle,\" why is \"removed\" so hard to process?",
+                  "options": [
+                    "\"Removed\" is a rare, difficult word",
+                    "92% of probability mass must be redistributed from the wrong parse to the right one",
+                    "The sentence is ungrammatical",
+                    "Readers don't know what \"removed\" means in this context"
+                  ],
+                  "correct": 1,
+                  "explanation": "\"Removed\" is a perfectly common word. The difficulty comes from the massive probability redistribution required: the dominant parse (92%) turns out to be wrong, and all that probability mass must shift to the minority parse (8%). That's 3.6 bits of surprisal."
+                },
+                {
+                  "question": "Why does \"scratched\" create a stronger garden-path effect than \"arrived\" in these constructions?",
+                  "options": [
+                    "\"Scratched\" is a longer word",
+                    "\"Scratched\" is transitive, so more probability mass goes to the direct-object parse",
+                    "\"Arrived\" is more formal",
+                    "\"Scratched\" activates more parse trees"
+                  ],
+                  "correct": 1,
+                  "explanation": "\"Scratched\" is strongly transitive — you expect it to take a direct object. This pushes more probability mass onto the parse where \"the vet and his new assistant\" is the direct object, making the garden-path stronger. \"Arrived\" is intransitive, so less mass accumulates on the wrong parse."
+                },
+                {
+                  "question": "How does \"either\" in \"either...or\" constructions relate to surprisal theory?",
+                  "options": [
+                    "It increases surprisal at \"or\" by adding complexity",
+                    "It has no effect on processing",
+                    "It reduces surprisal at \"or\" by pre-allocating probability mass to the correct parse",
+                    "It makes the sentence ungrammatical"
+                  ],
+                  "correct": 2,
+                  "explanation": "\"Either\" acts as a cue that \"or\" is coming, pre-distributing probability mass toward the disjunction parse. When \"or\" arrives, less re-ranking is needed, so surprisal is lower. Our experiments confirmed this: surprisal at \"or\" drops (p=.019) and L11 consensus increases (p=.003)."
+                },
+                {
+                  "question": "Why is hallucination in LLMs analogous to an unrecoverable garden-path?",
+                  "options": [
+                    "LLMs don't understand grammar",
+                    "LLMs commit to tokens autoregressively and can't re-rank previous commitments when new evidence arrives",
+                    "LLMs have lower surprisal than humans",
+                    "Hallucination and garden paths are unrelated phenomena"
+                  ],
+                  "correct": 1,
+                  "explanation": "Humans can re-rank parse trees when surprising input arrives — the garden path is recoverable. LLMs generate tokens left-to-right with no take-backs. If early tokens commit to the wrong analysis, that error propagates through all subsequent generation. It's a garden path with the recovery mechanism disabled."
+                }
+              ]
+            }
+          }
+        ]
+      }
+    ]
+  }
+}
