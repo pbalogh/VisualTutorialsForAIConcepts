@@ -5728,6 +5728,158 @@
           }
         ]
       }
+    ,
+      {
+        "type": "Section",
+        "title": "📅 March 12, 2026 Sweep",
+        "children": [
+          {
+            "type": "Callout",
+            "props": { "type": "info" },
+            "children": "5 new papers found. Theme: DLM efficiency (layer skipping, saliency caching), sampler correctness, and representation structure differences between AR and diffusion LLMs."
+          },
+          {
+            "type": "DeepDive",
+            "title": "[Mar 12] Skip to the Good Part: Representation Structure & Layer Skipping in dLLMs (Mar 8, 2026)",
+            "children": [
+              {
+                "type": "p",
+                "children": [
+                  { "type": "strong", "children": ["Paper:"] },
+                  " Goel et al., 'Skip to the Good Part: Representation Structure & Inference-Time Layer Skipping in Diffusion vs. Autoregressive LLMs' (arXiv:2603.07475, ICLR 2026 workshops)"
+                ]
+              },
+              {
+                "type": "p",
+                "children": [
+                  { "type": "strong", "children": ["Key insight:"] },
+                  " First layer-wise representational analysis comparing native dLLMs (LLaDA), AR models (Qwen2.5), and AR-initialized dLLMs (Dream-7B). Diffusion objectives produce MORE HIERARCHICAL abstractions with substantial early-layer redundancy and reduced recency bias. AR-initialized dLLMs retain AR-like dynamics despite diffusion training (persistent initialization bias). Native dLLMs achieve 18.75% FLOPs reduction via simple layer skipping while preserving >90% performance."
+                ]
+              },
+              {
+                "type": "p",
+                "children": [
+                  { "type": "strong", "children": ["Relevance:"] },
+                  " ⭐⭐⭐ DIRECTLY SUPPORTS IDEAS 1 & 3. The hierarchical abstraction finding means SAE features from different layers capture genuinely different semantic levels in dLLMs (more so than ARMs). The early-layer redundancy explains DLM-Scope's finding that SAE insertion helps early layers — there's slack to exploit. The initialization bias finding is a WARNING: if we adapt AR SAEs for diffusion models, the model's internal representations may not have fully shifted. Best to train SAEs directly on native dLLMs."
+                ]
+              }
+            ]
+          },
+          {
+            "type": "DeepDive",
+            "title": "[Mar 12] DyLLM: 9.6x Faster dLLM Inference via Saliency-Based Token Selection (Mar 9, 2026)",
+            "children": [
+              {
+                "type": "p",
+                "children": [
+                  { "type": "strong", "children": ["Paper:"] },
+                  " 'DyLLM: Efficient Diffusion LLM Inference via Saliency-based Token Selection and Partial Attention' (arXiv:2603.08026)"
+                ]
+              },
+              {
+                "type": "p",
+                "children": [
+                  { "type": "strong", "children": ["Key insight:"] },
+                  " Most token representations remain STABLE across denoising steps — only a small 'salient' subset changes meaningfully. DyLLM measures cosine similarity of attention contexts between steps, recomputes only salient tokens, caches the rest. Up to 9.6x throughput on LLaDA and Dream."
+                ]
+              },
+              {
+                "type": "p",
+                "children": [
+                  { "type": "strong", "children": ["Relevance:"] },
+                  " ⭐⭐ PRACTICAL FOR ALL IDEAS. The saliency signal (which tokens are actively being refined) is closely related to what SAE features should capture — the 'active generation frontier.' For Idea 4 (dictionary-guided denoising), SAE feature change magnitude could serve as an alternative saliency metric: tokens whose SAE features are shifting are the ones being refined. Also means SAE-guided interventions can be cheap — only apply SAE projection to salient tokens."
+                ]
+              }
+            ]
+          },
+          {
+            "type": "DeepDive",
+            "title": "[Mar 12] Sampler-Centric Evaluation: dLLM Samplers Are Not Distributionally Correct (Feb 23, 2026)",
+            "children": [
+              {
+                "type": "p",
+                "children": [
+                  { "type": "strong", "children": ["Paper:"] },
+                  " Tang et al., 'Is Your Diffusion Sampler Actually Correct? A Sampler-Centric Evaluation of Discrete Diffusion Language Models' (arXiv:2602.19619)"
+                ]
+              },
+              {
+                "type": "p",
+                "children": [
+                  { "type": "strong", "children": ["Key insight:"] },
+                  " Introduces oracle framework using exact HMM posterior to isolate sampler error from denoiser error. CRITICAL FINDING: few-step discrete diffusion samplers are NOT distributionally correct even with a perfect denoiser. Transition-level mismatch vanishes only as steps → sequence length. Moreover, improvements in NLL/perplexity/MAUVE do NOT imply correct sampling."
+                ]
+              },
+              {
+                "type": "p",
+                "children": [
+                  { "type": "strong", "children": ["Relevance:"] },
+                  " ⭐⭐⭐ CRITICAL WARNING for our project. If discrete diffusion samplers have inherent distributional errors, adding SAE-guided constraints could either HELP (by providing additional structure that compensates for sampler error) or HURT (by compounding errors). We need to consider SAE guidance as a form of implicit correction — projecting onto the SAE feature manifold might regularize sampling similarly to how classifier guidance works in image diffusion. Also: evaluation of SAE-guided generation needs to go beyond perplexity."
+                ]
+              }
+            ]
+          },
+          {
+            "type": "DeepDive",
+            "title": "[Mar 12] DLMs Are Natively Length-Aware (Mar 8, 2026)",
+            "children": [
+              {
+                "type": "p",
+                "children": [
+                  { "type": "strong", "children": ["Paper:"] },
+                  " 'Diffusion Language Models Are Natively Length-Aware' (arXiv:2603.06123)"
+                ]
+              },
+              {
+                "type": "p",
+                "children": [
+                  { "type": "strong", "children": ["Key insight:"] },
+                  " DLMs can use internal confidence scores to decide when to expand their canvas, inserting masked tokens where the sequence looks under-developed. This gives them native length control without explicit length conditioning — unlike AR models that need EoS token prediction."
+                ]
+              },
+              {
+                "type": "p",
+                "children": [
+                  { "type": "strong", "children": ["Relevance:"] },
+                  " ⭐ MINOR but relevant to Idea 3. The confidence-based expansion is another signal that could be informed by SAE features — SAE feature 'completeness' (whether all expected features for a concept are present) could guide where the canvas needs expansion."
+                ]
+              }
+            ]
+          },
+          {
+            "type": "DeepDive",
+            "title": "[Mar 12] CRL: RL Policy for Token-Level SAE Feature Steering (Feb 14, 2026)",
+            "children": [
+              {
+                "type": "p",
+                "children": [
+                  { "type": "strong", "children": ["Paper:"] },
+                  " 'Control Reinforcement Learning: Interpretable Token-Level Steering of LLMs via Sparse Autoencoder Features' (arXiv:2602.10437)"
+                ]
+              },
+              {
+                "type": "p",
+                "children": [
+                  { "type": "strong", "children": ["Key insight:"] },
+                  " Trains an RL policy that observes residual stream activations and selects which SAE feature to amplify at each token position. Produces interpretable intervention logs showing which features causally affect outputs. Goes beyond static feature clamping — learns WHEN and WHERE to apply SAE steering dynamically."
+                ]
+              },
+              {
+                "type": "p",
+                "children": [
+                  { "type": "strong", "children": ["Relevance:"] },
+                  " ⭐⭐⭐ DIRECT SUPPORT FOR IDEA 4. CRL's token-level dynamic SAE steering is exactly what dictionary-guided denoising needs in a diffusion setting. Instead of applying SAE projection uniformly, learn a policy that selects which SAE features to amplify at each denoising step and token position. Combined with DyLLM's saliency signal, the policy could focus SAE steering on actively-denoising tokens. CRL is for AR LLMs; extending to dLLMs (where the policy also conditions on timestep/noise level) is the natural next step."
+                ]
+              }
+            ]
+          },
+          {
+            "type": "Callout",
+            "props": { "type": "tip" },
+            "children": "Running total: ~67 tracked papers. Key theme this sweep: dLLM representations are fundamentally different from AR (more hierarchical, redundant early layers, robust to skipping). This structural difference supports our hypothesis that SAE features will interact differently — and potentially better — with diffusion computation. The sampler correctness paper is an important caveat for evaluation methodology."
+          }
+        ]
+      }
     ]
   }
 }
