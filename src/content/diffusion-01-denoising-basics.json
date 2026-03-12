@@ -1,0 +1,476 @@
+{
+  "id": "diffusion-01-denoising-basics",
+  "title": "Text Diffusion I: The Art of Controlled Destruction",
+  "subtitle": "How denoising works, and why words make it hard",
+  "readTime": "25 min",
+  "state": {},
+  "content": {
+    "type": "Fragment",
+    "children": [
+      {
+        "type": "Section",
+        "props": { "title": "The Art of Controlled Destruction" },
+        "children": [
+          {
+            "type": "p",
+            "children": "Here's something you already understand, even if you don't know it yet."
+          },
+          {
+            "type": "p",
+            "children": "Take a photograph. A crisp, beautiful photo of a cat. Now add a little static — like bad TV reception. The cat is still clearly a cat, just slightly fuzzy. Add more static. Now it's blobby — you can tell there's SOMETHING there, maybe an animal, but the details are gone. Add even more. Now it's pure noise. Random pixels. The cat is completely destroyed."
+          },
+          {
+            "type": "p",
+            "children": "You just performed the FORWARD process of diffusion. You systematically destroyed information, step by step, until nothing was left but chaos."
+          },
+          {
+            "type": "p",
+            "children": "Now here's the magic trick: what if you could train a neural network to REVERSE this process?"
+          },
+          {
+            "type": "Callout",
+            "props": { "type": "success" },
+            "children": [
+              {
+                "type": "p",
+                "children": "Give the network pure static, and it produces a photo. Give it a blobby mess, and it cleans it up into something recognizable. Give it a slightly fuzzy image, and it sharpens it to perfection. The network learns to DENOISE — to undo destruction, one step at a time."
+              }
+            ]
+          },
+          {
+            "type": "p",
+            "children": "That's diffusion. The entire idea, in one sentence: learn to denoise. Everything else — the math, the architectures, the noise schedules — is details. The core insight is that DESTROYING information is easy (just add noise), and if you can learn to REVERSE that destruction, you have a generative model."
+          },
+          {
+            "type": "InteractiveDemo",
+            "props": {
+              "title": "The Forward and Reverse Process",
+              "prompt": "Watch a signal get destroyed step by step, then watch the denoiser bring it back. Each step only needs to make the signal a LITTLE bit cleaner.",
+              "scenarios": [
+                {
+                  "input": "→ Step 0 (Clean): \"The cat sat on the mat\"",
+                  "reveal": "A perfect, clear signal. Every word is exactly right. This is our starting point — the thing we want to generate. But we're going to destroy it first."
+                },
+                {
+                  "input": "→ Step 1 (Light noise): \"The cat sat ○○ the mat\"",
+                  "reveal": "A little noise. Some words are corrupted (shown as ○○), but the overall structure is intact. You can still tell this is a sentence about a cat sitting on a mat. Most of the information survives."
+                },
+                {
+                  "input": "→ Step 2 (Heavy noise): \"○○ cat ○○ ○○ ○○ ○○\"",
+                  "reveal": "Most words are gone. Only 'cat' survives. You might guess this is about a cat, but you've lost the structure, the verb, the location. The signal is mostly destroyed."
+                },
+                {
+                  "input": "→ Step 3 (Pure noise): \"○○ ○○ ○○ ○○ ○○ ○○\"",
+                  "reveal": "Complete destruction. Pure noise. No information remains. This is where GENERATION starts — the denoiser takes this chaos and works backward through steps 2 → 1 → 0, gradually recovering the signal. At each step, it only needs to make a SMALL improvement. That's the key insight: small steps are easy. Creating a perfect sentence from nothing is hard."
+                }
+              ]
+            }
+          },
+          {
+            "type": "p",
+            "children": "Notice something crucial: the forward process (adding noise) requires NO intelligence. It's random destruction. A coin flip could do it. But the reverse process (removing noise) requires a neural network that has LEARNED the structure of the data — what cats look like, how sentences work, what's plausible and what isn't. All the intelligence is in the denoiser."
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "Why Not Just Generate Directly?" },
+        "children": [
+          {
+            "type": "p",
+            "children": "You might be wondering: why go through all this noise-and-denoise business? Why not just train a network to generate a perfect image (or sentence) in one shot?"
+          },
+          {
+            "type": "p",
+            "children": "Because generating a complex thing ALL AT ONCE is absurdly hard. Think about it: to generate a 256×256 image, you need to simultaneously decide the color of 65,536 pixels, all of which need to be consistent with each other. A sky pixel needs to be blue, but only if the pixels below it look like a landscape. Every pixel depends on every other pixel. The space of possible decisions is astronomical."
+          },
+          {
+            "type": "p",
+            "children": "Denoising, by contrast, is EASY. At each step, you just need to make the signal a tiny bit cleaner. You don't need to solve the whole problem at once — you just need to nudge things in the right direction. A thousand small, easy steps instead of one impossible leap."
+          },
+          {
+            "type": "Analogy",
+            "props": {
+              "concept": "Why Iterative Refinement Beats One-Shot Generation",
+              "analogy": "Michelangelo didn't generate the statue of David from nothing. He started with a block of marble — formless, shapeless, pure potential — and REMOVED what wasn't David. Chip by chip, pass by pass. First the rough shape (head, torso, legs). Then the muscles. Then the fingernails. Diffusion works exactly the same way: start with noise (the marble block) and remove what isn't your target. Each pass refines the result further.",
+              "insight": "The key insight is that SUBTRACTION is easier than CREATION. It's easier to look at a rough shape and say 'this part isn't right' than to imagine the final result from scratch. Denoising is subtraction — removing noise to reveal the signal underneath."
+            }
+          },
+          {
+            "type": "Analogy",
+            "props": {
+              "concept": "Diffusion as Essay Writing",
+              "analogy": "Nobody writes a perfect essay in one pass. You start with a rough draft — messy, full of errors, but it captures the general idea. Then you edit: fix the structure, sharpen the arguments, clean up the grammar. Then you polish: word choice, rhythm, punctuation. Each pass makes the essay a little better. The rough draft is the noisy signal. Editing is denoising. The final essay is the clean output.",
+              "insight": "This is why diffusion feels natural: it mirrors how humans actually create things. We don't generate perfection from nothing — we iterate. Rough to refined. Noisy to clean. First drafts to final drafts."
+            }
+          },
+          {
+            "type": "Callout",
+            "props": { "type": "info" },
+            "children": [
+              {
+                "type": "p",
+                "children": "Technical aside: this is also why diffusion models are STABLE to train, unlike GANs. A GAN has to learn to generate perfect images from scratch — one network creates, another criticizes, and the training process is notoriously unstable. Diffusion sidesteps this entirely: the training objective is just 'given this noisy input, predict a slightly cleaner version.' That's a simple regression problem. Easy to train. Easy to scale."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "The Noise Schedule" },
+        "children": [
+          {
+            "type": "p",
+            "children": "Not all noise is created equal. This is one of the most important — and most underappreciated — ideas in diffusion."
+          },
+          {
+            "type": "p",
+            "children": "Think about it: when the image is VERY noisy (almost pure static), the denoiser is making BIG decisions. 'Is this a cat or a dog? Is this indoors or outdoors?' These are coarse, structural choices. But when the image is ALMOST clean (just a tiny bit fuzzy), the denoiser is making tiny refinements. 'Is this pixel slightly more blue or slightly more green? Is the fur texture smooth or fluffy?'"
+          },
+          {
+            "type": "p",
+            "children": "The noise schedule — how much noise is present at each timestep — controls this hierarchy. And the hierarchy is EVERYTHING."
+          },
+          {
+            "type": "Example",
+            "props": { "title": "What the Denoiser Decides at Each Noise Level" },
+            "children": [
+              {
+                "type": "p",
+                "children": "t = 1000 (pure noise): 'Is this a cat or a dog?' → Decide the overall CATEGORY. The coarsest possible decision. Getting this wrong means everything downstream is wrong too."
+              },
+              {
+                "type": "p",
+                "children": "t = 500 (half noise): 'Where are the eyes? Is the cat sitting or standing?' → Set the MID-LEVEL features. The big shape is decided; now fill in the important parts."
+              },
+              {
+                "type": "p",
+                "children": "t = 100 (almost clean): 'Is the fur slightly brown or slightly tan? Is there a tiny highlight on the whisker?' → FINE details. The structure is locked in; now polish."
+              }
+            ]
+          },
+          {
+            "type": "p",
+            "children": "This coarse-to-fine hierarchy is the secret sauce. Structure first, details later. It's exactly how a painter works: sketch the composition, then block in the colors, then add the details. It's exactly how an architect works: floor plan, then walls, then doorknobs."
+          },
+          {
+            "type": "InteractiveDemo",
+            "props": {
+              "title": "What Does the Denoiser 'See'?",
+              "prompt": "At different noise levels, the denoiser perceives completely different things. Imagine looking at a photo through increasingly thick fog.",
+              "scenarios": [
+                {
+                  "input": "High noise (t=900): The denoiser sees...",
+                  "reveal": "BLOBS. Vague regions of light and dark. 'There's something warm-colored in the center and something cool-colored around it.' That's ALL the information available. The denoiser must decide: is this a face? A cat? A sunset? The GLOBAL structure is all that survives heavy noise. This is where the most important decisions happen — and they're made with the LEAST information. Terrifying, but it works because the denoiser has seen millions of training examples."
+                },
+                {
+                  "input": "Medium noise (t=500): The denoiser sees...",
+                  "reveal": "SHAPES. 'That blob in the center has two pointed things on top — probably ears. There's a triangular region below — probably a nose.' The overall structure is set (it's a cat, not a sunset), and now the denoiser is filling in the mid-level features. Eyes, ears, mouth. The pose, the angle. Still blurry, but recognizably a cat."
+                },
+                {
+                  "input": "Low noise (t=100): The denoiser sees...",
+                  "reveal": "TEXTURES. The cat is clearly visible — now it's about the fine details. Individual whiskers. The exact shade of the iris. The pattern of the fur. Whether there's a tiny reflection in the eye. These decisions barely matter for 'what' the image is, but they matter enormously for 'how good' it looks."
+                },
+                {
+                  "input": "Why this hierarchy is inevitable",
+                  "reveal": "This isn't a design choice — it's a MATHEMATICAL consequence of how noise works. High-frequency details (textures, edges) are destroyed FIRST by noise, because they're small variations that get swamped. Low-frequency structure (overall shapes, colors) survives longer because it's a large-scale pattern. So the reverse process naturally recovers low-frequency structure first and high-frequency details last. Coarse-to-fine is built into the physics of noise itself."
+                }
+              ]
+            }
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "From Images to... Words?" },
+        "children": [
+          {
+            "type": "p",
+            "children": "Everything we've discussed so far works beautifully for images. Pixel values are CONTINUOUS — a pixel can be 127.3 or 127.4, and both make sense. You can add 0.5 of noise to a pixel and get a slightly different but perfectly valid pixel value."
+          },
+          {
+            "type": "p",
+            "children": "Words are not like this."
+          },
+          {
+            "type": "Callout",
+            "props": { "type": "warning" },
+            "children": [
+              {
+                "type": "p",
+                "children": "There is no 'halfway between cat and dog.' You can't add 0.3 of noise to the word 'the.' A word is either 'the' or it's not — there's no continuous space between words. This DISCRETENESS is THE fundamental challenge of applying diffusion to language."
+              }
+            ]
+          },
+          {
+            "type": "p",
+            "children": "So how do you add noise to something that can't be noised? Three clever solutions have emerged, each with its own philosophy."
+          },
+          {
+            "type": "Example",
+            "props": { "title": "Approach 1: Masking (MDLM, LLaDA)" },
+            "children": [
+              {
+                "type": "p",
+                "children": "The simplest idea: don't add Gaussian noise — just MASK words. Replace random tokens with a special [MASK] token. More noise = more masks. Pure noise = every word is [MASK]."
+              },
+              {
+                "type": "p",
+                "children": "Denoising = unmasking. The model sees 'The [MASK] sat on the [MASK]' and predicts the hidden words. This is literally what BERT was trained to do — masked language modeling. The insight of MDLM and LLaDA is: if you do this ITERATIVELY, with a noise schedule that controls how many masks there are at each step, you get a diffusion model."
+              },
+              {
+                "type": "p",
+                "children": "Pros: Simple, well-understood, works with discrete tokens directly. Cons: The noise is 'all or nothing' for each token — a word is either fully visible or fully masked. No 'partially noisy' words."
+              }
+            ]
+          },
+          {
+            "type": "Example",
+            "props": { "title": "Approach 2: Continuous Embedding (CoDAR)" },
+            "children": [
+              {
+                "type": "p",
+                "children": "The ambitious idea: convert words into continuous EMBEDDINGS (768-dimensional vectors), add Gaussian noise in that continuous space, and denoise there. Now you can do 'real' diffusion — the same math that works for images."
+              },
+              {
+                "type": "p",
+                "children": "The catch: after denoising, you have a clean 768-dimensional vector, but you need a WORD. You have to 'round' the continuous vector back to the nearest discrete token. This rounding step is where things get tricky — small errors in continuous space can flip you to a completely wrong word."
+              },
+              {
+                "type": "p",
+                "children": "Pros: True continuous diffusion, full mathematical framework. Cons: The 'rounding problem' — a denoised embedding that's 99% correct might still map to the wrong word."
+              }
+            ]
+          },
+          {
+            "type": "Example",
+            "props": { "title": "Approach 3: Score-Based (SEDD)" },
+            "children": [
+              {
+                "type": "p",
+                "children": "The mathematical idea: instead of adding noise, define TRANSITION PROBABILITIES between tokens. At each noise step, each token has some probability of flipping to a different token. 'Cat' might become 'car' or 'bat' or 'the' — with probabilities that depend on the noise level."
+              },
+              {
+                "type": "p",
+                "children": "The denoiser learns a 'score function' that tells it: given this collection of possibly-corrupted tokens, what's the most likely original? This is mathematically elegant and powerful, but harder to implement and understand."
+              },
+              {
+                "type": "p",
+                "children": "Pros: Principled, handles discreteness natively, strong theoretical foundation. Cons: Complex math, harder to train, less intuitive."
+              }
+            ]
+          },
+          {
+            "type": "InteractiveDemo",
+            "props": {
+              "title": "Three Ways to Corrupt (and Recover) a Sentence",
+              "prompt": "Watch each approach corrupt and then recover the sentence: 'The cat sat on mats'. Same sentence, three completely different strategies.",
+              "scenarios": [
+                {
+                  "input": "Masking approach — Forward (adding noise)",
+                  "reveal": "Step 0: 'The cat sat on mats' → Step 1: 'The [M] sat on [M]' → Step 2: '[M] [M] sat [M] [M]' → Step 3: '[M] [M] [M] [M] [M]'. Each step randomly masks more words. At full noise, everything is masked. Reverse: unmask words one (or a few) at a time: '[M] cat [M] [M] [M]' → '[M] cat sat [M] [M]' → 'The cat sat on mats'. Simple, discrete, clean."
+                },
+                {
+                  "input": "Continuous embedding approach — Forward (adding noise)",
+                  "reveal": "Step 0: [vec_The, vec_cat, vec_sat, vec_on, vec_mats] — five 768-dim vectors. Step 1: Add small Gaussian noise to each vector. vec_cat is now slightly displaced — still closest to 'cat' but drifting. Step 2: More noise. vec_cat has drifted far — it's now equidistant from 'cat,' 'car,' and 'bat.' Step 3: Pure noise. Each vector is random — could be anything. Reverse: denoise the vectors, then 'round' each one to its nearest word. Risky: if the denoised vec_cat lands slightly closer to 'car' than 'cat,' you get the wrong word."
+                },
+                {
+                  "input": "Score-based approach — Forward (adding noise)",
+                  "reveal": "Step 0: 'The cat sat on mats'. Step 1: Each token has a small chance of flipping. 'cat' → 'cat' (stayed), 'on' → 'in' (flipped!). Result: 'The cat sat in mats'. Step 2: More flipping. 'The' → 'A', 'sat' → 'set'. Result: 'A cat set in mats'. Step 3: So many flips that the sentence is random tokens: 'Her fly set in blue'. Reverse: the score function estimates the most likely original for each position, gradually steering random tokens back toward the true sentence."
+                },
+                {
+                  "input": "Which approach wins?",
+                  "reveal": "There's no clear winner yet — this is active research! Masking (MDLM, LLaDA) is currently the most popular because it's simple and effective. Continuous embedding (CoDAR) is theoretically elegant but struggles with the rounding problem. Score-based (SEDD) has strong math but is complex to train. The field is moving fast — the 'best' approach might change by the time you finish reading this tutorial."
+                }
+              ]
+            }
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "768 Dimensions of Confusion" },
+        "children": [
+          {
+            "type": "p",
+            "children": "Let's dig into the continuous embedding approach, because it reveals something deeply weird — and deeply important — about how language works in high-dimensional space."
+          },
+          {
+            "type": "p",
+            "children": "A word embedding is a point in 768-dimensional space. The word 'king' sits at one specific point — a list of 768 numbers like (0.31, -0.22, 0.74, -0.15, ...). The word 'queen' sits at a nearby but different point. 'Table' sits far away from both. Words with similar meanings cluster together; unrelated words are distant."
+          },
+          {
+            "type": "p",
+            "children": "When you add Gaussian noise to a 768-dimensional embedding, you're randomly pushing that point in 768 directions SIMULTANEOUSLY. Imagine someone grabbing your position in space and jostling you — but instead of 3 dimensions, it's 768. The point drifts. And how far it drifts determines everything."
+          },
+          {
+            "type": "Example",
+            "props": { "title": "What Noise Does to an Embedding" },
+            "children": [
+              {
+                "type": "p",
+                "children": "Low noise: The point for 'king' shifts slightly. It's still in the 'royalty neighborhood' of embedding space — closest to 'king,' with 'queen,' 'prince,' and 'monarch' as nearby neighbors. The denoiser can confidently say: 'This is probably king.'"
+              },
+              {
+                "type": "p",
+                "children": "Medium noise: The point has drifted further. It's left the royalty neighborhood. Now 'king' and 'queen' and 'ruler' and 'leader' are all roughly equidistant. Even 'kingdom' and 'crown' are plausible. The denoiser has to make a real choice."
+              },
+              {
+                "type": "p",
+                "children": "High noise: The point is effectively random. It could be near ANY word in the vocabulary. 'King' is no more likely than 'table' or 'purple' or 'although.' The denoiser is flying blind — it must rely entirely on CONTEXT (what are the other words in the sentence doing?) to guess this word."
+              }
+            ]
+          },
+          {
+            "type": "Analogy",
+            "props": {
+              "concept": "Denoising in High Dimensions",
+              "analogy": "You're in a pitch-dark room with 768 walls. Someone places an object somewhere in the room and tells you its approximate coordinates: (0.31, -0.22, 0.74, ...) plus or minus some error. With small error, you can feel around and identify it — 'this is roughly where the crown is kept.' With large error, you could be ANYWHERE in the room. Your only hope is context: 'I know there's a throne nearby, so this is probably royalty-related.' With enough training — with having explored this room millions of times — you develop an intuition for what's where, even in the dark.",
+              "insight": "The denoiser is essentially a navigator in 768-dimensional embedding space. At low noise, navigation is easy — you're close to home. At high noise, you need contextual landmarks to find your way back."
+            }
+          },
+          {
+            "type": "DeepDive",
+            "props": {
+              "title": "The Blessing of Dimensionality",
+              "content": "Here's the counterintuitive part: 768 dimensions is actually HELPFUL, not harmful. In low dimensions (say, 2D), words would be crammed together — 'king' and 'table' might be uncomfortably close, and even small noise could push you from one to the other. But in 768 dimensions, there's an enormous amount of SPACE. Different concepts can be genuinely far apart. The distance between 'king' and 'table' in 768D is much larger (relative to the noise level) than it would be in 2D. This means that even fairly noisy embeddings are DISTINGUISHABLE — the denoiser can still tell royalty from furniture. High dimensions create natural separation between concepts. This is sometimes called the 'blessing of dimensionality' — the counterpart to the more famous 'curse.' In diffusion, having lots of dimensions means the denoiser has lots of distinguishing information to work with, even when individual dimensions are noisy. The noise in dimension 47 might be uninformative, but the PATTERN across all 768 dimensions still carries a clear signal."
+            }
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "Why This Matters" },
+        "children": [
+          {
+            "type": "p",
+            "children": "Let's step back and ask the big question: why should you care about text diffusion? We already have GPT, Claude, and other autoregressive models that generate text beautifully. What does diffusion offer that they don't?"
+          },
+          {
+            "type": "p",
+            "children": "The answer is in how decisions get made."
+          },
+          {
+            "type": "Callout",
+            "props": { "type": "warning" },
+            "children": [
+              {
+                "type": "p",
+                "children": "Autoregressive models (GPT, Claude) generate text LEFT TO RIGHT, one token at a time. Each token decision is FINAL. Once 'The cat sat on the' is generated, those words are locked in. If the model realizes at word 15 that word 3 should have been different... too bad. It can't go back. Every decision is a one-way door."
+              }
+            ]
+          },
+          {
+            "type": "Callout",
+            "props": { "type": "success" },
+            "children": [
+              {
+                "type": "p",
+                "children": "Diffusion models generate ALL tokens SIMULTANEOUSLY, refining them gradually over many steps. At step 100, every word is still provisional — still noisy, still changeable. At step 500, things are firming up but corrections are still possible. Only at the FINAL step are decisions locked in. Every decision is a two-way door until the very end."
+              }
+            ]
+          },
+          {
+            "type": "p",
+            "children": "This means diffusion can FIX MISTAKES. If the model commits to 'cat' at position 3 in step 200, but by step 400 it becomes clear that 'dog' would be more consistent with the rest of the sentence... it can change it. The model can revise, reconsider, and self-correct throughout the generation process."
+          },
+          {
+            "type": "p",
+            "children": "Think about that in the context of hallucination. One of the biggest problems with autoregressive models is that they sometimes commit to a false claim early in a sentence and then have to BUILD ON that false claim for the rest of the response — they can't go back and fix it. Diffusion models, in principle, can catch and correct these errors mid-generation."
+          },
+          {
+            "type": "Analogy",
+            "props": {
+              "concept": "Autoregressive vs. Diffusion Generation",
+              "analogy": "Autoregressive generation is like writing with a pen on paper — permanent, sequential, no going back. If you misspell a word on line 3, you either cross it out messily or live with it. Diffusion generation is like writing with a pencil and having unlimited eraser access — you sketch the whole essay roughly, then refine every part simultaneously. Nothing is permanent until you decide you're done.",
+              "insight": "The ability to revise globally — to change any part of the output at any time — is fundamentally different from sequential generation. It's the difference between a first draft and a final draft, between a sketch and a painting. Diffusion models think in drafts."
+            }
+          },
+          {
+            "type": "p",
+            "children": "There's another advantage too: diffusion naturally supports CONSTRAINED generation. Want to generate text that starts with 'Once upon a time' and ends with 'happily ever after'? With autoregressive models, you can fix the beginning but not the ending — the model generates forward and hopes for the best. With diffusion, you can FIX BOTH ENDPOINTS and let the model fill in the middle. This is called a Brownian Bridge, and it's the subject of our next tutorial."
+          },
+          {
+            "type": "Callout",
+            "props": { "type": "info" },
+            "children": [
+              {
+                "type": "p",
+                "children": "Coming up in this series: Tutorial 2 covers the Brownian Bridge — how to control both the start and end of generated text. Tutorial 3 dives into MDLM and LLaDA, the masking-based approaches that are currently leading the pack. Tutorial 4 explores how text diffusion might finally solve the hallucination problem."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "Quiz" },
+        "children": [
+          {
+            "type": "Quiz",
+            "props": {
+              "questions": [
+                {
+                  "question": "What is the core idea of diffusion models?",
+                  "options": [
+                    "Generate perfect outputs in a single forward pass",
+                    "Learn to reverse a gradual noise-adding process (denoising)",
+                    "Use adversarial training between a generator and discriminator",
+                    "Compress data into a latent space and decode it"
+                  ],
+                  "correct": 1,
+                  "explanation": "Diffusion = learn to denoise. The forward process adds noise step by step; the model learns to reverse this process, recovering clean data from noisy data one small step at a time."
+                },
+                {
+                  "question": "In the noise schedule, what kind of decisions does the denoiser make at HIGH noise levels (early in the reverse process)?",
+                  "options": [
+                    "Fine texture details like fur patterns",
+                    "Exact pixel colors and shading",
+                    "Coarse structural decisions like 'is this a cat or a dog?'",
+                    "Grammar and punctuation corrections"
+                  ],
+                  "correct": 2,
+                  "explanation": "At high noise, only the coarsest structure survives — blobs and overall shapes. The denoiser makes BIG structural decisions first (category, composition) and refines details in later, lower-noise steps. Coarse to fine."
+                },
+                {
+                  "question": "Why is applying diffusion to TEXT harder than to images?",
+                  "options": [
+                    "Text has more dimensions than images",
+                    "Text is sequential while images are 2D",
+                    "Words are discrete — you can't add 0.3 of noise to the word 'the'",
+                    "Text requires more training data than images"
+                  ],
+                  "correct": 2,
+                  "explanation": "The fundamental challenge is discreteness. Pixel values are continuous (you can add tiny amounts of noise), but words are discrete tokens with no 'in between.' This requires creative solutions like masking, continuous embeddings, or score-based transitions."
+                },
+                {
+                  "question": "What is the key advantage of diffusion models over autoregressive models (like GPT) for text generation?",
+                  "options": [
+                    "Diffusion models are faster at generating text",
+                    "Diffusion models use less memory",
+                    "Diffusion models can revise any token at any point during generation",
+                    "Diffusion models don't need training data"
+                  ],
+                  "correct": 2,
+                  "explanation": "Because diffusion generates all tokens simultaneously and refines them gradually, no decision is final until the end. The model can catch and fix mistakes at any point — unlike autoregressive models, which commit to each token permanently as they go."
+                },
+                {
+                  "question": "Why are 768 dimensions actually HELPFUL for continuous embedding diffusion (the 'blessing of dimensionality')?",
+                  "options": [
+                    "More dimensions means more parameters, so the model is smarter",
+                    "High-dimensional spaces provide more room for different concepts to be far apart, making noisy signals more distinguishable",
+                    "768 dimensions is the minimum needed to represent the English vocabulary",
+                    "More dimensions make the noise schedule easier to design"
+                  ],
+                  "correct": 1,
+                  "explanation": "In high dimensions, different concepts are naturally far apart. Even when individual dimensions are noisy, the PATTERN across all 768 dimensions still carries a distinguishable signal. More space = more separation = easier denoising."
+                }
+              ]
+            }
+          }
+        ]
+      }
+    ]
+  }
+}
