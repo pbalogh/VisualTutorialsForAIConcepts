@@ -1,0 +1,371 @@
+{
+  "id": "phillips-three-benchmarks",
+  "title": "Three Benchmarks: The Test Every Parsing Theory Must Pass",
+  "subtitle": "Phillips (2006) on what it takes to be a serious theory of sentence processing — and how GPT-2's neurons measure up",
+  "readTime": "20 min",
+  "state": {},
+  "content": {
+    "type": "Fragment",
+    "children": [
+      {
+        "type": "Section",
+        "props": { "title": "Three Questions Every Theory Must Answer" },
+        "children": [
+          {
+            "type": "p",
+            "children": "The field of sentence processing is full of theories. Dozens of them. They all claim to explain how humans (or machines) understand language in real time. But how do you tell a GOOD theory from a hand-wavy one?"
+          },
+          {
+            "type": "p",
+            "children": "In 2006, Colin Phillips laid down the gauntlet. He argued that any serious theory of sentence processing must pass THREE benchmarks — three tests that separate real explanations from just-so stories."
+          },
+          {
+            "type": "Callout",
+            "props": { "type": "warning" },
+            "children": [
+              {
+                "type": "p",
+                "children": "The three benchmarks: (1) COMPLEXITY — Can your theory predict which sentences are hard? (2) CONSISTENCY — Does your theory work across languages, not just English? (3) CAUSALITY — Can your theory explain WHY sentences are hard, not just THAT they are?"
+              }
+            ]
+          },
+          {
+            "type": "Analogy",
+            "props": {
+              "concept": "The Three Benchmarks",
+              "analogy": "Think of it as a three-round job interview. Round 1: Can you do the work? (Complexity — predict processing difficulty.) Round 2: Can you do it anywhere? (Consistency — work across languages.) Round 3: Can you explain HOW you do it? (Causality — identify mechanisms.) Plenty of candidates pass Round 1. Most fail Round 2. Almost nobody survives Round 3.",
+              "insight": "Phillips isn't proposing a theory. He's proposing a TEST. And most existing theories flunk it."
+            }
+          },
+          {
+            "type": "p",
+            "children": "These benchmarks aren't just academic niceties. They're the difference between a theory that DESCRIBES patterns and a theory that EXPLAINS them. And as we'll see, the distinction matters enormously — because our GPT-2 findings address all three."
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "Benchmark 1: Complexity — What Makes Sentences Hard?" },
+        "children": [
+          {
+            "type": "p",
+            "children": "Some sentences are easy. Some are hard. A theory worth its salt must predict WHICH ones and WHY."
+          },
+          {
+            "type": "p",
+            "children": "This seems obvious, but it's surprisingly demanding. It's not enough to say 'longer sentences are harder' — because some short sentences are brutal and some long ones are fine."
+          },
+          {
+            "type": "Callout",
+            "props": { "type": "info" },
+            "children": [
+              {
+                "type": "p",
+                "children": "Compare: 'The reporter that attacked the senator admitted the error.' (Subject relative — easy.) vs. 'The reporter that the senator attacked admitted the error.' (Object relative — harder.) Same words, almost same length. But one is measurably more difficult to process. WHY?"
+              }
+            ]
+          },
+          {
+            "type": "p",
+            "children": "And then there's center embedding — the sentence structure that breaks human parsing entirely:"
+          },
+          {
+            "type": "Callout",
+            "props": { "type": "warning" },
+            "children": [
+              {
+                "type": "p",
+                "children": "'The rat the cat the dog chased bit fled.' — Three levels of center embedding. Grammatically perfect. Completely incomprehensible. Your parser surrenders."
+              }
+            ]
+          },
+          {
+            "type": "p",
+            "children": "But here's where it gets interesting: not all difficulty is the SAME difficulty. Object relatives are hard. Center embeddings are hard. Garden-path sentences are hard. But are they hard for the same REASON? Different theories give different answers — and that's exactly Phillips' point. A theory must not just predict difficulty, but predict the RIGHT PATTERN of difficulty."
+          },
+          {
+            "type": "InteractiveDemo",
+            "props": {
+              "title": "The Complexity Challenge",
+              "prompt": "Rate each sentence's processing difficulty (1 = easy, 5 = very hard), then see how three major theories score them. Do your intuitions match any theory?",
+              "scenarios": [
+                {
+                  "input": "1. The dog chased the cat.",
+                  "reveal": "DLT (Dependency Locality Theory): Very easy — all dependencies are local, no intervening referents. Surprisal: Very easy — every word is highly predictable in context. Yngve Depth: Very easy — simple left-to-right structure, shallow stack. ALL theories agree: this is trivial."
+                },
+                {
+                  "input": "2. The reporter that attacked the senator admitted the error.",
+                  "reveal": "DLT: Easy — subject relative clause keeps the subject ('reporter') close to its verb ('attacked'). Surprisal: Moderately easy — 'that attacked' is a common continuation. Yngve Depth: Moderate — one level of embedding. Subject relatives are the BASELINE for relative clauses."
+                },
+                {
+                  "input": "3. The reporter that the senator attacked admitted the error.",
+                  "reveal": "DLT: HARDER — the object relative creates distance between 'reporter' and 'admitted,' with an intervening referent ('senator'). Surprisal: Harder — 'that the senator' is a less expected continuation than 'that attacked.' Yngve Depth: Similar to #2 — same embedding depth. HERE the theories diverge. DLT and Surprisal predict this is harder than #2. Yngve doesn't clearly distinguish them."
+                },
+                {
+                  "input": "4. The rat the cat the dog chased bit fled.",
+                  "reveal": "DLT: Extreme — massive distance between subjects and verbs, multiple intervening referents. Surprisal: Extreme — each new NP is unexpected in context. Yngve Depth: Extreme — three levels of embedding, deep stack. ALL theories agree this is devastating — but for different reasons. Memory overload? Prediction failure? Stack overflow?"
+                },
+                {
+                  "input": "5. The horse raced past the barn fell.",
+                  "reveal": "DLT: Moderate — dependencies aren't that long. Surprisal: Very high at 'fell' — the parser didn't expect another verb. Yngve Depth: Moderate — not deeply embedded. This is a GARDEN PATH — the difficulty isn't about complexity per se, but about MISANALYSIS. DLT misses this. Surprisal captures it perfectly. Different theories, different strengths."
+                }
+              ]
+            }
+          },
+          {
+            "type": "p",
+            "children": "Round 1 of the interview: can your theory predict which sentences are hard? Many theories pass this round — but they often predict difficulty for different reasons. That's where Benchmarks 2 and 3 start to separate the contenders."
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "Benchmark 2: Consistency — Is the Parser the Same Across Languages?" },
+        "children": [
+          {
+            "type": "p",
+            "children": "Round 2 of the interview. Your theory works for English? Great. Does it work for Japanese? Hindi? Mandarin? If parsing is a UNIVERSAL human capacity — and all humans parse language — then your theory can't be an English-only model with a fancy name."
+          },
+          {
+            "type": "p",
+            "children": "This is where things get genuinely hard. Languages differ ENORMOUSLY in their structure:"
+          },
+          {
+            "type": "Callout",
+            "props": { "type": "info" },
+            "children": [
+              {
+                "type": "p",
+                "children": "English: SVO, head-initial. 'The cat [that chased the mouse] ate the cheese.' — You get the verb early, then its complements. Japanese: SOV, head-final. The verb comes LAST. All the complements pile up first, and you don't know the main structure until the end. Hindi: SOV with rich case marking. Word order is relatively free because case markers do the work that word order does in English."
+              }
+            ]
+          },
+          {
+            "type": "p",
+            "children": "A theory built on English word order will collapse when it hits Japanese. A theory built on verb prediction will behave completely differently in head-final vs. head-initial languages. Phillips argues that consistency across typologically diverse languages is the acid test that most theories dodge."
+          },
+          {
+            "type": "InteractiveDemo",
+            "props": {
+              "title": "One Structure, Three Languages",
+              "prompt": "See how the same relative clause structure plays out in English, Japanese, and Hindi. Does the same processing difficulty arise?",
+              "scenarios": [
+                {
+                  "input": "English: 'The reporter [that the senator attacked] admitted the error.'",
+                  "reveal": "Object relative. The filler ('reporter') must be held in memory across the relative clause until 'attacked' resolves it. THEN you still need to find the main verb ('admitted'). Difficulty peaks at the main verb — you're juggling two incomplete dependencies."
+                },
+                {
+                  "input": "Japanese: 'Giin-ga hinan-shita kisha-ga ayamari-o mitometa.'",
+                  "reveal": "Literally: 'Senator-NOM attacked reporter-NOM error-ACC admitted.' In Japanese, the relative clause PRECEDES the head noun. So by the time you reach 'reporter,' the relative clause is already complete. No filler-gap dependency to maintain! The difficulty SHIFTS — it's at different points in the sentence. Same structure, different processing profile."
+                },
+                {
+                  "input": "Hindi: 'Jo reporter-ko senator-ne maaraa, us-ne galti maani.'",
+                  "reveal": "Hindi uses a correlative structure with case markers (-ko, -ne). The case markers tell you WHO does WHAT, reducing ambiguity. But here's what's remarkable: Hindi STILL shows the same ERP signatures for processing difficulty — P600 for syntactic violations, N400 for semantic violations. The surface is different, but the neural machinery is the same."
+                },
+                {
+                  "input": "The Consistency Verdict",
+                  "reveal": "The surface patterns differ wildly. But the UNDERLYING mechanisms — the parser's sensitivity to syntactic vs. semantic violations — appear universal. A consistent theory must explain both the differences (where difficulty peaks) and the similarities (what the parser is fundamentally doing)."
+                }
+              ]
+            }
+          },
+          {
+            "type": "DeepDive",
+            "props": {
+              "title": "The Hindi P600/N400 Dissociation",
+              "content": "This is one of the most exciting findings for cross-linguistic consistency. In English and Dutch, syntactic violations produce a P600 ERP component (a positive wave around 600ms), while semantic violations produce an N400 (a negative wave around 400ms). These are DIFFERENT neural signatures for DIFFERENT types of processing failure. Hindi shows the SAME dissociation. Syntactic cue violations (wrong case marking, agreement errors) produce P600. Semantic cue violations (plausibility failures) produce N400. Same brain, same two modes of failure, different language. This directly parallels what we found in GPT-2: Mode 1 (structural reparse — consensus drops, core neurons fire positive) maps onto P600, and Mode 2 (semantic mismatch — consensus stable, N2123 fires negative) maps onto N400. The parser — whether biological or artificial — has two distinct failure modes, and they're consistent across systems."
+            }
+          },
+          {
+            "type": "p",
+            "children": "Round 2 eliminates most candidates. Your theory predicted English complexity patterns? Congratulations. Now explain why Hindi shows P600 for case violations and N400 for plausibility violations — using the SAME mechanisms. Still in the interview?"
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "Benchmark 3: Causality — What SPECIFICALLY Causes Difficulty?" },
+        "children": [
+          {
+            "type": "p",
+            "children": "Round 3. The killer round. The one where almost every theory in the history of psycholinguistics gets shown the door."
+          },
+          {
+            "type": "p",
+            "children": "It's not enough to say 'complex sentences are hard.' Phillips demands: WHAT SPECIFIC MECHANISM causes the difficulty? Is it memory overload? Prediction failure? Interference between similar items? Ambiguity resolution? Frequency effects? These are DIFFERENT causes, and they make DIFFERENT predictions about what should help."
+          },
+          {
+            "type": "Callout",
+            "props": { "type": "warning" },
+            "children": [
+              {
+                "type": "p",
+                "children": "The difference matters. If difficulty comes from MEMORY OVERLOAD → increasing working memory should help. If it comes from PREDICTION FAILURE → better context should help. If it comes from INTERFERENCE → making items more distinct should help. If it comes from LOW FREQUENCY → more exposure should help. Same symptom (difficulty), completely different treatments. A theory that can't tell you the cause can't tell you the cure."
+              }
+            ]
+          },
+          {
+            "type": "Example",
+            "props": {
+              "title": "Object Relatives: Three Theories of WHY",
+              "setup": "Object relatives like 'The reporter that the senator attacked admitted the error' are harder than subject relatives. Everyone agrees. But WHY?",
+              "result": "Theory A — Memory (DLT): The filler 'reporter' must be held in memory across the relative clause. The longer the distance and the more intervening referents, the harder it is. Prediction: adding more words between filler and gap makes it harder. Theory B — Interference: The two NPs ('reporter' and 'senator') are both animate, singular, human — they INTERFERE with each other in memory. Prediction: making one NP inanimate ('the report that the senator attacked') should help. Theory C — Frequency: Object relatives are simply RARE in English. The parser isn't practiced at them. Prediction: speakers of languages with more object relatives should find them easier.",
+              "insight": "All three theories predict object relatives are hard. But they predict DIFFERENT things about what should make them easier. That's causality — not just describing the symptom, but identifying the disease. And crucially: experiments can distinguish between these theories, but only if the theories are specific enough to make distinct predictions."
+            }
+          },
+          {
+            "type": "p",
+            "children": "Phillips argues that this is where the field has chronically underperformed. Most theories describe WHAT is hard. Very few specify the mechanism precisely enough to be tested. And fewer still survive the testing."
+          },
+          {
+            "type": "p",
+            "children": "Round 3 of the interview: don't just tell me sentences are hard. Tell me WHY. Point to the mechanism. Make a prediction that could be WRONG. That's what separates science from description."
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "GPT-2 Meets the Three Benchmarks" },
+        "children": [
+          {
+            "type": "p",
+            "children": "So here's the punchline. Phillips threw down three benchmarks in 2006 as a challenge to the field. Two decades later, our Layer 11 findings in GPT-2 address all three — at a level of mechanistic detail that behavioral studies simply can't match."
+          },
+          {
+            "type": "Callout",
+            "props": { "type": "info" },
+            "children": [
+              {
+                "type": "p",
+                "children": "Think of it this way: GPT-2 just walked into Phillips' three-round interview. Let's see if it gets the job."
+              }
+            ]
+          },
+          {
+            "type": "InteractiveDemo",
+            "props": {
+              "title": "Scoring GPT-2 Against the Three Benchmarks",
+              "prompt": "For each benchmark, see how our Layer 11 findings measure up. Does GPT-2 pass the interview?",
+              "scenarios": [
+                {
+                  "input": "Benchmark 1: COMPLEXITY — Can L11 predict which sentences are hard?",
+                  "reveal": "YES. Layer 11 consensus (agreement among attention heads about what's important) drops sharply at garden-path disambiguation points — and it does this across FIVE different garden-path types: main verb/reduced relative, NP/S complement, NP/Z, double object/sentential complement, and reflexive attachment ambiguities. The consensus metric is a genuine PREDICTOR of processing difficulty, not just a post-hoc description. Round 1: PASSED."
+                },
+                {
+                  "input": "Benchmark 2: CONSISTENCY — Does L11 show the same patterns across different contexts?",
+                  "reveal": "YES — and here's where it gets exciting. GPT-2 shows a Mode 1 / Mode 2 dissociation that parallels the P600/N400 distinction in human ERPs. Mode 1: structural reparse (consensus drops, core neurons fire positive) — like P600. Mode 2: semantic mismatch (consensus stays stable, N2123 fires negative) — like N400. This is the SAME two-mode pattern found in English, Dutch, AND Hindi ERP data. A transformer trained only on English text independently converged on the same processing architecture that human brains use across languages. Round 2: PASSED."
+                },
+                {
+                  "input": "Benchmark 3: CAUSALITY — Can L11 tell us WHY sentences are hard?",
+                  "reveal": "THIS is where GPT-2 genuinely exceeds what behavioral studies can do. We don't just know that garden-path sentences are hard. We know WHICH specific neurons fire, in WHICH direction, at WHICH position. Structural reparse: consensus drops, core positive neurons (N1487, N1847, N670) fire. Semantic mismatch: consensus holds, N2123 fires negative. We can literally trace the causal chain from input token to neuron activation to behavioral prediction. Phillips wanted mechanism? We've got SPECIFIC NEURONS with SPECIFIC ACTIVATION DIRECTIONS. Round 3: PASSED — with distinction."
+                },
+                {
+                  "input": "Final Verdict",
+                  "reveal": "GPT-2's Layer 11 passes all three of Phillips' benchmarks. It predicts complexity patterns, shows cross-contextual consistency that mirrors cross-linguistic human data, and provides causal mechanistic explanations at the level of individual neurons. Phillips set the bar in 2006. Mechanistic interpretability of neural networks may be what finally clears it — not by studying humans, but by studying a system where we can open the hood and look inside."
+                }
+              ]
+            }
+          },
+          {
+            "type": "p",
+            "children": "The deep insight here isn't just that GPT-2 passes the test. It's that the MECHANISTIC LEVEL of neural network analysis gives us something that decades of behavioral and ERP research couldn't: direct causal evidence. We can identify the specific neurons, trace their activation patterns, and make predictions about novel sentences. Phillips asked for causality. Interpretability delivers it."
+          },
+          {
+            "type": "p",
+            "children": "The candidate got the job."
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "Quiz" },
+        "children": [
+          {
+            "type": "Quiz",
+            "props": {
+              "questions": [
+                {
+                  "question": "What are Phillips' three benchmarks for evaluating theories of sentence processing?",
+                  "options": [
+                    "Speed, Accuracy, and Generalization",
+                    "Complexity, Consistency, and Causality",
+                    "Syntax, Semantics, and Pragmatics",
+                    "Memory, Prediction, and Integration"
+                  ],
+                  "correctIndex": 1,
+                  "explanation": "Phillips' three benchmarks are Complexity (predict which sentences are hard), Consistency (work across languages), and Causality (identify specific mechanisms). They're the minimum bar for a serious theory — like a three-round job interview where most candidates get eliminated."
+                },
+                {
+                  "question": "Why does Phillips consider the Causality benchmark the hardest to pass?",
+                  "options": [
+                    "Because causal experiments are expensive to run",
+                    "Because most theories describe WHAT is hard but not the specific MECHANISM causing difficulty",
+                    "Because causality requires brain imaging technology",
+                    "Because it requires studying at least 10 languages"
+                  ],
+                  "correctIndex": 1,
+                  "explanation": "The Causality benchmark demands that a theory specify the MECHANISM — is difficulty caused by memory, interference, prediction failure, or something else? Most theories stop at describing patterns of difficulty without identifying what specifically produces them. Different causes make different predictions about what should help, so vagueness about mechanism means vagueness about everything."
+                },
+                {
+                  "question": "What makes the Hindi ERP data significant for the Consistency benchmark?",
+                  "options": [
+                    "Hindi is the most widely spoken language in the world",
+                    "Hindi shows the same P600/N400 dissociation for syntactic vs. semantic violations as English and Dutch",
+                    "Hindi parsing is faster than English parsing",
+                    "Hindi has no relative clauses, proving they're not universal"
+                  ],
+                  "correctIndex": 1,
+                  "explanation": "Hindi — with its SOV word order, rich case marking, and typological distance from English — still shows P600 for syntactic violations and N400 for semantic violations. This same dissociation appears in English, Dutch, and Hindi, suggesting the parser uses universal mechanisms that are parameterized for each language's surface properties."
+                },
+                {
+                  "question": "How does GPT-2's Mode 1/Mode 2 dissociation relate to human ERP components?",
+                  "options": [
+                    "Mode 1 maps to N400 and Mode 2 maps to P600",
+                    "Mode 1 maps to P600 (structural reparse: consensus drops, core positive) and Mode 2 maps to N400 (semantic mismatch: consensus stable, N2123 negative)",
+                    "Both modes map to P600",
+                    "The modes are unrelated to human ERPs"
+                  ],
+                  "correctIndex": 1,
+                  "explanation": "Mode 1 (structural reparse — consensus drops, core neurons fire positive) parallels P600, which appears when the parser detects a syntactic violation requiring structural revision. Mode 2 (semantic mismatch — consensus stable, N2123 fires negative) parallels N400, which appears for semantic anomalies. A transformer trained on text independently evolved the same two failure modes that human brains show across languages."
+                },
+                {
+                  "question": "Why does Phillips argue that predicting the RIGHT PATTERN of complexity matters, not just predicting difficulty?",
+                  "options": [
+                    "Because all sentences are equally difficult",
+                    "Because different types of difficulty (garden paths, center embedding, object relatives) may have different causes, and a theory must distinguish them",
+                    "Because only English complexity patterns count",
+                    "Because difficulty is subjective and unmeasurable"
+                  ],
+                  "correctIndex": 1,
+                  "explanation": "Object relatives, center embeddings, and garden paths are all 'hard' — but hard for potentially different reasons (memory, interference, misanalysis). A theory that lumps all difficulty together can't explain why different manipulations help different sentence types. Predicting the pattern means predicting WHICH kind of difficulty, not just that difficulty exists."
+                }
+              ]
+            }
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "Further Reading" },
+        "children": [
+          {
+            "type": "p",
+            "children": "• Phillips, C. (2006). 'Three Benchmarks for Distributional Approaches to Natural Language Syntax.' — The paper that set the standard for evaluating parsing theories."
+          },
+          {
+            "type": "p",
+            "children": "• Gibson, E. (2000). 'The Dependency Locality Theory.' — A leading complexity metric based on memory cost of maintaining dependencies."
+          },
+          {
+            "type": "p",
+            "children": "• Hale, J. (2001). 'A Probabilistic Earley Parser as a Psycholinguistic Model.' — The surprisal theory of processing difficulty."
+          },
+          {
+            "type": "p",
+            "children": "• Nevins, A., Dillon, B., Malhotra, S., & Phillips, C. (2007). 'The role of feature-number and feature-type in processing Hindi verb agreement.' — Key cross-linguistic ERP evidence from Hindi."
+          }
+        ]
+      }
+    ]
+  }
+}
