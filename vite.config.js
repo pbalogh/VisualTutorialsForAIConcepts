@@ -32,9 +32,10 @@ function tutorialTimestamps() {
         for (const file of files) {
           const tutorialId = file.replace('.json', '')
           try {
-            // Try git first (last commit date for this file)
+            // Try git first (FIRST commit date = creation date for this file)
+            // --diff-filter=A finds "Added" commits; tail -1 gets the oldest one
             const gitDate = execSync(
-              `git log -1 --format=%aI -- "src/content/${file}"`,
+              `git log --diff-filter=A --format=%aI -- "src/content/${file}" | tail -1`,
               { encoding: 'utf-8', timeout: 5000 }
             ).trim()
             if (gitDate) {
@@ -60,7 +61,7 @@ function tutorialTimestamps() {
             if (!timestamps[kebab]) {
               try {
                 const gitDate = execSync(
-                  `git log -1 --format=%aI -- "src/tutorials/${file}"`,
+                  `git log --diff-filter=A --format=%aI -- "src/tutorials/${file}" | tail -1`,
                   { encoding: 'utf-8', timeout: 5000 }
                 ).trim()
                 if (gitDate) timestamps[kebab] = gitDate
