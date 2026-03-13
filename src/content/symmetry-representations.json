@@ -135,6 +135,14 @@
                   {
                     "type": "FootnoteRef",
                     "props": {
+                      "id": "source-ann-1773418067709-suz2ae",
+                      "targetId": "ann-1773418067709-suz2ae",
+                      "type": "ask"
+                    }
+                  },
+                  {
+                    "type": "FootnoteRef",
+                    "props": {
                       "id": "source-ann-1773417518242-q4ow7f",
                       "targetId": "ann-1773417518242-q4ow7f",
                       "type": "ask"
@@ -149,6 +157,41 @@
                   "className": "text-xs text-gray-400 mt-2"
                 },
                 "children": "Added 3/13/2026, 11:56:15 AM"
+              }
+            ]
+          },
+          {
+            "type": "Sidebar",
+            "props": {
+              "type": "note",
+              "title": "Q: Q: Can you dive really deep into the methodology of this? With a toy example, even? (Oh, and also please delete the error items on this page from \"AI generation failed\")",
+              "expanded": true,
+              "id": "ann-1773418067709-suz2ae",
+              "sourceId": "source-ann-1773418067709-suz2ae"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "Pointwise Mutual Information starts with a simple question: if you picked two word positions at random from a huge corpus, how often would you see word A at one position and word B at the other? If words were sprinkled randomly and independently, you could predict that rate just by multiplying their individual frequencies. PMI measures how reality deviates from that prediction."
+              },
+              {
+                "type": "p",
+                "children": "Here is a toy example. Imagine a tiny corpus of 100 word-tokens, and we are looking at co-occurrence within a window of nearby positions. Suppose \"coffee\" appears 10 times out of 100 (so P(coffee) = 0.1) and \"mug\" appears 5 times out of 100 (so P(mug) = 0.05). If they were independent, you would expect them to show up together in the same window with probability 0.1 times 0.05 = 0.005, or 0.5% of all word-pair observations. But you go count and find they actually co-occur at a rate of 0.04, which is 4% — eight times more than chance. The PMI is log(0.04 / 0.005) = log(8), which is about 2.08 nats. That positive number tells you \"coffee\" and \"mug\" are strongly attracted. Now take \"coffee\" and \"penguin\" (also appearing 5 times). Their expected co-occurrence is also 0.005, but maybe they actually co-occur at a rate of only 0.001 — less than chance. PMI = log(0.001 / 0.005) = log(0.2), which is about negative 1.6. That negative value means these words actively avoid each other."
+              },
+              {
+                "type": "p",
+                "children": "So each cell in the PMI matrix M* holds one of these numbers for every possible word pair. Row \"coffee\", column \"mug\" holds +2.08. Row \"coffee\", column \"penguin\" holds -1.6. The matrix is symmetric because PMI(A,B) = PMI(B,A) — the log ratio does not care which word you call first. This symmetry is not the translation symmetry the tutorial is about, but it is a nice structural property. The translation symmetry the passage describes is something deeper: when you compute PMI between words at positions x1 and x2, the value depends only on the gap x2 minus x1, not on where in the document you are. That means if you slide your measurement window along the text, the statistics do not change. This is what collapses the giant N-by-N matrix into a single function of the gap, which is the key simplification the tutorial builds on to connect co-occurrence statistics to geometric structure in word embeddings."
+              },
+              {
+                "type": "p",
+                "children": "Regarding the error items on the page from \"AI generation failed\" — that is something the tutorial interface would need to handle on the application side rather than something I can address in this content. You may want to check whether there is a delete or dismiss button on those items, or refresh the page to clear them."
+              },
+              {
+                "type": "p",
+                "props": {
+                  "className": "text-xs text-gray-400 mt-2"
+                },
+                "children": "Asked about \"each entry measures how much m...\" — 3/13/2026, 12:07:21 PM"
               }
             ]
           },
