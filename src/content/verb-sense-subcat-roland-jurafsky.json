@@ -1,0 +1,408 @@
+{
+  "id": "verb-sense-subcat-roland-jurafsky",
+  "title": "Verb Sense and Subcategorization: Why 'Worry' Worries Differently",
+  "subtitle": "Roland & Jurafsky (2002) — How verb sense explains why corpus statistics disagree, and what it means for parsing",
+  "readTime": "20 min",
+  "state": {},
+  "content": {
+    "type": "Fragment",
+    "children": [
+      {
+        "type": "Section",
+        "props": { "title": "The Verb Is the Boss" },
+        "children": [
+          {
+            "type": "p",
+            "children": "Every sentence has a boss, and it's always the verb. The verb doesn't just describe what happened — it dictates what ELSE the sentence must contain."
+          },
+          {
+            "type": "Callout",
+            "props": { "type": "info" },
+            "children": [
+              {
+                "type": "p",
+                "children": "'Put' DEMANDS a location: 'She put the book on the shelf.' Try removing 'on the shelf' — '*She put the book' — and the sentence breaks. 'Sleep' wants nothing: 'The cat slept.' Done. 'Know' is flexible: 'She knew the answer' (NP), 'She knew that he lied' (S-complement), 'She knew about the plan' (PP)."
+              }
+            ]
+          },
+          {
+            "type": "p",
+            "children": "These patterns — what a verb requires or allows to follow it — are called SUBCATEGORIZATION FRAMES. The major frames are: NP (direct object), PP (prepositional phrase), S-complement (a whole clause, often with 'that'), and intransitive (nothing at all)."
+          },
+          {
+            "type": "p",
+            "children": "Here's the crucial part: verbs don't have a single frame. They have PREFERENCES. 'Know' takes a direct object about 60% of the time and an S-complement about 30% of the time. These aren't rules — they're probabilities. And your brain tracks them. When you hear 'She knew...', your parser is already betting on what comes next, weighted by those probabilities."
+          },
+          {
+            "type": "InteractiveDemo",
+            "props": {
+              "title": "Guess the Verb's Favorite Frame",
+              "prompt": "For each verb, guess which subcategorization frame it uses MOST often. Then reveal the actual corpus frequencies.",
+              "scenarios": [
+                {
+                  "input": "GIVE — What frame does 'give' prefer?",
+                  "reveal": "Double object (NP NP): 42% — 'She gave him the book.' Single NP: 31% — 'She gave a speech.' PP dative: 18% — 'She gave the book to him.' 'Give' strongly prefers the double-object construction — your parser expects two NPs after 'give.'"
+                },
+                {
+                  "input": "BELIEVE — What frame does 'believe' prefer?",
+                  "reveal": "S-complement: 48% — 'I believe that he's right.' NP: 32% — 'I believe the story.' PP: 12% — 'I believe in miracles.' 'Believe' leans toward clausal complements — when you hear 'I believe...', your parser expects a 'that' clause."
+                },
+                {
+                  "input": "WALK — What frame does 'walk' prefer?",
+                  "reveal": "Intransitive: 58% — 'She walked.' PP: 34% — 'She walked to the store.' NP: 5% — 'She walked the dog.' 'Walk' is overwhelmingly intransitive. When you hear 'She walked...', your parser is ready for the sentence to END."
+                },
+                {
+                  "input": "HEAR — What frame does 'hear' prefer?",
+                  "reveal": "NP: 47–56% — 'I heard the news.' S-complement: 15–20% — 'I heard that it rained.' PP: 10–17% — 'I heard about the accident.' Wait — why the ranges? Because different corpora give DIFFERENT numbers. That's the mystery we're about to investigate."
+                },
+                {
+                  "input": "WANT — What frame does 'want' prefer?",
+                  "reveal": "Infinitive (to-VP): 55% — 'I want to leave.' NP: 30% — 'I want coffee.' S-complement: 8% — 'I want you to go.' 'Want' loves infinitives. Your parser strongly expects 'to' after 'want.'"
+                }
+              ]
+            }
+          },
+          {
+            "type": "p",
+            "children": "Did you notice the strange range for 'hear'? That's not a typo. When researchers counted subcategorization frequencies in different text collections, they got DIFFERENT answers. And that created a serious scientific problem."
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "The Corpus Disagreement Problem" },
+        "children": [
+          {
+            "type": "p",
+            "children": "In the 1990s, psycholinguists got excited about a powerful idea: if verbs carry probabilistic preferences for their frames, we can MEASURE those preferences by counting in large text collections (corpora). Then we can predict where people will have parsing difficulty — wherever the parser's probability-weighted guess turns out wrong."
+          },
+          {
+            "type": "p",
+            "children": "So researchers counted. And they found something troubling."
+          },
+          {
+            "type": "Callout",
+            "props": { "type": "warning" },
+            "children": [
+              {
+                "type": "p",
+                "children": "'hear' in the Brown Corpus (general American English): 47% NP, 15% PP, 14% S-complement. 'hear' in the Wall Street Journal: 56% NP, 17% PP, 10% S-complement. 'hear' in sentence completion tasks: 33% NP, 25% S-complement, 20% PP. Three sources, three DIFFERENT probability vectors."
+              }
+            ]
+          },
+          {
+            "type": "p",
+            "children": "This wasn't just 'hear.' Verb after verb showed the same pattern: subcategorization frequencies SHIFTED depending on where you counted. The Brown Corpus gave one answer, the Wall Street Journal gave another, and sentence completion experiments gave a third."
+          },
+          {
+            "type": "p",
+            "children": "This was a crisis. If verb preferences change depending on the corpus, are they even REAL? Maybe they're just artifacts of the text — not genuine properties of the verb stored in people's heads. The whole framework of probabilistic parsing was at stake."
+          },
+          {
+            "type": "Analogy",
+            "props": {
+              "concept": "The Food Survey Problem",
+              "analogy": "Imagine you survey 'What's your favorite food?' in Manhattan and in rural Texas. Manhattan: 35% sushi, 25% pasta, 15% burgers. Rural Texas: 5% sushi, 15% pasta, 45% burgers. Does this mean food preferences aren't real psychological properties? Of course not. It means the POPULATION differs. Manhattan has more Japanese restaurants, more cosmopolitan exposure, different demographics. The preferences are real — but they're properties of PEOPLE, not of some universal human. And different populations contain different people.",
+              "insight": "The same thing is happening with verbs and corpora. Different corpora contain different CONTEXTS — and different contexts elicit different verb senses. The preferences are real, but they're properties of verb SENSES, not of verbs in the abstract."
+            }
+          },
+          {
+            "type": "p",
+            "children": "The food survey analogy isn't just illustrative — it's structurally identical to the corpus problem. If you don't control for WHO you're surveying (which population), you can't compare results. If you don't control for WHICH SENSE of a verb is being used, you can't compare corpus frequencies. Roland and Jurafsky realized this, and it changed everything."
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "The Solution: Verb Sense" },
+        "children": [
+          {
+            "type": "p",
+            "children": "Roland and Jurafsky's key insight was elegant: different corpora don't just contain different sentences — they contain different distributions of verb SENSES. And each sense has its own subcategorization preferences."
+          },
+          {
+            "type": "Example",
+            "props": { "title": "The Two Faces of 'Worry'" },
+            "children": [
+              {
+                "type": "p",
+                "children": "'Worry' has (at least) two senses:"
+              },
+              {
+                "type": "p",
+                "children": "EXPERIENCER sense: 'She worried that the train would be late.' The subject EXPERIENCES the worry. This sense loves S-complements ('worried that...')."
+              },
+              {
+                "type": "p",
+                "children": "STIMULUS sense: 'The noise worried her.' Something external CAUSES the worry. This sense loves simple NPs."
+              },
+              {
+                "type": "p",
+                "children": "In sentence completion tasks, people overwhelmingly produce the EXPERIENCER sense: 24% S-complement. In naturally occurring text, the STIMULUS sense dominates: only 4% S-complement. Same verb, wildly different numbers — because different senses are in play."
+              }
+            ]
+          },
+          {
+            "type": "p",
+            "children": "This was the detective's breakthrough. The corpus disagreement wasn't noise — it was a SIGNAL. It was telling us that different text genres activate different verb senses, and those senses carry different frame probabilities."
+          },
+          {
+            "type": "InteractiveDemo",
+            "props": {
+              "title": "Controlling for Sense: The 'Charge' Experiment",
+              "prompt": "Watch what happens to cross-corpus agreement when you control for verb sense.",
+              "scenarios": [
+                {
+                  "input": "'charge' — Raw corpus frequencies (NOT controlling for sense)",
+                  "reveal": "Legal corpus: 52% NP ('charged the defendant'), 28% PP ('charged with fraud'). News corpus: 35% NP ('charged the battery'), 22% PP ('charged at the enemy'), 18% NP-PP ('charged him with a crime'). Correlation between corpora: ~0.75. The numbers look unstable. Is 'charge' inconsistent?"
+                },
+                {
+                  "input": "'charge' — Legal/accusation sense only",
+                  "reveal": "Legal corpus (accusation sense): 48% NP, 35% PP-with. News corpus (accusation sense): 46% NP, 33% PP-with. Correlation: ~0.98! When you compare the SAME SENSE across corpora, the numbers nearly perfectly agree. The 'instability' vanishes."
+                },
+                {
+                  "input": "'charge' — Movement/attack sense only",
+                  "reveal": "Legal corpus (movement sense): rare, but 60% intransitive ('he charged'), 30% PP-at ('charged at the crowd'). News corpus (movement sense): 55% intransitive, 28% PP-at. Again, high agreement within the same sense. The sense was the hidden variable all along."
+                },
+                {
+                  "input": "The punchline: overall correlation jumps from ~.75 to .98–.99",
+                  "reveal": "When Roland & Jurafsky controlled for sense across corpora, cross-corpus agreement on subcategorization frequencies jumped from roughly 0.75 to 0.98–0.99. The 'disagreement' between corpora was never about the verb — it was about which SENSES those corpora happened to elicit. Control for sense, and the mystery dissolves."
+                }
+              ]
+            }
+          },
+          {
+            "type": "Callout",
+            "props": { "type": "success" },
+            "children": [
+              {
+                "type": "p",
+                "children": "THE LEMMA ARGUMENT PROBABILITY HYPOTHESIS: Each verb SENSE (not just each verb) carries a stable probability vector over subcategorization frames. These sense-specific probabilities are real cognitive properties — stored in the mental lexicon as part of what it means to 'know' a word's sense. The verb lemma itself is just a weighted mixture of its senses."
+              }
+            ]
+          },
+          {
+            "type": "p",
+            "children": "Think back to our food survey. Manhattan's 'favorite food' distribution was 35% sushi because Manhattan's POPULATION includes many people with Japanese food exposure. Rural Texas's distribution was 45% burgers because the population is different. The individual preference — each person's own ranking — is stable. The aggregate shifts because the MIX of people shifts. Same with verbs: each sense's frame preference is stable. The aggregate shifts because the mix of senses shifts."
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "Why Sentence Completion Tasks Lie" },
+        "children": [
+          {
+            "type": "p",
+            "children": "This discovery had an uncomfortable implication: decades of psycholinguistic experiments might be measuring the WRONG thing."
+          },
+          {
+            "type": "p",
+            "children": "Sentence completion tasks — 'Please write a sentence using the word worry' — had been the gold standard for measuring subcategorization preferences. But Roland and Jurafsky showed that these tasks systematically elicit DIFFERENT senses than natural speech and writing."
+          },
+          {
+            "type": "Example",
+            "props": { "title": "Three Ways Sentence Completion Distorts" },
+            "children": [
+              {
+                "type": "p",
+                "children": "1. PROPER NAMES IN PROMPTS: When experimenters provide a proper name ('Write a sentence with worry starting with John...'), participants produce more sentential complements: 'John worried that...' Why? Because a proper name creates a REFERENT, and having a referent makes it natural to talk about that person's beliefs and fears (which need clauses). In natural text, not every sentence starts with a named individual."
+              },
+              {
+                "type": "p",
+                "children": "2. SINGLE SENTENCES vs DISCOURSE: Participants write isolated sentences, but natural language occurs in DISCOURSE — paragraphs, conversations, narratives. This matters because some constructions exist specifically to manage discourse flow. You don't use them in isolation."
+              },
+              {
+                "type": "p",
+                "children": "3. SENSE ACTIVATION: When you read a verb in isolation ('worry'), you tend to activate its most PROTOTYPICAL sense — the one you think of first. In context, a less prototypical sense might be primed by surrounding material. The sentence completion task is measuring the DEFAULT sense, not the distribution of senses that actually occurs in language."
+              }
+            ]
+          },
+          {
+            "type": "DeepDive",
+            "props": {
+              "title": "The Discourse Effect: Why Passives Vanish in Isolation",
+              "content": "Passives ('The ball was kicked by the boy') serve a specific DISCOURSE function: they promote the PATIENT (the ball) to subject position, which makes it the topic of the sentence. This is useful when you're maintaining a topic across multiple sentences: 'The ball bounced twice. It was kicked by the boy. It sailed over the fence.' Each sentence keeps 'the ball' as the topic. But in an isolated sentence, there IS no ongoing topic. There's no discourse context to continue. So participants rarely produce passives in sentence completion tasks — not because passives are rare in their mental grammar, but because the CONTEXT that motivates passives (topic continuity) is absent. This means sentence completion tasks systematically UNDERCOUNT passives — and any other construction that exists to serve discourse functions."
+            }
+          },
+          {
+            "type": "p",
+            "children": "The implication is sobering: psycholinguistic norms gathered from sentence completion tasks since the 1970s may be systematically biased. They over-represent prototypical senses and under-represent discourse-driven constructions. It's as if every food survey was conducted inside a sushi restaurant — you'd conclude that everyone loves sushi, but you'd be measuring the CONTEXT, not the preference."
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "From Verb Sense to Garden Paths" },
+        "children": [
+          {
+            "type": "p",
+            "children": "All of this has direct consequences for understanding how and why sentences become confusing — the garden-path phenomenon."
+          },
+          {
+            "type": "Callout",
+            "props": { "type": "warning" },
+            "children": [
+              {
+                "type": "p",
+                "children": "The spy knew the secret was safe."
+              }
+            ]
+          },
+          {
+            "type": "p",
+            "children": "Did you read 'the secret' as the object of 'knew'? If so, you hit a garden path when 'was' appeared — forcing a reparse where 'the secret was safe' is a complement clause: the spy knew [that] the secret was safe."
+          },
+          {
+            "type": "p",
+            "children": "Standard explanation: 'knew' takes NP about 60% of the time and S-complement about 40%. The parser goes with NP (the majority frame) and gets burned."
+          },
+          {
+            "type": "p",
+            "children": "But Roland and Jurafsky's work adds a critical dimension: WHICH SENSE of 'knew' was activated?"
+          },
+          {
+            "type": "Example",
+            "props": { "title": "Two Senses of 'Know'" },
+            "children": [
+              {
+                "type": "p",
+                "children": "EPISTEMIC knowing: 'She knew that he was lying.' Knowledge of FACTS. This sense strongly prefers S-complements — you know THAT something is the case."
+              },
+              {
+                "type": "p",
+                "children": "ACQUAINTANCE knowing: 'She knew the city well.' Familiarity with an ENTITY. This sense strongly prefers NP — you know a THING."
+              },
+              {
+                "type": "p",
+                "children": "If 'the spy' primes an espionage context, ACQUAINTANCE knowing might be activated ('the spy knew the informant'). The parser expects NP. When 'was safe' arrives, revealing an S-complement, the parser must backtrack. But if EPISTEMIC knowing had been activated, the parser would have expected an S-complement and sailed through smoothly."
+              }
+            ]
+          },
+          {
+            "type": "p",
+            "children": "This connects directly to the sense-stack model of polysemy: the parser doesn't just activate a verb — it activates a SENSE of that verb, and that sense carries its own subcategorization probability vector. Garden paths happen when the wrong sense (or the sense with the wrong frame bias) gets activated first."
+          },
+          {
+            "type": "p",
+            "children": "GPT-2 appears to have learned exactly these sense-conditioned subcategorization preferences. In Mode 2 complement/DO-SC garden paths, Layer 11 shows surprise precisely when the incoming frame contradicts the expected frame for the ACTIVATED SENSE. The model isn't just tracking 'what frame does this verb usually take?' — it's tracking 'what frame does THIS SENSE of this verb usually take?'"
+          },
+          {
+            "type": "InteractiveDemo",
+            "props": {
+              "title": "Verb Sense → Subcat Expectation → L11 Response",
+              "prompt": "For each verb, see how different sense activations lead to different parsing expectations and different L11 responses in GPT-2.",
+              "scenarios": [
+                {
+                  "input": "KNOW — 'The spy knew the secret was safe'",
+                  "reveal": "If ACQUAINTANCE sense activated: expect NP (80%). 'the secret' → parsed as NP object. 'was safe' → SURPRISE! L11 consensus drops sharply. Garden path. If EPISTEMIC sense activated: expect S-comp (70%). 'the secret was safe' → parsed as clause. Smooth sailing. L11 consensus stays high. The garden path depends on which sense the context primed."
+                },
+                {
+                  "input": "SEE — 'The teacher saw the answer was wrong'",
+                  "reveal": "If VISUAL PERCEPTION sense activated: expect NP (75%). 'the answer' → parsed as thing seen. 'was wrong' → SURPRISE! L11 drops. Garden path. If UNDERSTANDING sense activated: expect S-comp (60%). 'the answer was wrong' → parsed as clause. Smooth. L11 stays high. 'Teacher' in a classroom context might prime the understanding sense, reducing garden-path difficulty."
+                },
+                {
+                  "input": "FEEL — 'The patient felt the pain was getting worse'",
+                  "reveal": "If TACTILE sense activated: expect NP (70%). 'the pain' → parsed as thing felt physically. 'was getting worse' → SURPRISE! L11 drops. If BELIEF/OPINION sense activated: expect S-comp (65%). 'the pain was getting worse' → parsed as clause. Smooth. Medical context might prime either sense — the physical vs. the evaluative — creating genuine ambiguity that L11 must resolve."
+                }
+              ]
+            }
+          },
+          {
+            "type": "p",
+            "children": "The picture that emerges is beautiful and precise: verb sense is the hidden variable that connects lexical knowledge, parsing expectations, and processing difficulty. Control for sense, and corpus disagreements vanish. Understand sense activation, and garden paths become predictable. Track sense in neural networks, and Layer 11's behavior makes sense. Roland and Jurafsky handed us the key — verb sense — and it unlocks everything."
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "Test Your Understanding" },
+        "children": [
+          {
+            "type": "Quiz",
+            "props": {
+              "questions": [
+                {
+                  "question": "Why do different corpora give different subcategorization frequencies for the same verb?",
+                  "options": [
+                    "Corpus counting methods are unreliable",
+                    "Different corpora contain different distributions of verb SENSES, and each sense has its own frame preferences",
+                    "Verbs change their preferences over time",
+                    "Some corpora are too small for reliable statistics"
+                  ],
+                  "correctIndex": 1,
+                  "explanation": "Roland & Jurafsky showed that when you control for verb sense, cross-corpus agreement jumps from ~0.75 to 0.98–0.99. The 'disagreement' was never about the verb — it was about which senses each corpus happened to elicit. Different genres and contexts activate different senses, and each sense has stable frame preferences."
+                },
+                {
+                  "question": "In the food survey analogy, what corresponds to 'verb sense'?",
+                  "options": [
+                    "The food itself",
+                    "The survey methodology",
+                    "The individual people being surveyed — each with their own stable preferences",
+                    "The restaurants available in each location"
+                  ],
+                  "correctIndex": 2,
+                  "explanation": "Each person has stable food preferences (like each verb sense has stable frame preferences). The aggregate distribution shifts between Manhattan and Texas not because preferences are unstable, but because the MIX of people differs. Similarly, corpus frequencies shift because the mix of verb senses differs — not because the senses themselves are unstable."
+                },
+                {
+                  "question": "Why do sentence completion tasks undercount passive constructions?",
+                  "options": [
+                    "Participants don't know how to form passives",
+                    "Passives serve a discourse function (topic continuity) that doesn't exist in isolated sentences",
+                    "Experimenters explicitly ask for active sentences",
+                    "Passives are grammatically incorrect in short sentences"
+                  ],
+                  "correctIndex": 1,
+                  "explanation": "Passives promote the patient to subject position to maintain topic continuity across sentences. In an isolated sentence, there IS no ongoing topic to continue, so the discourse motivation for passives is absent. Sentence completion tasks systematically undercount any construction that serves discourse-level functions."
+                },
+                {
+                  "question": "How does verb sense affect garden-path processing?",
+                  "options": [
+                    "It doesn't — garden paths depend only on overall verb frequency",
+                    "The activated sense determines which subcategorization frame the parser expects, so the wrong sense can cause a garden path that the right sense would avoid",
+                    "Verb sense only matters for ambiguous verbs",
+                    "Verb sense determines whether the sentence is grammatical"
+                  ],
+                  "correctIndex": 1,
+                  "explanation": "'The spy knew the secret was safe' is a garden path if the ACQUAINTANCE sense of 'knew' is activated (which expects NP), but NOT if the EPISTEMIC sense is activated (which expects S-complement). The parser's error depends on which sense the prior context primed — making garden-path difficulty predictable from sense-conditioned subcategorization probabilities."
+                },
+                {
+                  "question": "What is the Lemma Argument Probability hypothesis?",
+                  "options": [
+                    "Each verb lemma has a fixed probability distribution over frames that never varies",
+                    "Each verb SENSE carries a stable probability vector over subcategorization frames; the verb's overall distribution is a mixture of its senses",
+                    "Argument probabilities are determined by the corpus, not the verb",
+                    "Lemmas don't carry probability information — only syntax determines frames"
+                  ],
+                  "correctIndex": 1,
+                  "explanation": "The key insight: subcategorization probabilities are properties of verb SENSES, not of verb lemmas in the abstract. Each sense has a stable probability vector over frames. The verb's overall distribution is a weighted mixture of its senses — and that mixture shifts across corpora because different contexts activate different senses."
+                }
+              ]
+            }
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "Further Reading" },
+        "children": [
+          {
+            "type": "p",
+            "children": "• Roland, D. & Jurafsky, D. (2002). 'Verb Sense and Verb Subcategorization Probabilities.' In Merlo, P. & Stevenson, S. (Eds.), The Lexical Basis of Sentence Processing, Chapter 14."
+          },
+          {
+            "type": "p",
+            "children": "• Hare, M., McRae, K., & Elman, J.L. (2003). 'Sense and Structure: Meaning as a Determinant of Verb Subcategorization Preferences.' — Experimental evidence that sense priming shifts subcategorization expectations."
+          },
+          {
+            "type": "p",
+            "children": "• Garnsey, S.M., Pearlmutter, N.J., Myers, E., & Lotocky, M.A. (1997). 'The Contributions of Verb Bias and Plausibility to the Comprehension of Temporarily Ambiguous Sentences.' — The classic study showing that verb bias affects garden-path difficulty."
+          },
+          {
+            "type": "p",
+            "children": "• Trueswell, J.C., Tanenhaus, M.K., & Kello, C. (1993). 'Verb-Specific Constraints in Sentence Processing.' — Early evidence that verb-specific subcategorization frequencies guide real-time parsing."
+          }
+        ]
+      }
+    ]
+  }
+}
