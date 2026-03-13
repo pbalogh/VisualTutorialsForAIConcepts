@@ -577,12 +577,14 @@ const componentMap = {
   ),
   
   // Analogy box - for "think of it like..."
-  Analogy: ({ children }) => (
+  // Supports both children-based and props-based (concept/analogy) usage
+  Analogy: ({ children, concept, analogy }) => (
     <div className="my-6 p-5 rounded-xl bg-gradient-to-br from-purple-50 to-pink-50 border border-purple-100">
       <div className="flex items-start gap-3">
         <span className="text-2xl">🎭</span>
-        <div className="text-gray-700 italic leading-relaxed">
-          {children}
+        <div className="text-gray-700 leading-relaxed">
+          {concept && <div className="font-semibold text-purple-800 mb-1 not-italic">{concept}</div>}
+          <div className="italic">{analogy || children}</div>
         </div>
       </div>
     </div>
