@@ -1,0 +1,469 @@
+{
+  "id": "diffusion-04-brownian-bridge",
+  "title": "Text Diffusion IV: The Brownian Bridge — Why Endpoints Change Everything",
+  "subtitle": "How fixing both ends prevents garden paths and hallucination",
+  "readTime": "25 min",
+  "state": {},
+  "content": {
+    "type": "Fragment",
+    "children": [
+      {
+        "type": "Section",
+        "props": { "title": "The Problem With One-Way Trips" },
+        "children": [
+          {
+            "type": "p",
+            "children": "Autoregressive generation — the engine behind GPT, LLaMA, and every large language model you've heard of — is a one-way trip. Left to right. Token by token. No going back."
+          },
+          {
+            "type": "p",
+            "children": "Each token COMMITS you. If token 5 was wrong, tokens 6 through 100 are all built on a bad foundation. The model doesn't know token 5 was wrong. It can't know — it can only see what's behind it, never what's ahead. It's laying track in front of a moving train."
+          },
+          {
+            "type": "Callout",
+            "props": { "type": "warning" },
+            "children": [
+              {
+                "type": "p",
+                "children": "This is why LLMs hallucinate. A confident early token — say, 'The Battle of Hastings occurred in 1067' — poisons everything downstream. The model now has to make 1067 true. It will invent facts, fabricate sources, construct elaborate justifications — all to stay consistent with a single wrong number it can never take back."
+              }
+            ]
+          },
+          {
+            "type": "p",
+            "children": "Standard diffusion (the kind we explored in Parts I–III) is better. You refine EVERYTHING simultaneously — all tokens at once, from noise to clarity. No single token commits you. But standard diffusion has its own problem: you start from PURE noise. There's no constraint on where you end up. You're sculpting from a random block of marble with no sketch to guide you."
+          },
+          {
+            "type": "p",
+            "children": "What if you could fix BOTH ends? What if you knew your starting point AND your destination, and the generative process had to find a path between them?"
+          },
+          {
+            "type": "Analogy",
+            "props": {
+              "concept": "Three Approaches to Generation",
+              "analogy": "Autoregressive = driving with no map, making permanent turns at every intersection. You can never U-turn. If you turned left at Oak Street and should have turned right, every subsequent turn is just taking you further from where you need to be. Standard diffusion = being dropped by helicopter into a random field and wandering until you find civilization. You might end up somewhere great. You might end up in a swamp. Brownian Bridge = knowing you start in Chicago and must arrive in New York. The route through the middle is up to you — interstate or backroads, through Pittsburgh or through Cleveland — but both endpoints are locked.",
+              "insight": "The bridge doesn't constrain creativity — it CHANNELS it. The infinite space of 'all possible texts' is narrowed to the still-vast space of 'all texts consistent with these endpoints.' That's where the interesting generation happens."
+            }
+          },
+          {
+            "type": "p",
+            "children": "This is the Brownian Bridge — and it changes everything about how we think about text generation."
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "What Is a Brownian Bridge?" },
+        "children": [
+          {
+            "type": "p",
+            "children": "A Brownian Bridge is a random process that starts at point A and MUST end at point B. That's it. That's the whole definition. But the consequences are profound."
+          },
+          {
+            "type": "p",
+            "children": "Between A and B, the path is random — but it's CONSTRAINED randomness. Ordinary Brownian motion (a random walk) can end up anywhere. A Brownian Bridge is a random walk that's been told where to land. This changes the shape of uncertainty itself."
+          },
+          {
+            "type": "p",
+            "children": "Near the start, paths spread out — the process is exploring possibilities, drifting away from A. Near the end, paths converge — the process is being pulled back toward B, its mandatory destination. The maximum uncertainty is in the MIDDLE. This creates a characteristic 'bulge' — a lens-shaped envelope of possible paths, fat in the center, pinched at both ends."
+          },
+          {
+            "type": "InteractiveDemo",
+            "props": {
+              "title": "Ten Bridges, One Destination",
+              "prompt": "Watch 10 different Brownian Bridge paths between the same two points (A=0, B=0). They all start and end at the same place but take wildly different routes through the middle. The shaded 'bulge' shows where the exploration happens.",
+              "scenarios": [
+                {
+                  "input": "Path behavior near the START (t = 0 to 0.2)",
+                  "reveal": "All 10 paths start at exactly the same point (A=0). In the first 20% of the journey, they begin to spread apart — some drift upward, some downward. But they're still relatively close together. The constraint of the starting point hasn't fully released them yet. Think of runners leaving the starting blocks: they're still bunched up."
+                },
+                {
+                  "input": "Path behavior in the MIDDLE (t = 0.3 to 0.7)",
+                  "reveal": "Maximum divergence! The 10 paths are spread across the widest range. Some have swung far positive, others far negative. This is the creative zone — the part of the bridge where the most 'choices' are being made. The variance peaks at t=0.5 (exactly halfway), where it equals T/4 for a unit bridge. This is where generation is most free."
+                },
+                {
+                  "input": "Path behavior near the END (t = 0.8 to 1.0)",
+                  "reveal": "The paths are converging rapidly. No matter how far they wandered in the middle, they're all being pulled back toward B=0. The ones that swung far positive are now diving down; the ones that went negative are climbing back up. By t=1.0, all 10 paths arrive at exactly B=0. The destination was never in doubt — only the journey."
+                },
+                {
+                  "input": "The BULGE = the space of creativity",
+                  "reveal": "The lens-shaped envelope around the paths IS the creative space. At the endpoints, there's zero variance — the answer is fixed. In the middle, variance is maximum — the process is maximally uncertain, maximally creative. For text generation, this means: the endpoints (prompt and target) are known; the creative work happens in the MIDDLE of the generation process, where the bridge has maximum freedom to explore."
+                }
+              ]
+            }
+          },
+          {
+            "type": "Analogy",
+            "props": {
+              "concept": "The River Between Two Mountains",
+              "analogy": "Imagine a river that must flow from one mountain peak to another. At the peaks, the water's position is fixed — it's AT the peak. But through the valley between the mountains, the river can take many paths. Some years it carves left; some years it carves right. The valley floor IS the bulge — the zone of maximum freedom. And the deeper the valley (the more time between the endpoints), the wider the river can spread.",
+              "insight": "The valley is where creativity lives. The mountains are the constraints that make creativity meaningful. Without mountains, you just have a flood — water going everywhere, saying nothing. Without the valley, you just have a straight line — efficient but dull. The bridge gives you both: constraint AND freedom, structure AND exploration."
+            }
+          },
+          {
+            "type": "p",
+            "children": "Mathematically, a Brownian Bridge from A at time 0 to B at time T has a simple formula: at any time t, the expected value is A + (B−A)·t/T, and the variance is t·(T−t)/T. The expected value is just linear interpolation — boring. ALL the magic is in the variance term t·(T−t)/T, which is zero at both endpoints and maximal at t=T/2. This parabolic variance envelope IS the bridge."
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "Bridges for Text: Fixing Both Ends" },
+        "children": [
+          {
+            "type": "p",
+            "children": "Now let's bring this to language. For text generation: Point A is your prompt, your context, your starting conditions. Point B is your target — the meaning you want to arrive at, the structure the sentence must have, the conclusion the argument must reach."
+          },
+          {
+            "type": "p",
+            "children": "The bridge generates text that MUST be consistent with both endpoints. Not approximately consistent — EXACTLY consistent. The start is fixed. The end is fixed. The bridge finds paths through the space between them."
+          },
+          {
+            "type": "p",
+            "children": "In embedding space, this is concrete: the start embedding and end embedding are fixed points in 768-dimensional space. The bridge traces a path through that high-dimensional landscape, and the path determines the intermediate tokens. Different bridge realizations — different random paths between the same two endpoints — produce different but equally valid texts."
+          },
+          {
+            "type": "Example",
+            "props": { "title": "Three Middles, Same Endpoints" },
+            "children": [
+              {
+                "type": "p",
+                "children": "Endpoint A: 'The detective suspected...'"
+              },
+              {
+                "type": "p",
+                "children": "Endpoint B: '...was guilty of the crime.'"
+              },
+              {
+                "type": "p",
+                "children": "Bridge path 1: 'The detective suspected the butler was guilty of the crime.' — Classic, direct, minimal deviation from the linear interpolation between A and B."
+              },
+              {
+                "type": "p",
+                "children": "Bridge path 2: 'The detective suspected her own partner, despite years of trust, was guilty of the crime.' — A wider swing through the bulge. More creative, more complex, but still landing exactly at B."
+              },
+              {
+                "type": "p",
+                "children": "Bridge path 3: 'The detective suspected that the nervous witness who kept changing his story was guilty of the crime.' — The widest path yet. A subordinate clause, a character sketch, narrative tension — all generated in the bulge zone and all converging back to the fixed endpoint."
+              }
+            ]
+          },
+          {
+            "type": "InteractiveDemo",
+            "props": {
+              "title": "Paths Through Embedding Space",
+              "prompt": "Visualize three bridge paths between the same A ('The detective suspected...') and B ('...was guilty of the crime.'). Each path takes a different route through the high-dimensional embedding space, producing a different middle.",
+              "scenarios": [
+                {
+                  "input": "Path 1: 'the butler' — The short bridge",
+                  "reveal": "This path stays close to the linear interpolation between A and B in embedding space. The embedding trajectory barely bulges. It's the shortest, most direct path through the semantic landscape. The result is the simplest, most predictable middle: 'the butler.' Minimal variance, minimal creativity, maximum efficiency."
+                },
+                {
+                  "input": "Path 2: 'her own partner, despite years of trust,' — The emotional bridge",
+                  "reveal": "This path swings through a region of embedding space associated with BETRAYAL and TRUST. The bulge is wider — the bridge explored further from the linear interpolation before converging back to B. The emotional content ('despite years of trust') lives in the peak of the bulge, where the bridge had maximum freedom."
+                },
+                {
+                  "input": "Path 3: 'the nervous witness who kept changing his story' — The narrative bridge",
+                  "reveal": "The widest bridge. It swings through embedding regions for NERVOUSNESS, DECEPTION, and NARRATIVE DETAIL before converging back. The subordinate clause ('who kept changing his story') represents the peak of the bulge — maximum variance, maximum creative freedom, maximum distance from the simple linear interpolation. Yet it still arrives exactly at B."
+                }
+              ]
+            }
+          },
+          {
+            "type": "Callout",
+            "props": { "type": "info" },
+            "children": [
+              {
+                "type": "p",
+                "children": "KEY PRINCIPLE: The width of the bridge's bulge controls creativity. A narrow bridge produces predictable, safe text. A wide bridge produces surprising, creative text. But BOTH land at the same destination. This is fundamentally different from temperature in autoregressive models, where high temperature produces surprising text that may be INCOHERENT. Bridge width produces surprising text that's guaranteed to be CONSISTENT with the endpoints."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "Why Bridges Prevent Garden Paths" },
+        "children": [
+          {
+            "type": "p",
+            "children": "THIS is the key connection — the reason the Brownian Bridge isn't just a mathematical curiosity but a fundamental insight about language processing."
+          },
+          {
+            "type": "p",
+            "children": "Garden-path sentences break autoregressive parsers because the parser COMMITS to one analysis too early. It can't see the future. It makes a decision based on local evidence and then has to live with the consequences."
+          },
+          {
+            "type": "Callout",
+            "props": { "type": "warning" },
+            "children": [
+              {
+                "type": "p",
+                "children": "'The horse raced past the barn fell.' — The autoregressive parser sees 'The horse raced' and commits: 'raced' is the main verb (92% probability). By the time 'fell' arrives, it's too late. Five tokens of structure have been built on the assumption that 'raced' is a main verb. The correct parse — where 'raced' is a past participle in a reduced relative clause — was pruned at token 3 and never recovered."
+              }
+            ]
+          },
+          {
+            "type": "p",
+            "children": "A Brownian Bridge CAN'T garden-path. Here's why: both endpoints constrain the parse. The endpoint 'fell' is known from the beginning. The bridge trajectory MUST include a viable path where the sentence ends with 'fell' as the main verb."
+          },
+          {
+            "type": "p",
+            "children": "Think about what this means. If 'fell' is the main verb, then 'raced' CANNOT be the main verb. A sentence only gets one main verb (in its main clause). So the bridge, knowing the endpoint, automatically maintains a parse where 'raced' is a past participle. The correct interpretation was never pruned — it was always being pulled along by the endpoint constraint."
+          },
+          {
+            "type": "InteractiveDemo",
+            "props": {
+              "title": "Autoregressive vs. Bridge Parsing",
+              "prompt": "Watch how an autoregressive parser and a Brownian Bridge handle the same garden-path sentence differently.",
+              "scenarios": [
+                {
+                  "input": "Autoregressive: Processing 'The horse raced past the barn fell'",
+                  "reveal": "Token 1-2: 'The horse' → NP subject (100% confident). Token 3: 'raced' → main verb, active voice (92%). Alternative: past participle, reduced relative (8%). The 8% parse is effectively DEAD — it will be pruned by beam search or overwhelmed by the dominant parse. Tokens 4-6: 'past the barn' → PP modifying 'raced.' Built entirely on the main-verb parse. Token 7: 'fell' → CRASH. No main verb slot available. The parser expected a period, not another verb. Emergency reanalysis required — but 4 tokens of wrong structure must be unwound."
+                },
+                {
+                  "input": "Brownian Bridge: Processing the same sentence with both endpoints known",
+                  "reveal": "The bridge knows A (sentence start) and B (sentence ends with 'fell' as main verb). Working backward from B: if 'fell' is the main verb, the subject must be 'the horse.' If 'the horse' is the subject of 'fell,' then 'raced past the barn' must be a MODIFIER of 'the horse,' not the main predicate. Therefore 'raced' must be a past participle: 'The horse [that was] raced past the barn.' The bridge ALWAYS maintains this parse because the endpoint REQUIRES it. There's no garden path because there's no premature commitment."
+                },
+                {
+                  "input": "The critical difference",
+                  "reveal": "The autoregressive parser asks: 'Given what I've seen so far, what's the most likely next structure?' The bridge asks: 'Given where I started AND where I must end up, what paths connect them?' The first question leads to garden paths because local evidence misleads. The second question can't be misled because the answer is already constrained by the destination."
+                },
+                {
+                  "input": "What about L11's exception handler?",
+                  "reveal": "In our earlier work, we found that Layer 11 in GPT-2 acts as an emergency reanalysis system — it detects garden paths and triggers costly recovery. But this is a PATCH on a broken architecture. The Brownian Bridge makes L11's exception handler unnecessary. You don't need an emergency brake if the vehicle was never heading toward the cliff in the first place."
+                }
+              ]
+            }
+          },
+          {
+            "type": "Analogy",
+            "props": {
+              "concept": "The Emergency Brake vs. The Bridge",
+              "analogy": "L11's exception handler is an emergency brake bolted onto a car that's already careening off a cliff. It works — sometimes. When it detects the garden path in time, it slams the brakes and the parser recovers. But the recovery is expensive (the P600 reanalysis cost we measured) and sometimes it fails entirely (persistent hallucinations in LLMs). The Brownian Bridge doesn't bolt on an emergency brake. It builds a bridge over the cliff. The car was never at risk because the road always led to the destination. Wrong commitments don't need to be corrected because they never fully form.",
+              "insight": "This is the difference between DETECTING errors and PREVENTING them. Autoregressive models with reanalysis detect and (sometimes) correct errors. The Brownian Bridge prevents the errors from forming. Prevention is always cheaper than cure."
+            }
+          },
+          {
+            "type": "Callout",
+            "props": { "type": "success" },
+            "children": [
+              {
+                "type": "p",
+                "children": "THE REVELATION: Garden-path sentences are not a property of language. They're a property of LEFT-TO-RIGHT PROCESSING. Change the processing architecture — process from both ends simultaneously — and garden paths simply vanish. They're an artifact of the one-way trip, and the Brownian Bridge eliminates one-way trips."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "The Noise Hierarchy: Structure First, Semantics Later" },
+        "children": [
+          {
+            "type": "p",
+            "children": "Our Mode 1 / Mode 2 finding from the garden-path work tells us something crucial about HOW the bridge should denoise. Not all linguistic information is created equal — and it shouldn't be denoised equally."
+          },
+          {
+            "type": "p",
+            "children": "Mode 1 (structural processing, indexed by the P600 ERP component) handles SYNTAX: clause boundaries, phrase structure, grammatical roles. Mode 2 (semantic processing, indexed by the N400) handles MEANING: word choice, plausibility, thematic fit."
+          },
+          {
+            "type": "p",
+            "children": "Here's the key insight: Mode 1 should resolve in EARLY denoising steps (when noise is high), and Mode 2 should resolve in LATE denoising steps (when noise is low). Structure first, semantics later. Skeleton before flesh."
+          },
+          {
+            "type": "InteractiveDemo",
+            "props": {
+              "title": "Coarse-to-Fine Generation",
+              "prompt": "Watch a sentence being generated through the bridge's denoising process, resolving structure before semantics.",
+              "scenarios": [
+                {
+                  "input": "Step 1: HIGH noise — Global structure emerges",
+                  "reveal": "The bridge first resolves the coarsest features: Is this a question or a statement? How many clauses? Where are the clause boundaries? At this stage, the sentence looks like: [SUBJECT] [VERB-ed] [PREP] [NOUN] [MAIN-VERB]-ed. The syntactic FRAME is set — we know it's a declarative with a reduced relative clause and a main verb. No specific words yet, just structure. Like an architect's wireframe before any materials are chosen."
+                },
+                {
+                  "input": "Step 2: MEDIUM noise — Syntactic roles crystallize",
+                  "reveal": "Now the bridge resolves WHO does WHAT to WHOM: [ANIMATE-SUBJECT] [PAST-PARTICIPLE] [PAST] [LOCATION] [MOTION-VERB]-ed. We know the subject is animate, the modifier involves past movement to a location, and the main verb is a motion/state verb. Still no specific words — but the grammatical roles and semantic categories are locked in. The horse, not the barn, is doing the falling."
+                },
+                {
+                  "input": "Step 3: LOW noise — Specific words chosen",
+                  "reveal": "Finally, the bridge resolves the actual lexical items: 'The horse raced past the barn fell.' The specific words fill in the structural and semantic slots that were already determined. 'Horse' fills ANIMATE-SUBJECT. 'Raced' fills PAST-PARTICIPLE. 'Barn' fills LOCATION. 'Fell' fills MOTION-VERB. The words are the LAST thing to be decided, not the first."
+                },
+                {
+                  "input": "Why this order prevents garden paths",
+                  "reveal": "In autoregressive generation, words come first and structure is inferred from them — so 'raced' triggers a wrong structural commitment. In bridge generation, structure comes first and words fill the structure — so the reduced-relative-clause structure is already locked in before 'raced' is chosen to fill it. You can't garden-path because the structural frame is set before any ambiguous word is generated."
+                }
+              ]
+            }
+          },
+          {
+            "type": "p",
+            "children": "This gives us a PRINCIPLED noise schedule for text diffusion:"
+          },
+          {
+            "type": "Example",
+            "props": { "title": "The Three-Level Noise Schedule" },
+            "children": [
+              {
+                "type": "p",
+                "children": "HIGH noise (early steps): Decide global structure. Declarative or interrogative? How many clauses? Where do the clause boundaries fall? Main clause vs. subordinate? This is Mode 1 / P600 territory — the structural scaffold."
+              },
+              {
+                "type": "p",
+                "children": "MEDIUM noise (middle steps): Decide syntactic roles. Who is the agent? Who is the patient? Which NP is the subject of which verb? What are the semantic categories (animate? location? action?)? This is the bridge between structure and meaning."
+              },
+              {
+                "type": "p",
+                "children": "LOW noise (late steps): Decide specific words. Which synonym? Which phrasing? 'Rapid' or 'fast'? 'The detective' or 'the investigator'? This is Mode 2 / N400 territory — the semantic filling."
+              }
+            ]
+          },
+          {
+            "type": "Callout",
+            "props": { "type": "info" },
+            "children": [
+              {
+                "type": "p",
+                "children": "CONNECTION TO SAE FEATURES: In our Sparse Autoencoder analysis, structural features (those tracking clause boundaries, verb types, phrase structure) should activate during EARLY denoising steps — they're the first things to crystallize from noise. Semantic features (those tracking word meaning, thematic fit, plausibility) should activate during LATE denoising steps — they fill in the details after the structure is set. This prediction is directly testable."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "The Six-Paper Arc" },
+        "children": [
+          {
+            "type": "p",
+            "children": "Step back and see the full arc. Papers 1 through 5 — from 'The Anxiety of Influence' through 'Garden-Path' — diagnose what's WRONG with autoregressive processing. Each paper reveals a different failure mode, a different crack in the left-to-right architecture."
+          },
+          {
+            "type": "p",
+            "children": "Paper 1 (Anxiety of Influence): showed how attention patterns create interference between competing interpretations. Paper 2 (Half the Nonlinearity): revealed that only half the model's capacity is doing useful computation. Paper 3 (Discrete Charm): demonstrated that continuous representations must be discretized for language, creating lossy bottlenecks. Paper 4 (Darkness Visible): showed how information is selectively suppressed — sometimes usefully, sometimes catastrophically. Paper 5 (Garden-Path): identified the specific mechanism of parsing failure and L11's emergency reanalysis system."
+          },
+          {
+            "type": "p",
+            "children": "Paper 6 — the Brownian Bridge — proposes the FIX. Not a patch, not a better emergency brake, not a cleverer beam search. A fundamentally different architecture that prevents the failures from occurring in the first place."
+          },
+          {
+            "type": "p",
+            "children": "The garden-path findings don't just MOTIVATE the bridge — they PROVIDE THE NOISE SCHEDULE. The Mode 1/Mode 2 distinction tells us exactly how the bridge should denoise: structure first, semantics later. The five diagnostic papers aren't just motivation — they're engineering specifications."
+          },
+          {
+            "type": "Callout",
+            "props": { "type": "warning" },
+            "children": [
+              {
+                "type": "p",
+                "children": "HALLUCINATION IS A GARDEN PATH THAT'S NEVER CORRECTED. When GPT says 'The Battle of Hastings occurred in 1067,' it has garden-pathed on a wrong date and every subsequent token reinforces the error. L11's exception handler might catch an obvious syntactic garden path — but it can't catch a factual one. The Brownian Bridge, with its endpoint constraints, can: if the endpoint specifies '1066,' the bridge trajectory is constrained to be consistent with that fact. Self-correction is built into the architecture."
+              }
+            ]
+          },
+          {
+            "type": "DeepDive",
+            "props": {
+              "title": "Hagoort's Unification Model as Iterative Denoising",
+              "content": "Peter Hagoort's Unification Model (2005, 2013) proposes that language processing happens through the unification of FRAGMENTS — lexical items retrieved from memory are combined into larger structures through a dynamic, iterative process of constraint satisfaction. The Unification Space is where these fragments are assembled, tested, and revised until a coherent interpretation emerges.\n\nThis maps to iterative denoising with startling directness. The Unification Space IS a latent space being denoised. The fragments are the partially-denoised representations at each step. Unification IS denoising — the iterative process of making fragments consistent with each other. Failed unification (the processing difficulty we measure as ERPs) corresponds to high residual noise — the denoiser hasn't yet found a configuration where all constraints are satisfied.\n\nCritically, Hagoort's model is NOT autoregressive. Unification doesn't proceed left to right — it proceeds by constraint satisfaction, with all fragments influencing each other simultaneously. This is exactly how diffusion works. And it's exactly how a Brownian Bridge works, with the additional constraint that both endpoints are fixed.\n\nThe mapping suggests that the human language system may be more bridge-like than autoregressive. We don't process sentences purely left to right — we integrate predictions about what's coming (the endpoint) with what's already arrived (the start point). The P600 reanalysis effect, in this view, is what happens when the bridge trajectory needs to be revised because new information changes the endpoint constraint. The brain IS doing something like Brownian Bridge denoising — and the ERP components we measure are signatures of the denoising process."
+            }
+          },
+          {
+            "type": "p",
+            "children": "This is not a finished story. It's an open research direction — a hypothesis that's now concrete enough to test. Can we build a text diffusion model that uses a Brownian Bridge with a Mode 1/Mode 2 noise schedule? Can we show it eliminates garden-path errors? Can we show the denoising steps mirror ERP components? These are answerable questions. And if the answers are yes, we'll have shown that the architecture of language understanding — evolved over millions of years in the human brain — is a Brownian Bridge."
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "Test Your Understanding" },
+        "children": [
+          {
+            "type": "Quiz",
+            "props": {
+              "questions": [
+                {
+                  "question": "What makes a Brownian Bridge different from standard Brownian motion?",
+                  "options": [
+                    "A Brownian Bridge moves faster",
+                    "A Brownian Bridge is constrained to start at point A AND end at point B",
+                    "A Brownian Bridge has no randomness",
+                    "A Brownian Bridge only moves in one direction"
+                  ],
+                  "correctIndex": 1,
+                  "explanation": "Standard Brownian motion starts at a point and wanders freely — it can end up anywhere. A Brownian Bridge is constrained at BOTH endpoints: it must start at A and arrive at B. Between the endpoints, the path is random, but it's constrained randomness — the process knows where it has to end up. This creates the characteristic 'bulge' of maximum variance in the middle."
+                },
+                {
+                  "question": "Where does maximum uncertainty (and maximum creativity) occur in a Brownian Bridge?",
+                  "options": [
+                    "At the start",
+                    "At the end",
+                    "In the exact middle (t = T/2)",
+                    "Uniformly throughout"
+                  ],
+                  "correctIndex": 2,
+                  "explanation": "The variance of a Brownian Bridge is t·(T−t)/T, which peaks at t = T/2 — exactly halfway between the endpoints. This is the 'bulge' of the bridge, where paths are most spread apart and the process has maximum freedom. For text generation, this is where the creative work happens: the endpoints constrain the start and end, but the middle is where the model explores."
+                },
+                {
+                  "question": "Why can't a Brownian Bridge produce garden-path errors?",
+                  "options": [
+                    "It processes text faster than autoregressive models",
+                    "It uses a bigger neural network",
+                    "Both endpoints are known, so wrong structural commitments are prevented by the endpoint constraint",
+                    "It doesn't process natural language"
+                  ],
+                  "correctIndex": 2,
+                  "explanation": "Garden paths happen when an autoregressive parser commits to a wrong structure based on local evidence, then can't recover when later tokens contradict it. A Brownian Bridge knows the endpoint from the start. If the endpoint requires 'fell' to be the main verb, the bridge trajectory ALWAYS maintains a parse consistent with that. The wrong commitment ('raced' as main verb) never fully forms because the endpoint constraint prevents it."
+                },
+                {
+                  "question": "In the bridge's noise schedule, what gets resolved FIRST (at high noise)?",
+                  "options": [
+                    "Specific word choices (synonyms, phrasing)",
+                    "Global syntactic structure (clause types, phrase boundaries)",
+                    "Semantic plausibility and thematic fit",
+                    "Punctuation and formatting"
+                  ],
+                  "correctIndex": 1,
+                  "explanation": "The bridge denoises structure before semantics — Mode 1 (P600) before Mode 2 (N400). At high noise levels, the coarsest features emerge first: Is this a question or statement? How many clauses? Where are the boundaries? This structural scaffold is set before any specific words are chosen. This order prevents garden paths because the structural frame is locked in before ambiguous words could mislead the parser."
+                },
+                {
+                  "question": "How does the Brownian Bridge relate to LLM hallucination?",
+                  "options": [
+                    "The bridge also hallucinates, just less often",
+                    "Hallucination is a garden path that's never corrected; the bridge's endpoint constraints make errors self-correcting",
+                    "The bridge prevents hallucination by using more training data",
+                    "Hallucination is unrelated to the bridge architecture"
+                  ],
+                  "correctIndex": 1,
+                  "explanation": "Hallucination in autoregressive LLMs is essentially a garden path that propagates unchecked — a wrong early token (e.g., a wrong date) forces all subsequent tokens to be consistent with the error. The bridge's endpoint constraints prevent this: if the endpoint specifies the correct fact, the bridge trajectory must be consistent with it. Errors don't propagate because both ends of the generation are fixed, making the process self-correcting."
+                }
+              ]
+            }
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "Where We Go From Here" },
+        "children": [
+          {
+            "type": "p",
+            "children": "The Brownian Bridge for text generation is not yet a proven technology. It's a hypothesis — but it's a hypothesis with teeth. It makes specific, testable predictions: that bridge-based generation should eliminate garden-path errors, that the denoising trajectory should resolve structure before semantics, that SAE features should activate in a coarse-to-fine order during denoising, and that the variance profile of the bridge should correlate with the creative freedom available at each position in the text."
+          },
+          {
+            "type": "p",
+            "children": "The five papers that precede this one didn't just identify problems. They provided the engineering specifications for the solution. The attention interference from Paper 1, the computational waste from Paper 2, the discretization bottleneck from Paper 3, the information suppression from Paper 4, the garden-path failures from Paper 5 — all of these are symptoms of the same underlying architectural mistake: processing language as a one-way trip."
+          },
+          {
+            "type": "p",
+            "children": "The Brownian Bridge says: what if it's NOT a one-way trip? What if both the origin and the destination are known, and generation is the process of finding beautiful paths between them?"
+          },
+          {
+            "type": "p",
+            "children": "The bridge is still being built. But now we know where both ends are anchored."
+          }
+        ]
+      }
+    ]
+  }
+}
