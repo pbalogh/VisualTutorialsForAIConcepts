@@ -28,7 +28,7 @@ export const AI_CONFIG = {
   openclaw: {
     // Uses OpenClaw's existing auth (OAuth token via CLI)
     // Requires `openclaw` to be installed and authenticated
-    nodePath: '/opt/homebrew/Cellar/node@24/24.13.1/bin/node',
+    nodePath: '/opt/homebrew/bin/node',
   },
   
   // Shared settings
