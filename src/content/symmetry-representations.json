@@ -337,7 +337,18 @@
             "children": [
               {
                 "type": "p",
-                "children": "\"Translation-symmetric\" means that the statistical relationship between any two words depends only on their *distance* apart in the vocabulary ordering, not on where they sit — so the PMI between positions 3 and 7 is the same as between positions 103 and 107. \"Periodic boundary conditions\" means the vocabulary wraps around like a circle, so the last word is a neighbor of the first. Together, these two properties are exactly what make the PMI matrix *circulant* — every row is just the previous row shifted by one — and that special structure is what forces the eigenvectors to be Fourier modes rather than something arbitrary."
+                "children": [
+                  "\"Translation-symmetric\" means that the statistical relationship between any two words depends only on their *distance* apart in the vocabulary ordering, not on where they sit — so the PMI between positions 3 and 7 is the same as between positions 103 and 107. \"Periodic boundary conditions\" means the vocabulary wraps around like a circle, so the last word is a neighbor of the first",
+                  {
+                    "type": "FootnoteRef",
+                    "props": {
+                      "id": "source-ann-1773421901497-kyytvd",
+                      "targetId": "ann-1773421901497-kyytvd",
+                      "type": "ask"
+                    }
+                  },
+                  ". Together, these two properties are exactly what make the PMI matrix *circulant* — every row is just the previous row shifted by one — and that special structure is what forces the eigenvectors to be Fourier modes rather than something arbitrary."
+                ]
               },
               {
                 "type": "p",
@@ -345,6 +356,41 @@
                   "className": "text-xs text-gray-400 mt-2"
                 },
                 "children": "Added 3/13/2026, 1:10:14 PM"
+              }
+            ]
+          },
+          {
+            "type": "Sidebar",
+            "props": {
+              "type": "note",
+              "title": "Q: But when would this be the case?",
+              "expanded": true,
+              "id": "ann-1773421901497-kyytvd",
+              "sourceId": "source-ann-1773421901497-kyytvd"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "Great question — in real natural language, the vocabulary does NOT naturally wrap around like a circle. There is no reason why \"aardvark\" (the first word alphabetically) should be a neighbor of \"zygote\" (the last). Periodic boundary conditions are an idealization, a mathematical convenience borrowed from physics, not a claim about how language actually works."
+              },
+              {
+                "type": "p",
+                "children": "So when would this actually be the case? It shows up in two situations. First, in simplified toy models where you deliberately construct a small vocabulary with circular structure to study the math cleanly. For example, imagine a vocabulary of 12 words representing months: January through December. December IS a neighbor of January in a meaningful sense — time wraps around. Or days of the week, or compass directions. These are cases where the semantics genuinely have circular topology."
+              },
+              {
+                "type": "p",
+                "children": "Second, and more importantly for this tutorial, periodic boundary conditions are used as a theoretical assumption that makes the math tractable. In physics, if you want to study a crystal lattice without worrying about what happens at the edges, you \"wrap\" the lattice into a torus — pretending the left edge connects to the right edge. The same trick here lets us turn the PMI matrix into a circulant matrix, which is diagonalized by the discrete Fourier transform. Without the wraparound assumption, you lose that clean spectral decomposition. The key insight is that for large vocabularies, the boundary effects are negligible anyway — words near the \"edges\" of your ordering are so far from each other that their PMI is essentially zero, so whether you wrap or not barely matters. The periodicity is a mathematical scaffolding that unlocks Fourier analysis, not a linguistic claim."
+              },
+              {
+                "type": "p",
+                "children": "Think of it like modeling the Earth's surface as a sphere. The Earth is not a perfect sphere, but assuming it is lets you use spherical harmonics, which are enormously powerful. Similarly, assuming the vocabulary wraps around lets you use Fourier methods to decompose the PMI matrix, revealing how symmetry in co-occurrence statistics translates directly into geometric structure in embedding space."
+              },
+              {
+                "type": "p",
+                "props": {
+                  "className": "text-xs text-gray-400 mt-2"
+                },
+                "children": "Asked about \"the vocabulary wraps around li...\" — 3/13/2026, 1:11:24 PM"
               }
             ]
           },
