@@ -1,0 +1,466 @@
+{
+  "id": "brainstorm-89-wake-sleep-library-learning",
+  "title": "Wake-Sleep Library Learning for Operator Discovery",
+  "subtitle": "Let Compression Find the Primitives — how DreamCoder/Lilo-style wake-sleep cycles can discover Schankian operators from data, deriving their number and nature rather than assuming them",
+  "readTime": "24 min",
+  "state": {},
+  "content": {
+    "type": "Fragment",
+    "children": [
+      {
+        "type": "Callout",
+        "props": {
+          "type": "info"
+        },
+        "children": "This tutorial explores a potentially transformative approach: instead of hand-picking semantic primitives, let a compression-driven wake-sleep loop DISCOVER them. DreamCoder and Lilo show this works for program synthesis — we apply the same principle to Schankian operators. The number and nature of primitives emerge from Minimum Description Length pressure on event decomposition."
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "1. The Problem: Who Decides What the Primitives Are?"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "Schank proposed ~14 primitives (ATRANS, PTRANS, MTRANS, etc.) based on linguistic intuition. But why 14? Why not 7 or 40? And how do we know he picked the right ones? Every hand-crafted primitive set faces a legitimacy problem: the designer's biases shape what gets discovered."
+          },
+          {
+            "type": "Analogy",
+            "props": {
+              "concept": "Discovering vs. Inventing Primitives",
+              "analogy": "Imagine you're organizing a workshop's tool collection. You COULD start with categories you think make sense (cutting tools, hammering tools, measuring tools). But a better approach: watch how workers actually use tools, notice which operations recur across different projects, and let the categories EMERGE from usage patterns. A 'cutting' primitive might split into 'precision-cutting' and 'rough-cutting' — or merge with 'shaping' — based on what the data demands. That's what wake-sleep learning does for semantic primitives."
+            }
+          },
+          {
+            "type": "p",
+            "children": "Wake-sleep library learning offers a principled solution: start with no primitives, observe event decompositions, compress recurring patterns into reusable operators, and let Minimum Description Length (MDL) pressure determine how many and what kind of primitives emerge."
+          },
+          {
+            "type": "DeepDive",
+            "props": {
+              "title": "Why is this 'potentially transformative'?",
+              "id": "why-transformative"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "Three reasons this changes the game:"
+              },
+              {
+                "type": "p",
+                "children": "1. **No a priori commitment** — The primitive count is derived, not assumed. If the data says 11 primitives, great. If it says 23, that's a genuine discovery."
+              },
+              {
+                "type": "p",
+                "children": "2. **Automatic granularity** — MDL pressure finds the sweet spot between too few operators (poor coverage) and too many (no compression). The optimal library size falls out naturally."
+              },
+              {
+                "type": "p",
+                "children": "3. **Interpretability for free** — Lilo adds LLM auto-documentation: each discovered primitive gets a natural-language description. You don't just find operators — you understand what they mean."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "2. DreamCoder: The Blueprint"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "DreamCoder (Ellis et al., 2021) is a program synthesis system that discovers reusable abstractions through a wake-sleep cycle. It was designed for programming domains (list manipulation, graphics, physics), but its architecture maps beautifully onto operator discovery."
+          },
+          {
+            "type": "Callout",
+            "props": {
+              "type": "key"
+            },
+            "children": "DreamCoder's Three Phases:\n\n🌅 WAKE — Solve tasks using current library of primitives\n🌙 SLEEP-ABSTRACTION — Find recurring sub-programs, compress into new library entries\n💤 SLEEP-DREAMING — Generate synthetic tasks to practice with new primitives\n\nRepeat. Each cycle, the library grows more powerful and more compressed."
+          },
+          {
+            "type": "Example",
+            "props": {
+              "title": "DreamCoder Learning List Primitives"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "In the list manipulation domain, DreamCoder starts with basic operations (+, -, cons, car, cdr) and discovers higher-order functions:"
+              },
+              {
+                "type": "Callout",
+                "props": {
+                  "type": "formula"
+                },
+                "children": "Cycle 1: Solves [1,2,3] → [2,4,6] as: cons(*(car L) 2) (map-manually-rest...)\nCycle 2: Notices recurring 'apply-to-each' pattern → abstracts MAP\nCycle 3: Solves [1,2,3] → [2,4,6] as: (map (* 2) L)  ← 3x shorter!\n\nCycle 5: Discovers FILTER from recurring conditional patterns\nCycle 8: Discovers FOLD from recurring accumulation patterns\n\nLibrary grows: {+,-,cons,car,cdr} → {+,-,cons,car,cdr,MAP,FILTER,FOLD,...}"
+              },
+              {
+                "type": "p",
+                "children": "The key insight: MAP, FILTER, and FOLD weren't programmed in — they were DISCOVERED because they compress the solution space. The same principle should find ATRANS, PTRANS, and MTRANS in event decomposition."
+              }
+            ]
+          },
+          {
+            "type": "InteractiveDemo",
+            "props": {
+              "title": "Wake-Sleep Cycle Simulator",
+              "id": "wake-sleep-demo",
+              "height": 420,
+              "initialCode": "// Simulate wake-sleep library learning\nconst cycles = [\n  {\n    phase: 'Initial',\n    library: ['move', 'change', 'agent', 'patient', 'object'],\n    decomp: '\"John gave Mary a book\" → move(agent:John, object:book, to:Mary) + change(possessor:book, from:John, to:Mary)',\n    cost: 18\n  },\n  {\n    phase: 'Cycle 1 — Wake',\n    library: ['move', 'change', 'agent', 'patient', 'object'],\n    decomp: 'Decompose 500 event sentences using current primitives...',\n    cost: 18\n  },\n  {\n    phase: 'Cycle 1 — Sleep-Abstract',\n    library: ['move', 'change', 'agent', 'patient', 'object', 'TRANSFER'],\n    decomp: 'Found: move+change(possession) recurs 89 times → abstract as TRANSFER',\n    cost: 12\n  },\n  {\n    phase: 'Cycle 2 — Sleep-Abstract',\n    library: ['move', 'change', 'TRANSFER', 'PROPEL', 'INFORM', 'STATE_Δ'],\n    decomp: '\"John gave Mary a book\" → TRANSFER(John, book, Mary)',\n    cost: 5\n  },\n  {\n    phase: 'Cycle 3 — Converged',\n    library: ['ATRANS', 'PTRANS', 'MTRANS', 'PROPEL', 'MBUILD', 'ATTEND', 'SPEAK', 'INGEST', 'EXPEL', 'GRASP', 'MOVE', 'STATE_Δ'],\n    decomp: '\"John gave Mary a book\" → ATRANS(John, book, Mary)',\n    cost: 3\n  }\n];\n\nlet html = '<div style=\"font-family:monospace;font-size:12px\">';\ncycles.forEach((c, i) => {\n  const color = i === cycles.length-1 ? '#4ade80' : '#60a5fa';\n  html += `<div style=\"margin-bottom:12px;border-left:3px solid ${color};padding-left:10px\">`;\n  html += `<b style=\"color:${color}\">${c.phase}</b><br>`;\n  html += `<span style=\"color:#fbbf24\">Library (${c.library.length}):</span> ${c.library.join(', ')}<br>`;\n  html += `<span style=\"color:#a78bfa\">${c.decomp}</span><br>`;\n  html += `<span style=\"color:#888\">Description cost: ${c.cost} tokens</span>`;\n  html += '</div>';\n});\nhtml += '<div style=\"color:#4ade80;margin-top:8px\">✨ Primitives EMERGED — not programmed! Cost: 18 → 3 tokens</div>';\nhtml += '</div>';\nreturn html;"
+            }
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "3. Mapping to Operator Discovery"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "Here's how the DreamCoder architecture maps onto Schankian operator discovery:"
+          },
+          {
+            "type": "DefinitionList",
+            "props": {
+              "definitions": [
+                {
+                  "term": "Tasks → Event Sentences",
+                  "definition": "Instead of programming puzzles, each 'task' is decomposing a natural language event sentence into operators over entities. 'The cat knocked the vase off the shelf' must be explained using current library operators."
+                },
+                {
+                  "term": "Programs → Operator Expressions",
+                  "definition": "A 'program' is an operator expression: PROPEL(cat, vase) ∘ PTRANS(vase, shelf→floor) ∘ STATE_Δ(vase, intact→broken). These compose operators from the current library."
+                },
+                {
+                  "term": "Library → Operator Inventory",
+                  "definition": "The library IS the set of discovered primitives. It starts minimal and grows through abstraction. Each entry has a type signature: ATRANS : Agent × Object × Source × Goal → Event."
+                },
+                {
+                  "term": "MDL Objective → Primitive Count",
+                  "definition": "Minimize: |Library| × cost_per_primitive + Σ |decomposition(event_i)|. Too few primitives = expensive decompositions. Too many = expensive library. The optimum determines primitive count."
+                }
+              ]
+            }
+          },
+          {
+            "type": "DeepDive",
+            "props": {
+              "title": "The MDL objective in detail",
+              "id": "mdl-objective"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "Minimum Description Length formalizes Occam's Razor. The total cost of a library L and dataset D is:"
+              },
+              {
+                "type": "Callout",
+                "props": {
+                  "type": "formula"
+                },
+                "children": "MDL(L, D) = |L| + Σᵢ |encode(dᵢ | L)|\n\nwhere:\n  |L| = cost to describe the library (each primitive's definition)\n  |encode(dᵢ | L)| = cost to describe event dᵢ using library L\n\nOptimal library L* = argmin_L MDL(L, D)\n\n• Library {MOVE} alone: |L|=1, but encode('gave')=5 (need many MOVE compositions)\n• Library {verb₁...verb₅₀₀₀}: |L|=5000, encode=1 (just look up the verb)\n• Library {ATRANS,PTRANS,...}: |L|≈14, encode≈2-3 — THE SWEET SPOT"
+              },
+              {
+                "type": "p",
+                "children": "This is why ~14 primitives is not arbitrary — it's the compression optimum. Too few operators means you need long, complex decompositions for every event. Too many means the library itself is expensive to maintain. MDL finds the balance automatically."
+              }
+            ]
+          },
+          {
+            "type": "InteractiveDemo",
+            "props": {
+              "title": "MDL Cost Explorer",
+              "id": "mdl-cost-demo",
+              "height": 360,
+              "initialCode": "// Visualize the MDL trade-off\nconst librarySizes = [1, 3, 5, 8, 11, 14, 20, 30, 50, 100, 500];\nconst libCostPerPrimitive = 3;\nconst totalEvents = 1000;\n\nfunction avgDecompCost(k) {\n  // Rough model: more primitives = shorter decompositions\n  return 10 * Math.pow(k, -0.5) + 1;\n}\n\nlet html = '<div style=\"font-family:monospace;font-size:12px\">';\nhtml += '<b>MDL Cost vs Library Size:</b><br><br>';\nhtml += '<table style=\"border-collapse:collapse\">';\nhtml += '<tr style=\"color:#fbbf24;border-bottom:1px solid #444\"><td style=\"padding:3px 8px\">|L|</td><td style=\"padding:3px 8px\">Lib Cost</td><td style=\"padding:3px 8px\">Avg Decomp</td><td style=\"padding:3px 8px\">Total MDL</td><td style=\"padding:3px 8px\">Bar</td></tr>';\n\nlet minCost = Infinity, minK = 0;\nlibrarySizes.forEach(k => {\n  const lc = k * libCostPerPrimitive;\n  const dc = avgDecompCost(k);\n  const total = lc + totalEvents * dc;\n  if (total < minCost) { minCost = total; minK = k; }\n});\n\nlibrarySizes.forEach(k => {\n  const lc = k * libCostPerPrimitive;\n  const dc = avgDecompCost(k);\n  const total = lc + totalEvents * dc;\n  const barLen = Math.round(total / 200);\n  const isMin = k === minK;\n  const color = isMin ? '#4ade80' : '#60a5fa';\n  const bg = isMin ? 'background:#1a3a1a;' : '';\n  html += `<tr style=\"${bg}\">`;\n  html += `<td style=\"padding:3px 8px;color:${color}\">${k}</td>`;\n  html += `<td style=\"padding:3px 8px\">${lc}</td>`;\n  html += `<td style=\"padding:3px 8px\">${dc.toFixed(1)}</td>`;\n  html += `<td style=\"padding:3px 8px;color:${color}\">${total.toFixed(0)}</td>`;\n  html += `<td style=\"padding:3px 8px\"><span style=\"background:${color};display:inline-block;height:10px;width:${Math.min(barLen,40)}px;border-radius:2px\"></span></td>`;\n  html += '</tr>';\n});\nhtml += '</table><br>';\nhtml += `<span style=\"color:#4ade80\">✨ MDL optimum: ~${minK} primitives — right in Schank's range!</span></div>`;\nreturn html;"
+            }
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "4. Lilo: LLM-Guided Library Learning"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "Lilo (Grand et al., 2023) extends DreamCoder with a crucial innovation: it uses LLMs to auto-document and name discovered abstractions, making the library interpretable. For operator discovery, this means each primitive gets a natural-language description explaining what it does."
+          },
+          {
+            "type": "Analogy",
+            "props": {
+              "concept": "Lilo's LLM Documentation",
+              "analogy": "Imagine an archaeologist who discovers unknown tools at a dig site. Pure DreamCoder is like cataloguing them as 'Tool #1, Tool #2' — you know they're distinct and reusable, but not what they're for. Lilo adds a cultural anthropologist who examines each tool's usage patterns and says 'This is a grain-grinding stone' or 'This is a hide-scraper.' The LLM provides the semantic grounding that pure compression lacks."
+            }
+          },
+          {
+            "type": "Example",
+            "props": {
+              "title": "Lilo Auto-Documentation in Action"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "After the sleep-abstraction phase discovers a new operator, Lilo sends its usage examples to an LLM:"
+              },
+              {
+                "type": "Callout",
+                "props": {
+                  "type": "formula"
+                },
+                "children": "Discovered Operator λ₇:\n  Used in: 'gave a gift', 'sold the car', 'donated blood', 'lent money', 'transferred funds'\n  Type: Agent × Object × Recipient → Event\n  Always co-occurs with: possession-change, volitional-agent\n\nLLM Documentation:\n  Name: ATRANS (Abstract Transfer)\n  Description: \"Volitional transfer of possession or control of an object\n  from one agent to another, without requiring physical movement.\"\n  Distinguishing feature: \"Unlike PTRANS, the object need not physically\n  move — ownership/control changes abstractly.\""
+              },
+              {
+                "type": "p",
+                "children": "The LLM doesn't invent the primitive — it NAMES and EXPLAINS what compression already found. This bridges the gap between formal discovery and human understanding."
+              }
+            ]
+          },
+          {
+            "type": "DeepDive",
+            "props": {
+              "title": "Lilo's stitch-based abstraction vs. DreamCoder's anti-unification",
+              "id": "stitch-vs-antiunify"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "DreamCoder uses anti-unification to find common sub-expressions: it literally aligns two programs and extracts the shared structure, leaving differences as variables. This is expensive (exponential in the worst case)."
+              },
+              {
+                "type": "p",
+                "children": "Lilo replaces this with 'stitch' — a faster corpus-level compression algorithm that finds the single abstraction yielding the greatest total compression across ALL programs simultaneously. This scales to larger libraries and longer programs."
+              },
+              {
+                "type": "p",
+                "children": "For operator discovery, stitch means we can process thousands of event decompositions at once, finding the operator abstractions that compress the ENTIRE event corpus most efficiently — not just pairwise similarities."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "5. The Three Sleep Phases for Operators"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "The full wake-sleep cycle for operator discovery has three distinct phases, each serving a critical role:"
+          },
+          {
+            "type": "InteractiveDemo",
+            "props": {
+              "title": "Wake-Sleep Phase Explorer",
+              "id": "phases-demo",
+              "height": 440,
+              "initialCode": "const phases = [\n  {\n    name: '🌅 WAKE Phase',\n    color: '#fbbf24',\n    what: 'Decompose event sentences using current operator library',\n    how: 'Neural search guided by recognition model (trained in dreaming phase)',\n    input: '\"The thief stole the diamond from the museum\"',\n    output: 'ATRANS(thief, diamond, museum→thief) + PTRANS(thief+diamond, museum→outside)',\n    purpose: 'Generate decomposition data for abstraction'\n  },\n  {\n    name: '🌙 SLEEP-ABSTRACTION',\n    color: '#a78bfa',\n    what: 'Compress recurring sub-expressions into new library entries',\n    how: 'Stitch algorithm finds max-compression abstractions across all decompositions',\n    input: 'Corpus of 500 decompositions from wake phase',\n    output: 'New operator: STEAL = ATRANS(agent, obj, victim→agent) [anti-social, covert]',\n    purpose: 'Grow the library — discover new primitives'\n  },\n  {\n    name: '💤 SLEEP-DREAMING',\n    color: '#60a5fa',\n    what: 'Generate synthetic event sentences to train the recognition model',\n    how: 'Sample operator expressions from library, use LLM to generate natural language',\n    input: 'Library: {ATRANS, PTRANS, MTRANS, PROPEL, ...}',\n    output: '\"The teacher explained gravity\" → MTRANS(teacher, knowledge, students)',\n    purpose: 'Improve wake-phase search — amortized inference'\n  }\n];\n\nlet html = '<div style=\"font-family:monospace;font-size:12px\">';\nphases.forEach(p => {\n  html += `<div style=\"margin-bottom:14px;border-left:3px solid ${p.color};padding-left:10px\">`;\n  html += `<b style=\"color:${p.color}\">${p.name}</b><br>`;\n  html += `<b>What:</b> ${p.what}<br>`;\n  html += `<b>How:</b> ${p.how}<br>`;\n  html += `<span style=\"color:#888\">Input:</span> <i>${p.input}</i><br>`;\n  html += `<span style=\"color:#888\">Output:</span> <i>${p.output}</i><br>`;\n  html += `<span style=\"color:#4ade80\">Purpose:</span> ${p.purpose}`;\n  html += '</div>';\n});\nhtml += '<div style=\"color:#fbbf24;text-align:center\">↻ Repeat until library converges (typically 5-10 cycles)</div>';\nhtml += '</div>';\nreturn html;"
+            }
+          },
+          {
+            "type": "Callout",
+            "props": {
+              "type": "warning"
+            },
+            "children": "Critical design choice: should STEAL be a primitive, or a specialization of ATRANS? MDL decides. If STEAL occurs often enough to justify its library cost, it earns its place. If not, it stays as ATRANS(covert=true). The system doesn't need human judgment — compression pressure does the work."
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "6. What Would the Discovered Library Look Like?"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "The exciting prediction: wake-sleep learning on a large event corpus should converge to a library that LOOKS LIKE Schank's primitives — even though it was never told about them. Here's what we might expect:"
+          },
+          {
+            "type": "Example",
+            "props": {
+              "title": "Predicted Convergence"
+            },
+            "children": [
+              {
+                "type": "Callout",
+                "props": {
+                  "type": "formula"
+                },
+                "children": "After ~10 wake-sleep cycles on 50K event sentences:\n\nDiscovered Operators (with Lilo names):\n  λ₁  → \"Physical-Transfer\"    ≈ PTRANS   (move, carry, send)\n  λ₂  → \"Possession-Transfer\"  ≈ ATRANS   (give, sell, steal)\n  λ₃  → \"Info-Transfer\"        ≈ MTRANS   (tell, show, teach)\n  λ₄  → \"Force-Application\"    ≈ PROPEL   (push, kick, throw)\n  λ₅  → \"Mental-Construction\"  ≈ MBUILD   (decide, realize, plan)\n  λ₆  → \"Sensory-Focus\"        ≈ ATTEND   (look, listen, smell)\n  λ₇  → \"Intake\"               ≈ INGEST   (eat, breathe, absorb)\n  λ₈  → \"State-Transition\"     ≈ STATE_Δ  (melt, break, grow)\n  λ₉  → \"Vocal-Production\"     ≈ SPEAK    (say, shout, whisper)\n  λ₁₀ → \"Grasping\"             ≈ GRASP    (hold, grab, release)\n  λ₁₁ → \"Body-Motion\"          ≈ MOVE     (walk, swim, jump)\n  λ₁₂ → \"Expulsion\"            ≈ EXPEL    (spit, exhale, vomit)\n  λ₁₃ → ???                     — NOVEL    (no Schank equivalent!)\n\nSurprise primitives the data might demand but Schank didn't include."
+              },
+              {
+                "type": "p",
+                "children": "The λ₁₃ case is the most interesting. Wake-sleep might discover operators Schank MISSED — primitives that linguistic intuition overlooked but compression demands. Possible candidates: an EMOTION-CHANGE operator, a SOCIAL-RELATION operator, or a CREATION operator."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "7. Implementation Blueprint"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "Here's a concrete implementation plan for wake-sleep operator discovery:"
+          },
+          {
+            "type": "Callout",
+            "props": {
+              "type": "key"
+            },
+            "children": "Architecture:\n\n1. EVENT PARSER: Takes natural language → structured (subject, verb, object, ...) using an LLM\n2. DECOMPOSER: Maps structured events → operator expressions using current library\n3. STITCH COMPRESSOR: Finds max-compression abstractions across decomposition corpus\n4. DREAM GENERATOR: Samples operator expressions → generates synthetic events via LLM\n5. RECOGNITION MODEL: Trained on dreamed data → amortizes decomposition search\n6. LLM DOCUMENTER: Names and describes each discovered operator\n\nData: Start with VerbNet event frames (~8K entries) + ATOMIC if-then tuples (~880K)"
+          },
+          {
+            "type": "InteractiveDemo",
+            "props": {
+              "title": "Implementation Architecture Diagram",
+              "id": "architecture-demo",
+              "height": 380,
+              "initialCode": "const components = [\n  { name: 'Event Corpus', x: 10, y: 20, w: 120, color: '#60a5fa', desc: 'VerbNet + ATOMIC' },\n  { name: 'Event Parser', x: 10, y: 80, w: 120, color: '#fbbf24', desc: 'LLM → SVO triples' },\n  { name: 'Decomposer', x: 10, y: 140, w: 120, color: '#f87171', desc: 'Search w/ library' },\n  { name: 'Operator Library', x: 160, y: 110, w: 140, color: '#4ade80', desc: 'Growing primitive set' },\n  { name: 'Stitch', x: 160, y: 180, w: 140, color: '#a78bfa', desc: 'Compress → abstract' },\n  { name: 'Dreamer', x: 320, y: 110, w: 120, color: '#818cf8', desc: 'Generate synthetics' },\n  { name: 'Recognition NN', x: 320, y: 180, w: 120, color: '#fb923c', desc: 'Amortize search' },\n  { name: 'LLM Documenter', x: 160, y: 250, w: 140, color: '#2dd4bf', desc: 'Name & explain' },\n];\n\nlet html = '<div style=\"font-family:monospace;font-size:11px;position:relative;height:310px;background:#0f1219;border-radius:8px;padding:8px\">';\ncomponents.forEach(c => {\n  html += `<div style=\"position:absolute;left:${c.x}px;top:${c.y}px;width:${c.w}px;`;\n  html += `background:${c.color}22;border:1px solid ${c.color};border-radius:6px;padding:6px;text-align:center\">`;\n  html += `<b style=\"color:${c.color}\">${c.name}</b><br>`;\n  html += `<span style=\"color:#888;font-size:10px\">${c.desc}</span></div>`;\n});\n\n// Arrows as text\nhtml += '<div style=\"position:absolute;left:70px;top:60px;color:#666\">↓</div>';\nhtml += '<div style=\"position:absolute;left:70px;top:120px;color:#666\">↓</div>';\nhtml += '<div style=\"position:absolute;left:135px;top:130px;color:#4ade80\">→</div>';\nhtml += '<div style=\"position:absolute;left:230px;top:165px;color:#a78bfa\">↓ abstract</div>';\nhtml += '<div style=\"position:absolute;left:305px;top:130px;color:#818cf8\">←</div>';\nhtml += '<div style=\"position:absolute;left:380px;top:165px;color:#fb923c\">↓ train</div>';\nhtml += '<div style=\"position:absolute;left:230px;top:232px;color:#2dd4bf\">↓ name</div>';\nhtml += '<div style=\"position:absolute;left:160px;top:295px;color:#4ade80;font-size:10px\">↻ Repeat wake-sleep cycles</div>';\nhtml += '</div>';\nreturn html;"
+            }
+          },
+          {
+            "type": "DeepDive",
+            "props": {
+              "title": "Practical considerations and challenges",
+              "id": "practical-challenges"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "**Challenge 1: Bootstrapping.** You need SOME operators to start decomposing. Solution: begin with Dowty's minimal set {DO, CAUSE, BECOME, GO} or even just {CHANGE, TRANSFER, APPLY-FORCE}. The wake-sleep loop will refine and expand from there."
+              },
+              {
+                "type": "p",
+                "children": "**Challenge 2: Search complexity.** Finding the best decomposition of an event into operators is combinatorially hard. Solution: the dreaming phase trains a recognition model (neural network) that amortizes this search — it learns to instantly propose likely decompositions."
+              },
+              {
+                "type": "p",
+                "children": "**Challenge 3: Evaluation.** How do you know the discovered primitives are 'right'? Solution: compare against Schank's, Dowty's, and VerbNet's primitives. Measure compression ratio. Test compositional generalization on held-out events. Check cross-linguistic consistency."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "8. Connections to Other Brainstorm Entries"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "Wake-sleep library learning is a unifying framework that connects several other ideas in the brainstorm:"
+          },
+          {
+            "type": "DefinitionList",
+            "props": {
+              "definitions": [
+                {
+                  "term": "DreamCoder (#54)",
+                  "definition": "The direct inspiration. Entry 54 explored DreamCoder for operator discovery in general; this entry makes the mapping concrete and adds Lilo's LLM documentation layer."
+                },
+                {
+                  "term": "MDL Operator Discovery (#45)",
+                  "definition": "MDL is the objective function that wake-sleep optimizes. Entry 45 proposed MDL as a criterion; wake-sleep provides the optimization algorithm."
+                },
+                {
+                  "term": "Boolean Circuit Extraction (#88)",
+                  "definition": "Circuit extraction finds primitives ALREADY LEARNED by transformers. Wake-sleep TRAINS a system to discover them. Complementary: use circuit extraction to validate wake-sleep's outputs."
+                },
+                {
+                  "term": "KNN Linguistic Anchors (#9)",
+                  "definition": "Linguistic anchors (Dowty's DO/CAUSE/BECOME/GO) could bootstrap the wake-sleep library, giving compression a head start."
+                },
+                {
+                  "term": "Information Bottleneck (#39)",
+                  "definition": "The operator library IS an information bottleneck — it compresses event descriptions to their essential semantic content. Wake-sleep finds the bottleneck that maximizes compression."
+                }
+              ]
+            }
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "Quiz: Test Your Understanding"
+        },
+        "children": [
+          {
+            "type": "Quiz",
+            "props": {
+              "questions": [
+                {
+                  "question": "What is the core advantage of wake-sleep library learning over hand-crafted primitives?",
+                  "options": [
+                    "It's faster to implement",
+                    "It derives the number and nature of primitives from data via compression pressure",
+                    "It uses larger neural networks",
+                    "It requires less training data"
+                  ],
+                  "correct": 1,
+                  "explanation": "The key advantage is that MDL pressure determines HOW MANY primitives exist and WHAT they are — you don't need a linguist's intuition to decide. The primitive count is derived, not assumed."
+                },
+                {
+                  "question": "What does the Sleep-Abstraction phase do?",
+                  "options": [
+                    "Generates synthetic training data",
+                    "Decomposes events into operator expressions",
+                    "Finds recurring sub-expressions and compresses them into new library entries",
+                    "Trains the recognition model"
+                  ],
+                  "correct": 2,
+                  "explanation": "Sleep-Abstraction examines all decompositions from the wake phase, identifies recurring patterns (sub-expressions that appear across many events), and abstracts them into new library entries. This is where new primitives are born."
+                },
+                {
+                  "question": "What role does the LLM play in Lilo's extension of DreamCoder?",
+                  "options": [
+                    "It replaces the compression algorithm entirely",
+                    "It auto-documents and names discovered abstractions for interpretability",
+                    "It generates the initial set of primitives",
+                    "It evaluates the quality of decompositions"
+                  ],
+                  "correct": 1,
+                  "explanation": "Lilo uses LLMs to provide natural-language names and descriptions for each discovered operator. The compression algorithm finds the primitives; the LLM explains what they mean in human-understandable terms."
+                },
+                {
+                  "question": "Why might wake-sleep discover primitives that Schank DIDN'T include?",
+                  "options": [
+                    "Because it has access to more data than Schank did",
+                    "Because compression pressure may demand operators that linguistic intuition missed",
+                    "Because it uses random initialization",
+                    "Because it over-fits to the training corpus"
+                  ],
+                  "correct": 1,
+                  "explanation": "MDL pressure finds the optimal set regardless of human preconceptions. If a recurring event pattern doesn't fit any known primitive but compresses better as a new operator, wake-sleep will create it. Schank's introspection may have blind spots that data-driven compression doesn't share."
+                },
+                {
+                  "question": "What is the MDL trade-off that determines the optimal number of primitives?",
+                  "options": [
+                    "Speed vs accuracy of decomposition",
+                    "Library cost (more primitives = expensive) vs decomposition cost (fewer primitives = longer expressions)",
+                    "Training time vs inference time",
+                    "Model size vs dataset size"
+                  ],
+                  "correct": 1,
+                  "explanation": "MDL minimizes total description length: library size + sum of decomposition lengths. A tiny library means each event needs long, complex decompositions. A huge library means the library itself is expensive. The optimum (~14 primitives) balances these costs."
+                }
+              ]
+            }
+          }
+        ]
+      }
+    ]
+  }
+}

@@ -965,6 +965,18 @@ const tutorials = [
     difficulty: 4,
   },
   {
+    id: 'brainstorm-89-wake-sleep-library-learning',
+    title: 'Wake-Sleep Library Learning for Operator Discovery',
+    description: 'Let compression find the primitives — DreamCoder/Lilo-style wake-sleep cycles discover Schankian operators from data, deriving their number and nature via MDL pressure rather than hand-crafting them.',
+    tags: ['Schankian', 'DreamCoder', 'Lilo', 'MDL', 'compression', 'library-learning', 'wake-sleep'],
+    icon: '🌗',
+    gradient: 'from-violet-500 to-amber-500',
+    shadowColor: 'shadow-violet-500/30',
+    glowColor: 'rgba(139, 92, 246, 0.4)',
+    readTime: '24 min',
+    difficulty: 4,
+  },
+  {
     id: 'brainstorm-47-semantic-renormalization',
     title: 'Semantic Renormalization Group',
     description: 'Schankian operators as RG fixed points — why different verbs across all languages converge to the same primitives under coarse-graining, just like physical universality classes.',
