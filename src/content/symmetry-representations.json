@@ -494,7 +494,104 @@
           },
           {
             "type": "p",
-            "children": "Historical years don't wrap around — they have open boundary conditions. The PMI matrix is Toeplitz rather than circulant. The eigenmodes are still sinusoidal, but now with modified wavenumber quantization (the wavenumbers satisfy a self-consistent equation involving arctan). The crucial implication is the same: top PCs encode slow variations, producing a smooth 1D manifold. Pairs of PCs form Lissajous curves — parametric curves like (A·sin(at), B·sin(bt+δ)) — which explains the 'rippled' appearance of year manifolds in 3D."
+            "children": [
+              "Historical years don't wrap around — they have open boundary conditions. The PMI matrix is Toeplitz rather than circulant",
+              {
+                "type": "FootnoteRef",
+                "props": {
+                  "id": "source-ann-1773422811439-8ezxd4",
+                  "targetId": "ann-1773422811439-8ezxd4",
+                  "type": "branch"
+                }
+              },
+              ". The eigenmodes are still sinusoidal, but now with modified wavenumber quantization (the wavenumbers satisfy a self-consistent equation involving arctan). The crucial implication is the same: top PCs encode slow variations, producing a smooth 1D manifold. Pairs of PCs form Lissajous curves — parametric curves like (A·sin(at), B·sin(bt+δ)) — which explains the 'rippled' appearance of year manifolds in 3D."
+            ]
+          },
+          {
+            "type": "DeepDive",
+            "props": {
+              "title": "Deep Dive: Toeplitz rather than circulant",
+              "defaultOpen": true,
+              "id": "ann-1773422811439-8ezxd4",
+              "sourceId": "source-ann-1773422811439-8ezxd4"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "This distinction is the mathematical heart of why historical years behave differently from cyclic phenomena like days-of-the-week or months. Both Toeplitz and circulant matrices capture translation-invariant statistics — the PMI between 'year X' and 'year Y' depends only on the gap |X−Y|, not on the specific years. But they differ in what happens at the edges, and that changes the geometry of the resulting embeddings."
+              },
+              {
+                "type": "ComparisonTable",
+                "props": {
+                  "headers": [
+                    "Property",
+                    "Circulant (e.g., days of week)",
+                    "Toeplitz (e.g., historical years)"
+                  ],
+                  "rows": [
+                    [
+                      "Boundary conditions",
+                      "Wraps around: position N+1 = position 1",
+                      "Open ends: position 1 and position N are edges"
+                    ],
+                    [
+                      "Matrix structure",
+                      "Each row is a cyclic shift of the previous",
+                      "Each row shifts but truncates at boundaries"
+                    ],
+                    [
+                      "Eigenvectors",
+                      "Complex exponentials e^(2πikn/N)",
+                      "Sine-like functions with modified frequencies"
+                    ],
+                    [
+                      "Wavenumber spacing",
+                      "Exact: k = 2πn/N (equally spaced)",
+                      "Self-consistent equation involving arctan"
+                    ],
+                    [
+                      "Resulting geometry",
+                      "Closed loops (circles, trefoils)",
+                      "Open curves (arcs, Lissajous figures)"
+                    ]
+                  ]
+                }
+              },
+              {
+                "type": "Analogy",
+                "children": "Think of a guitar string versus a rubber band. A rubber band (circulant) has no endpoints — vibrations travel around in a loop, and the allowed frequencies are exactly evenly spaced harmonics. A guitar string (Toeplitz) is pinned at both ends — vibrations reflect off the boundaries, the allowed modes are standing waves, and the frequencies are slightly shifted from the pure harmonic series. Both produce sinusoidal patterns, but the guitar string's modes are sines rather than complex exponentials, and its 'spectrum' is subtly different. Historical years are the guitar string: time starts somewhere and hasn't wrapped back around."
+              },
+              {
+                "type": "DefinitionList",
+                "props": {
+                  "items": [
+                    {
+                      "term": "Why it's still Toeplitz",
+                      "definition": "The co-occurrence statistics between years are shift-invariant in the interior — the PMI between 1950 and 1960 depends on the 10-year gap, same as 1970 and 1980. This constant-diagonal structure is what makes it Toeplitz."
+                    },
+                    {
+                      "term": "Why it's NOT circulant",
+                      "definition": "2023 is not 'next to' 1800. There's no wraparound. The matrix has genuine edges where the diagonals get truncated, breaking the cyclic symmetry that would make it circulant."
+                    },
+                    {
+                      "term": "Why the eigenmodes change",
+                      "definition": "Circulant matrices are diagonalized by the DFT — you get pure complex exponentials with exactly quantized frequencies. Toeplitz matrices have eigenvectors that are approximately sinusoidal but with boundary corrections. The wavenumbers satisfy a transcendental equation (involving arctan) rather than being evenly spaced."
+                    },
+                    {
+                      "term": "Why the geometry still works",
+                      "definition": "The crucial property — that top principal components capture slow, smooth variations — survives. You still get a 1D manifold ordered by time. But instead of closing into a loop, it traces an open arc. And pairs of PCs produce Lissajous figures (open parametric curves) rather than closed Lissajous knots."
+                    }
+                  ]
+                }
+              },
+              {
+                "type": "Callout",
+                "props": {
+                  "type": "tip"
+                },
+                "children": "The Toeplitz-vs-circulant distinction is your diagnostic tool: whenever you see embeddings forming open arcs instead of closed loops, suspect open boundary conditions. Historical years, word positions in a sentence, or any sequence with a beginning and end will give you Toeplitz structure. Cyclic phenomena (weekdays, months, hours) give you circulant structure and closed curves. Recognizing which regime you're in tells you what embedding geometry to expect before you even run PCA."
+              }
+            ]
           },
           {
             "type": "h3",
