@@ -1,0 +1,386 @@
+{
+  "id": "diffusion-02-pixels-to-words",
+  "title": "Text Diffusion II: From Pixels to Words",
+  "subtitle": "Why image diffusion can't just be copy-pasted to language — and the surprisingly hard problem of getting back to discrete tokens",
+  "readTime": "20 min",
+  "state": {},
+  "content": {
+    "type": "Fragment",
+    "children": [
+      {
+        "type": "Section",
+        "props": { "title": "Images Are Easy" },
+        "children": [
+          {
+            "type": "p",
+            "children": "Diffusion models crushed image generation. DALL-E 3, Midjourney, Stable Diffusion — they all work the same way: start with noise, gradually denoise into an image. It's elegant, powerful, and by now, well-understood."
+          },
+          {
+            "type": "p",
+            "children": "But WHY does it work so well for images? Because pixels are the dream substrate for diffusion."
+          },
+          {
+            "type": "p",
+            "children": "Three properties make pixels perfect:"
+          },
+          {
+            "type": "Callout",
+            "props": { "type": "info" },
+            "children": [
+              {
+                "type": "p",
+                "children": "1. CONTINUOUS: A pixel value of 127.5 is perfectly valid — it's just halfway between 127 and 128. You can smoothly interpolate between any two pixel values. 2. SPATIALLY LOCAL: Nearby pixels are related. A small patch of noise doesn't destroy global structure. 3. NOISE-FRIENDLY: Adding Gaussian noise to pixel values is trivially well-defined. Pixel 200 + noise 30 = pixel 230. Done."
+              }
+            ]
+          },
+          {
+            "type": "InteractiveDemo",
+            "props": {
+              "title": "The Forward and Reverse Process",
+              "prompt": "Watch how diffusion works with pixels. At each step, noise is added (forward) or removed (reverse). The process is smooth and continuous at every point.",
+              "scenarios": [
+                {
+                  "input": "Step 0: Clean image — pixel values like [200, 180, 195, 210, ...]",
+                  "reveal": "Every pixel has a crisp value. The image is sharp, clear, recognizable. This is our starting point."
+                },
+                {
+                  "input": "Step 250: Light noise — pixel values like [207, 172, 201, 198, ...]",
+                  "reveal": "Small Gaussian noise added. Pixels shift by a few values. The image is slightly fuzzy but completely recognizable. Each pixel still has a perfectly valid continuous value."
+                },
+                {
+                  "input": "Step 500: Medium noise — pixel values like [163, 220, 145, 189, ...]",
+                  "reveal": "More noise. The image is blurry but you can still see the overall structure — colors, shapes, rough composition. Importantly, every intermediate pixel value is MEANINGFUL."
+                },
+                {
+                  "input": "Step 1000: Pure noise — pixel values like [84, 231, 12, 167, ...]",
+                  "reveal": "Complete Gaussian noise. No structure left. But here's the key: the REVERSE process (denoising) can retrace every one of these steps smoothly. There's no cliff, no discontinuity. The path from noise to image is a smooth highway."
+                }
+              ]
+            }
+          },
+          {
+            "type": "p",
+            "children": "The denoiser (a U-Net or Transformer) learns to predict the noise at each step. Because everything is continuous, it can make small adjustments — nudge this pixel up by 3, that one down by 7. Gradient descent works beautifully. The loss function is smooth. The optimization landscape is friendly."
+          },
+          {
+            "type": "p",
+            "children": "Now let's try the same thing with words."
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "Words Are Hard" },
+        "children": [
+          {
+            "type": "p",
+            "children": "Language isn't made of pixels. It's made of TOKENS — discrete, atomic symbols from a fixed vocabulary. And discrete symbols break every assumption that makes image diffusion work."
+          },
+          {
+            "type": "Analogy",
+            "props": {
+              "concept": "The Discreteness Problem",
+              "analogy": "Imagine you're on a number line. With pixels, you can stand at 127.3 or 127.7 or 127.49821 — anywhere. The line is smooth. With tokens, you're standing on stones in a river. You're on 'cat' or you're on 'dog.' There is no stone at 0.3 × cat + 0.7 × dog. You're on one stone or another. Step between them and you're in the river.",
+              "insight": "This isn't just an inconvenience. It's a FUNDAMENTAL barrier. Diffusion requires smooth paths through space. Discrete tokens have no smooth paths. There's no 'halfway between cat and dog' in vocabulary space."
+            }
+          },
+          {
+            "type": "p",
+            "children": "The problems stack up fast:"
+          },
+          {
+            "type": "Callout",
+            "props": { "type": "warning" },
+            "children": [
+              {
+                "type": "p",
+                "children": "NO CONTINUITY: Token 4,821 ('the') and token 4,822 ('theorem') are adjacent in index space but have nothing in common semantically. You can't interpolate between them."
+              }
+            ]
+          },
+          {
+            "type": "Callout",
+            "props": { "type": "warning" },
+            "children": [
+              {
+                "type": "p",
+                "children": "NO SPATIAL LOCALITY: In an image, pixel (100,100) is related to pixel (101,100). In a sentence, the first word might depend on the last word. 'The cat that the dog that the rat bit chased ran away' — good luck denoising that locally."
+              }
+            ]
+          },
+          {
+            "type": "Callout",
+            "props": { "type": "warning" },
+            "children": [
+              {
+                "type": "p",
+                "children": "NO MEANINGFUL NOISE: What does it mean to add 0.3 noise to the token 'the'? Move to token 'thf'? That's not a word. Move to token 4,821 + 0.3 = token 4,821.3? That doesn't exist. The very CONCEPT of 'adding noise' is undefined for discrete symbols."
+              }
+            ]
+          },
+          {
+            "type": "p",
+            "children": "So how do you do diffusion on something that refuses to be diffused? Researchers found a clever trick — and then discovered that the trick has its own devastating problem."
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "The Embedding Trick" },
+        "children": [
+          {
+            "type": "p",
+            "children": "Here's the insight: tokens are discrete, but their EMBEDDINGS are continuous."
+          },
+          {
+            "type": "p",
+            "children": "Every modern language model maps each token to a high-dimensional vector — typically 768 dimensions. In this embedding space, words that mean similar things end up NEAR each other. 'King' and 'queen' are close. 'Running' and 'jogging' are close. 'Cat' and 'feline' are close."
+          },
+          {
+            "type": "Analogy",
+            "props": {
+              "concept": "Embedding Space",
+              "analogy": "Imagine a vast 768-dimensional room. Every word in the vocabulary is a single point in this room. Words with similar meanings cluster together — there's a 'royalty corner' with king, queen, prince, princess. A 'movement zone' with run, walk, sprint, crawl. A 'food district' with apple, bread, steak, rice. The points are discrete (there's a finite number of words), but the SPACE between them is continuous.",
+              "insight": "This is the key: you can't add noise to tokens, but you CAN add noise to embeddings. A 768-dimensional Gaussian perturbation to the vector for 'king' is perfectly well-defined. The noisy vector might drift toward 'queen' or 'monarch' — and that MAKES SENSE, because those words are nearby in embedding space."
+            }
+          },
+          {
+            "type": "InteractiveDemo",
+            "props": {
+              "title": "Noise in Embedding Space",
+              "prompt": "Watch what happens when we add noise to word embeddings. In 2D (simplified from 768D), nearby words are semantically related.",
+              "scenarios": [
+                {
+                  "input": "Start: 'king' at position (3.2, 7.1) — nearby: queen (3.5, 7.3), monarch (3.0, 7.4), prince (3.8, 6.9)",
+                  "reveal": "In embedding space, 'king' lives in a cluster of royalty words. Each word is a discrete point, but the space around them is continuous. We can place a noisy vector ANYWHERE in this space."
+                },
+                {
+                  "input": "Small noise: vector drifts to (3.3, 7.2) — still closest to 'king'",
+                  "reveal": "With small noise, the vector barely moves. If we had to pick the nearest word right now, it'd still be 'king.' The diffusion process is stable under small perturbations — just like with pixels."
+                },
+                {
+                  "input": "Medium noise: vector drifts to (3.4, 7.3) — now equidistant between 'king' and 'queen'",
+                  "reveal": "Now things get interesting. The vector is drifting between related words. If we had to 'round' to the nearest token, it could go either way. But the noisy vector itself is perfectly valid — (3.4, 7.3) is a legitimate point in embedding space."
+                },
+                {
+                  "input": "Heavy noise: vector at (12.1, -3.8) — in a totally different region, near 'bicycle'",
+                  "reveal": "With enough noise, the vector has drifted far from 'king' — it's now near 'bicycle', which makes no semantic sense. The forward process has destroyed the meaning. The denoiser's job: trace this path BACKWARDS, from 'bicycle' territory back to 'king.'"
+                }
+              ]
+            }
+          },
+          {
+            "type": "p",
+            "children": "So the embedding trick works! You can run diffusion in embedding space — add noise to vectors, train a denoiser to reverse it, generate text by denoising from random vectors. Papers like Diffusion-LM (2022) and CDCD (2023) showed this could produce coherent text."
+          },
+          {
+            "type": "p",
+            "children": "But there's a catch. A brutal, fundamental catch that becomes worse and worse as you scale up."
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "The Rounding Problem" },
+        "children": [
+          {
+            "type": "p",
+            "children": "After denoising, you have a continuous vector. But you need a WORD. So you find the nearest token embedding — the closest discrete point in the vocabulary. This is called 'rounding' or 'token projection.'"
+          },
+          {
+            "type": "p",
+            "children": "In 2D, rounding seems fine. In 768 dimensions, it's a NIGHTMARE."
+          },
+          {
+            "type": "Callout",
+            "props": { "type": "warning" },
+            "children": [
+              {
+                "type": "p",
+                "children": "THE CURSE OF HIGH DIMENSIONS: In 768-dimensional space, almost every point is roughly equidistant from almost every other point. The 'nearest neighbor' isn't much nearer than the 10th nearest or the 100th nearest. Tiny errors in ANY of the 768 dimensions can flip the nearest neighbor to a completely unrelated word."
+              }
+            ]
+          },
+          {
+            "type": "Analogy",
+            "props": {
+              "concept": "Why Rounding Fails in High Dimensions",
+              "analogy": "Imagine you're trying to hit a dartboard. In 2D, the bullseye ('king') is a nice big circle, and the nearest wrong answer ('queen') is a circle some distance away. You can be slightly off and still hit 'king.' Now imagine a 768-dimensional dartboard. The bullseye for 'king' is a tiny hypersphere, and it's surrounded by 50,000 OTHER tiny hyperspheres (every word in the vocabulary) packed tightly around it. Being off by 0.01 in ANY of the 768 directions could push you into the zone of 'table' or 'however' or 'jumping' — words with ZERO semantic relationship to 'king.'",
+              "insight": "In high dimensions, the margin of error shrinks exponentially. Your denoiser doesn't just need to be good — it needs to be PERFECT. An error of 0.01 per dimension, compounded across 768 dimensions, is catastrophic."
+            }
+          },
+          {
+            "type": "InteractiveDemo",
+            "props": {
+              "title": "The Rounding Catastrophe",
+              "prompt": "See how tiny errors in high-dimensional space lead to completely wrong tokens. The denoiser predicts a vector, and we round to the nearest vocabulary token.",
+              "scenarios": [
+                {
+                  "input": "Denoised vector: 0.001 away from 'king' — Rounded token: 'king' ✓",
+                  "reveal": "When the denoiser is nearly perfect, rounding works. The predicted vector is so close to 'king' that no other word is nearer. But this requires extraordinary precision across all 768 dimensions."
+                },
+                {
+                  "input": "Denoised vector: 0.01 away from 'king', 0.009 away from 'table' — Rounded token: 'table' ✗",
+                  "reveal": "DISASTER. The denoiser was 99% accurate — the vector is extremely close to 'king.' But in 768-dimensional space, 'table' happened to be 0.001 closer. The rounding step doesn't know about semantics. It just picks the nearest point. And 'table' is not king."
+                },
+                {
+                  "input": "Sentence: 'The [king] sat on the throne' → 'The [table] sat on the throne'",
+                  "reveal": "One rounding error doesn't just produce a wrong word — it produces NONSENSE. 'The table sat on the throne' is grammatically dubious and semantically absurd. And this can happen at EVERY token position independently. The errors compound."
+                },
+                {
+                  "input": "10 tokens, each with 95% rounding accuracy → P(all correct) = 0.95^10 = 60%",
+                  "reveal": "Even with 95% per-token accuracy, a 10-word sentence is correct only 60% of the time. A 50-word paragraph? 0.95^50 = 7.7%. A 200-token generation? 0.95^200 = 0.004%. The rounding problem doesn't scale."
+                }
+              ]
+            }
+          },
+          {
+            "type": "p",
+            "children": "CoDAR (2026) attacked this head-on. Their insight: don't round with nearest-neighbor. Instead, train a small autoregressive decoder that takes the denoised continuous vectors and converts them to tokens using CONTEXT — each token prediction conditioned on the previous tokens. This dramatically reduces rounding errors."
+          },
+          {
+            "type": "p",
+            "children": "But even CoDAR acknowledged that rounding remains THE fundamental bottleneck of continuous text diffusion. Their AR decoder helps, but it also means you've smuggled autoregressive generation back into your diffusion model — somewhat defeating the purpose."
+          },
+          {
+            "type": "p",
+            "children": "What if there were a way to avoid rounding entirely?"
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "Masking: A Simpler Solution" },
+        "children": [
+          {
+            "type": "p",
+            "children": "Here's the radical alternative: forget continuous noise entirely. Instead of corrupting tokens by adding noise to their embeddings, corrupt them by REPLACING them with a special [MASK] token."
+          },
+          {
+            "type": "p",
+            "children": "This is masking-based diffusion, and it sidesteps every problem we've discussed."
+          },
+          {
+            "type": "Callout",
+            "props": { "type": "info" },
+            "children": [
+              {
+                "type": "p",
+                "children": "THE MASKING APPROACH: Forward process: gradually replace tokens with [MASK]. At t=0, full sentence. At t=1000, all [MASK]. Reverse process: predict which word goes in each [MASK] slot. No continuous vectors. No rounding. Just: 'what word should go here?'"
+              }
+            ]
+          },
+          {
+            "type": "InteractiveDemo",
+            "props": {
+              "title": "Masking vs. Continuous Noise",
+              "prompt": "Compare the two approaches side by side. Watch how masking avoids the rounding problem entirely.",
+              "scenarios": [
+                {
+                  "input": "Original: 'The king sat on the throne'",
+                  "reveal": "Our starting sentence. Both approaches need to corrupt this during the forward process and reconstruct it during the reverse process."
+                },
+                {
+                  "input": "Continuous noise (t=500): vectors for each word are noisy, somewhere between the right word and random",
+                  "reveal": "Each word's embedding is a noisy continuous vector. To recover the sentence, we denoise each vector AND THEN round to the nearest token. Two steps, two sources of error."
+                },
+                {
+                  "input": "Masking (t=500): 'The [MASK] sat [MASK] the [MASK]'",
+                  "reveal": "Three tokens are masked, three are visible. To recover the sentence, we just predict: what word goes in each [MASK]? This is EXACTLY the task BERT was trained on. No continuous vectors. No rounding. Just classification: pick a word from the vocabulary."
+                },
+                {
+                  "input": "Reverse step — Continuous: denoise vectors → round → pray you get the right token",
+                  "reveal": "The continuous approach must perfectly denoise in 768 dimensions AND then survive rounding. Two things have to go right."
+                },
+                {
+                  "input": "Reverse step — Masking: predict '[MASK] → king' using context 'The ___ sat ___ the ___'",
+                  "reveal": "The masking approach just classifies: given the visible context, what word goes here? The model outputs a probability distribution over the vocabulary and picks the most likely word. No continuous space. No rounding. The prediction is discrete from start to finish."
+                }
+              ]
+            }
+          },
+          {
+            "type": "p",
+            "children": "MDLM (Masked Discrete Language Model) and LLaDA (Large Language Diffusion with mAsking) both use this approach, and they're competitive with autoregressive models of similar size. LLaDA 8B matches LLaMA 3 8B on many benchmarks."
+          },
+          {
+            "type": "p",
+            "children": "The tradeoff? Masking is BINARY — a token is either fully visible or fully masked. There's no 'slightly noisy' token, no gradual refinement. You can't gently nudge a word from one meaning toward another. The model has to make hard decisions at each step."
+          },
+          {
+            "type": "p",
+            "children": "This matters more than you might think. In Tutorial III, we'll see how this binary nature creates its own challenges — and how three different approaches (masking, continuous embedding, and score-based discrete) each make different tradeoffs in the battle to bring diffusion to language."
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "Quiz: From Pixels to Words" },
+        "children": [
+          {
+            "type": "Quiz",
+            "props": {
+              "questions": [
+                {
+                  "question": "Why does standard Gaussian diffusion work well for images but not directly for text?",
+                  "options": [
+                    "Images have fewer dimensions than text",
+                    "Pixels are continuous values where noise addition is well-defined, while tokens are discrete symbols with no meaningful interpolation",
+                    "Text has too many tokens in the vocabulary",
+                    "Image models are larger than language models"
+                  ],
+                  "correctIndex": 1,
+                  "explanation": "The core issue is continuity vs. discreteness. Pixels can take any value between 0 and 255 (and beyond with normalization), so adding Gaussian noise produces valid intermediate states. Tokens are discrete — there's no valid state between 'cat' and 'dog.' This makes the noise addition step, the backbone of diffusion, undefined for raw tokens."
+                },
+                {
+                  "question": "What is the 'embedding trick' for text diffusion?",
+                  "options": [
+                    "Converting images to text descriptions before diffusing",
+                    "Using smaller vocabularies to reduce the number of tokens",
+                    "Mapping discrete tokens to continuous embedding vectors so noise can be added in that continuous space",
+                    "Training a separate model to denoise each token independently"
+                  ],
+                  "correctIndex": 2,
+                  "explanation": "Each token maps to a continuous vector (typically 768 dimensions). In this embedding space, semantically similar words are nearby, and you can add Gaussian noise just like with pixels. The challenge comes when you need to convert BACK from continuous vectors to discrete tokens."
+                },
+                {
+                  "question": "Why does token rounding become catastrophically worse in high-dimensional embedding spaces?",
+                  "options": [
+                    "Higher dimensions require more compute",
+                    "In high dimensions, distances between points concentrate — nearly all vocabulary words are roughly equidistant, so tiny errors can flip the nearest neighbor",
+                    "The vocabulary gets larger in higher dimensions",
+                    "Gradient descent doesn't work in high dimensions"
+                  ],
+                  "correctIndex": 1,
+                  "explanation": "This is the curse of dimensionality applied to nearest-neighbor search. In 768 dimensions, the distance between the nearest and 100th-nearest vocabulary token can be vanishingly small. A denoising error of 0.01 per dimension, compounded across 768 dimensions, can easily push the vector closer to an unrelated word than to the correct one."
+                },
+                {
+                  "question": "If each token has 95% rounding accuracy, what's the probability a 50-token sequence is entirely correct?",
+                  "options": [
+                    "About 95%",
+                    "About 50%",
+                    "About 7.7%",
+                    "About 0.4%"
+                  ],
+                  "correctIndex": 2,
+                  "explanation": "0.95^50 ≈ 0.077, or about 7.7%. Rounding errors at each position are independent, so the probability of getting ALL tokens correct is the product. Even very high per-token accuracy becomes terrible at sequence level. This is why rounding is THE bottleneck — it doesn't scale with sequence length."
+                },
+                {
+                  "question": "How does masking-based diffusion (MDLM, LLaDA) avoid the rounding problem?",
+                  "options": [
+                    "It uses a more accurate rounding algorithm",
+                    "It replaces noise with token replacement by [MASK], so denoising is classification (pick a word) rather than rounding a continuous vector",
+                    "It uses fewer dimensions for embeddings",
+                    "It processes one token at a time autoregressively"
+                  ],
+                  "correctIndex": 1,
+                  "explanation": "Masking-based diffusion never enters continuous space. The forward process replaces tokens with [MASK]. The reverse process predicts which vocabulary word fills each mask — a discrete classification task. There are no continuous vectors to round, so the rounding problem simply doesn't exist. The tradeoff: corruption is binary (masked or not), with no smooth intermediate states."
+                }
+              ]
+            }
+          }
+        ]
+      }
+    ]
+  }
+}

@@ -1,0 +1,525 @@
+{
+  "id": "thematic-role-prediction-altmann",
+  "title": "Thematic Role Prediction: How Verbs Set the Table",
+  "subtitle": "Altmann (2002), McRae et al. (1998), and our GPT-2 experiments — why meaning and structure break your brain in different ways",
+  "readTime": "25 min",
+  "state": {},
+  "content": {
+    "type": "Fragment",
+    "children": [
+      {
+        "type": "Section",
+        "props": { "title": "The Verb Sets the Table" },
+        "children": [
+          {
+            "type": "p",
+            "children": "Before a single noun phrase arrives, the verb has already done something remarkable: it has SET THE TABLE."
+          },
+          {
+            "type": "p",
+            "children": "When you hear a verb, your brain immediately prepares 'slots' — thematic roles — for the arguments that verb expects. These slots are ready and waiting before any noun phrases show up to fill them. The verb is like a dinner host who sets the place settings before the guests arrive."
+          },
+          {
+            "type": "Example",
+            "props": { "title": "Different Verbs, Different Table Settings" },
+            "children": [
+              {
+                "type": "p",
+                "children": "'Give' → Three place settings: Agent (who gives), Theme (what's given), Recipient (who gets it). Three slots, all ready before a single NP arrives."
+              },
+              {
+                "type": "p",
+                "children": "'Sleep' → One place setting: Agent (who sleeps). That's it. A quiet dinner for one."
+              },
+              {
+                "type": "p",
+                "children": "'Put' → Three place settings: Agent (who puts), Theme (what's put), Location (where it goes). And here's the kicker — the Location slot is OBLIGATORY. 'She put the book' is ungrammatical. You MUST fill that third seat. The host insists."
+              },
+              {
+                "type": "p",
+                "children": "'Eat' → Agent and an OPTIONAL Theme. 'She ate' is fine. 'She ate the cake' is also fine. The host set two place settings, but one guest can cancel."
+              }
+            ]
+          },
+          {
+            "type": "Analogy",
+            "props": {
+              "concept": "Verb as Dinner Host",
+              "analogy": "Imagine each verb as a dinner host preparing a table. 'Give' is hosting a formal dinner party — three place settings, three courses expected. 'Sleep' is eating alone — one setting, no fuss. 'Put' is a demanding host: three settings, and if the Location guest doesn't show, the host cancels the whole dinner (the sentence is ungrammatical). The verb DEFINES the dinner before the guests arrive.",
+              "insight": "This is called the verb's ARGUMENT STRUCTURE or SUBCATEGORIZATION FRAME. It's not just a preference — it's a grammatical requirement. The verb tells the parser exactly how many noun phrases to expect and what roles they'll play."
+            }
+          },
+          {
+            "type": "InteractiveDemo",
+            "props": {
+              "title": "How Many Place Settings?",
+              "prompt": "For each verb, guess how many thematic role slots it opens up, and what they are. Then reveal the answer.",
+              "scenarios": [
+                {
+                  "input": "DONATE",
+                  "reveal": "Three slots: Agent (who donates), Theme (what's donated), Recipient/Goal (who receives it). 'She donated blood to the hospital.' Three place settings — very similar to 'give.' The host is generous."
+                },
+                {
+                  "input": "VANISH",
+                  "reveal": "One slot: Theme (what vanishes). 'The rabbit vanished.' That's it. No agent — things vanish on their own. A very lonely dinner table."
+                },
+                {
+                  "input": "SEND",
+                  "reveal": "Three slots: Agent (who sends), Theme (what's sent), Goal (where it goes). 'He sent the package to London.' But unlike 'put,' the Goal can sometimes be implicit: 'He sent the package' is okay (the destination is implied). A flexible host."
+                },
+                {
+                  "input": "DEVOUR",
+                  "reveal": "Two slots: Agent (who devours), Theme (what's devoured). 'The lion devoured the zebra.' Unlike 'eat,' you CAN'T say 'The lion devoured' — the Theme is obligatory. When you devour, you devour SOMETHING. The host demands both guests show up."
+                }
+              ]
+            }
+          },
+          {
+            "type": "p",
+            "children": "This much has been known since the 1960s. Verbs have argument structures. They open slots. But Altmann (2002) asked a much more radical question: does the brain just open the slots and WAIT — or does it actively try to PREDICT who will sit in each chair?"
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "Predictive Role Assignment" },
+        "children": [
+          {
+            "type": "p",
+            "children": "Here is Altmann's key finding, and it changes everything: the brain doesn't just set the table — it writes NAME CARDS."
+          },
+          {
+            "type": "p",
+            "children": "Your parser doesn't passively open thematic role slots and wait for NPs to fill them. It uses CONTEXT to actively predict who will fill each slot, before those NPs even arrive. The dinner host doesn't just set three places — the host puts down name cards based on who's expected."
+          },
+          {
+            "type": "Example",
+            "props": { "title": "Context Writes the Name Cards" },
+            "children": [
+              {
+                "type": "p",
+                "children": "Context A: 'The rebel leader needed weapons. He delivered some machine guns to...'"
+              },
+              {
+                "type": "p",
+                "children": "At 'delivered,' your brain instantly sets the table: Agent, Theme, Recipient. Three place settings. But it does MORE than that. It reads the context and writes name cards: machine guns = Theme (what's delivered), rebel leader = likely Recipient (who gets them). The rebel leader needed weapons, and now someone is delivering weapons. The Recipient slot already has a name card on it."
+              },
+              {
+                "type": "p",
+                "children": "Context B: 'The small child needed toys. He delivered some machine guns to...'"
+              },
+              {
+                "type": "p",
+                "children": "SAME verb. SAME syntactic structure. But now something feels deeply WRONG. Not because of grammar — the sentence is perfectly grammatical. But because the context wrote a name card for the Recipient slot: 'the small child.' And children don't receive machine guns. The name card and the actual guest don't match. Your brain flags this IMMEDIATELY — not when it reads the recipient, but at the verb itself."
+              }
+            ]
+          },
+          {
+            "type": "Callout",
+            "props": { "type": "warning" },
+            "children": [
+              {
+                "type": "p",
+                "children": "This is the radical claim: the mismatch isn't detected when the NP arrives to fill the slot. It's detected at the VERB, because the verb triggers predictive role assignment. The brain doesn't wait to see who sits down — it already knows who SHOULD sit down, and it reacts when the guest list doesn't make sense."
+              }
+            ]
+          },
+          {
+            "type": "InteractiveDemo",
+            "props": {
+              "title": "Altmann's 'Stop Making Sense' Paradigm",
+              "prompt": "In Altmann's experiments, readers saw sentences word by word and pressed 'NO' as soon as the sentence stopped making sense. Watch where rejections spike.",
+              "scenarios": [
+                {
+                  "input": "Plausible context: 'The rebel leader needed weapons. He delivered some machine guns to the stronghold.'",
+                  "reveal": "Readers cruise through this sentence smoothly. Rebel leader needs weapons → someone delivers machine guns → to a stronghold. Every role is filled by a plausible guest. The name cards match the arrivals. Very few 'no' responses at any point."
+                },
+                {
+                  "input": "Implausible context: 'The small child needed toys. He delivered some machine guns to the stronghold.'",
+                  "reveal": "Readers start pressing 'no' EARLY — often at 'delivered' or 'machine guns,' BEFORE seeing the recipient. Why? Because the verb 'delivered' opens slots, the context writes name cards (child = recipient, toys = theme), and then 'machine guns' violently clashes with the expected Theme. The dinner host set a place for 'toys' and 'machine guns' showed up instead."
+                },
+                {
+                  "input": "The critical finding",
+                  "reveal": "Rejections in the implausible condition don't just happen more often — they happen EARLIER, sometimes at the verb itself. This proves that role assignment is PREDICTIVE: the brain has already committed to who fills which role before the actual role-fillers arrive. If role assignment were reactive (wait and see), rejections would only occur AFTER the mismatching NP. But they occur BEFORE it."
+                },
+                {
+                  "input": "Why this matters",
+                  "reveal": "The parser isn't a passive slot-filler. It's an active PREDICTOR. The verb sets the table AND writes the name cards, using context. When reality violates the prediction, the brain notices immediately — not when the wrong guest sits down, but when it becomes clear the wrong guest is APPROACHING the table."
+                }
+              ]
+            }
+          },
+          {
+            "type": "p",
+            "children": "This is like the dinner host peering out the window and seeing someone approaching who wasn't invited. The alarm goes off before they even reach the door."
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "The Evidence: Anomaly at the Verb" },
+        "children": [
+          {
+            "type": "p",
+            "children": "Let's look more carefully at what Altmann's word-by-word rejection data actually showed, because the details are striking."
+          },
+          {
+            "type": "p",
+            "children": "Altmann measured 'no' responses (rejections) at EVERY word position. The key finding: in implausible contexts, rejection rates were elevated at the VERB itself — before readers had even seen the object that would fill the Theme role."
+          },
+          {
+            "type": "Example",
+            "props": { "title": "Rejection at the Verb" },
+            "children": [
+              {
+                "type": "p",
+                "children": "'The small child needed toys. He delivered...'"
+              },
+              {
+                "type": "p",
+                "children": "At 'delivered,' rejection rates jump. Why? The reader hasn't seen 'machine guns' yet. They don't know WHAT is being delivered. But they know the context (a child needing toys), and 'delivered' activates a frame that is already suspicious. The verb's selectional restrictions — what kinds of things are typically delivered, and to whom — clash with the contextual expectation."
+              },
+              {
+                "type": "p",
+                "children": "The dinner host announced 'dinner is served' and the guests at the table already feel something is off — the menu doesn't match the occasion."
+              }
+            ]
+          },
+          {
+            "type": "p",
+            "children": "This is the smoking gun for predictive processing. If the parser waited for each NP to arrive before assigning it a role, rejections could ONLY occur after the mismatching NP. But rejections at the verb mean the parser has already started computing role assignments — and has already noticed that the available fillers (from context) don't fit the verb's expectations."
+          },
+          {
+            "type": "DeepDive",
+            "props": {
+              "title": "Boland et al.'s Monitoring Study",
+              "content": "Boland, Tanenhaus, Garnsey, and Carlson (1995) provided converging evidence using a different method: monitoring for specific words. They found that people were slower to detect a target word when it appeared in a position where the verb's selectional restrictions were violated by context. For example, if the context made a particular verb-argument combination implausible, readers showed disruption AT the verb — before the problematic argument had appeared. This is exactly what you'd expect if the parser is using the verb to PREDICT upcoming arguments and checking those predictions against context in real time. The verb doesn't just open slots — it immediately starts evaluating whether the context provides plausible fillers for those slots."
+            }
+          },
+          {
+            "type": "Callout",
+            "props": { "type": "success" },
+            "children": [
+              {
+                "type": "p",
+                "children": "KEY INSIGHT: Thematic role assignment is not a two-step process (1. see NP, 2. assign role). It's a CONTINUOUS, predictive process. The verb triggers immediate role predictions based on context. The actual NPs confirm or violate those predictions. Your brain is always one step ahead of the words."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "Thematic Fit: Good Patients and Bad Patients" },
+        "children": [
+          {
+            "type": "p",
+            "children": "Now let's zoom in on a specific aspect of prediction: not just WHETHER a role will be filled, but HOW WELL a particular NP fits a particular role. This is called THEMATIC FIT, and it has dramatic effects on processing."
+          },
+          {
+            "type": "p",
+            "children": "McRae, Spivey-Knowlton, and Tanenhaus (1998) showed that some NPs are better role fillers than others — and your brain knows this instantly."
+          },
+          {
+            "type": "Example",
+            "props": { "title": "The Cop and the Crook" },
+            "children": [
+              {
+                "type": "p",
+                "children": "'The crook was arrested by the detective.' — Easy. Crook = prototypical PATIENT of arresting. Crooks GET arrested. The crook fits the Patient role like a glove. The name card says 'crook' and the crook sits down. Perfect."
+              },
+              {
+                "type": "p",
+                "children": "'The cop was arrested by the detective.' — Harder. Cop = prototypical AGENT of arresting. Cops DO the arresting. Reading 'cop' as a Patient feels WRONG, even though the sentence is perfectly grammatical. The name card says 'arrester' but the guest is being asked to sit in the 'arrestee' chair."
+              },
+              {
+                "type": "p",
+                "children": "The syntax is IDENTICAL. The grammar is IDENTICAL. But the processing is dramatically different because of thematic fit."
+              }
+            ]
+          },
+          {
+            "type": "p",
+            "children": "This gets even more interesting with garden-path sentences — the reduced relative clause construction:"
+          },
+          {
+            "type": "Callout",
+            "props": { "type": "warning" },
+            "children": [
+              {
+                "type": "p",
+                "children": "'The crook arrested by the detective was guilty.' — Relatively easy. 'Crook arrested' feels natural as a passive (crooks get arrested), so the reduced relative reading comes smoothly."
+              }
+            ]
+          },
+          {
+            "type": "Callout",
+            "props": { "type": "warning" },
+            "children": [
+              {
+                "type": "p",
+                "children": "'The cop arrested by the detective was guilty.' — Much harder! 'Cop arrested' feels like an active (cops arrest people), so you garden-path: you read 'arrested' as the main verb, then 'by the detective' forces a reanalysis. The bad thematic fit AMPLIFIES the garden path."
+              }
+            ]
+          },
+          {
+            "type": "p",
+            "children": "Same syntax. Same structure. Same ambiguity. But the crook version is easier because the crook is a GOOD patient — your brain readily assigns 'crook' to the Patient role. The cop version is harder because the cop is a BAD patient — your brain resists putting 'cop' in the Patient chair."
+          },
+          {
+            "type": "InteractiveDemo",
+            "props": {
+              "title": "Rate the Thematic Fit",
+              "prompt": "For each noun-verb pair, rate how naturally the noun fits as the PATIENT (the one the action happens TO). Then reveal how your intuitions predict processing difficulty.",
+              "scenarios": [
+                {
+                  "input": "Rate: 'crook' as patient of 'arrest'",
+                  "reveal": "HIGH fit. Crooks are prototypical arrestees. In McRae et al.'s norming studies, participants overwhelmingly rated 'crook' as a good patient for 'arrest.' Processing 'The crook arrested by the detective...' is relatively smooth — minimal garden-path effect."
+                },
+                {
+                  "input": "Rate: 'cop' as patient of 'arrest'",
+                  "reveal": "LOW fit. Cops are prototypical AGENTS of arrest, not patients. Reading 'The cop arrested...' overwhelmingly triggers the active-voice reading (the cop did the arresting). The garden-path effect is severe when 'by the detective' forces reanalysis."
+                },
+                {
+                  "input": "Rate: 'deer' as patient of 'hunt'",
+                  "reveal": "HIGH fit. Deer are prototypical things that get hunted. 'The deer hunted by the ranger...' is relatively easy — you naturally read 'deer' as the patient of 'hunted.'"
+                },
+                {
+                  "input": "Rate: 'ranger' as patient of 'hunt'",
+                  "reveal": "LOW fit. Rangers HUNT things; they don't get hunted (usually). 'The ranger hunted by the poacher...' is harder — you initially read 'ranger hunted' as active, then have to reanalyze."
+                },
+                {
+                  "input": "Rate: 'criminal' as patient of 'chase'",
+                  "reveal": "HIGH fit. Criminals get chased. 'The criminal chased by the police officer...' — the passive reading comes relatively easily."
+                },
+                {
+                  "input": "Rate: 'police officer' as patient of 'chase'",
+                  "reveal": "LOW fit. Police officers DO the chasing. 'The police officer chased by the criminal...' — strong garden-path effect. Your brain commits to the active reading and has to backtrack."
+                }
+              ]
+            }
+          },
+          {
+            "type": "p",
+            "children": "Notice the pattern: YOUR intuitive ratings of thematic fit directly predict processing difficulty. This isn't a coincidence. It's evidence that the parser uses thematic fit as a CUE during real-time sentence processing. The dinner host doesn't just set the table — the host has PREFERENCES about who sits where, and guests who fit the expected profile are seated smoothly while unexpected guests cause confusion."
+          },
+          {
+            "type": "Analogy",
+            "props": {
+              "concept": "Good Patients and Bad Patients at the Dinner Table",
+              "analogy": "Imagine a dinner party where the host (the verb 'arrest') has set two seats: one labeled 'Arrester' and one labeled 'Arrestee.' When the crook walks in, the host immediately seats him in the 'Arrestee' chair — perfect fit. But when the cop walks in, the host hesitates: 'You look like you belong in the Arrester chair, but that seat's already taken...' There's an awkward moment of reshuffling. That awkward reshuffling IS the garden-path effect.",
+              "insight": "Thematic fit isn't binary (fits / doesn't fit). It's GRADED. Some NPs are excellent role fillers, some are mediocre, some are terrible. Processing difficulty tracks this gradient continuously. The parser is constantly computing how well each incoming NP fits each available role."
+            }
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "Our GPT-2 Experiment (Exp 07)" },
+        "children": [
+          {
+            "type": "p",
+            "children": "We tested whether GPT-2 shows the same sensitivity to thematic fit that humans do — and the results confirm a critical distinction in how language models (and brains) process different kinds of violations."
+          },
+          {
+            "type": "p",
+            "children": "We ran 24 thematic fit manipulations through GPT-2: agent/patient fit, selectional restriction violations, and context-dependent role assignments. We measured three things in Layer 11: Consensus (structural agreement among neurons), Surprisal (prediction error), and the N2123 neuron cluster (our 'exception handler')."
+          },
+          {
+            "type": "Callout",
+            "props": { "type": "info" },
+            "children": [
+              {
+                "type": "p",
+                "children": "RESULT: MODE 2 PATTERN CONFIRMED. This is the semantic mismatch pattern — fundamentally different from structural garden paths."
+              }
+            ]
+          },
+          {
+            "type": "InteractiveDemo",
+            "props": {
+              "title": "The Three-Panel Results",
+              "prompt": "Compare the three measures for plausible vs. implausible thematic fit. Notice what changes and what DOESN'T.",
+              "scenarios": [
+                {
+                  "input": "Panel 1: CONSENSUS — Structural Agreement",
+                  "reveal": "Plausible: 4.08 | Implausible: 4.04 | p = .33 (NOT significant). ZERO meaningful change. The structural parse is FINE in both conditions. 'The cop was arrested by the detective' is grammatically perfect — there's nothing to reparse. The dinner table is set correctly; it's just the wrong guest in the chair."
+                },
+                {
+                  "input": "Panel 2: SURPRISAL — Prediction Error",
+                  "reveal": "Plausible: 5.02 | Implausible: 7.10 | p = .0001 (HIGHLY significant). The model detects the semantic mismatch loud and clear. When 'cop' fills the Patient role of 'arrest,' the prediction error SPIKES — the model expected a better-fitting patient. The wrong guest arrived and the host noticed immediately."
+                },
+                {
+                  "input": "Panel 3: N2123 — Exception Handler",
+                  "reveal": "Trends more negative for implausible (p = .14). Not quite significant, but trending. The exception handler is stirring — it senses something is off, but since there's no structural problem to fix, it doesn't fully activate. Compare this to Mode 1 (structural garden paths) where N2123 fires dramatically."
+                },
+                {
+                  "input": "Compare to MODE 1 (Structural Garden Paths)",
+                  "reveal": "In Mode 1 (e.g., 'The horse raced past the barn fell'), Consensus DROPS sharply (the structure needs reparsing), Surprisal spikes (unexpected), AND N2123 fires strongly (structural reanalysis needed). Mode 2 is ONLY surprisal — the structure is fine, but the meaning is weird. This is exactly the N400 vs. P600 distinction from neuroscience."
+                }
+              ]
+            }
+          },
+          {
+            "type": "p",
+            "children": "This is the N400-like response in GPT-2. The sentence is grammatically impeccable. The structure doesn't need to change. But the MEANING doesn't fit — the wrong guest is in the chair. The model registers this as elevated surprisal without any structural disruption. The dinner table is correctly set, the guest is properly seated — but everyone at the table knows this person doesn't belong here."
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "Why Meaning and Structure Are Different Problems" },
+        "children": [
+          {
+            "type": "p",
+            "children": "This brings us to one of the most important distinctions in language processing — one that neuroscience has known about for decades, and that our GPT-2 experiments have now replicated in a transformer."
+          },
+          {
+            "type": "p",
+            "children": "In human neuroscience, Peter Hagoort and others identified two distinct brain responses to language violations:"
+          },
+          {
+            "type": "Example",
+            "props": { "title": "The N400 and the P600" },
+            "children": [
+              {
+                "type": "p",
+                "children": "The N400: A negative brain wave ~400ms after a word that doesn't FIT semantically. 'He spread the warm bread with SOCKS.' Socks?! The grammar is fine. The structure is fine. But socks don't go on bread. The brain says: 'Wrong guest at the table.'"
+              },
+              {
+                "type": "p",
+                "children": "The P600: A positive brain wave ~600ms after a word that forces STRUCTURAL reanalysis. 'The horse raced past the barn FELL.' Fell?! The structure was wrong — 'raced' wasn't the main verb after all. The brain says: 'We need to REBUILD the table.'"
+              }
+            ]
+          },
+          {
+            "type": "p",
+            "children": "Our two Layer 11 modes mirror this distinction EXACTLY:"
+          },
+          {
+            "type": "Callout",
+            "props": { "type": "success" },
+            "children": [
+              {
+                "type": "p",
+                "children": "MODE 1 (P600-like): Consensus drops + Surprisal spikes + N2123 fires = STRUCTURAL reparse needed. The table was set wrong. Rebuild it. This is what happens with garden-path sentences."
+              }
+            ]
+          },
+          {
+            "type": "Callout",
+            "props": { "type": "info" },
+            "children": [
+              {
+                "type": "p",
+                "children": "MODE 2 (N400-like): Consensus unchanged + Surprisal spikes + N2123 quiet = SEMANTIC mismatch detected. The table is correct, but the wrong guest sat down. This is what happens with thematic fit violations."
+              }
+            ]
+          },
+          {
+            "type": "p",
+            "children": "Why does the brain (and L11) handle these differently? Because they ARE different problems. A structural error means the parse tree is wrong — you need to tear it down and rebuild. A semantic error means the parse tree is right but the world doesn't work that way — you need to update your expectations, not your grammar."
+          },
+          {
+            "type": "p",
+            "children": "Back to our dinner analogy one final time: Mode 1 is discovering the table was set for four but six guests arrived — you need NEW CHAIRS, new place settings, a whole new arrangement. Mode 2 is discovering that all four chairs are correctly placed, but your ex just sat down in seat three. The table is fine. The situation is not."
+          },
+          {
+            "type": "p",
+            "children": "The fact that GPT-2 — trained only to predict the next word, with no explicit semantic or syntactic modules — develops these two distinct processing modes is remarkable. It suggests that the distinction between structural and semantic processing isn't something brains LEARN — it's something that EMERGES from the computational demands of language understanding itself."
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "Test Your Understanding" },
+        "children": [
+          {
+            "type": "Quiz",
+            "props": {
+              "questions": [
+                {
+                  "question": "When you hear the verb 'give,' what does your brain do BEFORE any noun phrases arrive?",
+                  "options": [
+                    "Nothing — it waits for the noun phrases to show up",
+                    "It opens three thematic role slots (Agent, Theme, Recipient) and uses context to predict who will fill them",
+                    "It only opens the Agent slot; the others come later",
+                    "It activates the meaning of 'give' but doesn't prepare any structural slots"
+                  ],
+                  "correctIndex": 1,
+                  "explanation": "The verb immediately opens ALL its thematic role slots AND uses context to predict likely fillers. The verb sets the table AND writes the name cards. This is Altmann's key finding: role assignment is predictive, not reactive."
+                },
+                {
+                  "question": "In Altmann's experiments, why do readers reject implausible sentences at the VERB, before seeing the mismatching object?",
+                  "options": [
+                    "Because the verb itself is ungrammatical",
+                    "Because readers are guessing randomly",
+                    "Because the verb triggers predictive role assignment, and the predicted fillers (from context) clash with the verb's expectations",
+                    "Because readers already know the whole sentence"
+                  ],
+                  "correctIndex": 2,
+                  "explanation": "The verb opens slots and context writes name cards. When the context (e.g., 'small child needed toys') has already predicted certain role fillers, and the verb's selectional restrictions clash with those predictions (e.g., 'delivered' suggests weapons/packages, not toys), the mismatch is detected at the verb itself. The brain is one step ahead."
+                },
+                {
+                  "question": "Why is 'The cop arrested by the detective was guilty' harder to process than 'The crook arrested by the detective was guilty'?",
+                  "options": [
+                    "Because 'cop' is a shorter word than 'crook'",
+                    "Because 'cop' is a prototypical AGENT of arresting (bad patient fit), while 'crook' is a prototypical PATIENT (good patient fit)",
+                    "Because the cop version is ungrammatical",
+                    "Because 'crook' is more familiar as a word"
+                  ],
+                  "correctIndex": 1,
+                  "explanation": "Thematic fit determines processing ease. 'Crook' fits naturally in the Patient role of 'arrest' (crooks get arrested), so the reduced relative reading comes easily. 'Cop' fits naturally as the Agent (cops arrest people), so the parser initially reads 'arrested' as active voice and has to backtrack. Same syntax, different fit, different difficulty."
+                },
+                {
+                  "question": "In our GPT-2 Experiment 07, what happened to Consensus (structural agreement) for thematic fit violations?",
+                  "options": [
+                    "It dropped dramatically, showing structural disruption",
+                    "It showed ZERO meaningful change — the structure was fine, only the meaning was wrong",
+                    "It increased, showing the model was more confident",
+                    "It fluctuated randomly"
+                  ],
+                  "correctIndex": 1,
+                  "explanation": "Consensus showed no significant change (4.08 vs 4.04, p=.33) because thematic fit violations are SEMANTIC, not structural. 'The cop was arrested by the detective' is perfectly grammatical — nothing needs to be reparsed. Only Surprisal spiked (detecting the semantic mismatch). This is Mode 2: the N400-like pattern."
+                },
+                {
+                  "question": "What is the key difference between Mode 1 (P600-like) and Mode 2 (N400-like) in GPT-2's Layer 11?",
+                  "options": [
+                    "Mode 1 handles short sentences, Mode 2 handles long ones",
+                    "Mode 1 detects STRUCTURAL problems (wrong parse, needs rebuild), Mode 2 detects SEMANTIC problems (right parse, wrong meaning)",
+                    "Mode 1 is faster than Mode 2",
+                    "There is no real difference — they're the same mechanism"
+                  ],
+                  "correctIndex": 1,
+                  "explanation": "Mode 1 (P600-like) fires when the structure needs rebuilding: Consensus drops, Surprisal spikes, N2123 activates. This is the garden-path response. Mode 2 (N400-like) fires when the meaning is wrong but the structure is fine: only Surprisal spikes. These are fundamentally different problems — rebuilding the table vs. noticing the wrong guest — and the model (like the brain) handles them with distinct processing modes."
+                }
+              ]
+            }
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "Further Reading" },
+        "children": [
+          {
+            "type": "p",
+            "children": "• Altmann, G.T.M. (2002). 'Learning and development in neural networks — the importance of prior experience.' Cognition, 85, B43–B50."
+          },
+          {
+            "type": "p",
+            "children": "• McRae, K., Spivey-Knowlton, M.J., & Tanenhaus, M.K. (1998). 'Modeling the influence of thematic fit (and other constraints) in on-line sentence comprehension.' Journal of Memory and Language, 38, 283–312."
+          },
+          {
+            "type": "p",
+            "children": "• Boland, J.E., Tanenhaus, M.K., Garnsey, S.M., & Carlson, G.N. (1995). 'Verb argument structure in parsing and interpretation.' Journal of Psycholinguistic Research, 24, 309–330."
+          },
+          {
+            "type": "p",
+            "children": "• Hagoort, P. (2003). 'How the brain solves the binding problem for language: a neurocomputational model of syntactic processing.' NeuroImage, 20, S18–S29."
+          }
+        ]
+      }
+    ]
+  }
+}
