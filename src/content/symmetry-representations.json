@@ -589,7 +589,86 @@
           },
           {
             "type": "p",
-            "children": "The latent variable (e.g., time-of-year) defines a smooth manifold in representation space. Different words at the same \"season\" form a fiber over that point on the manifold. The latent variable acts like a connection on a fiber bundle — it determines how representations are parallel-transported along the seasonal manifold. Perturbations that don't break the symmetry correspond to gauge transformations that leave the connection (and hence the geometry) invariant."
+            "children": [
+              "The latent variable (e.g., time-of-year) defines a smooth manifold in representation space",
+              {
+                "type": "FootnoteRef",
+                "props": {
+                  "id": "source-ann-1773422611500-fsc75k",
+                  "targetId": "ann-1773422611500-fsc75k",
+                  "type": "branch"
+                }
+              },
+              ". Different words at the same \"season\" form a fiber over that point on the manifold. The latent variable acts like a connection on a fiber bundle — it determines how representations are parallel-transported along the seasonal manifold. Perturbations that don't break the symmetry correspond to gauge transformations that leave the connection (and hence the geometry) invariant."
+            ]
+          },
+          {
+            "type": "DeepDive",
+            "props": {
+              "title": "Deep Dive: defines a smooth manifold in representation space",
+              "defaultOpen": true,
+              "id": "ann-1773422611500-fsc75k",
+              "sourceId": "source-ann-1773422611500-fsc75k"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "When we say a latent variable like time-of-year 'defines a smooth manifold,' we mean something very specific: as the season changes continuously from January to February to March, the corresponding word representations trace out a continuous surface in high-dimensional space — not a scattered cloud of points, but a coherent geometric object you could smoothly slide along. This matters because it tells us the model isn't just memorizing seasonal associations; it's learned a structured, low-dimensional surface embedded in representation space that captures the underlying variable."
+              },
+              {
+                "type": "Example",
+                "props": {
+                  "title": "Example: The Seasonal Manifold"
+                },
+                "children": [
+                  {
+                    "type": "p",
+                    "children": "Imagine plotting the representations of weather-related words across the year. 'Blizzard' in January, 'thaw' in March, 'humid' in July, 'frost' in October. Each sits at a point in a 768-dimensional space (or whatever your model uses). The key claim is that these points don't just float independently — they lie on a curve (a 1D manifold) parameterized by time-of-year. You can smoothly interpolate between the January region and the July region, and at every point along the way you'll find a coherent 'seasonal meaning.' The smoothness means small changes in season produce small changes in representation — no sudden jumps or tears in the surface."
+                  },
+                  {
+                    "type": "Formula",
+                    "props": {
+                      "label": "Manifold parameterization"
+                    },
+                    "children": "φ: S¹ → ℝⁿ where θ ↦ φ(θ) traces a closed loop (seasons are cyclic)"
+                  }
+                ]
+              },
+              {
+                "type": "Analogy",
+                "children": "Think of it like the surface of the Earth. Latitude and longitude are two smooth parameters that define a 2D manifold embedded in 3D space. Every point on the surface has a neighborhood that looks like a flat plane — that's what 'smooth manifold' means. Similarly, the seasonal variable parameterizes a surface in representation space where every point has a neighborhood that looks like ordinary Euclidean space. The crucial difference from just 'a region of space' is this local flatness guarantee: it means calculus works on it, gradients are well-defined, and you can meaningfully talk about directions, distances, and parallel transport — which is exactly what the fiber bundle language in the next sentence builds on."
+              },
+              {
+                "type": "DefinitionList",
+                "props": {
+                  "items": [
+                    {
+                      "term": "Smooth",
+                      "definition": "The mapping from latent variable values to representation vectors is differentiable — no discontinuities, no sharp corners. This is what lets us define tangent vectors and connections later."
+                    },
+                    {
+                      "term": "Manifold",
+                      "definition": "A space that locally resembles ℝᵈ (for some low dimension d), even though it may be globally curved or cyclic. The seasonal manifold is roughly a circle (S¹) embedded in high-dimensional representation space."
+                    },
+                    {
+                      "term": "In representation space",
+                      "definition": "The ambient space is the full high-dimensional vector space where word embeddings live (e.g., ℝ⁷⁶⁸). The manifold is a thin, structured surface within this vast space — the model has collapsed the relevant variation onto a low-dimensional substructure."
+                    },
+                    {
+                      "term": "Why 'defines' and not 'exists in'",
+                      "definition": "The latent variable doesn't just correlate with the manifold — it generates it. The symmetry of the statistical distribution under seasonal shifts is what forces representations to organize along this surface. The geometry is a consequence of the statistics."
+                    }
+                  ]
+                }
+              },
+              {
+                "type": "Callout",
+                "props": {
+                  "type": "tip"
+                },
+                "children": "The manifold is the foundation for everything else in this passage. The fibers are what sit 'above' each point on the manifold (different words sharing the same season). The connection tells you how to move along the manifold without leaving it. And gauge transformations are the symmetries that reshape the fibers without distorting the manifold. If the manifold weren't smooth, none of this machinery — parallel transport, gauge invariance, fiber bundles — would be well-defined. So when you see 'smooth manifold,' read it as: the model has discovered a geometric structure clean enough to support the full apparatus of differential geometry."
+              }
+            ]
           },
           {
             "type": "h3",
