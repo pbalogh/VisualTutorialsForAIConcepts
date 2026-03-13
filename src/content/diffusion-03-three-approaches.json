@@ -1,0 +1,367 @@
+{
+  "id": "diffusion-03-three-approaches",
+  "title": "Text Diffusion III: Three Roads to Denoising Text",
+  "subtitle": "Masking, continuous embeddings, and score-based discrete diffusion — three fundamentally different solutions to the same impossible problem",
+  "readTime": "25 min",
+  "state": {},
+  "content": {
+    "type": "Fragment",
+    "children": [
+      {
+        "type": "Section",
+        "props": { "title": "Three Roads to Text Diffusion" },
+        "children": [
+          {
+            "type": "p",
+            "children": "In Tutorial II, we saw the core problem: tokens are discrete, diffusion needs continuity. Now let's meet the three contenders racing to solve this — each with a fundamentally different philosophy."
+          },
+          {
+            "type": "Callout",
+            "props": { "type": "info" },
+            "children": [
+              {
+                "type": "p",
+                "children": "THE THREE APPROACHES: 1. MASKING (MDLM, LLaDA): Corrupt by replacing tokens with [MASK]. Denoise by predicting masked words. Stays fully discrete. 2. CONTINUOUS EMBEDDING (CoDAR): Corrupt by adding Gaussian noise to embedding vectors. Denoise in continuous space, then round back to tokens. 3. SCORE-BASED DISCRETE (SEDD): Define transition rates between tokens directly. 'The' can become 'A' (likely) or 'elephant' (unlikely). A probability-based approach that works natively in discrete space without masking."
+              }
+            ]
+          },
+          {
+            "type": "p",
+            "children": "Think of it as three different answers to the question: 'How do you destroy and reconstruct text?' Masking says: erase words, fill them back in. Continuous embedding says: blur the meaning, sharpen it back. Score-based discrete says: randomly swap words, learn to swap them back. Same goal, wildly different mechanics."
+          },
+          {
+            "type": "Analogy",
+            "props": {
+              "concept": "Three Approaches to Destroying a Painting",
+              "analogy": "Imagine you need to destroy a painting and train someone to reconstruct it. MASKING: cover patches with sticky notes. Reconstruction = figure out what's under each note using the visible parts. CONTINUOUS: blur the entire painting gradually. Reconstruction = sharpen it back, detail by detail. SCORE-BASED DISCRETE: randomly swap tiles in a mosaic version of the painting. Reconstruction = learn which tiles are in the wrong place and swap them back.",
+              "insight": "Each approach has a natural strength: masking is simple and avoids any continuous math. Continuous embedding leverages the full power of standard diffusion theory. Score-based discrete gets mathematical elegance while staying in token space."
+            }
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "Masking: MDLM and LLaDA" },
+        "children": [
+          {
+            "type": "p",
+            "children": "The masking approach is the simplest and, right now, the most successful. The idea is almost embarrassingly intuitive: to corrupt text, just hide words. To denoise, predict the hidden words from context."
+          },
+          {
+            "type": "p",
+            "children": "If this sounds like BERT's masked language modeling — you're right. The key difference is that diffusion masking is ITERATIVE. BERT masks 15% of tokens and predicts them all at once. Masking diffusion starts with everything masked and reveals tokens gradually, step by step, over hundreds of steps."
+          },
+          {
+            "type": "p",
+            "children": "The forward process: at each timestep, some fraction of tokens are randomly replaced with [MASK]. At t=0, the sentence is fully visible. At t=1000, everything is [MASK]. The noise schedule controls how quickly tokens get masked."
+          },
+          {
+            "type": "p",
+            "children": "The reverse process: at each step, the model sees partially masked text and predicts what goes in some of the [MASK] slots. It uses BIDIRECTIONAL attention — unlike GPT, which can only look left, masking models look at ALL visible tokens in both directions. This is a huge advantage: when predicting a masked word, you can use context from AFTER it as well as before."
+          },
+          {
+            "type": "InteractiveDemo",
+            "props": {
+              "title": "Masking: Forward and Reverse",
+              "prompt": "Watch a sentence get progressively masked (forward process), then reconstructed (reverse process). Notice how the model uses bidirectional context.",
+              "scenarios": [
+                {
+                  "input": "t=0: 'The brilliant scientist discovered a revolutionary formula for cold fusion'",
+                  "reveal": "Fully visible. All 10 tokens are present. The forward process is about to start destroying this sentence."
+                },
+                {
+                  "input": "t=200: 'The [MASK] scientist discovered a [MASK] formula for [MASK] fusion'",
+                  "reveal": "Three tokens masked: 'brilliant', 'revolutionary', 'cold'. The sentence structure is still clear. You could probably guess the missing words from context alone."
+                },
+                {
+                  "input": "t=500: '[MASK] [MASK] scientist [MASK] a [MASK] [MASK] for [MASK] [MASK]'",
+                  "reveal": "Seven tokens masked. Only 'scientist', 'a', and 'for' remain visible. The sentence is barely recognizable, but those three words provide crucial scaffolding."
+                },
+                {
+                  "input": "t=800: '[MASK] [MASK] [MASK] [MASK] [MASK] [MASK] [MASK] [MASK] [MASK] [MASK]'",
+                  "reveal": "Everything masked. Pure entropy. This is the starting point for generation — the model must create an entire sentence from nothing but [MASK] tokens."
+                },
+                {
+                  "input": "Reverse t=800→600: '[MASK] [MASK] [MASK] discovered [MASK] [MASK] [MASK] for [MASK] [MASK]'",
+                  "reveal": "The model reveals 'discovered' and 'for' first — high-confidence, structurally important words. Notice: it can predict 'discovered' because even with all masks, the model's training lets it generate plausible sentence skeletons. The function words and verbs often come first."
+                },
+                {
+                  "input": "Reverse t=600→200: 'The [MASK] scientist discovered a [MASK] formula for cold fusion'",
+                  "reveal": "Now the model fills in 'The', 'scientist', 'a', 'formula', 'cold', 'fusion' — using bidirectional context. It can see 'discovered ... formula for ... fusion' and infer the topic. The adjectives ('brilliant', 'revolutionary') remain masked because they're less constrained by context."
+                },
+                {
+                  "input": "Reverse t=200→0: 'The brilliant scientist discovered a revolutionary formula for cold fusion'",
+                  "reveal": "Finally, the adjectives are filled in. 'Brilliant' and 'revolutionary' are chosen to be contextually appropriate — a scientist who discovers a formula is likely brilliant, and a formula for cold fusion would be revolutionary. The generation is complete."
+                }
+              ]
+            }
+          },
+          {
+            "type": "DeepDive",
+            "props": {
+              "title": "MDLM vs. LLaDA: What's the Difference?",
+              "content": "MDLM (Masked Discrete Language Model, 2024) was the first to show that masking-based diffusion could match autoregressive models on language modeling benchmarks. It introduced a continuous-time formulation where the masking rate follows a carefully designed noise schedule. LLaDA (2025) scaled this approach to 8 billion parameters and showed it could match LLaMA 3 8B on reasoning, coding, and math benchmarks — proving that masking diffusion isn't just a toy. The key difference: LLaDA uses a simpler discrete-time formulation and focuses on scale, while MDLM emphasizes theoretical elegance."
+            }
+          },
+          {
+            "type": "p",
+            "children": "The strength of masking: simplicity. No continuous vectors, no rounding, no embedding spaces. Just mask and predict. The weakness: it's BINARY. A token is either fully visible or fully [MASK]. There's no 'slightly noisy' intermediate state. You can't gradually refine a word from one meaning toward another — you can only reveal or hide it."
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "Continuous Embedding: CoDAR" },
+        "children": [
+          {
+            "type": "p",
+            "children": "The continuous embedding approach says: we WANT the smooth, gradual denoising that makes image diffusion so powerful. We'll take the rounding problem head-on."
+          },
+          {
+            "type": "p",
+            "children": "CoDAR (Continuous Diffusion with Autoregressive Rounding, 2026) represents the state of the art for this approach. The architecture: embed tokens into 768-dimensional space, add Gaussian noise, denoise with a Transformer, then use a small autoregressive decoder to convert denoised vectors back to tokens."
+          },
+          {
+            "type": "p",
+            "children": "The AR decoder is CoDAR's key innovation. Instead of just finding the nearest vocabulary token (simple rounding), it generates tokens LEFT TO RIGHT, using the denoised vectors as guidance AND conditioning each token on the previously generated tokens. This means rounding errors can be corrected by context."
+          },
+          {
+            "type": "InteractiveDemo",
+            "props": {
+              "title": "Continuous Diffusion in Embedding Space",
+              "prompt": "Watch words as points in a 2D embedding space (simplified from 768D). See how noise moves them, and how denoising brings them back — sometimes to the wrong neighborhood.",
+              "scenarios": [
+                {
+                  "input": "Clean: words at their true positions. 'king'(3,7) 'queen'(3.5,7.3) 'throne'(4,6.5) 'castle'(4.2,6.8) ... 'table'(8,2) 'chair'(8.3,2.1)",
+                  "reveal": "Each word is a point in embedding space. Related words cluster together: royalty words in the upper-left, furniture words in the lower-right. The clusters are well-separated in 2D, but in 768D, the boundaries between clusters become razor-thin."
+                },
+                {
+                  "input": "Forward t=300: words drift slightly. 'king' moves to (3.2, 6.8) — still in the royalty cluster",
+                  "reveal": "Small noise pushes each word's embedding slightly. But the displacement is small enough that each word stays in its semantic neighborhood. The global structure — which words are near which — is preserved."
+                },
+                {
+                  "input": "Forward t=700: 'king' drifts to (5.5, 4.2) — semantic no-man's-land between royalty and furniture",
+                  "reveal": "Heavy noise has pushed 'king' far from its original position. It's now in a region of embedding space that doesn't correspond to any natural word cluster. The denoiser must learn to pull it back from this wasteland."
+                },
+                {
+                  "input": "Reverse t=700→300: denoiser pushes 'king' back toward (3.5, 7.0) — close but not exact",
+                  "reveal": "The denoiser correctly identifies that this vector should be in the royalty cluster and pushes it back. But the prediction isn't perfect — it's at (3.5, 7.0) instead of the true position (3.0, 7.0). In 2D, this is fine — 'king' is still the nearest word. In 768D, this small error could be fatal."
+                },
+                {
+                  "input": "Rounding: vector at (3.5, 7.0) → nearest token is... 'queen' (3.5, 7.3) not 'king' (3.0, 7.0)!",
+                  "reveal": "The denoiser did a GOOD job — the vector is in the right semantic neighborhood. But the nearest discrete token is 'queen' not 'king.' In 2D with a handful of words, this kind of error is rare. In 768D with 50,000 tokens packed tightly together, it happens constantly."
+                },
+                {
+                  "input": "CoDAR's fix: AR decoder sees 'The [queen?] sat on the throne' and corrects to 'king'",
+                  "reveal": "CoDAR's autoregressive decoder doesn't just round each vector independently — it generates tokens sequentially, using BOTH the denoised vector AND the previously generated tokens. When it sees 'The ___' with a vector near the royalty cluster, it can use grammatical and contextual cues to pick 'king' over 'queen.' The AR decoder acts as a semantic spell-checker for rounding errors."
+                }
+              ]
+            }
+          },
+          {
+            "type": "p",
+            "children": "The strength of continuous embedding: SMOOTHNESS. The denoising process can make fine-grained adjustments, gradually sharpening from vague semantic regions to precise word meanings. This makes it naturally compatible with guidance techniques — you can steer generation by nudging vectors in embedding space."
+          },
+          {
+            "type": "p",
+            "children": "The weakness: you've reintroduced autoregressive generation through the back door. CoDAR's AR decoder processes tokens left-to-right, one at a time, for the final rounding step. This partially negates the parallelism advantage of diffusion. And despite the AR decoder, rounding remains the performance bottleneck — CoDAR's own ablations show that rounding quality is the single biggest factor in generation quality."
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "Score-Based Discrete: SEDD" },
+        "children": [
+          {
+            "type": "p",
+            "children": "The third approach is the most mathematically ambitious: work directly in discrete token space, but use the machinery of score-based diffusion to define a proper generative process. No masks. No embeddings. Just tokens transitioning to other tokens according to learned rates."
+          },
+          {
+            "type": "p",
+            "children": "SEDD (Score Entropy Discrete Diffusion, 2024) defines a CONTINUOUS-TIME Markov chain over the vocabulary. At each moment, every token has a probability of transitioning to every other token. The key object is the SCORE FUNCTION — it tells you the relative rate at which each token should transition to each other token at each timestep."
+          },
+          {
+            "type": "Analogy",
+            "props": {
+              "concept": "Score-Based Discrete Diffusion",
+              "analogy": "Imagine a room full of people, each holding a card with a word on it. In the forward process, a buzzer goes off randomly, and when YOUR buzzer goes off, you swap your card for a random one from a hat. After enough buzzes, everyone has a random word. Now the reverse: a DIRECTOR (the score function) watches everyone and says 'You, holding table — swap with the king pile, not the elephant pile.' The director knows which swaps are likely to lead back to the original sentence.",
+              "insight": "The score function doesn't predict the final word directly — it predicts the RATE of transitions. 'How quickly should table transition to king vs. queen vs. dog?' This is subtly different from classification (masking) or regression (continuous embedding). It's about transition dynamics."
+            }
+          },
+          {
+            "type": "p",
+            "children": "The forward process in SEDD: each token independently transitions to other tokens at rates defined by a transition matrix. A common choice: uniform transition — any token can become any other token with equal probability. After enough time, every position holds a uniformly random token."
+          },
+          {
+            "type": "p",
+            "children": "The reverse process: the score function (parameterized by a neural network) predicts, for each token at each position, the RATIO of transition rates. 'This position currently holds token X. The ratio of its rate of transitioning to token Y versus staying as X is R.' Using these ratios, you can reverse the Markov chain and reconstruct the original text."
+          },
+          {
+            "type": "Callout",
+            "props": { "type": "info" },
+            "children": [
+              {
+                "type": "p",
+                "children": "WHY 'SCORE'? In continuous diffusion, the 'score' is the gradient of the log-probability: ∇ log p(x). It points toward higher-probability regions. SEDD defines an analogous quantity for discrete spaces: a 'concrete score' that measures transition rate ratios. The math is elegant — it extends the score-matching framework from continuous to discrete domains without any ad hoc modifications."
+              }
+            ]
+          },
+          {
+            "type": "p",
+            "children": "The strength of SEDD: mathematical elegance. It's the most principled extension of continuous diffusion theory to discrete data. It works natively in token space, avoids rounding entirely, and allows richer corruption than binary masking — tokens can transition through INTERMEDIATE states, not just visible-or-masked."
+          },
+          {
+            "type": "p",
+            "children": "The weakness: complexity. The score function must output transition rates for every token to every other token at every position — that's a V×V matrix per position, where V is the vocabulary size (50,000+). In practice, this is approximated, but the computational and conceptual overhead is significant. SEDD is harder to implement, harder to train, and harder to scale than masking approaches."
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "Which One Wins?" },
+        "children": [
+          {
+            "type": "p",
+            "children": "As of early 2026, this is a genuine horse race — and the standings are shifting fast."
+          },
+          {
+            "type": "Example",
+            "props": {
+              "title": "The Scoreboard (Early 2026)",
+              "input": "Comparing masking, continuous embedding, and score-based discrete approaches across key metrics",
+              "output": "SIMPLICITY: Masking ★★★ | Continuous ★★ | Score-Based ★ — Masking is dead simple. Continuous requires embedding management and AR rounding. Score-based requires complex transition rate mathematics.\n\nSCALABILITY: Masking ★★★ | Continuous ★★ | Score-Based ★★ — LLaDA proved masking scales to 8B parameters. CoDAR showed continuous works at scale. SEDD hasn't been scaled as aggressively yet.\n\nGENERATION QUALITY: Masking ★★★ | Continuous ★★ | Score-Based ★★ — LLaDA and Dream (masking models) currently lead benchmarks. CoDAR is competitive but rounding still costs quality. SEDD is mathematically sound but practically behind.\n\nCONTROLLABILITY: Masking ★★ | Continuous ★★★ | Score-Based ★★ — Continuous embedding naturally supports guidance in embedding space (nudge vectors toward desired properties). Masking and score-based approaches need different steering mechanisms.\n\nPARALLELISM: Masking ★★★ | Continuous ★★ | Score-Based ★★★ — All three generate all positions simultaneously (unlike autoregressive). But CoDAR's AR rounding decoder partially breaks parallelism."
+            }
+          },
+          {
+            "type": "p",
+            "children": "The current leader: MASKING. LLaDA 8B matches LLaMA 3 8B. Dream (2025) showed that masking models can even do speculative decoding. The simplicity of 'mask and predict' has proven remarkably hard to beat."
+          },
+          {
+            "type": "p",
+            "children": "The dark horse: CONTINUOUS EMBEDDING. CoDAR's AR decoder substantially closed the rounding gap. And continuous approaches have a huge potential advantage for controllable generation — you can guide the denoising process by adding gradients in embedding space, steering toward desired topics, styles, or properties. This is where our SAE-guided diffusion idea lives."
+          },
+          {
+            "type": "p",
+            "children": "The outsider: SCORE-BASED DISCRETE. SEDD is mathematically the most satisfying — it's the 'right' way to do discrete diffusion from a theoretical perspective. But theory doesn't always win in practice. The computational overhead has limited scaling, and masking approaches achieve similar results with less complexity."
+          },
+          {
+            "type": "p",
+            "children": "The honest answer: we don't know who wins yet. The field is moving at a pace where today's results are obsolete in months. What we DO know is that text diffusion is VIABLE — all three approaches produce coherent, fluent text. The question is which approach scales best and enables the most interesting applications."
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "Why This Matters for Our Work" },
+        "children": [
+          {
+            "type": "p",
+            "children": "We're building something specific: SAE-guided text diffusion, where Sparse Autoencoder features steer the generation process toward desired semantic properties. How does this connect to the three approaches?"
+          },
+          {
+            "type": "Callout",
+            "props": { "type": "info" },
+            "children": [
+              {
+                "type": "p",
+                "children": "SAE FEATURES ARE CONTINUOUS. They're real-valued activation strengths in a neural network's representation space. Feature #4721 ('formal tone') might have activation 0.0 (absent) to 3.5 (strongly present). This continuous nature is crucial."
+              }
+            ]
+          },
+          {
+            "type": "p",
+            "children": "For CONTINUOUS EMBEDDING (CoDAR-style): SAE features fit naturally. Both live in continuous vector spaces. You can literally add an SAE feature direction to the denoised embedding at each step, nudging generation toward 'more formal' or 'more scientific' or 'more humorous.' The gradients are well-defined, the optimization is smooth, the theory is clean."
+          },
+          {
+            "type": "p",
+            "children": "For MASKING (LLaDA-style): SAE guidance is trickier but possible. You can't nudge embeddings continuously — there are no embeddings being denoised. But you CAN use SAE features to re-weight the probability distribution over vocabulary tokens at each unmasking step. 'When filling this [MASK], upweight tokens that would increase the formal-tone SAE feature.' This is less elegant but potentially more practical, since masking models are currently stronger."
+          },
+          {
+            "type": "p",
+            "children": "For our BROWNIAN BRIDGE idea: this could work with EITHER approach. A Brownian bridge defines a stochastic path from point A to point B — from a source text's representation to a target. In continuous embedding space, this is a literal bridge between two sets of embedding vectors. In masking space, it could be a schedule that progressively masks the source while unmasking a target, with the bridge controlling WHICH tokens transition WHEN."
+          },
+          {
+            "type": "Analogy",
+            "props": {
+              "concept": "Why We're Betting on Both",
+              "analogy": "Imagine you're designing a car navigation system. Continuous embedding is like GPS — smooth, continuous coordinates, precise steering. Masking is like turn-by-turn directions — discrete steps, simple execution. Our SAE guidance is like a passenger saying 'I want to go somewhere with good restaurants.' GPS can smoothly adjust the route in real-time. Turn-by-turn can filter candidate destinations before starting. Both work — they just integrate the passenger's preference differently.",
+              "insight": "We don't need to pick a winner yet. Our SAE features can guide EITHER approach. The smart move: build the SAE guidance system to be approach-agnostic, so we can plug it into whichever text diffusion method is leading when we're ready to deploy."
+            }
+          },
+          {
+            "type": "p",
+            "children": "The bottom line: text diffusion is real, it works, and three approaches are competing fiercely. For our purposes, the most important takeaway is that CONTINUOUS representations (embeddings, SAE features) are the natural language for steering these systems — regardless of which underlying diffusion mechanism wins the race."
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "Quiz: Three Roads to Denoising Text" },
+        "children": [
+          {
+            "type": "Quiz",
+            "props": {
+              "questions": [
+                {
+                  "question": "What is the key advantage of masking-based diffusion (MDLM/LLaDA) over continuous embedding approaches?",
+                  "options": [
+                    "It produces higher-quality text in all cases",
+                    "It avoids the rounding problem entirely by staying in discrete token space",
+                    "It uses less memory during training",
+                    "It can generate longer sequences"
+                  ],
+                  "correctIndex": 1,
+                  "explanation": "Masking never enters continuous space. Tokens are either visible or [MASK], and denoising means predicting a word from the vocabulary — a classification task. There are no continuous vectors to round back to tokens, so the rounding bottleneck simply doesn't exist. The tradeoff is that masking is binary: no smooth intermediate states."
+                },
+                {
+                  "question": "How does CoDAR's autoregressive decoder improve upon simple nearest-neighbor rounding?",
+                  "options": [
+                    "It uses a larger vocabulary",
+                    "It generates tokens sequentially, using both the denoised vector AND previously generated tokens as context to correct rounding errors",
+                    "It rounds in a lower-dimensional space",
+                    "It uses multiple rounding attempts and picks the best one"
+                  ],
+                  "correctIndex": 1,
+                  "explanation": "Simple rounding converts each vector independently — it can't use context from neighboring words. CoDAR's AR decoder generates tokens left-to-right, so when rounding the second word, it knows what the first word was. If the vector is between 'king' and 'queen,' and the previous word was 'The,' context can help disambiguate. The cost: sequential generation partially negates diffusion's parallelism advantage."
+                },
+                {
+                  "question": "What makes SEDD (Score Entropy Discrete Diffusion) fundamentally different from masking?",
+                  "options": [
+                    "SEDD uses continuous embeddings while masking doesn't",
+                    "SEDD defines transition rates between ALL token pairs, allowing tokens to transition through intermediate states rather than just visible-or-masked",
+                    "SEDD can only handle short sequences",
+                    "SEDD doesn't use neural networks"
+                  ],
+                  "correctIndex": 1,
+                  "explanation": "In masking, corruption is binary: a token is either itself or [MASK]. In SEDD, a token can transition to ANY other token with defined rates — 'the' might become 'a' (high rate) or 'elephant' (low rate). This allows richer intermediate states during the diffusion process. The score function learns the ratios of these transition rates, enabling principled reversal of the discrete corruption process."
+                },
+                {
+                  "question": "Why might continuous embedding approaches (like CoDAR) be better suited for SAE-guided generation than masking approaches?",
+                  "options": [
+                    "SAE features only work with continuous models",
+                    "SAE features are continuous real-valued activations that naturally align with continuous embedding spaces, allowing smooth gradient-based guidance",
+                    "Masking models can't use SAE features at all",
+                    "Continuous models are always better than discrete models"
+                  ],
+                  "correctIndex": 1,
+                  "explanation": "SAE features are continuous activation values (e.g., 'formal tone' = 2.3). In continuous embedding space, you can add an SAE feature direction directly to the denoised vectors — smooth, differentiable guidance. With masking models, you'd need to convert continuous SAE signals into discrete token probability adjustments, which is doable but less natural. Both approaches CAN use SAE guidance, but continuous embedding makes the math cleaner."
+                },
+                {
+                  "question": "Which approach is currently leading benchmarks for text diffusion (early 2026)?",
+                  "options": [
+                    "Continuous embedding (CoDAR) dominates across all benchmarks",
+                    "Score-based discrete (SEDD) leads due to mathematical elegance",
+                    "Masking models (LLaDA, Dream) are winning, with LLaDA 8B matching LLaMA 3 8B",
+                    "All three approaches perform identically"
+                  ],
+                  "correctIndex": 2,
+                  "explanation": "As of early 2026, masking models lead the benchmarks. LLaDA 8B matches LLaMA 3 8B on reasoning, coding, and math tasks. Dream showed masking models can even do speculative decoding for faster inference. Continuous embedding (CoDAR) is competitive but rounding remains a bottleneck. SEDD is theoretically elegant but hasn't been scaled as aggressively. The field is moving fast, and these rankings could change."
+                }
+              ]
+            }
+          }
+        ]
+      }
+    ]
+  }
+}
