@@ -1,0 +1,504 @@
+{
+  "id": "complexity-metrics-cheung-kemper",
+  "title": "Measuring Sentence Complexity: Yngve Depth and Frazier Count",
+  "subtitle": "Cheung & Kemper (1990) showed that two complexity metrics capture different cognitive capacities — and they age differently",
+  "readTime": "20 min",
+  "state": {},
+  "content": {
+    "type": "Fragment",
+    "children": [
+      {
+        "type": "Section",
+        "props": { "title": "How Hard Is This Sentence?" },
+        "children": [
+          {
+            "type": "p",
+            "children": "Read these two sentences:"
+          },
+          {
+            "type": "Callout",
+            "props": { "type": "info" },
+            "children": [
+              {
+                "type": "p",
+                "children": "The dog ran."
+              }
+            ]
+          },
+          {
+            "type": "Callout",
+            "props": { "type": "warning" },
+            "children": [
+              {
+                "type": "p",
+                "children": "The dog the cat the rat bit chased ran."
+              }
+            ]
+          },
+          {
+            "type": "p",
+            "children": "You FELT that difference. The first sentence slid right in. The second one made your brain stall, back up, and try again. But here's the question linguists asked: can we put a NUMBER on that difference?"
+          },
+          {
+            "type": "p",
+            "children": "Not a vague judgment like 'harder' or 'more complex.' A precise, computable score. Feed in a sentence, get out a number. A complexity metric."
+          },
+          {
+            "type": "p",
+            "children": "It turns out there are TWO classic ways to measure sentence complexity, and they capture fundamentally different things. One measures how much you have to HOLD IN MEMORY. The other measures how much WORK you do at each word. They're called Yngve depth and Frazier local count, and understanding the difference between them reveals something profound about how the mind processes language."
+          },
+          {
+            "type": "InteractiveDemo",
+            "props": {
+              "title": "Rank the Complexity",
+              "prompt": "Try to rank these four sentences from easiest to hardest. Then reveal the metric scores. Do they match your intuition?",
+              "scenarios": [
+                {
+                  "input": "1. The cat slept.",
+                  "reveal": "Yngve depth: 1. Frazier count: 3. About as simple as English gets — one subject, one verb, done. You're juggling ONE ball at most."
+                },
+                {
+                  "input": "2. The big orange cat slept on the mat.",
+                  "reveal": "Yngve depth: 2. Frazier count: 8. More words, but the structure is still flat. You're holding the subject NP open while processing adjectives, then the PP. Two balls in the air, tops."
+                },
+                {
+                  "input": "3. The cat that the dog chased slept on the mat.",
+                  "reveal": "Yngve depth: 3. Frazier count: 11. Now there's a relative clause INSIDE the subject. You have to hold 'the cat' open, process a whole mini-sentence ('the dog chased'), then come BACK to finish the main clause. Three balls juggling."
+                },
+                {
+                  "input": "4. The cat that the dog that the rat bit chased slept.",
+                  "reveal": "Yngve depth: 4. Frazier count: 13. Double center-embedding. You're holding THREE incomplete phrases open simultaneously: the cat [who?], the dog [who?], the rat bit → chased → slept. Four balls in the air. Most people's brains drop them all."
+                }
+              ]
+            }
+          },
+          {
+            "type": "p",
+            "children": "Notice something? Your intuition about difficulty tracks almost perfectly with the numbers. That's not a coincidence — these metrics were DESIGNED to capture the cognitive reality of sentence processing. Let's see how each one works."
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "Yngve Depth: How Deep Is Your Stack?" },
+        "children": [
+          {
+            "type": "p",
+            "children": "In 1960, Victor Yngve proposed a beautifully simple idea: the complexity of a sentence equals the maximum number of things you have to hold in memory at any single point while processing it."
+          },
+          {
+            "type": "p",
+            "children": "Here's how it works. Take any sentence and draw its phrase-structure tree — the hierarchical diagram that shows how words group into phrases and phrases into clauses. Now, walk through the tree from left to right, word by word. At each word, count the number of INCOMPLETE branches above you — branches that have started but haven't finished yet."
+          },
+          {
+            "type": "p",
+            "children": "The maximum count you hit, across all the words in the sentence, is the Yngve depth. That's it. That's the whole metric."
+          },
+          {
+            "type": "Analogy",
+            "props": {
+              "concept": "Yngve Depth as Juggling",
+              "analogy": "Imagine you're a juggler. Every time you start a new phrase, someone tosses you a ball. You have to keep it in the air until that phrase completes. When the phrase finishes, the ball lands safely. Yngve depth is the MAXIMUM number of balls you're juggling at any one moment. 'The dog ran' = 2 balls max. 'The dog the cat the rat bit chased ran' = 4 balls, and most jugglers (brains) can't handle it.",
+              "insight": "This is literally a stack-depth metric. Yngve was modeling the human parser as a push-down automaton — a machine with a stack. Each incomplete phrase pushes onto the stack. Each completed phrase pops off. The maximum stack depth IS the processing difficulty."
+            }
+          },
+          {
+            "type": "Example",
+            "props": { "title": "Yngve Depth: 'The dog ran'" },
+            "children": [
+              {
+                "type": "p",
+                "children": "Tree: S → NP VP. NP → Det N. VP → V."
+              },
+              {
+                "type": "p",
+                "children": "At 'The': You've entered S, which branches to NP and VP. NP has started but VP is waiting. Inside NP, Det is being processed but N is waiting. Depth = 2 (VP pending + N pending)."
+              },
+              {
+                "type": "p",
+                "children": "At 'dog': N is being processed. VP is still waiting. Depth = 1 (just VP pending)."
+              },
+              {
+                "type": "p",
+                "children": "At 'ran': VP is being processed. Nothing else pending. Depth = 0."
+              },
+              {
+                "type": "p",
+                "children": "Maximum depth = 2. Easy sentence, shallow stack."
+              }
+            ]
+          },
+          {
+            "type": "InteractiveDemo",
+            "props": {
+              "title": "Depth Profile: 'The old man who lived next door fell'",
+              "prompt": "Walk through each word and watch the Yngve depth rise and fall — like a juggler picking up and putting down balls.",
+              "scenarios": [
+                {
+                  "input": "Word 1: 'The' — Depth: 3",
+                  "reveal": "You've opened the main S (VP pending), the subject NP (N pending), and the determiner position. Three incomplete branches above you. Three balls in the air. The sentence hasn't even really started and you're already juggling."
+                },
+                {
+                  "input": "Word 2: 'old' — Depth: 3",
+                  "reveal": "The adjective slots in, but the NP still needs its head noun, the VP is still waiting, and the relative clause hasn't started yet. Still three balls. You're holding steady."
+                },
+                {
+                  "input": "Word 3: 'man' — Depth: 2",
+                  "reveal": "The head noun lands! The NP's core is complete. But you still have the VP pending, and here comes a relative clause... Two balls, but about to pick up more."
+                },
+                {
+                  "input": "Word 4: 'who' — Depth: 3",
+                  "reveal": "The relative clause opens up. Now you're holding: (1) the main VP, (2) the relative clause VP, and (3) you're at the relative pronoun. Back to three balls. The juggling intensifies."
+                },
+                {
+                  "input": "Word 5: 'lived' — Depth: 2",
+                  "reveal": "The relative clause's verb arrives. But the locative phrase 'next door' is coming, and the main VP is still waiting. Two balls."
+                },
+                {
+                  "input": "Words 6-7: 'next door' — Depth: 1 → 1",
+                  "reveal": "The locative phrase completes. The relative clause wraps up. Now you're just holding the main VP — one ball. Almost done."
+                },
+                {
+                  "input": "Word 8: 'fell' — Depth: 0",
+                  "reveal": "The main verb lands. All phrases complete. Zero balls. The juggler takes a bow. Maximum depth for this sentence: 3. That's manageable — right at the edge of comfortable processing."
+                }
+              ]
+            }
+          },
+          {
+            "type": "Callout",
+            "props": { "type": "success" },
+            "children": [
+              {
+                "type": "p",
+                "children": "KEY INSIGHT: Yngve depth isn't about the total amount of structure — it's about the PEAK memory load. A long, flat sentence can have low Yngve depth. A short, deeply nested sentence can have high Yngve depth. It's not about how many words you process, but how many UNFINISHED COMMITMENTS you're carrying at the worst moment."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "Frazier's Local Count: How Much Work Per Word?" },
+        "children": [
+          {
+            "type": "p",
+            "children": "Lyn Frazier (1985) proposed a completely different way to measure complexity. Instead of asking 'how much are you holding in memory?', she asked: 'how much STRUCTURAL WORK do you do at each word?'"
+          },
+          {
+            "type": "p",
+            "children": "The Frazier local count works like this: at each word in the sentence, count the number of NEW NODES you have to create in the parse tree. A node is any labeled bracket — NP, VP, S, PP, whatever. More new nodes at a word means more syntactic construction happening at that point."
+          },
+          {
+            "type": "p",
+            "children": "Where Yngve measures the PEAK of your memory burden, Frazier measures the SPIKES of your processing effort. Different thing entirely."
+          },
+          {
+            "type": "Analogy",
+            "props": {
+              "concept": "Yngve vs. Frazier: Two Kinds of Difficulty",
+              "analogy": "Yngve = how many plates you're SPINNING at once. It's about simultaneous load, about keeping things going. Frazier = how many plates you ADD at each moment. It's about the burst of effort required right NOW. You could be spinning only two plates (low Yngve) but suddenly need to add three more at once (high Frazier spike). Or you could be spinning five plates (high Yngve) but adding them one at a time, gently (low Frazier). These are genuinely different kinds of difficulty.",
+              "insight": "This distinction turns out to map onto different cognitive capacities — and that's exactly what Cheung and Kemper discovered."
+            }
+          },
+          {
+            "type": "Example",
+            "props": { "title": "Frazier Count: 'The dog ran'" },
+            "children": [
+              {
+                "type": "p",
+                "children": "At 'The': Create Det node, NP node, S node = 3 new nodes. (The sentence is just starting, so everything is new.)"
+              },
+              {
+                "type": "p",
+                "children": "At 'dog': Create N node = 1 new node. (It slots into the existing NP.)"
+              },
+              {
+                "type": "p",
+                "children": "At 'ran': Create V node, VP node = 2 new nodes. (The verb phrase opens and completes.)"
+              },
+              {
+                "type": "p",
+                "children": "Total Frazier count: 3 + 1 + 2 = 6. Spread evenly, no big spikes. Easy processing."
+              }
+            ]
+          },
+          {
+            "type": "Example",
+            "props": { "title": "Frazier Count: 'The dog that was chased by the cat ran'" },
+            "children": [
+              {
+                "type": "p",
+                "children": "At 'The': 3 nodes (Det, NP, S)"
+              },
+              {
+                "type": "p",
+                "children": "At 'dog': 1 node (N)"
+              },
+              {
+                "type": "p",
+                "children": "At 'that': 3 nodes (Comp, S-bar, relative clause S) — SPIKE! The relative clause machinery fires up."
+              },
+              {
+                "type": "p",
+                "children": "At 'was': 2 nodes (Aux, VP)"
+              },
+              {
+                "type": "p",
+                "children": "At 'chased': 1 node (V)"
+              },
+              {
+                "type": "p",
+                "children": "At 'by': 2 nodes (P, PP) — another spike as the passive agent phrase opens."
+              },
+              {
+                "type": "p",
+                "children": "At 'the cat': 2 nodes (Det, NP in PP)"
+              },
+              {
+                "type": "p",
+                "children": "At 'ran': 2 nodes (V, main VP)"
+              },
+              {
+                "type": "p",
+                "children": "The processing effort isn't uniform — it SPIKES at 'that' and 'by', exactly the structural junctions where new syntactic machinery has to be built. Frazier's metric captures those local bursts of effort."
+              }
+            ]
+          },
+          {
+            "type": "Callout",
+            "props": { "type": "info" },
+            "children": [
+              {
+                "type": "p",
+                "children": "Think of it this way: Yngve depth tells you about the sentence's ARCHITECTURE — how deep the nesting goes. Frazier count tells you about the sentence's CONSTRUCTION EFFORT — how much building happens at each point. A cathedral can be tall (high Yngve) but built slowly brick by brick (low Frazier per step). Or a building can be short (low Yngve) but require an explosive burst of construction at one point (high Frazier spike)."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "Cheung & Kemper's Discovery" },
+        "children": [
+          {
+            "type": "p",
+            "children": "In 1990, Hintat Cheung and Susan Kemper did something clever. They took BOTH metrics — Yngve depth and Frazier count — and measured them on sentences actually produced by people of different ages. Not sentences from a textbook. Real speech, from real humans, across the lifespan."
+          },
+          {
+            "type": "p",
+            "children": "Their question: do people produce sentences matched to their own processing capacity? And if so, does capacity decline uniformly, or do DIFFERENT KINDS of capacity change at different rates?"
+          },
+          {
+            "type": "Callout",
+            "props": { "type": "warning" },
+            "children": [
+              {
+                "type": "p",
+                "children": "The finding was striking — and it split the two metrics apart."
+              }
+            ]
+          },
+          {
+            "type": "p",
+            "children": "Older adults produced sentences with LOWER Yngve depth than younger adults. Their sentences had less nesting, fewer levels of embedding, shallower stacks. They were juggling fewer balls."
+          },
+          {
+            "type": "p",
+            "children": "But here's the surprise: older adults produced sentences with the SAME Frazier local count as younger adults. The amount of structural work per word — the number of new nodes created at each position — was unchanged."
+          },
+          {
+            "type": "p",
+            "children": "Let that sink in. Memory load went DOWN with age. Processing effort stayed the SAME."
+          },
+          {
+            "type": "Example",
+            "props": { "title": "What This Looks Like in Practice" },
+            "children": [
+              {
+                "type": "p",
+                "children": "A younger adult might say: 'The woman who was sitting next to the man I told you about suddenly stood up.' Deep embedding — you hold 'the woman' open across a long relative clause, and there's ANOTHER relative clause inside it. High Yngve depth. Many balls juggling."
+              },
+              {
+                "type": "p",
+                "children": "An older adult might say: 'There was a woman sitting next to that man. I told you about him. She suddenly stood up.' SAME information, SAME structural complexity per clause (similar Frazier counts), but the nesting is GONE. Each clause is independent. Low Yngve depth. One ball at a time."
+              },
+              {
+                "type": "p",
+                "children": "The older speaker isn't producing simpler THOUGHTS — they're producing simpler ARCHITECTURES. The local construction machinery works fine. The simultaneous-holding-in-memory machinery is what's diminished."
+              }
+            ]
+          },
+          {
+            "type": "Callout",
+            "props": { "type": "success" },
+            "children": [
+              {
+                "type": "p",
+                "children": "THE BIG INSIGHT: Yngve depth and Frazier count don't just measure different aspects of sentences — they measure different COGNITIVE CAPACITIES. Yngve tracks working memory (holding multiple incomplete items). Frazier tracks procedural processing (building structure in the moment). Aging selectively impairs the first while sparing the second. The two metrics are a window into the architecture of the mind."
+              }
+            ]
+          },
+          {
+            "type": "DeepDive",
+            "props": {
+              "title": "What This Means for Language Models",
+              "content": "If human sentence production is matched to processing capacity, an obvious question arises: do language models do the same thing? Does a smaller model (say, GPT-2 small with 124M parameters) produce sentences with lower Yngve depth than GPT-2 XL (1.5B parameters)? Does model 'capacity' — in terms of layer count, hidden dimension, attention heads — correlate with the complexity of generated sentences? And critically: does Yngve depth track one aspect of model capacity (perhaps context window utilization or attention span) while Frazier count tracks another (perhaps MLP computation per token)? If so, the Cheung & Kemper dissociation wouldn't just be a fact about aging brains — it would be a general principle about resource-limited language systems. The metrics would be diagnostic tools for understanding what KIND of capacity a system has, not just how much."
+            }
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "Complexity Metrics Meet L11" },
+        "children": [
+          {
+            "type": "p",
+            "children": "Now here's where it gets exciting for our research. We've been studying Layer 11 of GPT-2 — the final layer where 'consensus neurons' either agree on the next token or break down in confusion. Garden-path sentences cause dramatic consensus drops. But WHICH sentences cause the BIGGEST drops?"
+          },
+          {
+            "type": "p",
+            "children": "Our prediction: Yngve depth should correlate with L11 consensus breakdown."
+          },
+          {
+            "type": "p",
+            "children": "The logic is simple. Higher Yngve depth means more items held in memory simultaneously. More items in memory means more things that can go WRONG — more potential for the model's internal representations to conflict. When many incomplete phrases are stacked up, the consensus neurons have to juggle all those pending commitments. If any of them conflict, consensus drops."
+          },
+          {
+            "type": "p",
+            "children": "We also predict that Frazier count should correlate with MLP magnitude — the amount of computation the model does at each token position. Frazier measures local structural work. MLPs do local computation. The mapping is natural."
+          },
+          {
+            "type": "Callout",
+            "props": { "type": "info" },
+            "children": [
+              {
+                "type": "p",
+                "children": "This is one of our planned experiments: computing both Yngve depth and Frazier local count for all 98 garden-path stimuli from our dataset, then correlating these metrics with the L11 consensus patterns we've already measured. If the correlations hold, we'll have evidence that a 1960s psycholinguistic metric and a 2020s neural network are measuring the SAME underlying computational bottleneck."
+              }
+            ]
+          },
+          {
+            "type": "InteractiveDemo",
+            "props": {
+              "title": "Hypothetical: Yngve Depth vs. Consensus Drop",
+              "prompt": "Imagine we've computed Yngve depth for our garden-path stimuli. Here's what we predict the correlation looks like.",
+              "scenarios": [
+                {
+                  "input": "Low Yngve depth (1-2): 'The horse raced past the barn fell.'",
+                  "reveal": "Even though this is a garden-path sentence, the Yngve depth is modest — only one relative clause embedded inside the main clause. Prediction: moderate consensus drop at 'fell.' The garden path is there, but the memory load is manageable. L11 stumbles but recovers."
+                },
+                {
+                  "input": "Medium Yngve depth (2-3): 'The defendant examined by the lawyer turned out to be unreliable.'",
+                  "reveal": "Slightly deeper — the reduced relative clause 'examined by the lawyer' creates more pending structure. Prediction: larger consensus drop at 'turned.' More balls in the air when the reanalysis hits, so the confusion is worse."
+                },
+                {
+                  "input": "High Yngve depth (3-4): 'The evidence examined by the lawyer that the defendant had presented turned out to be unreliable.'",
+                  "reveal": "Deep nesting — a relative clause inside a reduced relative clause, all modifying a subject that hasn't gotten its main verb yet. Prediction: MASSIVE consensus drop. The model has been holding 'the evidence' open through two levels of embedding. When 'turned out' finally arrives, the stack is so deep that consensus collapses."
+                },
+                {
+                  "input": "The predicted pattern",
+                  "reveal": "If our hypothesis is right, there should be a roughly LINEAR relationship: as Yngve depth increases, consensus drop increases proportionally. Not because the model 'knows' about Yngve depth — but because the SAME computational constraint that Yngve formalized in 1960 (memory stack depth) is what's causing the consensus breakdown in 2024. The metric and the mechanism are measuring the same thing from different angles."
+                }
+              ]
+            }
+          },
+          {
+            "type": "p",
+            "children": "If this works, we'll have connected a line from Yngve (1960) through Cheung & Kemper (1990) to transformer internals (2024). Sixty-four years of converging evidence that stack depth is a fundamental bottleneck in sequential language processing — whether the processor is made of neurons or matrices."
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "Test Your Understanding" },
+        "children": [
+          {
+            "type": "Quiz",
+            "props": {
+              "questions": [
+                {
+                  "question": "What does Yngve depth measure?",
+                  "options": [
+                    "The total number of words in a sentence",
+                    "The maximum number of incomplete phrases held in memory at any one point",
+                    "The number of new syntactic nodes created at each word",
+                    "The average reading time per word"
+                  ],
+                  "correctIndex": 1,
+                  "explanation": "Yngve depth is the MAXIMUM stack depth — the peak number of unfinished phrases you're holding simultaneously. Think of it as the maximum number of balls you're juggling at the hardest moment. It's about memory load, not total sentence length or processing speed."
+                },
+                {
+                  "question": "What does Frazier local count measure?",
+                  "options": [
+                    "The maximum memory burden during sentence processing",
+                    "The total number of words in the sentence",
+                    "The number of new structural nodes created at each word position",
+                    "The depth of center embedding"
+                  ],
+                  "correctIndex": 2,
+                  "explanation": "Frazier's local count tallies the new nodes (NP, VP, S, PP, etc.) that must be built at each word. It captures LOCAL processing effort — how much structural construction happens right NOW. High Frazier spikes mean bursts of syntactic work, regardless of how deep the nesting is."
+                },
+                {
+                  "question": "What was Cheung & Kemper's key finding about aging?",
+                  "options": [
+                    "Both Yngve depth and Frazier count decline with age",
+                    "Neither metric changes with age",
+                    "Yngve depth declines with age but Frazier count stays the same",
+                    "Frazier count declines with age but Yngve depth stays the same"
+                  ],
+                  "correctIndex": 2,
+                  "explanation": "This is the crucial dissociation: older adults produce sentences with lower Yngve depth (less nesting, shallower stacks) but UNCHANGED Frazier counts (same local structural complexity). Memory capacity declines; processing machinery doesn't. The two metrics tap different cognitive systems that age at different rates."
+                },
+                {
+                  "question": "Using the juggling analogy: if Yngve depth is the maximum number of balls in the air, what is the Frazier count?",
+                  "options": [
+                    "The total weight of all the balls",
+                    "The number of balls you ADD at each moment",
+                    "The color of the balls",
+                    "The speed at which you juggle"
+                  ],
+                  "correctIndex": 1,
+                  "explanation": "Yngve = maximum balls airborne simultaneously (peak memory load). Frazier = how many NEW balls get tossed to you at each moment (local processing effort). You could be holding only two balls but suddenly get three thrown at you at once (low Yngve, high Frazier spike) — or be holding five but adding them one at a time (high Yngve, low Frazier)."
+                },
+                {
+                  "question": "Why do we predict Yngve depth should correlate with L11 consensus drop in transformers?",
+                  "options": [
+                    "Because transformers were trained on Yngve's papers",
+                    "Because higher Yngve depth means more pending items in memory, creating more potential for representational conflict",
+                    "Because Yngve depth measures sentence length, and longer sentences are harder",
+                    "Because L11 explicitly computes stack depth"
+                  ],
+                  "correctIndex": 1,
+                  "explanation": "Higher Yngve depth = more incomplete phrases held simultaneously = more pending commitments that the consensus neurons must reconcile. When many open branches are stacked up, there are more opportunities for internal representations to conflict, driving consensus down. It's not about sentence length — it's about how many unresolved structural commitments are competing for attention at the critical moment."
+                }
+              ]
+            }
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "Further Reading" },
+        "children": [
+          {
+            "type": "p",
+            "children": "• Cheung, H. & Kemper, S. (1990). 'Competing complexity metrics and adults' production of complex sentences.' Applied Psycholinguistics, 11, 291–311."
+          },
+          {
+            "type": "p",
+            "children": "• Yngve, V.H. (1960). 'A model and an hypothesis for language structure.' Proceedings of the American Philosophical Society, 104, 444–466."
+          },
+          {
+            "type": "p",
+            "children": "• Frazier, L. (1985). 'Syntactic complexity.' In D. Dowty, L. Karttunen, & A. Zwicky (Eds.), Natural Language Parsing. Cambridge University Press."
+          },
+          {
+            "type": "p",
+            "children": "• Kemper, S. (1986). 'Imitation of complex syntactic constructions by elderly adults.' Applied Psycholinguistics, 7, 277–287."
+          }
+        ]
+      }
+    ]
+  }
+}
