@@ -977,6 +977,18 @@ const tutorials = [
     difficulty: 4,
   },
   {
+    id: 'brainstorm-91-causal-abstraction',
+    title: 'Causal Abstraction as Operator Verification',
+    description: 'Interchange interventions for Schankian primitives — proving operators are causally computed inside transformers, not just decodable. Compare Schank-11 vs Dowty-4 vs data-driven primitives.',
+    tags: ['Schankian', 'causal-abstraction', 'interchange-interventions', 'DII', 'mech-interp', 'falsifiable'],
+    icon: '🔬',
+    gradient: 'from-emerald-500 to-cyan-500',
+    shadowColor: 'shadow-emerald-500/30',
+    glowColor: 'rgba(16, 185, 129, 0.4)',
+    readTime: '20 min',
+    difficulty: 4,
+  },
+  {
     id: 'brainstorm-47-semantic-renormalization',
     title: 'Semantic Renormalization Group',
     description: 'Schankian operators as RG fixed points — why different verbs across all languages converge to the same primitives under coarse-graining, just like physical universality classes.',

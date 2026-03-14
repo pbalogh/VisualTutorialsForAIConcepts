@@ -1,0 +1,405 @@
+{
+  "id": "brainstorm-91-causal-abstraction",
+  "title": "Causal Abstraction as Operator Verification",
+  "subtitle": "Interchange Interventions for Schankian Primitives — proving operators are causally computed, not just decodable",
+  "readTime": "20 min",
+  "state": {},
+  "content": {
+    "type": "Fragment",
+    "children": [
+      {
+        "type": "Callout",
+        "props": {
+          "type": "info"
+        },
+        "children": "This tutorial explores causal abstraction — a rigorous framework from Geiger, Wu & Potts (JMLR 2025) for testing whether high-level concepts are actually COMPUTED inside neural networks. We show how interchange interventions could verify that Schankian operators are causally real, not just post-hoc labels we impose on activations."
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "1. The Problem: Correlation vs Causation in Interpretability"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "A probe can decode 'HARM' from a transformer's activations when it reads 'The cop shot Frank.' But does the model actually USE a HARM representation to make predictions? Or is 'HARM' just a pattern we can read out — a shadow on the wall — while the model does something completely different internally?"
+          },
+          {
+            "type": "Analogy",
+            "props": {
+              "concept": "Probing vs intervention",
+              "analogy": "Imagine you find a thermometer in a factory. It reads 'HOT' whenever the machines are running. You could conclude: 'The thermometer controls the machines!' But that's correlation. To test causation, you need to INTERVENE: change the thermometer reading and see if the machines respond. If you set it to 'COLD' and the machines keep running, the thermometer was just a readout, not a controller. Interchange interventions do exactly this for neural networks: swap the 'operator representation' between sentences and see if predictions change accordingly."
+            }
+          },
+          {
+            "type": "DeepDive",
+            "props": {
+              "title": "Why probes aren't enough",
+              "id": "probes-insufficient"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "Linear probes have a fundamental limitation: they can decode ANY linearly accessible information from a representation, whether or not the model uses that information downstream. A 768-dimensional hidden state contains far more information than the model actually uses for any given prediction."
+              },
+              {
+                "type": "Callout",
+                "props": {
+                  "type": "warning"
+                },
+                "children": "The 'decodability ≠ usage' problem: Just because you CAN read information from a representation doesn't mean the model DOES read it. High probe accuracy is necessary but not sufficient for claiming a model computes a concept."
+              },
+              {
+                "type": "p",
+                "children": "Causal abstraction resolves this by requiring interventional evidence: if you swap the representation and downstream behavior changes appropriately, the representation is causally active — the model is actually using it."
+              }
+            ]
+          },
+          {
+            "type": "InteractiveDemo",
+            "props": {
+              "title": "Correlation vs Causation Explorer",
+              "id": "correlation-causation-demo",
+              "height": 380,
+              "initialCode": "// Demonstrate the difference between decodable and causal\nconst scenarios = [\n  {\n    sentence: 'The cop shot Frank',\n    operator: 'HARM',\n    predicted: ['hospital', 'injury', 'pain'],\n    probeScore: 0.94,\n    causalTest: 'Swap HARM→ATRANS subspace'\n  },\n  {\n    sentence: 'The teacher gave Mary a book',\n    operator: 'ATRANS',\n    predicted: ['possession', 'reading', 'thanks'],\n    probeScore: 0.91,\n    causalTest: 'Swap ATRANS→HARM subspace'\n  }\n];\n\nlet html = '<div style=\"font-family:system-ui;font-size:13px\">';\nhtml += '<b>🔬 Two Levels of Evidence:</b><br><br>';\nhtml += '<table style=\"border-collapse:collapse;width:100%\">';\nhtml += '<tr style=\"background:#1e293b\"><th style=\"padding:6px;text-align:left\">Test</th><th>Probe (correlation)</th><th>DII (causation)</th></tr>';\n\nscenarios.forEach(s => {\n  html += `<tr style=\"border-top:1px solid #334155\">`;\n  html += `<td style=\"padding:6px\">\"${s.sentence}\"<br><span style=\"color:#60a5fa\">${s.operator}</span></td>`;\n  html += `<td style=\"padding:6px;text-align:center\"><span style=\"color:#4ade80\">${s.probeScore}</span><br><span style=\"font-size:11px;color:#94a3b8\">Can decode operator ✓</span></td>`;\n  html += `<td style=\"padding:6px;text-align:center\"><span style=\"color:#f59e0b\">?</span><br><span style=\"font-size:11px;color:#94a3b8\">${s.causalTest}</span></td>`;\n  html += '</tr>';\n});\n\nhtml += '</table><br>';\nhtml += '<div style=\"background:#1e3a5f;padding:8px;border-radius:6px;font-size:12px\">';\nhtml += '<b>The key question:</b> After swapping the HARM subspace from sentence 1 into sentence 2, does the model predict injury/hospital for the giving sentence? If yes → operators are <b>causally real</b>.';\nhtml += '</div></div>';\nreturn html;"
+            }
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "2. Causal Abstraction: The Framework"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "Causal abstraction (Geiger et al., JMLR 2025) formalizes a simple idea: a high-level causal model is an 'abstraction' of a low-level model if interventions on both produce consistent results. The high-level model might say 'HARM causes injury-predictions.' The low-level model is the actual neural network. If we can align them — finding neural subspaces that correspond to each high-level variable — and interventions match, then the high-level model faithfully describes what the network computes."
+          },
+          {
+            "type": "DefinitionList",
+            "props": {
+              "items": [
+                {
+                  "term": "High-level causal model",
+                  "definition": "An abstract theory of computation: e.g., 'Sentence → Operator Type → Predicted Consequences.' Variables are human-interpretable (HARM, ATRANS, PTRANS)."
+                },
+                {
+                  "term": "Low-level causal model",
+                  "definition": "The actual neural network. Variables are activation vectors at each layer. We don't know which dimensions encode what."
+                },
+                {
+                  "term": "Alignment function (τ)",
+                  "definition": "A mapping from neural activation subspaces to high-level variables. 'These 50 directions in layer 8 encode the operator type.'"
+                },
+                {
+                  "term": "Interchange intervention",
+                  "definition": "Take the activation from sentence A, swap in the operator-subspace values from sentence B, and check if the model's output changes as the high-level model predicts."
+                }
+              ]
+            }
+          },
+          {
+            "type": "Example",
+            "props": {
+              "title": "Interchange Intervention for HARM vs ATRANS"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "Step 1: Run 'The cop shot Frank' through the model. At layer 8, extract the activation vector. Call it h_HARM."
+              },
+              {
+                "type": "p",
+                "children": "Step 2: Run 'The teacher gave Mary a book' through the model. At layer 8, extract h_ATRANS."
+              },
+              {
+                "type": "p",
+                "children": "Step 3: The alignment function τ identifies a subspace S (say, directions 12, 45, 98, ...) as encoding the operator type. Replace h_ATRANS[S] with h_HARM[S] — keeping everything else about the giving sentence intact."
+              },
+              {
+                "type": "p",
+                "children": "Step 4: Continue the forward pass with the modified activation. If the model now predicts injury/hospital/pain instead of possession/reading — the operator subspace is causally active. The model genuinely uses operator representations."
+              },
+              {
+                "type": "Callout",
+                "props": {
+                  "type": "formula"
+                },
+                "children": "h_intervened = h_ATRANS + Π_S · (h_HARM - h_ATRANS)\n\nwhere Π_S projects onto the operator subspace S.\n\nIf model(h_intervened) ≈ consequences(HARM), the abstraction is faithful."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "3. Distributed Interchange Interventions (DII)"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "Real neural networks don't neatly store 'operator type' in a single neuron. The representation is distributed — spread across many dimensions, possibly across multiple layers. Distributed Interchange Interventions (DII) handle this by learning the alignment function. Instead of guessing which subspace encodes operators, DII trains a rotation matrix that finds the optimal subspace."
+          },
+          {
+            "type": "Analogy",
+            "props": {
+              "concept": "Learning the alignment",
+              "analogy": "Imagine you're in a room full of tangled wires, and somewhere in this mess, a subset of wires carries the 'operator signal.' You can't just guess which ones. Instead, you systematically try combinations: swap this bundle → did predictions change correctly? Try that bundle → did they? DII automates this search by learning a differentiable rotation that separates the operator signal from everything else."
+            }
+          },
+          {
+            "type": "DeepDive",
+            "props": {
+              "title": "How DII learns the subspace",
+              "id": "dii-learning"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "DII introduces a learnable orthogonal matrix R that rotates the activation space. In the rotated basis, the first k dimensions are the 'operator subspace' and the remaining d-k are 'everything else.' Training optimizes R so that swapping the first k dimensions between sentences with different operators produces the expected output changes."
+              },
+              {
+                "type": "Callout",
+                "props": {
+                  "type": "formula"
+                },
+                "children": "Given activations h_A, h_B with operators o_A, o_B:\n\n1. Rotate: h'_A = R · h_A,  h'_B = R · h_B\n2. Swap first k dims: h'_swap = [h'_B[:k], h'_A[k:]]\n3. Unrotate: h_swap = R⁻¹ · h'_swap\n4. Continue forward pass with h_swap\n5. Loss: model output should match consequences of o_B in context of sentence A"
+              },
+              {
+                "type": "p",
+                "children": "The subspace dimensionality k is a hyperparameter. Smaller k means a more compressed (and impressive) alignment. If k=1, a single direction encodes the operator — remarkably parsimonious."
+              }
+            ]
+          },
+          {
+            "type": "InteractiveDemo",
+            "props": {
+              "title": "Subspace Swap Visualizer",
+              "id": "subspace-swap-demo",
+              "height": 420,
+              "initialCode": "// Visualize subspace intervention in 2D\nconst W = 400, H = 350;\nlet svg = `<svg width=\"${W}\" height=\"${H}\" style=\"background:#0f172a;border-radius:8px\">`;\n\n// Two activation vectors\nconst harm = {x: 280, y: 80, label: 'h_HARM', color: '#ef4444'};\nconst atrans = {x: 120, y: 260, label: 'h_ATRANS', color: '#3b82f6'};\n\n// Draw operator subspace axis (diagonal)\nsvg += `<line x1=\"50\" y1=\"310\" x2=\"350\" y2=\"40\" stroke=\"#4ade80\" stroke-width=\"1\" stroke-dasharray=\"6,4\" opacity=\"0.5\"/>`;\nsvg += `<text x=\"355\" y=\"35\" fill=\"#4ade80\" font-size=\"11\">Operator</text>`;\nsvg += `<text x=\"355\" y=\"48\" fill=\"#4ade80\" font-size=\"11\">subspace</text>`;\n\n// Draw context subspace axis (perpendicular)\nsvg += `<line x1=\"50\" y1=\"40\" x2=\"350\" y2=\"310\" stroke=\"#94a3b8\" stroke-width=\"1\" stroke-dasharray=\"6,4\" opacity=\"0.3\"/>`;\nsvg += `<text x=\"355\" y=\"305\" fill=\"#94a3b8\" font-size=\"11\">Context</text>`;\n\n// Original points\n[harm, atrans].forEach(p => {\n  svg += `<circle cx=\"${p.x}\" cy=\"${p.y}\" r=\"8\" fill=\"${p.color}\"/>`;\n  svg += `<text x=\"${p.x+12}\" y=\"${p.y+4}\" fill=\"${p.color}\" font-size=\"12\" font-weight=\"bold\">${p.label}</text>`;\n});\n\n// Intervened point: ATRANS context + HARM operator\nconst swap = {x: 200, y: 120};\nsvg += `<circle cx=\"${swap.x}\" cy=\"${swap.y}\" r=\"8\" fill=\"#f59e0b\" stroke=\"#fff\" stroke-width=\"2\"/>`;\nsvg += `<text x=\"${swap.x+12}\" y=\"${swap.y+4}\" fill=\"#f59e0b\" font-size=\"12\" font-weight=\"bold\">h_swapped</text>`;\n\n// Arrows showing the swap\nsvg += `<line x1=\"${harm.x}\" y1=\"${harm.y}\" x2=\"${swap.x+5}\" y2=\"${swap.y-5}\" stroke=\"#ef4444\" stroke-width=\"1.5\" stroke-dasharray=\"4,3\" marker-end=\"url(#arr)\"/>`;\nsvg += `<line x1=\"${atrans.x}\" y1=\"${atrans.y}\" x2=\"${swap.x-5}\" y2=\"${swap.y+5}\" stroke=\"#3b82f6\" stroke-width=\"1.5\" stroke-dasharray=\"4,3\" marker-end=\"url(#arr2)\"/>`;\n\n// Arrow markers\nsvg += '<defs><marker id=\"arr\" viewBox=\"0 0 10 10\" refX=\"9\" refY=\"5\" markerWidth=\"6\" markerHeight=\"6\" orient=\"auto\"><path d=\"M 0 0 L 10 5 L 0 10 z\" fill=\"#ef4444\"/></marker>';\nsvg += '<marker id=\"arr2\" viewBox=\"0 0 10 10\" refX=\"9\" refY=\"5\" markerWidth=\"6\" markerHeight=\"6\" orient=\"auto\"><path d=\"M 0 0 L 10 5 L 0 10 z\" fill=\"#3b82f6\"/></marker></defs>';\n\n// Labels\nsvg += `<text x=\"130\" y=\"140\" fill=\"#ef4444\" font-size=\"10\" opacity=\"0.8\">operator from HARM →</text>`;\nsvg += `<text x=\"80\" y=\"220\" fill=\"#3b82f6\" font-size=\"10\" opacity=\"0.8\">← context from ATRANS</text>`;\n\n// Legend\nsvg += `<text x=\"20\" y=\"340\" fill=\"#f59e0b\" font-size=\"11\">⚡ h_swapped = ATRANS context + HARM operator → predicts injury!</text>`;\n\nsvg += '</svg>';\nreturn svg;"
+            }
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "4. Testing Schank-11 vs Dowty-4 vs Discovered Primitives"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "The real power of causal abstraction is comparative: define MULTIPLE high-level models with different operator inventories, find the best alignment for each, and compare. Which theory of primitives most faithfully describes what the transformer actually computes?"
+          },
+          {
+            "type": "DefinitionList",
+            "props": {
+              "items": [
+                {
+                  "term": "Schank's 11 (CD theory)",
+                  "definition": "ATRANS, PTRANS, PROPEL, MOVE, GRASP, INGEST, EXPEL, MTRANS, MBUILD, SPEAK, ATTEND. Fine-grained, domain-specific primitives from 1975."
+                },
+                {
+                  "term": "Dowty's 4 (proto-roles)",
+                  "definition": "CAUSE, BECOME, DO, BE. Minimal set from formal semantics. Coarse-grained but compositional."
+                },
+                {
+                  "term": "Data-driven (Entry 89)",
+                  "definition": "Whatever DreamCoder/Lilo discovers via compression. Could be 7, 15, or 23 primitives. No theoretical bias."
+                },
+                {
+                  "term": "Random-11 (control)",
+                  "definition": "11 randomly chosen clusters over action verbs. Same granularity as Schank but no semantic coherence. Should fail."
+                }
+              ]
+            }
+          },
+          {
+            "type": "InteractiveDemo",
+            "props": {
+              "title": "Alignment Score Comparison",
+              "id": "alignment-comparison-demo",
+              "height": 340,
+              "initialCode": "// Hypothetical alignment scores for different operator inventories\nconst theories = [\n  {name: 'Schank-11', score: 0.82, k: 8, color: '#4ade80', note: 'Fine-grained, good alignment'},\n  {name: 'Dowty-4', score: 0.71, k: 3, color: '#60a5fa', note: 'Coarse but efficient'},\n  {name: 'Discovered-7', score: 0.88, k: 6, color: '#f59e0b', note: 'Data-driven optimal?'},\n  {name: 'Random-11', score: 0.34, k: 8, color: '#ef4444', note: 'Control (should fail)'},\n];\n\nlet html = '<div style=\"font-family:system-ui;font-size:13px\">';\nhtml += '<b>🏆 Interchange Intervention Accuracy by Operator Theory</b><br>';\nhtml += '<span style=\"font-size:11px;color:#94a3b8\">(Hypothetical — illustrating the experimental design)</span><br><br>';\n\ntheories.forEach(t => {\n  const barW = Math.round(t.score * 280);\n  html += `<div style=\"margin:6px 0\">`;\n  html += `<span style=\"display:inline-block;width:110px;color:${t.color}\">${t.name}</span>`;\n  html += `<span style=\"display:inline-block;width:${barW}px;height:20px;background:${t.color};border-radius:3px;opacity:0.7\"></span>`;\n  html += ` <span style=\"color:#e2e8f0\">${(t.score*100).toFixed(0)}%</span>`;\n  html += `<span style=\"color:#94a3b8;font-size:11px\"> (k=${t.k})</span>`;\n  html += `<br><span style=\"font-size:11px;color:#64748b;margin-left:110px\">${t.note}</span>`;\n  html += '</div>';\n});\n\nhtml += '<br><div style=\"background:#1e3a5f;padding:8px;border-radius:6px;font-size:12px\">';\nhtml += '<b>Key metric:</b> What % of interchange interventions produce the output predicted by the high-level model? Higher = more faithful abstraction. Random-11 should score near chance.';\nhtml += '</div></div>';\nreturn html;"
+            }
+          },
+          {
+            "type": "Callout",
+            "props": {
+              "type": "idea"
+            },
+            "children": "The experiment is COMPARATIVE and FALSIFIABLE. If Random-11 scores as well as Schank-11, operators are an illusion. If Discovered-7 beats Schank-11, we need fewer primitives than Schank thought. If Dowty-4 matches Schank-11 despite using 7 fewer variables, parsimony wins. Every outcome is informative."
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "5. Connection to Our L11 Consensus Findings"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "Our 'Discrete Charm' paper found that Layer 11 of GPT-2 has 7 consensus neurons forming a binary routing system — an exception handler that fires when the model needs to override its default prediction. Causal abstraction could test whether this routing system IMPLEMENTS Schankian operators."
+          },
+          {
+            "type": "Example",
+            "props": {
+              "title": "DII at Layer 11 — Testing the Exception Handler"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "Hypothesis: The 7 consensus neurons at L11 encode operator type, and the exception handler (N2123) fires differently for HARM vs ATRANS events."
+              },
+              {
+                "type": "p",
+                "children": "Test: Define alignment τ that maps the 7-neuron consensus pattern to Schankian operator labels. Run DII: swap consensus patterns between 'The cop shot Frank' (HARM) and 'The teacher gave the book' (ATRANS). If the model's next-token predictions flip appropriately — predicting medical consequences for the giving sentence — then the consensus neurons causally encode operators."
+              },
+              {
+                "type": "Callout",
+                "props": {
+                  "type": "info"
+                },
+                "children": "This directly extends our existing work: the Discrete Charm paper showed these neurons exist and are binary. Causal abstraction asks: are they computing WHAT WE THINK they're computing?"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "6. Experimental Design"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "A concrete experimental plan for testing Schankian operators via causal abstraction in GPT-2 Small:"
+          },
+          {
+            "type": "DefinitionList",
+            "props": {
+              "items": [
+                {
+                  "term": "Step 1: Build stimulus set",
+                  "definition": "100+ sentences per operator type, covering all 11 Schankian primitives. Each sentence paired with expected consequence predictions (e.g., HARM → injury/hospital, ATRANS → possession-change)."
+                },
+                {
+                  "term": "Step 2: Define high-level models",
+                  "definition": "Model A: Schank-11 (sentence → one of 11 operators → consequences). Model B: Dowty-4. Model C: Random-11. Model D: Discovered (from Entry 89)."
+                },
+                {
+                  "term": "Step 3: Train DII alignments",
+                  "definition": "For each high-level model, train a rotation matrix R at each layer (0-11) to find the best operator subspace. Use 70% of stimuli for training."
+                },
+                {
+                  "term": "Step 4: Evaluate on held-out data",
+                  "definition": "On the remaining 30%: perform interchange interventions. Measure: does swapping operator subspace change predictions as the high-level model predicts? Report accuracy per model, per layer."
+                },
+                {
+                  "term": "Step 5: Compare and conclude",
+                  "definition": "Which high-level model achieves best alignment? At which layer? Is the operator representation localized (one layer) or distributed (multiple)?"
+                }
+              ]
+            }
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "7. Why This Matters"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "Causal abstraction transforms the question 'do transformers compute Schankian operators?' from philosophical speculation into an empirical experiment with quantitative results. It bridges our mechanistic interpretability work (Discrete Charm, Darkness Visible) with our theoretical framework (Schankian primitives), providing the missing experimental link."
+          },
+          {
+            "type": "Callout",
+            "props": {
+              "type": "idea"
+            },
+            "children": "The ultimate test: if interchange interventions at L11 using Schank-11 achieve >80% accuracy, while Random-11 scores <40%, we have strong evidence that transformers genuinely compute Schankian-like event primitives. That's a publishable finding in its own right — and it validates the entire research program."
+          }
+        ]
+      },
+      {
+        "type": "Quiz",
+        "props": {
+          "questions": [
+            {
+              "question": "Why are linear probes insufficient for verifying that a model computes Schankian operators?",
+              "options": [
+                "Probes are too slow to train",
+                "Probes show correlation (decodability) but not causation (usage)",
+                "Probes can only work on the final layer",
+                "Probes require labeled training data"
+              ],
+              "correctIndex": 1,
+              "explanation": "A probe shows that operator information is PRESENT in the activations (decodable), but not that the model actually USES it for predictions. Interchange interventions test causation: does swapping the representation change behavior?"
+            },
+            {
+              "question": "What makes DII (Distributed Interchange Interventions) more powerful than standard interchange interventions?",
+              "options": [
+                "DII is faster to compute",
+                "DII uses larger subspaces",
+                "DII learns the optimal subspace rotation instead of requiring manual specification",
+                "DII works on any model without modification"
+              ],
+              "correctIndex": 2,
+              "explanation": "Standard interventions require you to know which neurons/dimensions encode the concept. DII learns a rotation matrix R that finds the optimal subspace automatically, handling distributed representations."
+            },
+            {
+              "question": "In the proposed experiment, what role does Random-11 play?",
+              "options": [
+                "It provides the baseline operator set",
+                "It's a negative control — if it scores as well as Schank-11, operators are an illusion",
+                "It tests whether 11 is the right number of primitives",
+                "It validates the alignment function"
+              ],
+              "correctIndex": 1,
+              "explanation": "Random-11 uses 11 arbitrary clusters with no semantic coherence. If interchange interventions work just as well with random groupings as with Schankian groupings, then the model doesn't actually compute meaningful operator categories — any 11-way partition would work."
+            }
+          ]
+        }
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "Further Reading"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": [
+              "• ",
+              {"type": "a", "props": {"href": "https://arxiv.org/abs/2301.04709"}, "children": "Causal Abstraction: A Theoretical Foundation for Mech Interp"},
+              " — Geiger et al., JMLR 2025. The definitive reference."
+            ]
+          },
+          {
+            "type": "p",
+            "children": [
+              "• ",
+              {"type": "a", "props": {"href": "https://ai.stanford.edu/blog/causal-abstraction/"}, "children": "Stanford AI Lab Blog: Faithful, Interpretable Model Explanations"},
+              " — Accessible introduction with examples."
+            ]
+          },
+          {
+            "type": "p",
+            "children": [
+              "• ",
+              {"type": "a", "props": {"href": "http://users.umiacs.umd.edu/~hal3/docs/daume25causal.pdf"}, "children": "Interpreting LM Behavior via Causal Representation Learning"},
+              " — Daumé 2025, unsupervised extension."
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}
