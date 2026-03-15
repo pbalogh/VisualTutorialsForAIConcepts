@@ -989,6 +989,18 @@ const tutorials = [
     difficulty: 4,
   },
   {
+    id: 'brainstorm-92-routing-signatures',
+    title: 'Operator Discovery via Routing Signatures',
+    description: 'Knowledge neurons are routing neurons — the same 27 neurons appear for every fact (36.5× enrichment). Schankian operators should be discoverable as distinct routing configurations in the 7D consensus space.',
+    tags: ['Schankian', 'routing', 'knowledge-neurons', 'mech-interp', 'consensus', 'experimental'],
+    icon: '🛤️',
+    gradient: 'from-amber-500 to-orange-600',
+    shadowColor: 'shadow-amber-500/30',
+    glowColor: 'rgba(245, 158, 11, 0.4)',
+    readTime: '22 min',
+    difficulty: 3,
+  },
+  {
     id: 'brainstorm-47-semantic-renormalization',
     title: 'Semantic Renormalization Group',
     description: 'Schankian operators as RG fixed points — why different verbs across all languages converge to the same primitives under coarse-graining, just like physical universality classes.',

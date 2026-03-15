@@ -1,0 +1,446 @@
+{
+  "id": "brainstorm-92-routing-signatures",
+  "title": "Operator Discovery via Routing Signatures",
+  "subtitle": "Knowledge Neurons Are Operator Detectors — finding Schankian primitives in MLP routing patterns",
+  "readTime": "22 min",
+  "state": {},
+  "content": {
+    "type": "Fragment",
+    "children": [
+      {
+        "type": "Callout",
+        "props": {
+          "type": "info"
+        },
+        "children": "This tutorial explores a surprising finding: the neurons that prior work called 'knowledge neurons' are actually routing infrastructure. The SAME neurons appear for every fact — Paris, Berlin, Jupiter, Au — because they don't STORE knowledge, they ROUTE it. This reinterpretation opens a new path to discovering Schankian operators: reading the routing patterns of neurons we can already name."
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "1. The Knowledge Neuron Hypothesis (and Why It's Wrong)"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "In 2022, Dai et al. proposed a compelling idea: specific MLP neurons in transformers STORE factual knowledge. They used integrated gradients — a technique that traces which neurons most influence the output — to identify 'knowledge neurons' for facts like 'The capital of France is Paris.'"
+          },
+          {
+            "type": "p",
+            "children": "The idea was intuitive: just as your brain might have neurons that 'fire for grandmother,' maybe GPT-2 has neurons that fire for 'Paris is the capital of France.' Find the neuron, find the fact."
+          },
+          {
+            "type": "Analogy",
+            "props": {
+              "concept": "Knowledge neurons",
+              "analogy": "Imagine a library. The 'knowledge neuron' hypothesis says each book is stored in a specific shelf slot — to find a fact, find the slot. But what if the 'slots' Dai found were actually the SIGNS that say 'Fiction → Left, Science → Right'? The signs have huge causal influence on which books you reach, but they don't contain any books themselves. That's what our experiment found: 'knowledge neurons' are routing signs, not storage locations."
+            }
+          },
+          {
+            "type": "DeepDive",
+            "props": {
+              "title": "Integrated gradients: how Dai et al. found 'knowledge neurons'",
+              "id": "integrated-gradients"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "Integrated gradients works by interpolating between a 'blank' input (zero activations) and the actual activations, measuring how much each neuron contributes to the target output along this path. Neurons with high attribution scores are deemed 'knowledge neurons' for that fact."
+              },
+              {
+                "type": "p",
+                "children": "The method correctly identifies neurons with high CAUSAL INFLUENCE on the output. The error is in the interpretation: high influence ≠ storage. A highway sign has massive causal influence on where traffic goes, but it doesn't contain the destinations."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "2. Three Experiments That Broke the Storage Story"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "We ran three experiments on GPT-2 Small that decisively show knowledge neurons are routing infrastructure, not fact stores."
+          },
+          {
+            "type": "Section",
+            "props": {
+              "title": "Experiment 1: The Same Neurons, Every Time"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "We ran Dai's integrated gradients on 20 different factual prompts — capitals (Paris, Berlin, Tokyo), science (Jupiter, Au, 300,000 km/s), history (Moon landing, Shakespeare). For each prompt, we identified the top-20 attributed neurons and checked: how many are members of our already-identified 27-neuron routing circuit?"
+              },
+              {
+                "type": "InteractiveDemo",
+                "props": {
+                  "id": "overlap-demo",
+                  "title": "Routing Neuron Overlap",
+                  "type": "visualization",
+                  "config": {
+                    "description": "Top-20 attributed neurons for each factual prompt. Orange = routing/consensus neurons. Blue = residual neurons. Notice how the same orange neurons appear across ALL facts.",
+                    "data": [
+                      {"prompt": "Capital of France → Paris", "routing": 8, "residual": 12, "key_neurons": "N2, N611, N1611, N2044"},
+                      {"prompt": "Capital of Japan → Tokyo", "routing": 8, "residual": 12, "key_neurons": "N2, N611, N1611, N2044"},
+                      {"prompt": "Largest planet → Jupiter", "routing": 7, "residual": 13, "key_neurons": "N611, N1611, N2044, N2173"},
+                      {"prompt": "Chemical symbol for gold → Au", "routing": 9, "residual": 11, "key_neurons": "N2, N1245, N1611, N2928"},
+                      {"prompt": "Einstein → relativity", "routing": 2, "residual": 18, "key_neurons": "N611, N2044 (only!)"},
+                      {"prompt": "Moon landing 1969 → Moon", "routing": 4, "residual": 16, "key_neurons": "N611, N2460, N2928"}
+                    ]
+                  }
+                }
+              },
+              {
+                "type": "Callout",
+                "props": {
+                  "type": "warning"
+                },
+                "children": "On average, 7.3 of the top-20 'knowledge neurons' are routing neurons — a 36.5× enrichment over chance (expected: 0.2). The same neurons N2, N611, N1611, N2044, N2173, N2460, N2600, N2910 appear across 16-19 of 20 prompts. If they stored facts, they'd be DIFFERENT for each fact."
+              },
+              {
+                "type": "p",
+                "children": "The Einstein→relativity prompt was the fascinating exception: only 2 routing neurons in the top 20. This fact genuinely relies on distributed residual processing — a clue that some knowledge representations DO differ from the routing pattern."
+              }
+            ]
+          },
+          {
+            "type": "Section",
+            "props": {
+              "title": "Experiment 2: Knockout Makes Facts Stronger"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "If neurons store facts, removing them should destroy the fact. We tested four knockout conditions:"
+              },
+              {
+                "type": "InteractiveDemo",
+                "props": {
+                  "id": "knockout-demo",
+                  "title": "Knockout Test Results",
+                  "type": "comparison",
+                  "config": {
+                    "description": "Effect of zeroing different neuron groups on fact recall probability. NEGATIVE drop = knockout HELPED fact recall.",
+                    "conditions": [
+                      {"name": "Dai's top-20 neurons", "units": 20, "prob_change": "+8.0pp", "interpretation": "INCREASED fact prob — these neurons SUPPRESS facts!"},
+                      {"name": "Consensus 7", "units": 7, "prob_change": "-0.3pp", "interpretation": "Negligible effect"},
+                      {"name": "All routing 27", "units": 27, "prob_change": "+3.1pp", "interpretation": "Also increased — routing reshapes distribution"},
+                      {"name": "Attention heads (L11)", "units": 12, "prob_change": "-1.4pp", "interpretation": "Only these HURT fact recall — knowledge comes via attention"}
+                    ]
+                  }
+                }
+              },
+              {
+                "type": "p",
+                "children": "This is backwards from Dai's prediction! Knocking out 'knowledge neurons' makes the model MORE likely to predict the correct fact. Why? Because these neurons push probability toward function words ('the', 'in', 'and') — they're the distributional reshaping circuit from our Discrete Charm paper. Remove the reshaping → the raw factual signal from attention passes through more clearly."
+              },
+              {
+                "type": "Analogy",
+                "props": {
+                  "concept": "Knockout paradox",
+                  "analogy": "Imagine a radio station broadcasting music. There's a DJ who talks over the music with commentary. An 'attribution analysis' would flag the DJ as highly influential on what you hear. But if you remove the DJ (knockout), you hear the music MORE CLEARLY. The DJ had high causal influence but was adding noise, not signal. The knowledge neurons are the DJ — they reshape the distribution (add commentary) but the music (facts) comes from the attention heads."
+                }
+              }
+            ]
+          },
+          {
+            "type": "Section",
+            "props": {
+              "title": "Experiment 3: Facts Don't Transplant"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "The decisive test: if neurons STORE the fact 'Paris is France's capital,' then transplanting their activations into a different context should make 'Paris' appear. We captured Dai's knowledge neuron activations for 'France → Paris' and injected them when the model processed 'The capital of Germany is ___'."
+              },
+              {
+                "type": "InteractiveDemo",
+                "props": {
+                  "id": "transplant-demo",
+                  "title": "Activation Transplant Test",
+                  "type": "before-after",
+                  "config": {
+                    "description": "Transplanting 'Paris' neurons into 'Germany' context. Does 'Paris' appear?",
+                    "pairs": [
+                      {"source": "France → Paris", "dest": "Germany → ?", "before_dest": "Berlin (5.3%)", "after_transplant": "the (unchanged)", "source_appeared": "Paris: 0.13% → 0.13%", "result": "NO transplant"},
+                      {"source": "Japan → Tokyo", "dest": "Italy → ?", "before_dest": "Rome (15.7%)", "after_transplant": "Rome (14.2%)", "source_appeared": "Tokyo: 0.01% → 0.00%", "result": "NO transplant"},
+                      {"source": "China → Beijing", "dest": "Spain → ?", "before_dest": "Madrid (10.5%)", "after_transplant": "the (8.5%)", "source_appeared": "Beijing: 0.00% → 0.00%", "result": "NO transplant"}
+                    ]
+                  }
+                }
+              },
+              {
+                "type": "Callout",
+                "props": {
+                  "type": "error"
+                },
+                "children": "0 out of 5 transplants succeeded. Source fact probability didn't budge (±0.02pp). Destination fact probability dropped slightly — consistent with routing disruption, not knowledge injection. If these neurons stored 'Paris,' transplanting them should have produced 'Paris.' It didn't."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "3. The Highway Sign Metaphor"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "The reconciliation is clean: Dai et al. correctly identified neurons with high causal influence. But they confused the highway signs with the destinations."
+          },
+          {
+            "type": "Example",
+            "props": {
+              "title": "Signs vs destinations"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "The 27 routing neurons are highway signs. They determine WHICH knowledge flows to the output. Changing a sign has enormous causal effects on traffic — but the sign doesn't contain the cities. The cities (facts) live in the residual stream, placed there by attention heads that copy from relevant source tokens."
+              },
+              {
+                "type": "p",
+                "children": "This also explains why ROME (Meng et al. 2022) works by editing MLP weights: editing the sign DOES redirect traffic. You're not 'writing Paris into a neuron' — you're changing which attention-derived knowledge flows to the output. The edit is to the routing, and it works BECAUSE routing has such high causal influence."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "4. From Routing to Operators: The Key Insight"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "Here's where it gets exciting for Schankian operators. If MLP neurons don't store knowledge but ROUTE it, then different types of events should produce different routing patterns. The operator isn't 'stored' in a neuron — it's the PATTERN of routing across the 27-neuron circuit."
+          },
+          {
+            "type": "Analogy",
+            "props": {
+              "concept": "Operators as routing patterns",
+              "analogy": "Think of a train switching yard. There are 27 switches (our routing neurons). For a 'passenger train' (PTRANS event), switches 3, 7, and 15 are thrown left. For a 'freight train' (ATRANS event), switches 3, 12, and 22 are thrown left. The switches are always the same physical switches — but the CONFIGURATION differs by train type. Each Schankian operator corresponds to a distinct switch configuration."
+            }
+          },
+          {
+            "type": "Section",
+            "props": {
+              "title": "The 7-Dimensional Consensus Space"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "Our Darkness Visible paper identified 7 consensus neurons, each monitoring a distinct linguistic dimension: syntax, temporality, entities, semantics, sentence structure, and two others. This gives us a natural 7-dimensional space where each event sentence maps to a point based on its consensus profile."
+              },
+              {
+                "type": "InteractiveDemo",
+                "props": {
+                  "id": "consensus-space",
+                  "title": "Predicted Operator Signatures in Consensus Space",
+                  "type": "visualization",
+                  "config": {
+                    "description": "Different Schankian operators should produce different patterns across the 7 consensus dimensions. These are predictions — the experiment hasn't been run yet.",
+                    "predictions": [
+                      {"operator": "PTRANS (physical transfer)", "example": "Mary walked to the store", "predicted_pattern": "High spatial, high entity, moderate syntax", "reasoning": "Physical motion is syntactically normal, spatially marked, entity-focused"},
+                      {"operator": "MTRANS (mental transfer)", "example": "John told Mary the news", "predicted_pattern": "Low semantic consensus (info transfer disrupts expectations), high entity", "reasoning": "Information transfer creates semantic surprise — the content is new"},
+                      {"operator": "ATRANS (abstract transfer)", "example": "The bank gave John a loan", "predicted_pattern": "Moderate across all dimensions", "reasoning": "Ownership transfer is conceptually complex but syntactically standard"},
+                      {"operator": "HARM (damage)", "example": "The cop shot Frank", "predicted_pattern": "Low consensus across multiple dimensions — exception-triggering", "reasoning": "Violence/harm events are unusual enough to trigger exception processing"},
+                      {"operator": "INGEST (intake)", "example": "She ate the apple", "predicted_pattern": "High consensus — syntactically simple, semantically expected", "reasoning": "Common action, no surprises — the model barely needs to intervene"}
+                    ]
+                  }
+                }
+              },
+              {
+                "type": "Callout",
+                "props": {
+                  "type": "info"
+                },
+                "children": "The key prediction: operator boundaries should emerge as NATURAL CLUSTERS in this 7-dimensional consensus space, even without supervised operator labels. Run 50+ event sentences per operator through GPT-2, record consensus neuron firing patterns, cluster — do the clusters correspond to operator types?"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "5. The Experimental Pipeline"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "This is testable RIGHT NOW with our existing infrastructure. Here's the concrete plan:"
+          },
+          {
+            "type": "DefinitionList",
+            "props": {
+              "items": [
+                {
+                  "term": "Step 1: Corpus construction",
+                  "definition": "Generate 50+ event sentences per Schankian operator type (PTRANS, MTRANS, ATRANS, PROPEL, MOVE, GRASP, INGEST, EXPEL, SPEAK, ATTEND, HARM). Use diverse entities and contexts to avoid confounding operator with content."
+                },
+                {
+                  "term": "Step 2: Consensus profiling",
+                  "definition": "Run each sentence through GPT-2, record the firing pattern of the 7 L11 consensus neurons at the verb position (the token most likely to encode the operator)."
+                },
+                {
+                  "term": "Step 3: Unsupervised clustering",
+                  "definition": "Apply k-means, DBSCAN, or spectral clustering to the 7D consensus signatures. How many natural clusters emerge? Do they align with operator labels?"
+                },
+                {
+                  "term": "Step 4: Supervised validation",
+                  "definition": "Train a simple classifier (logistic regression) on consensus signatures → operator labels. If accuracy >> chance (1/11 = 9%), operators are encoded in routing patterns."
+                },
+                {
+                  "term": "Step 5: Exception handler analysis",
+                  "definition": "Extend to the full 27-neuron routing circuit. Does adding exception handler neurons improve operator classification? Which tiers (Core, Differentiators, Specialists) carry operator information?"
+                }
+              ]
+            }
+          },
+          {
+            "type": "DeepDive",
+            "props": {
+              "title": "Why the verb position matters",
+              "id": "verb-position"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "In 'The cop shot Frank,' the operator HARM is most strongly encoded at the verb 'shot.' This is where the model must decide how to route: the entities ('cop,' 'Frank') set up context, but the verb determines what KIND of event is being processed. The consensus neurons' response to the verb token should carry the operator signature."
+              },
+              {
+                "type": "p",
+                "children": "However, some operators might spread across multiple tokens. MTRANS ('John told Mary the news') involves both 'told' and 'the news.' We should profile consensus patterns at multiple positions and see where operator information concentrates."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "6. What the Clusters Would Tell Us"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "The number of natural clusters is itself a scientific finding:"
+          },
+          {
+            "type": "InteractiveDemo",
+            "props": {
+              "id": "cluster-outcomes",
+              "title": "Possible Outcomes and Their Implications",
+              "type": "scenarios",
+              "config": {
+                "scenarios": [
+                  {"clusters": "~11", "implication": "Matches Schank's original 11 primitives — remarkable validation that the model discovered the same event decomposition independently", "excitement": "revolutionary"},
+                  {"clusters": "~4", "implication": "Matches Dowty's 4 proto-roles — suggests a coarser decomposition is more natural for neural networks", "excitement": "significant"},
+                  {"clusters": "~20-30", "implication": "Model uses finer-grained operators than Schank proposed — suggests additional primitives or sub-primitives", "excitement": "interesting"},
+                  {"clusters": "~2-3", "implication": "Only broad categories (physical vs mental vs abstract) — operators may not be the right unit of analysis", "excitement": "still publishable"},
+                  {"clusters": "No clear clusters", "implication": "Routing patterns are continuous, not categorical — operators are directions in routing space, not discrete categories (connects to Entry 90: Gärdenfors conceptual spaces)", "excitement": "theoretically rich"}
+                ]
+              }
+            }
+          },
+          {
+            "type": "Callout",
+            "props": {
+              "type": "info"
+            },
+            "children": "EVERY outcome is publishable. Clear clusters = 'we found operators.' No clusters = 'operators are continuous dimensions.' The experiment is designed so we can't lose — it will tell us something interesting regardless."
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "7. Connections and Complementary Approaches"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "Routing signatures complement three other approaches from our brainstorming:"
+          },
+          {
+            "type": "DefinitionList",
+            "props": {
+              "items": [
+                {
+                  "term": "Entry 88: Boolean Circuit Extraction",
+                  "definition": "Extracts circuit MOTIFS from MLP — structural patterns in the wiring. Routing signatures find ACTIVATION patterns in already-identified neurons. Circuits explain WHY the routing happens; signatures tell you WHAT routing happens for each operator."
+                },
+                {
+                  "term": "Entry 89: Wake-Sleep Library Learning",
+                  "definition": "Discovers operators via compression (MDL). Routing signatures discover operators via clustering. If both methods converge on the same primitives, that's very strong evidence."
+                },
+                {
+                  "term": "Entry 91: Causal Abstraction (DII)",
+                  "definition": "Tests whether operator representations are CAUSALLY active. Routing signatures FIND the candidates; DII VALIDATES them. This is the natural pipeline: discover via routing, verify via intervention."
+                }
+              ]
+            }
+          }
+        ]
+      },
+      {
+        "type": "Quiz",
+        "props": {
+          "questions": [
+            {
+              "question": "What was the key finding when Dai et al.'s 'knowledge neurons' were identified via integrated gradients on 20 different factual prompts?",
+              "options": [
+                "Different facts activated completely different neurons",
+                "The same ~8 routing neurons appeared across nearly all facts (36.5× enrichment)",
+                "No neurons had significant attribution scores",
+                "Only attention heads mattered, not MLP neurons"
+              ],
+              "correct": 1,
+              "explanation": "7.3 of the top-20 attributed neurons were routing neurons on average — 36.5× more than the 0.2 expected by chance. The same neurons (N2, N611, N1611, N2044, N2173, N2460, N2600, N2910) appeared across 16-19 of 20 prompts, showing they're infrastructure, not fact-specific stores."
+            },
+            {
+              "question": "What happened when Dai's 'knowledge neurons' were knocked out (zeroed)?",
+              "options": [
+                "The model could no longer recall any facts",
+                "Fact recall improved slightly — the model became MORE accurate",
+                "There was no measurable effect",
+                "The model only lost the specific fact those neurons were attributed to"
+              ],
+              "correct": 1,
+              "explanation": "Knockout INCREASED target probability by 8.0pp on average. These neurons push probability toward function words ('the', 'in'). Removing them lets the factual signal from attention pass through more clearly — like removing a DJ who talks over the music."
+            },
+            {
+              "question": "Why is the transplant experiment (Experiment 3) the most decisive?",
+              "options": [
+                "It uses the most data points",
+                "It directly tests storage: if neurons store 'Paris,' transplanting them should produce 'Paris' in a different context",
+                "It's the only experiment that uses attention heads",
+                "It measures statistical significance"
+              ],
+              "correct": 1,
+              "explanation": "The transplant test is definitive because it directly tests the storage claim: capture 'Paris' neurons, inject into 'Germany' context, check if 'Paris' appears. 0/5 transplants succeeded — source fact probability didn't even budge (±0.02pp). Facts aren't in the activations."
+            },
+            {
+              "question": "How would Schankian operators be discovered via routing signatures?",
+              "options": [
+                "By finding dedicated 'operator neurons' that store each primitive",
+                "By clustering the 7D consensus neuron firing patterns for different event sentences",
+                "By training a new model specifically designed for operator detection",
+                "By manually labeling which neurons correspond to which operator"
+              ],
+              "correct": 1,
+              "explanation": "The 7 consensus neurons create a natural 7D space. Different event types (PTRANS, MTRANS, HARM, etc.) should produce different consensus profiles. Clustering these profiles reveals natural operator boundaries — without supervised labels."
+            }
+          ]
+        }
+      }
+    ]
+  }
+}
