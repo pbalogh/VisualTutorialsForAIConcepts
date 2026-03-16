@@ -1,0 +1,417 @@
+{
+  "type": "Fragment",
+  "meta": {
+    "title": "DeepONet: Operators as Learned Functional Mappings",
+    "description": "How physics-informed neural operator architectures map onto Schankian semantic primitives — and why branch-trunk factorization is a natural fit for language",
+    "author": "Peter Balogh",
+    "lastUpdated": "2026-03-16",
+    "tags": ["deeponet", "neural operators", "schankian primitives", "architecture", "operator learning"]
+  },
+  "content": {
+    "type": "Fragment",
+    "children": [
+      {
+        "type": "Section",
+        "props": { "title": "1. The Problem: What Shape Should an Operator Be?" },
+        "children": [
+          {
+            "type": "p",
+            "children": "In our Schankian operators research, we keep running into the same question: how do you represent a semantic transformation that maps one entity state to another? 'John kicked the ball' means: PROPEL(John, ball) → ball changes state. But what mathematical object IS PROPEL?"
+          },
+          {
+            "type": "p",
+            "children": "We've tried rotation matrices (RotatE-style), which are elegant but limited — rotations can't change the magnitude of a vector, only its direction. We've tried linear transformations, which are more flexible but can't capture nonlinear interactions. What we need is something that:"
+          },
+          {
+            "type": "ul",
+            "children": [
+              { "type": "li", "children": "Separates WHAT transformation (the operator) from WHAT gets transformed (the entity)" },
+              { "type": "li", "children": "Can represent arbitrary nonlinear mappings, not just rotations or linear maps" },
+              { "type": "li", "children": "Composes hierarchically — CAUSE ∘ BECOME should decompose into sub-operators" },
+              { "type": "li", "children": "Has theoretical guarantees about expressivity" }
+            ]
+          },
+          {
+            "type": "p",
+            "children": "It turns out the physics community solved this problem in 2021. They just didn't know it was about language."
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "2. DeepONet: A Neural Network That Learns Operators" },
+        "children": [
+          {
+            "type": "p",
+            "children": "DeepONet (Lu et al., 2021) was designed to learn operators in physics — things like 'given a temperature distribution, what does it look like after heat diffusion?' or 'given initial conditions, what's the solution to this differential equation?' These are functions that map functions to functions."
+          },
+          {
+            "type": "Callout",
+            "props": { "type": "info" },
+            "children": [
+              {
+                "type": "p",
+                "children": "Key distinction: An ordinary neural network maps vectors to vectors (f: ℝⁿ → ℝᵐ). DeepONet maps FUNCTIONS to FUNCTIONS (G: F → F). It's a neural network that learns transformations of entire spaces, not just points."
+              }
+            ]
+          },
+          {
+            "type": "p",
+            "children": "The architecture has two parts — the Branch network and the Trunk network — whose outputs combine via dot product:"
+          },
+          {
+            "type": "DeepDive",
+            "props": { "title": "The Branch-Trunk Architecture" },
+            "children": [
+              {
+                "type": "p",
+                "children": "The Branch network takes the operator specification — in physics, this might be initial conditions or forcing functions. It outputs an operator embedding in ℝᵏ."
+              },
+              {
+                "type": "p",
+                "children": "The Trunk network takes the evaluation point — where you want to know the output value. It outputs entity features in ℝᵏ."
+              },
+              {
+                "type": "p",
+                "children": "The output is their dot product: Output = Σᵢ branch_i · trunk_i"
+              },
+              {
+                "type": "CodeBlock",
+                "props": { "language": "text" },
+                "children": "Branch Network:  operator_context  →  [b₁, b₂, ..., bₖ]   (what transformation)\nTrunk Network:   entity_state      →  [t₁, t₂, ..., tₖ]   (what gets transformed)\n\nOutput = b₁·t₁ + b₂·t₂ + ... + bₖ·tₖ  (transformed entity state)"
+              },
+              {
+                "type": "p",
+                "children": "This factorization is the key insight: the operator and the entity are encoded SEPARATELY, and their interaction is a simple dot product. The nonlinearity is inside each network, not in how they combine."
+              }
+            ]
+          },
+          {
+            "type": "Callout",
+            "props": { "type": "warning" },
+            "children": [
+              {
+                "type": "p",
+                "children": "Theoretical guarantee: The Universal Approximation Theorem for operators (Chen & Chen, 1995) proves that DeepONet can approximate ANY continuous nonlinear operator to arbitrary precision. This isn't just 'it works well in practice' — it's a mathematical proof of expressivity."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "3. The Mapping: DeepONet → Schankian Operators" },
+        "children": [
+          {
+            "type": "p",
+            "children": "Here's where it gets exciting. The branch-trunk architecture maps almost perfectly onto Schankian conceptual dependency structures:"
+          },
+          {
+            "type": "DefinitionList",
+            "props": {
+              "items": [
+                {
+                  "term": "Branch Network = Operator Encoder",
+                  "definition": "Takes the verb/event description ('kicked', 'gave', 'told') and its context. Outputs an operator embedding that encodes WHAT transformation to apply. Different verbs → different branch outputs → different operators."
+                },
+                {
+                  "term": "Trunk Network = Entity Encoder",
+                  "definition": "Takes the entity state (the ball's current position, velocity, physical properties). Outputs features that represent WHERE the entity is in state space — what the operator has to work with."
+                },
+                {
+                  "term": "Dot Product = Operator Application",
+                  "definition": "Branch ⊙ Trunk = transformed entity state. This IS the Schankian operator application: PROPEL(ball) → ball-in-motion. The dot product computes how each dimension of the operator acts on each dimension of the entity."
+                },
+                {
+                  "term": "Compositional DeepONet = Operator Hierarchy",
+                  "definition": "Chain branch-trunk pairs: output of one becomes trunk input of the next. CAUSE ∘ BECOME = first apply CAUSE, then apply BECOME to the result. This mirrors Dowty's event decomposition and our operator trees."
+                }
+              ]
+            }
+          },
+          {
+            "type": "Example",
+            "props": { "title": "Worked Example: 'John kicked the ball'" },
+            "children": [
+              {
+                "type": "CodeBlock",
+                "props": { "language": "text" },
+                "children": "Sentence: \"John kicked the ball\"\nSchankian: PROPEL(John, ball, foot)\n\nBranch input:  [\"kicked\", agent=John, instrument=foot]\n  → Branch output: operator_emb = [0.8, -0.3, 0.5, ...]   (PROPEL signature)\n\nTrunk input:   [ball_state: position=ground, velocity=0, intact=true]\n  → Trunk output: entity_feat = [0.2, 0.9, 0.1, ...]   (ball features)\n\nDot product:   Σ operator_emb_i · entity_feat_i\n  → New state:  [ball_state: position=air, velocity=high, intact=true]"
+              },
+              {
+                "type": "p",
+                "children": "The branch network learned that 'kicked' is a PROPEL-type transformation. The trunk network encoded the ball's current state. The dot product applied the transformation. The ball is now in motion."
+              }
+            ]
+          },
+          {
+            "type": "Example",
+            "props": { "title": "Composition: 'John kicked the ball and it broke the window'" },
+            "children": [
+              {
+                "type": "CodeBlock",
+                "props": { "language": "text" },
+                "children": "Step 1: PROPEL(John, ball)\n  Branch₁(\"kicked\")     ⊙  Trunk₁(ball_at_rest)    →  ball_in_motion\n\nStep 2: PROPEL(ball, window)  [implicit from context]\n  Branch₂(\"broke\")      ⊙  Trunk₂(ball_in_motion)  →  ball_at_window\n\nStep 3: BREAK(ball, window)\n  Branch₃(\"broke\")      ⊙  Trunk₃(window_intact)   →  window_broken\n\nComposition: BREAK ∘ PROPEL ∘ PROPEL\nOutput of each step feeds as trunk input to the next."
+              },
+              {
+                "type": "p",
+                "children": "This is Compositional DeepONet applied to language. Each operator in the chain transforms the entity state, and the output feeds forward. The hierarchical decomposition mirrors how Dowty analyzes complex events."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "4. Why DeepONet Beats RotatE" },
+        "children": [
+          {
+            "type": "p",
+            "children": "Our earlier approach used rotation matrices (inspired by RotatE from knowledge graph embedding). Rotations are elegant — they preserve vector magnitude and compose cleanly. But they have fundamental limitations that DeepONet overcomes:"
+          },
+          {
+            "type": "CodeBlock",
+            "props": { "language": "text" },
+            "children": "Feature              RotatE                    DeepONet\n─────────────────────────────────────────────────────────────\nOperator form        Rotation only             Arbitrary nonlinear\nCan change magnitude No (preserves norm)       Yes\nContext conditioning Verb embedding only        Full sentence context\nEntity richness      Single embedding vector    Rich state features\nComposition          Matrix multiplication      Chained branch-trunk\nTheory guarantee     Group theory (rotations)   Universal approx theorem\nExpressivity         Limited to SO(n)           Any continuous operator"
+          },
+          {
+            "type": "Analogy",
+            "props": { "concept": "Rotations vs. arbitrary transformations" },
+            "children": [
+              {
+                "type": "p",
+                "children": "Imagine you're rearranging furniture. RotatE can only ROTATE the furniture — spin the couch 90°, turn the table. It can't make the couch bigger, split the table in two, or move the couch to a different room."
+              },
+              {
+                "type": "p",
+                "children": "DeepONet can do ANYTHING to the furniture — resize, reshape, teleport, split, merge. And it can learn what 'rearrange the living room' means as a specific combination of these operations, conditioned on the full context of what you asked for."
+              },
+              {
+                "type": "p",
+                "children": "Most semantic transformations aren't rotations. 'The ice melted' doesn't rotate the ice vector — it changes its fundamental nature. DeepONet handles this; RotatE can't."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "5. The Universal Approximation Theorem for Operators" },
+        "children": [
+          {
+            "type": "p",
+            "children": "The theoretical backbone of DeepONet is the Universal Approximation Theorem for operators (Chen & Chen, 1995). This is the operator-level analog of the famous universal approximation theorem for neural networks."
+          },
+          {
+            "type": "DeepDive",
+            "props": { "title": "What the theorem says" },
+            "children": [
+              {
+                "type": "p",
+                "children": "The classical UAT (Cybenko 1989, Hornik 1991): A single hidden-layer neural network can approximate any continuous function f: ℝⁿ → ℝᵐ."
+              },
+              {
+                "type": "p",
+                "children": "Chen & Chen's operator UAT: A branch-trunk architecture can approximate any continuous nonlinear operator G: C[0,1] → C[0,1] — that is, any mapping from functions to functions."
+              },
+              {
+                "type": "p",
+                "children": "For us this means: if Schankian operators ARE continuous nonlinear mappings from entity states to entity states (which they should be — small changes in input should produce small changes in output), then DeepONet can learn them. This is not an empirical hope — it's a mathematical guarantee."
+              }
+            ]
+          },
+          {
+            "type": "Callout",
+            "props": { "type": "info" },
+            "children": [
+              {
+                "type": "p",
+                "children": "The catch: the theorem guarantees EXISTENCE of a good approximation, not that gradient descent will FIND it. But it means the architecture isn't the bottleneck — if training fails, it's the optimizer or data, not the model's expressive power."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "6. Compositional DeepONet: Hierarchical Operator Trees" },
+        "children": [
+          {
+            "type": "p",
+            "children": "Zhong et al. (2024) extended DeepONet to handle multi-physics problems by decomposing complex operators into compositions of simpler sub-operators. This maps directly onto our operator trees."
+          },
+          {
+            "type": "Example",
+            "props": { "title": "Operator decomposition: 'The teacher explained the theorem to the students'" },
+            "children": [
+              {
+                "type": "CodeBlock",
+                "props": { "language": "text" },
+                "children": "High-level: MTRANS(teacher, theorem, students)\n  = ATTEND(students, teacher)       [students pay attention]\n    ∘ SPEAK(teacher, theorem)        [teacher verbalizes]\n    ∘ MBUILD(students, theorem)      [students construct understanding]\n\nAs Compositional DeepONet:\n  Branch₁(\"explained\")  ⊙  Trunk₁(students_ignorant)\n    → intermediate: students_attending\n  Branch₂(\"explained\")  ⊙  Trunk₂(theorem_in_teacher)\n    → intermediate: theorem_verbalized  \n  Branch₃(\"explained\")  ⊙  Trunk₃(students_attending + theorem_verbalized)\n    → output: students_understanding_theorem"
+              },
+              {
+                "type": "p",
+                "children": "Each sub-operator is a branch-trunk pair. The composition chains them: attend → speak → build understanding. The same top-level verb ('explained') produces different branch outputs for each sub-operator because the trunk input (context) is different at each stage."
+              }
+            ]
+          },
+          {
+            "type": "DeepDive",
+            "props": { "title": "Physics analogy: heat diffusion → language understanding" },
+            "children": [
+              {
+                "type": "p",
+                "children": "In physics, Compositional DeepONet decomposes 'simulate climate' into sub-operators: atmospheric dynamics ∘ ocean circulation ∘ ice sheet dynamics. Each sub-operator transforms one aspect of the system state, and their composition gives the full evolution."
+              },
+              {
+                "type": "p",
+                "children": "In language, the same architecture decomposes 'John sold Mary the car' into ATRANS(possession) ∘ PTRANS(car) ∘ ATRANS(money). Each sub-operator handles one semantic dimension — ownership transfer, physical transfer, payment — and their composition gives the full event."
+              },
+              {
+                "type": "p",
+                "children": "The mathematical structure is identical. Physics-informed neural operators and Schankian semantic operators are the same formalism applied to different domains."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "7. Semantic Constraints as Physics Constraints" },
+        "children": [
+          {
+            "type": "p",
+            "children": "Physics-informed DeepONet uses physical laws as soft constraints during training — conservation of energy, momentum, mass. We can do the same with semantic constraints:"
+          },
+          {
+            "type": "DefinitionList",
+            "props": {
+              "items": [
+                {
+                  "term": "Conservation of existence",
+                  "definition": "PTRANS(ball, A→B) must preserve the ball's identity. The branch-trunk output should keep the ball's intrinsic features (color, size, material) unchanged while updating its location. Loss term: ‖intrinsic_features(output) - intrinsic_features(input)‖² ≈ 0"
+                },
+                {
+                  "term": "Causality constraint",
+                  "definition": "PROPEL(John, ball) requires John to be capable of propelling and the ball to be propellable. The branch output should be near-zero when agent-patient compatibility is violated. Loss: if incompatible(agent, action, patient), then ‖branch_output‖ → 0"
+                },
+                {
+                  "term": "Transitivity of transfer",
+                  "definition": "ATRANS(A→B) ∘ ATRANS(B→C) should equal ATRANS(A→C). Composition must be consistent. Loss: ‖compose(op₁, op₂) - direct_op‖² ≈ 0"
+                },
+                {
+                  "term": "Irreversibility of destruction",
+                  "definition": "After BREAK(window), no PTRANS should restore the window. The operator must move the entity to a state from which certain reverse operators have near-zero effect."
+                }
+              ]
+            }
+          },
+          {
+            "type": "p",
+            "children": "These constraints regularize training — they tell the model not just what transformations look like in the data, but what transformations MUST satisfy logically. This is the semantic analog of making sure your physics simulation conserves energy."
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "8. Connections to Our Other Work" },
+        "children": [
+          {
+            "type": "p",
+            "children": "DeepONet connects to several other threads in our research:"
+          },
+          {
+            "type": "ul",
+            "children": [
+              {
+                "type": "li",
+                "children": "Operator Trees (Entry 10): Compositional DeepONet IS the hierarchical decomposition we need. Each tree node is a branch-trunk pair."
+              },
+              {
+                "type": "li",
+                "children": "Conservation Laws (Entry 31): Physics-informed constraints become semantic constraints — a principled way to inject world knowledge into operator learning."
+              },
+              {
+                "type": "li",
+                "children": "Routing Signatures (Entry 92): The MLP's consensus neurons might be implementing a crude branch-trunk factorization — consensus = trunk (entity passes through), exception = branch (operator applies)."
+              },
+              {
+                "type": "li",
+                "children": "Dendritic Diffusion (Entry 93): Supersaturation fingerprints as operator signatures suggest that the diffusion model's probability space already contains branch-trunk structure — operators manifest as distinct signature patterns."
+              },
+              {
+                "type": "li",
+                "children": "RotatE Comparison (Entry 55): RotatE is a special case of DeepONet where both networks are constrained to produce rotation-compatible outputs. DeepONet removes this constraint."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "Summary" },
+        "children": [
+          {
+            "type": "p",
+            "children": "DeepONet provides a theoretically grounded, practically flexible architecture for learning Schankian operators. The branch-trunk factorization naturally separates operator identity from entity state, the Universal Approximation Theorem guarantees expressivity, and Compositional DeepONet enables hierarchical operator decomposition. Physics-informed constraints become semantic constraints, regularizing training with world knowledge."
+          },
+          {
+            "type": "p",
+            "children": "The deepest insight: physics operators and semantic operators are the same mathematical object. The physics community has spent years developing architectures for learning operators from data — we can import their tools directly into language understanding."
+          }
+        ]
+      },
+      {
+        "type": "Quiz",
+        "props": {
+          "questions": [
+            {
+              "question": "What does the Branch network encode in the Schankian operator analogy?",
+              "options": [
+                "The entity being transformed",
+                "The operator/transformation to apply",
+                "The output state",
+                "The sentence structure"
+              ],
+              "answer": 1,
+              "explanation": "The Branch network encodes the operator — it takes the verb/event description and outputs an operator embedding that specifies WHAT transformation to apply. The Trunk network handles the entity."
+            },
+            {
+              "question": "Why is DeepONet more expressive than RotatE for semantic operators?",
+              "options": [
+                "DeepONet uses larger models",
+                "RotatE can only represent rotations (preserving magnitude), while DeepONet can represent arbitrary nonlinear transformations",
+                "DeepONet was trained on more data",
+                "RotatE only works for knowledge graphs"
+              ],
+              "answer": 1,
+              "explanation": "RotatE is constrained to rotation operations in SO(n) — it can change direction but not magnitude. DeepONet can learn any continuous nonlinear operator, including ones that change magnitude, split entities, or fundamentally alter state. 'The ice melted' isn't a rotation."
+            },
+            {
+              "question": "What does the Universal Approximation Theorem for operators guarantee?",
+              "options": [
+                "That training will always converge",
+                "That the branch-trunk architecture can approximate any continuous nonlinear operator to arbitrary precision",
+                "That DeepONet will outperform transformers",
+                "That operators compose associatively"
+              ],
+              "answer": 1,
+              "explanation": "Chen & Chen (1995) proved that the branch-trunk architecture has sufficient expressive power to approximate any continuous nonlinear operator. This means the architecture isn't the bottleneck — if training fails, it's the optimizer or data, not the model's capacity."
+            },
+            {
+              "question": "How does Compositional DeepONet handle 'John sold Mary the car'?",
+              "options": [
+                "As a single monolithic operator",
+                "By decomposing into sub-operators (ATRANS + PTRANS + ATRANS) chained as branch-trunk pairs",
+                "By encoding the whole sentence as one branch input",
+                "By using a separate model for each word"
+              ],
+              "answer": 1,
+              "explanation": "Compositional DeepONet decomposes complex events into chains of simpler sub-operators — each a branch-trunk pair. 'Sold' decomposes into ownership transfer (ATRANS), physical transfer (PTRANS), and payment (ATRANS), where each sub-operator's output feeds as trunk input to the next."
+            }
+          ]
+        }
+      }
+    ]
+  }
+}

@@ -1014,6 +1014,18 @@ const tutorials = [
     difficulty: 3,
   },
   {
+    id: 'brainstorm-85-deeponet-operators',
+    title: 'DeepONet: Operators as Learned Functional Mappings',
+    description: 'Physics-informed neural operator architectures map perfectly onto Schankian semantic primitives. Branch=operator encoder, Trunk=entity encoder, dot product=application. Universal Approximation Theorem guarantees expressivity.',
+    tags: ['Schankian', 'deeponet', 'neural-operators', 'architecture', 'operator-learning'],
+    icon: '🔬',
+    gradient: 'from-cyan-500 to-blue-600',
+    shadowColor: 'shadow-cyan-500/30',
+    glowColor: 'rgba(6, 182, 212, 0.4)',
+    readTime: '18 min',
+    difficulty: 3,
+  },
+  {
     id: 'brainstorm-47-semantic-renormalization',
     title: 'Semantic Renormalization Group',
     description: 'Schankian operators as RG fixed points — why different verbs across all languages converge to the same primitives under coarse-graining, just like physical universality classes.',
