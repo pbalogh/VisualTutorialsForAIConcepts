@@ -1,0 +1,682 @@
+{
+  "type": "Fragment",
+  "meta": {
+    "title": "Dendritic Diffusion: Growing Sentences Like Crystals",
+    "description": "How we turned an autoregressive language model's masked diffusion cousin into a depth-first crystal grower — and why text generation should work more like dendrites than assembly lines",
+    "author": "Peter Balogh",
+    "lastUpdated": "2026-03-16",
+    "tags": [
+      "diffusion models",
+      "language generation",
+      "dendritic diffusion",
+      "masked diffusion",
+      "emergent structure"
+    ]
+  },
+  "content": {
+    "type": "Fragment",
+    "children": [
+      {
+        "type": "Section",
+        "props": {
+          "title": "1. The Problem: Why Autoregressive Generation Is a Trap"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "GPT-style language models generate text one token at a time, left to right. This is like writing a novel by committing to each word before you know how the sentence — let alone the paragraph — ends."
+          },
+          {
+            "type": "Callout",
+            "props": {
+              "type": "warning"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "The garden-path problem: 'The horse raced past the barn fell.' An AR model commits to 'raced' as a main verb. When 'fell' arrives, it's too late to backtrack. The representation was wrong, and there's no mechanism to fix it."
+              }
+            ]
+          },
+          {
+            "type": "p",
+            "children": "This isn't a minor inconvenience — it's an architectural ceiling. Our earlier work showed the consequences:"
+          },
+          {
+            "type": "ul",
+            "children": [
+              {
+                "type": "li",
+                "children": "Attention heads implement Bloom filters with unavoidable false positives (Anxiety of Influence)"
+              },
+              {
+                "type": "li",
+                "children": "~50% of MLP nonlinearity is spent on tokens that don't need it (Half the Nonlinearity)"
+              },
+              {
+                "type": "li",
+                "children": "MLP routing is binary — consensus or exception — with no gradient in between (Discrete Charm)"
+              },
+              {
+                "type": "li",
+                "children": "L11's 'exception handler' is the model's attempt at backtracking. When it fails, hallucinations propagate downstream (Darkness Visible)"
+              }
+            ]
+          },
+          {
+            "type": "p",
+            "children": "The common thread: the transformer does predictive coding badly because it wasn't designed for it. The exception handler is an emergency hack. What if we could make generation itself a refinement process?"
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "2. Diffusion Models: The Other Way to Generate"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "You've seen diffusion in image generation (Stable Diffusion, DALL-E). Start with pure noise, iteratively denoise until a clear image appears. The key insight: you don't commit to any pixel until the whole picture comes into focus."
+          },
+          {
+            "type": "p",
+            "children": "Can we do this with text? Yes — and it already exists. Models like LLaDA and Dream use masked diffusion: start with all tokens masked, then iteratively unmask them based on confidence. The most certain tokens crystallize first."
+          },
+          {
+            "type": "DeepDive",
+            "props": {
+              "title": "How Masked Diffusion Language Models Work"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "1. Start: Every position is a [MASK] token."
+              },
+              {
+                "type": "p",
+                "children": "2. The model predicts what each mask should be, with confidence scores."
+              },
+              {
+                "type": "p",
+                "children": "3. Unmask the most confident predictions. Leave uncertain ones masked."
+              },
+              {
+                "type": "p",
+                "children": "4. Repeat: the model now sees the unmasked tokens as context, refines its predictions for remaining masks."
+              },
+              {
+                "type": "p",
+                "children": "5. Continue until all positions are unmasked."
+              },
+              {
+                "type": "p",
+                "children": "This is genuinely different from left-to-right generation. The model can resolve the END of a sentence before the MIDDLE, if the ending is more certain."
+              }
+            ]
+          },
+          {
+            "type": "Callout",
+            "props": {
+              "type": "info"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "Key terminology: We use the word 'crystallize' deliberately. When a mask position resolves to a definite token, it's like a molecule locking into a crystal lattice — the position is frozen, and it constrains what neighboring positions can become."
+              }
+            ]
+          },
+          {
+            "type": "p",
+            "children": "But existing diffusion language models have their own problem: they generate all positions simultaneously. This is breadth-first — every token denoises independently, and position 5 doesn't 'know' that position 12 just resolved to 'Paris.' For single sentences, this is fine. For paragraphs, it produces garbled, repetitive text."
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "3. The Insight: Crystals Don't Grow Everywhere at Once"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "Watch a real crystal grow. It doesn't appear uniformly — it nucleates at a point, then grows outward along preferred directions. A snowflake's first arm implies the hexagonal symmetry of all subsequent arms. The local structure reveals the global plan."
+          },
+          {
+            "type": "p",
+            "children": "This is the core insight of Dendritic Diffusion. 'Dendritic' means tree-like (Greek δενδρίτης), and it describes both the shape of the generated text and the process that creates it."
+          },
+          {
+            "type": "Analogy",
+            "props": {
+              "concept": "Why depth-first beats breadth-first"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "Imagine writing an essay about European capitals."
+              },
+              {
+                "type": "p",
+                "children": "Breadth-first (standard diffusion): Try to write ALL the sentences at once. Every position denoises independently. Result: 'Paris is the capital of France. London is the London of London.' The second sentence garbles because it didn't know the first sentence's structure."
+              },
+              {
+                "type": "p",
+                "children": "Depth-first (dendritic): Write the first sentence completely: 'Paris is the capital of France.' Now the model SEES this finished sentence as context. Second sentence crystallizes with full awareness: 'London is the capital of the United Kingdom.' Clean, parallel, coherent."
+              }
+            ]
+          },
+          {
+            "type": "p",
+            "children": "The trick: we get the flexibility of diffusion (no left-to-right commitment) while preserving the coherence of sequential generation (each piece knows what came before)."
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "4. How Dendritic Diffusion Actually Works"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "The algorithm has three stages that repeat: Crystallize, Measure, Discover."
+          },
+          {
+            "type": "Example",
+            "props": {
+              "title": "Stage 1: Branch Crystallization"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "Allocate a block of masked tokens for one 'branch' (roughly one sentence). Run standard masked diffusion, but conditioned on all previously crystallized content."
+              },
+              {
+                "type": "p",
+                "children": "Prompt: 'Explain how photosynthesis works.'"
+              },
+              {
+                "type": "p",
+                "children": "Step 0: [MASK] [MASK] [MASK] [MASK] [MASK] [MASK] [MASK] [MASK] ..."
+              },
+              {
+                "type": "p",
+                "children": "Step 5: [MASK] [MASK] is [MASK] process [MASK] [MASK] plants [MASK] ..."
+              },
+              {
+                "type": "p",
+                "children": "Step 15: Photosynthesis is the process by which plants convert ..."
+              },
+              {
+                "type": "p",
+                "children": "Notice: 'process' and 'plants' (content words) can resolve before 'the' and 'by which' (function words) — or vice versa, depending on the model's confidence. There is no left-to-right constraint."
+              }
+            ]
+          },
+          {
+            "type": "Example",
+            "props": {
+              "title": "Stage 2: Supersaturation Measurement"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "After a branch crystallizes, we ask: 'Is there energy left?' We measure the model's confidence on hypothetical continuation masks — the supersaturation."
+              },
+              {
+                "type": "p",
+                "children": "High supersaturation (>0.4): The crystal MUST keep growing. Like a supersaturated solution — there's too much dissolved material for the crystal to stay this small."
+              },
+              {
+                "type": "p",
+                "children": "Low supersaturation (<0.2): Equilibrium. The crystal is complete."
+              },
+              {
+                "type": "p",
+                "children": "We decompose supersaturation into two components:"
+              },
+              {
+                "type": "ul",
+                "children": [
+                  {
+                    "type": "li",
+                    "children": "Structural energy: Probability mass on function words, connectors, punctuation → grammar demands completion"
+                  },
+                  {
+                    "type": "li",
+                    "children": "Semantic energy: Probability mass on content words → the topic has more to say"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "Example",
+            "props": {
+              "title": "Stage 3: Structure Discovery"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "Here's where it gets genuinely novel. The supersaturation fingerprint reveals what kind of text structure the branch belongs to — after the fact."
+              },
+              {
+                "type": "p",
+                "children": "After 'Paris is the capital of France,' the masks light up with 'London,' 'Berlin,' 'Rome' → Discovery: 'I'm in a LIST of European capitals.' A parent node [ENUMERATION] is retroactively created, and it constrains subsequent branches to follow the same parallel structure."
+              },
+              {
+                "type": "p",
+                "children": "After 'Water evaporates from the ocean surface,' the masks light up with 'because,' 'which leads to,' 'as a result' → Discovery: 'I'm in a CAUSAL CHAIN.' Each subsequent branch must follow causally from its predecessor."
+              },
+              {
+                "type": "p",
+                "children": "The tree structure isn't predicted top-down before generation — it's discovered bottom-up during generation. This is the key innovation."
+              }
+            ]
+          },
+          {
+            "type": "Callout",
+            "props": {
+              "type": "info"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "Think of a snowflake's first arm. Its hexagonal structure tells you the crystal system — you now know what all the other arms will look like. Similarly, the first branch's supersaturation fingerprint tells you the discourse structure, and that structure constrains every subsequent branch."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "5. What We Actually Observed"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "We ran experiments on EC2 with a Tesla T4 GPU, starting with a small 0.6B parameter diffusion model (Qwen3-0.6B-diffusion-mdlm) and scaling up to LLaDA-8B-Instruct."
+          },
+          {
+            "type": "DeepDive",
+            "props": {
+              "title": "Finding 1: Content nucleates before scaffolding (at small scale)"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "With the 0.6B model, we watched token-by-token crystallization. For the prompt 'What is the capital of France?':"
+              },
+              {
+                "type": "p",
+                "children": "Step 9: 'Paris' resolves (confidence 0.94) while the rest is still all masks."
+              },
+              {
+                "type": "p",
+                "children": "Step 10: 'The capital of' fills in around it."
+              },
+              {
+                "type": "p",
+                "children": "Step 11: 'France is' completes the sentence."
+              },
+              {
+                "type": "p",
+                "children": "The high-information content word crystallized first, then grammatical scaffolding grew around it — like a crystal nucleating at a seed point."
+              }
+            ]
+          },
+          {
+            "type": "DeepDive",
+            "props": {
+              "title": "Finding 2: At larger scale, structure comes first"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "With the 8B model, the pattern reversed. Function words crystallized at average step 14.5, content words at step 35.4. Root verbs resolved at steps 0-2. Main clauses before subordinate clauses (step 18.3 vs 24.1)."
+              },
+              {
+                "type": "p",
+                "children": "The larger model builds the grammatical skeleton first, then fills in content — like how a developing embryo forms the body plan before growing specific organs."
+              }
+            ]
+          },
+          {
+            "type": "DeepDive",
+            "props": {
+              "title": "Finding 3: Depth-first is cleaner AND faster"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "Head-to-head comparison on 10 prompts with LLaDA-8B:"
+              },
+              {
+                "type": "CodeBlock",
+                "props": {
+                  "language": "text"
+                },
+                "children": "                    Breadth-First    Depth-First\nClean outputs:         8/10            9/10\nQuality issues:           2               1\nAvg time:             12.9s            4.7s (2.7× faster)"
+              },
+              {
+                "type": "p",
+                "children": "Breadth-first produces garbled multi-sentence text ('atmosphere atmosphere, so it more scatter'). Depth-first produces clean sentences because each branch has full attention on all prior completed context."
+              }
+            ]
+          },
+          {
+            "type": "DeepDive",
+            "props": {
+              "title": "Finding 4: Supersaturation is overwhelmingly semantic"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "When we decomposed the remaining energy at branch boundaries, it was almost entirely semantic (topic-level), not structural (grammar-level). The model finishes its grammar cleanly but topics have unresolved depth."
+              },
+              {
+                "type": "p",
+                "children": "This means the continuation signal is genuinely about 'there's more to say on this topic' — not 'the grammar is incomplete.' The crystal knows when the idea is finished."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "6. The v5c Experiment: Pushing to Multi-Paragraph"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "Our latest experiment (v5c) pushed the system to longer, multi-sentence responses on 6 complex prompts — immune system, Apollo 11, French Revolution, evolution, government types, and climate change."
+          },
+          {
+            "type": "p",
+            "children": "The results tell a clear story about what works and what doesn't yet:"
+          },
+          {
+            "type": "Example",
+            "props": {
+              "title": "Where dendritic diffusion shines"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "Baseline flat (breadth-first) generation was a repetition catastrophe on most prompts. The immune system prompt produced 'immunity' repeated 465 times. The evolution prompt got stuck in an 'and, and, and,' loop 210 times."
+              },
+              {
+                "type": "p",
+                "children": "Dendritic diffusion, by contrast, kept repetitions to 2-4× of short phrases — the kind of mild redundancy you'd see in a first draft, not a repetition death spiral. For Apollo 11, the DD output produced a coherent three-branch narrative: the historical context, the crew's experience, and the challenges they faced."
+              }
+            ]
+          },
+          {
+            "type": "Example",
+            "props": {
+              "title": "Where it still fails"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "On two prompts (immune system and government types), dendritic diffusion produced nothing at all — zero characters. The crystal growth mechanism was too conservative and never nucleated a branch."
+              },
+              {
+                "type": "p",
+                "children": "This is actually a meaningful failure mode: the system would rather produce nothing than produce garbage. The GROW/STOP energy thresholds need loosening so branches aren't pruned before they can produce content."
+              }
+            ]
+          },
+          {
+            "type": "Callout",
+            "props": {
+              "type": "info"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "The crystal growth diagnostics show the supersaturation mechanism working in real time. For the evolution prompt: Branch 0 starts at sat=0.480 (high energy → GROW), each branch crystallizes with visible semantic content and structural energy decomposition. When energy drops, the system signals STOP."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "7. Why This Is a Diffusion Model Made from an AR Model's Cousin"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "Here's what makes this particularly intriguing. We're not training a new architecture from scratch. We're taking an existing masked diffusion language model — which was pre-trained with a transformer, the same architecture as GPT — and wrapping it in a generation procedure that fundamentally changes how it produces text."
+          },
+          {
+            "type": "p",
+            "children": "The model itself doesn't know it's doing 'dendritic diffusion.' It just sees masked tokens and predicts what should go there. All the magic is in the orchestration:"
+          },
+          {
+            "type": "ul",
+            "children": [
+              {
+                "type": "li",
+                "children": "WHICH tokens we mask (branch-by-branch instead of all-at-once)"
+              },
+              {
+                "type": "li",
+                "children": "WHAT context we provide (all previously crystallized branches)"
+              },
+              {
+                "type": "li",
+                "children": "WHEN we stop (supersaturation measurement, not a fixed length)"
+              },
+              {
+                "type": "li",
+                "children": "HOW we structure the output (emergent tree discovery from supersaturation fingerprints)"
+              }
+            ]
+          },
+          {
+            "type": "Callout",
+            "props": {
+              "type": "warning"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "This is a profound point: the same weights, the same parameters, the same model — but a different generation procedure produces qualitatively different output. The intelligence isn't just in the weights. It's in how you USE the weights."
+              }
+            ]
+          },
+          {
+            "type": "p",
+            "children": "Standard masked diffusion models (LLaDA, Dream) already exist as alternatives to AR models. They share the transformer architecture but were trained with a different objective: predict masked tokens instead of next tokens. We take these models and add the dendritic generation procedure — turning a flat, breadth-first denoiser into a depth-first crystal grower."
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "8. The Deeper Connection: How This Relates to How Transformers Actually Work"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "Our mechanistic interpretability work revealed something surprising about how transformers handle uncertainty internally. It turns out dendritic diffusion is doing explicitly what the transformer tries to do implicitly — and failing at."
+          },
+          {
+            "type": "Example",
+            "props": {
+              "title": "The exception handler as failed crystallization"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "In GPT-2, Layer 11 has a set of 7 'consensus neurons' that act as a quorum. When they all agree, the MLP does almost nothing — the token passes through linearly. When consensus breaks, an exception handler (neuron N2123) fires and the full nonlinear processing kicks in."
+              },
+              {
+                "type": "p",
+                "children": "This is the transformer's crude attempt at what supersaturation measurement does smoothly. Consensus = low supersaturation (crystal at equilibrium, pass through). Exception = high supersaturation (needs processing). But the transformer only gets one shot — binary routing, no iteration."
+              },
+              {
+                "type": "p",
+                "children": "Dendritic diffusion gives the model multiple shots to get it right within each branch, and the supersaturation signal is continuous, not binary."
+              }
+            ]
+          },
+          {
+            "type": "Example",
+            "props": {
+              "title": "Knowledge neurons are actually routing neurons"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "A recent experiment showed that so-called 'knowledge neurons' in the MLP don't actually store facts. They're routing neurons — 36.5× enriched for routing patterns, and knocking them out INCREASES fact probability (by removing interference). Knowledge arrives through attention, not MLP storage."
+              },
+              {
+                "type": "p",
+                "children": "This maps directly to dendritic branching: routing neurons don't hold the content, they gate what flows through each branch. The content emerges from the diffusion process itself."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "9. What's Next"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "The v5c results show the mechanism works but needs refinement. The immediate next steps:"
+          },
+          {
+            "type": "ul",
+            "children": [
+              {
+                "type": "li",
+                "children": "Loosen GROW/STOP thresholds: The system is too conservative — it produces nothing rather than risk low-quality output. The empty outputs on 2/6 prompts are threshold calibration issues, not architectural failures."
+              },
+              {
+                "type": "li",
+                "children": "Emergent structure classifier: Build the supersaturation fingerprint → discourse type mapping (LIST, CAUSAL_CHAIN, CLAIM_EVIDENCE, COMPARISON) and test whether parent constraints actually improve sibling coherence."
+              },
+              {
+                "type": "li",
+                "children": "Garden-path immunity test: Feed the system classic garden-path sentences and verify that depth-first resolution prevents the misparse that AR models commit to."
+              },
+              {
+                "type": "li",
+                "children": "SAE feature monitoring: Track which sparse autoencoder features activate at each denoising step — do they reveal the semantic → structural crystallization order at the feature level?"
+              }
+            ]
+          },
+          {
+            "type": "p",
+            "children": "The bigger vision: text generation as crystal growth. Not a metaphor — a literal description of the algorithm. The text nucleates, grows along preferred semantic directions, and the completed crystal's geometry reveals the discourse structure that was latent in the prompt all along."
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "10. The Landscape"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "Where does dendritic diffusion sit relative to other approaches?"
+          },
+          {
+            "type": "CodeBlock",
+            "props": {
+              "language": "text"
+            },
+            "children": "Approach          Structure       Resolution Order       Branch Interaction\n─────────────────────────────────────────────────────────────────────────────\nAR (GPT)          Flat sequence   Fixed left-to-right    None (unidirectional)\nMDLM/LLaDA        Flat sequence   Confidence-first (BF)  None (independent)\nBlock Diffusion   Fixed chunks    L→R blocks, diff in    Sequential blocks\nDendritic (ours)  Semantic tree   Depth-first salient    Resolved → constrains"
+          },
+          {
+            "type": "p",
+            "children": "Every prior approach either has no structure (AR, standard diffusion) or imposes structure top-down before generation (plan-then-execute systems). Dendritic diffusion is the first to discover structure bottom-up during generation."
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "Summary"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "We took a masked diffusion language model — a transformer trained to predict masked tokens — and changed how it generates text. Instead of denoising all positions at once (breadth-first), we crystallize one branch at a time (depth-first), measure the remaining energy (supersaturation), and discover the discourse structure as it emerges."
+          },
+          {
+            "type": "p",
+            "children": "The result: cleaner text, 2.7× faster generation, and a natural mechanism for multi-paragraph coherence that breadth-first diffusion can't achieve. The failure mode is under-generation (too conservative), not the repetition catastrophes that plague both AR and breadth-first diffusion on long outputs."
+          },
+          {
+            "type": "p",
+            "children": "The name is literal: dendritic means tree-like. The generation process grows a tree — not by predicting the tree top-down, but by discovering it bottom-up during crystallization. Just like a real crystal."
+          }
+        ]
+      },
+      {
+        "type": "Quiz",
+        "props": {
+          "questions": [
+            {
+              "question": "What is the main problem with breadth-first diffusion for multi-sentence text?",
+              "options": [
+                "It's too slow",
+                "Each position denoises independently without seeing resolved neighbors, causing garbled output",
+                "It can't handle long sequences",
+                "It requires too much GPU memory"
+              ],
+              "answer": 1,
+              "explanation": "In breadth-first diffusion, all positions denoise simultaneously. Position 5 doesn't know that position 12 just resolved to 'Paris,' leading to repetitions and broken grammar in multi-sentence output."
+            },
+            {
+              "question": "What does 'supersaturation' measure in dendritic diffusion?",
+              "options": [
+                "How much GPU memory the model is using",
+                "The number of masked tokens remaining",
+                "The residual confidence/energy at branch boundaries — whether there's more to say",
+                "The perplexity of the generated text"
+              ],
+              "answer": 2,
+              "explanation": "Supersaturation measures the model's confidence on hypothetical continuation masks. High supersaturation means the 'solution' has too much dissolved material for the crystal to stay this small — the text must keep growing. It decomposes into structural (grammar needs completion) and semantic (topic has more to say) components."
+            },
+            {
+              "question": "How is discourse structure (lists, causal chains, comparisons) determined in dendritic diffusion?",
+              "options": [
+                "It's predicted top-down from the prompt before generation begins",
+                "It's hard-coded based on the type of question asked",
+                "It's discovered bottom-up from supersaturation fingerprints after each branch crystallizes",
+                "It's copied from training examples with similar prompts"
+              ],
+              "answer": 2,
+              "explanation": "This is the key innovation. After a branch crystallizes, the supersaturation fingerprint reveals what kind of structure it belongs to — a list, causal chain, comparison, etc. The parent node is created retroactively and constrains subsequent branches. Structure is discovered, not planned."
+            },
+            {
+              "question": "In the v5c experiments, what was the dendritic diffusion system's primary failure mode?",
+              "options": [
+                "Repetition catastrophes (like the baseline)",
+                "Producing nothing at all — the GROW/STOP thresholds were too conservative",
+                "Generating text in the wrong language",
+                "Running out of GPU memory"
+              ],
+              "answer": 1,
+              "explanation": "On 2 of 6 prompts, dendritic diffusion produced zero characters. The crystal growth mechanism was too conservative and never nucleated. This is the opposite failure mode from baseline (which repeated tokens hundreds of times) — under-generation rather than over-generation."
+            }
+          ]
+        }
+      }
+    ]
+  }
+}

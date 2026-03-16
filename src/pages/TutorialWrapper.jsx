@@ -206,7 +206,7 @@ const tutorialComponents = {
 }
 
 // JSON-based tutorials (loaded dynamically)
-const jsonTutorials = ['vector-projection', 'engine-demo', 'matrix-from-vectors-engine', 'matrix-discovery-engine', 'lead-lag-correlation-engine', 'least-squares-engine', 'schankian-paper-draft', 'rotate-paper', 'neural-oscillations', 'group-theory-puzzles', 'hungarian-basics', 'peptides-tutorial']
+const jsonTutorials = ['vector-projection', 'engine-demo', 'matrix-from-vectors-engine', 'matrix-discovery-engine', 'lead-lag-correlation-engine', 'least-squares-engine', 'schankian-paper-draft', 'rotate-paper', 'neural-oscillations', 'group-theory-puzzles', 'hungarian-basics', 'peptides-tutorial', 'dendritic-diffusion']
 
 const tutorialMeta = {
   'matrix-discovery': {
