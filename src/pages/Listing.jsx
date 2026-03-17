@@ -1014,6 +1014,18 @@ const tutorials = [
     difficulty: 3,
   },
   {
+    id: 'brainstorm-83-active-inference',
+    title: 'Active Inference Meets Schankian Operators',
+    description: 'Friston\'s Free Energy Principle maps directly onto Schankian operators: operators ARE event-level generative models, event boundaries ARE prediction error spikes, scripts ARE hierarchical predictions, and cross-entropy training IS free energy minimization.',
+    tags: ['Schankian', 'free-energy', 'active-inference', 'predictive-coding', 'Friston', 'theoretical'],
+    icon: '🧠',
+    gradient: 'from-violet-500 to-fuchsia-600',
+    shadowColor: 'shadow-violet-500/30',
+    glowColor: 'rgba(139, 92, 246, 0.4)',
+    readTime: '24 min',
+    difficulty: 4,
+  },
+  {
     id: 'brainstorm-85-deeponet-operators',
     title: 'DeepONet: Operators as Learned Functional Mappings',
     description: 'Physics-informed neural operator architectures map perfectly onto Schankian semantic primitives. Branch=operator encoder, Trunk=entity encoder, dot product=application. Universal Approximation Theorem guarantees expressivity.',

@@ -1,0 +1,488 @@
+{
+  "id": "brainstorm-83-active-inference",
+  "title": "Active Inference Meets Schankian Operators",
+  "subtitle": "Free Energy Minimization as the Computational Engine of Narrative Understanding",
+  "readTime": "24 min",
+  "state": {},
+  "content": {
+    "type": "Fragment",
+    "children": [
+      {
+        "type": "Callout",
+        "props": {
+          "type": "info"
+        },
+        "children": "This tutorial explores a deep theoretical bridge: Friston's Free Energy Principle — the idea that brains minimize prediction error via generative models — maps directly onto Schankian operators. Operators ARE event-level generative models. Scripts ARE hierarchical predictions. And the surprise you feel when a story twists? That's variational free energy spiking at an operator boundary."
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "1. The Free Energy Principle in 60 Seconds"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "Karl Friston's Free Energy Principle (FEP) proposes that all self-organizing systems — from cells to brains to societies — minimize a quantity called 'variational free energy.' In plain terms: brains are prediction machines. They build internal models of the world and constantly try to minimize the gap between what they predict and what they observe."
+          },
+          {
+            "type": "p",
+            "children": "When you hear footsteps behind you, your brain predicts: a person walking. If you turn and see a dog, there's a prediction error — your model was wrong. You update your model (active inference). If the footsteps match your prediction, the free energy stays low and you barely notice them."
+          },
+          {
+            "type": "Analogy",
+            "children": "Think of free energy like anxiety. Low free energy = you understand what's happening, the world matches your expectations. High free energy = something surprising is happening and you need to update your model or change your situation. You're always trying to keep it low — either by learning (updating the model) or by acting (changing the world to match predictions)."
+          },
+          {
+            "type": "DefinitionList",
+            "children": [
+              {
+                "term": "Generative Model",
+                "definition": "An internal model that generates predictions about what will happen next. 'If I drop this glass, it will shatter.'"
+              },
+              {
+                "term": "Prediction Error",
+                "definition": "The mismatch between prediction and observation. Also called 'surprise' or 'surprisal' in information theory."
+              },
+              {
+                "term": "Variational Free Energy",
+                "definition": "An upper bound on surprise. Minimizing it means: make your model as accurate as possible, and keep your observations as expected as possible."
+              },
+              {
+                "term": "Active Inference",
+                "definition": "Reducing prediction error by ACTING on the world (not just updating beliefs). You don't just passively observe — you seek confirming evidence and avoid surprises."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "2. Operators as Generative Models"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "Here's the core insight: Schankian operators ARE event-level generative models. When you hear 'The cop shot Frank,' the HARM operator doesn't just label the event — it generates predictions about what should happen next:"
+          },
+          {
+            "type": "Example",
+            "children": [
+              {
+                "type": "p",
+                "children": "HARM(cop → Frank) generates predictions:"
+              },
+              {
+                "type": "p",
+                "children": "• Frank's physical state will worsen (injury, pain, death)\n• The cop will face consequences (investigation, guilt, justification)\n• Other agents will react (witnesses, ambulance, other cops)\n• The narrative will address aftermath (hospital, trial, funeral)"
+              },
+              {
+                "type": "p",
+                "children": "Each prediction is a state-change with probabilities. The operator IS the generative model for this event type. TRANSFER, MOVE, THINK — each generates a different prediction distribution."
+              }
+            ]
+          },
+          {
+            "type": "p",
+            "children": "This is a much richer view than the classic Schankian formalism. In Schank's original Conceptual Dependency (1972), operators were static labels applied to events. In the free energy framing, operators are ACTIVE prediction generators that constrain what the model expects next. The prediction distribution IS the operator."
+          },
+          {
+            "type": "DeepDive",
+            "title": "Mathematical Formulation",
+            "children": [
+              {
+                "type": "p",
+                "children": "Let O be an operator (e.g., HARM) and s_t be the state at time t. The operator defines a generative model:"
+              },
+              {
+                "type": "p",
+                "children": "P(s_{t+1} | s_t, O) = the probability of the next state given the current state and operator"
+              },
+              {
+                "type": "p",
+                "children": "Variational free energy for a narrative step: F = -log P(observation | O) + KL[Q(states) || P(states | O)]"
+              },
+              {
+                "type": "p",
+                "children": "The first term asks: does this observation fit the operator? The second term asks: how far is my inferred state from what the operator predicts? Operator SELECTION is Bayesian model selection: pick O* = argmin_O F(O, observations)."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "3. Event Boundaries = Prediction Error Spikes"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "Zacks et al. (2007) showed that humans perceive event boundaries — the 'joints' between events in a narrative — at points of maximum prediction error. You're watching someone cook breakfast: crack eggs (PREPARE), whisk (PREPARE), pour into pan (PREPARE)... fire alarm goes off (spike!). That spike IS an operator boundary."
+          },
+          {
+            "type": "p",
+            "children": "In the free energy framework, this makes perfect sense:"
+          },
+          {
+            "type": "p",
+            "children": "• Within an operator, predictions are accurate → low free energy → smooth processing\n• At an operator boundary, the current operator's predictions fail → high free energy → model update required\n• The brain switches operators (from PREPARE to RESPOND) to minimize free energy\n• The 'boundary' feeling IS the spike in prediction error"
+          },
+          {
+            "type": "InteractiveDemo",
+            "props": {
+              "id": "prediction-error-trace"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "📊 Prediction Error Through a Story"
+              },
+              {
+                "type": "p",
+                "children": "Imagine tracking free energy as you read this mini-narrative:"
+              },
+              {
+                "type": "p",
+                "children": "\"John walked to the store.\" → MOVE operator active, low error ▁▁▂▁\n\"He picked up some milk.\" → TRANSFER operator active, low error ▁▁▁▂\n\"Suddenly a masked figure burst in.\" → SPIKE! ▁▁▁▁▇ Operator switch!\n\"'Everyone on the ground!' he shouted.\" → COERCE operator active ▂▃▁▁\n\"John dropped the milk and froze.\" → RESPOND operator, decreasing error ▃▂▁▁"
+              },
+              {
+                "type": "p",
+                "children": "The spike at 'suddenly' is where your generative model (MOVE/TRANSFER in a store) catastrophically fails to predict what comes next. Your brain switches to a new operator (COERCE/THREATEN) and free energy drops as the new model takes over."
+              }
+            ]
+          },
+          {
+            "type": "Analogy",
+            "children": "Event boundaries in a narrative are like key changes in music. Within a key, each note is expected (low surprise). When the key changes, there's a moment of dissonance (high surprise) before you adjust to the new key. The key IS the operator — it constrains what notes (events) are expected."
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "4. Scripts as Hierarchical Generative Models"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "Schank's scripts (the restaurant script, the doctor's office script) are hierarchical generative models in exactly the FEP sense. The restaurant script generates predictions at multiple levels simultaneously:"
+          },
+          {
+            "type": "Example",
+            "children": [
+              {
+                "type": "p",
+                "children": "Restaurant Script — Hierarchical Predictions:"
+              },
+              {
+                "type": "p",
+                "children": "Level 3 (script): RESTAURANT → predicts: enter → seat → order → eat → pay → leave\nLevel 2 (scenes): ORDER → predicts: read menu → choose → tell waiter → waiter writes\nLevel 1 (operators): TRANSFER(info, customer→waiter) → predicts: waiter listens, acknowledges, walks to kitchen"
+              },
+              {
+                "type": "p",
+                "children": "Each level generates predictions. Prediction errors at Level 1 (waiter drops pen) stay local — no operator switch needed. Errors at Level 2 (waiter says 'we're out of food') might switch scenes. Errors at Level 3 (restaurant is on fire) blow up the whole script."
+              }
+            ]
+          },
+          {
+            "type": "p",
+            "children": "This hierarchical structure is exactly what predictive coding (a specific implementation of the FEP) proposes: each level sends top-down predictions and receives bottom-up prediction errors. Higher levels change slowly (scripts), lower levels change rapidly (operators on individual events)."
+          },
+          {
+            "type": "DeepDive",
+            "title": "Connection to Transformer Layers",
+            "children": [
+              {
+                "type": "p",
+                "children": "This maps onto what we found in our GPT-2 analysis (see 'Discrete Charm of the MLP'). The three-phase developmental arc — scaffold (L0-3), diffuse (L4-6), decision (L7-11) — mirrors hierarchical predictive coding:"
+              },
+              {
+                "type": "p",
+                "children": "• Early layers (scaffold) = low-level predictions: syntax, word identity\n• Middle layers (diffuse) = mid-level: entity tracking, operator identification\n• Late layers (decision) = high-level: script/scene management, narrative coherence"
+              },
+              {
+                "type": "p",
+                "children": "The L11 consensus mechanism is effectively an 'event boundary detector' — it fires when lower-level prediction errors accumulate past a threshold. This IS the free energy spike."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "5. Implicit State Inference = Active Inference"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "When you hear 'John went to a restaurant and left a big tip,' you infer a massive chain of unstated events: he entered, sat down, read the menu, ordered, ate, received the check, and THEN tipped. How?"
+          },
+          {
+            "type": "p",
+            "children": "Active inference provides the answer: the restaurant script IS the generative model, and your brain 'fills in' the unobserved states by running the model forward. You don't just passively receive the sentence — you actively GENERATE the missing events and check them against the observations ('left a big tip' → the meal must have been good, or John is generous, or the waiter was exceptional)."
+          },
+          {
+            "type": "p",
+            "children": "This is precisely what our 'Darkness Visible' paper found: GPT-2's L11 exception handler fires when implicit state inference fails — when the generative model's predictions don't match what comes next. The 7 consensus neurons are MONITORING whether active inference is succeeding."
+          },
+          {
+            "type": "InteractiveDemo",
+            "props": {
+              "id": "implicit-state-inference"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "🧠 Implicit State Inference Explorer"
+              },
+              {
+                "type": "p",
+                "children": "Statement: 'Mary gave John a present and he smiled.'"
+              },
+              {
+                "type": "p",
+                "children": "Inferred operator chain (active inference running the script):\n1. TRANSFER(present, Mary→John) — Mary physically hands object to John\n2. PERCEIVE(John, present) — John sees/recognizes the object\n3. EVALUATE(John, present) — John forms an opinion (positive, since he smiled)\n4. EXPRESS(John, happiness) — internal state becomes external (smile)"
+              },
+              {
+                "type": "p",
+                "children": "Steps 2 and 3 are NEVER stated in the text. Your brain generates them via active inference using the GIVE script. Without them, the connection between 'gave a present' and 'smiled' would be mysterious."
+              }
+            ]
+          },
+          {
+            "type": "Callout",
+            "props": {
+              "type": "tip"
+            },
+            "children": "This connects to Entry 92 (Routing Signatures): the consensus neurons in L11 don't just route — they verify that active inference produced a coherent state chain. When the inferred states don't match observations, the exception handler fires. The routing signature IS the prediction error signal."
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "6. Operator Selection as Bayesian Model Selection"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "When you encounter a new event in a narrative, how does your brain 'choose' which operator applies? FEP says: Bayesian model selection. You evaluate which operator (generative model) best explains the observation with the lowest free energy."
+          },
+          {
+            "type": "Example",
+            "children": [
+              {
+                "type": "p",
+                "children": "Input: 'The teacher gave the student a book.'"
+              },
+              {
+                "type": "p",
+                "children": "Candidate operators (each generates different predictions):\n• TRANSFER(physical) → predicts: student now holds book, teacher doesn't\n• TRANSFER(knowledge) → predicts: student now knows book's content\n• HARM → predicts: student is injured by book (?!)\n• COERCE → predicts: student is forced to take book (?!)"
+              },
+              {
+                "type": "p",
+                "children": "Free energy for each:\n• TRANSFER(physical): LOW — predictions match context perfectly\n• TRANSFER(knowledge): MEDIUM — possible but 'gave a book' suggests physical\n• HARM: VERY HIGH — nothing in context supports injury\n• COERCE: HIGH — nothing suggests force"
+              },
+              {
+                "type": "p",
+                "children": "Winner: TRANSFER(physical) with lowest free energy. Note: this IS polysemy resolution! The 'sense' of 'gave' is selected by finding the operator that minimizes prediction error."
+              }
+            ]
+          },
+          {
+            "type": "p",
+            "children": "This connects directly to our sense-stack work ('A Grandmother with Wheels'). Polysemy disambiguation IS operator selection IS Bayesian model selection. The MLP's nonlinear computation (the 'disambiguation tax') is the brain's free energy computation — evaluating which generative model fits best."
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "7. Training Loss Already IS Free Energy"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "Here's the punchline that makes this more than analogy: the cross-entropy training loss used to train language models IS variational free energy (up to a constant). When GPT-2 is trained to predict the next token, it's literally minimizing the same quantity that the Free Energy Principle says brains minimize."
+          },
+          {
+            "type": "p",
+            "children": "This means that the operators we find in trained language models aren't just analogies to Friston's framework — they ARE implementations of it. The MLP layers compute prediction errors. The attention heads perform state inference. The residual stream propagates beliefs. The whole transformer IS an active inference engine."
+          },
+          {
+            "type": "DeepDive",
+            "title": "The Math: Cross-Entropy = Free Energy",
+            "children": [
+              {
+                "type": "p",
+                "children": "Cross-entropy loss: L = -Σ log P_model(x_t | x_{<t})"
+              },
+              {
+                "type": "p",
+                "children": "Variational free energy: F = -log P(observations | model) + KL[approximate posterior || true posterior]"
+              },
+              {
+                "type": "p",
+                "children": "For a language model trained on text: the 'observations' are the next tokens, the 'model' is the transformer's internal state. Cross-entropy is the negative log-likelihood term. The KL term is absorbed into the model architecture (the weights represent the approximate posterior). Minimizing cross-entropy IS minimizing variational free energy."
+              },
+              {
+                "type": "p",
+                "children": "The implications are profound: any structure that emerges from training (operators, scripts, consensus neurons) is a structure that minimizes free energy. Schankian operators emerge because they're the OPTIMAL generative models for event-level prediction."
+              }
+            ]
+          },
+          {
+            "type": "Analogy",
+            "children": "If the Free Energy Principle is gravity — a fundamental force that shapes all cognitive systems — then Schankian operators are the planetary orbits that emerge from it. You don't design orbits; they emerge as the lowest-energy solutions to the gravitational equations. You don't design operators; they emerge as the lowest-free-energy solutions to the prediction problem."
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "8. Narrative as Active Inference"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "Bouizegarene et al. (2024, Frontiers in Psychology) explicitly frame narrative comprehension as active inference. Their key claims:"
+          },
+          {
+            "type": "p",
+            "children": "1. Narratives create hierarchical predictions at plot, scene, and event levels\n2. Narrative tension = accumulated prediction error (free energy)\n3. Plot twists = large free energy spikes requiring model revision\n4. Satisfying endings = global free energy minimization (all predictions resolved)\n5. Suspense = maintained high free energy (unresolved predictions)"
+          },
+          {
+            "type": "p",
+            "children": "This maps perfectly onto our framework: operators generate event-level predictions, scripts generate scene-level predictions, and the overall narrative arc is a free energy trajectory. A 'good' story is one that manages free energy skillfully — building it (suspense), releasing it (resolution), and occasionally spiking it (surprise)."
+          },
+          {
+            "type": "InteractiveDemo",
+            "props": {
+              "id": "narrative-free-energy"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "📈 Free Energy Trajectory of 'The Gift of the Magi'"
+              },
+              {
+                "type": "p",
+                "children": "Setup: Young couple, very poor, Christmas approaching → LOW (familiar script)\nRising: Della counts coins, not enough for gift → RISING (prediction: she can't afford it)\nAction: Della sells her hair to buy Jim a watch chain → SPIKE! (unexpected operator: SACRIFICE)\nParallel: Jim sold his watch to buy combs for Della → DOUBLE SPIKE! (ironic reversal)\nResolution: They realize what happened → RAPID DROP (new understanding minimizes free energy)\nCoda: 'They are the wisest' → BASELINE (narrative closure, all predictions resolved)"
+              },
+              {
+                "type": "p",
+                "children": "The story's emotional power IS its free energy profile. The double spike of mutual sacrifice followed by rapid resolution creates the characteristic 'O. Henry' pattern: maximum prediction error → instant comprehension."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "9. Testable Predictions"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "The active inference framework generates specific, testable predictions about how operators should behave in language models:"
+          },
+          {
+            "type": "p",
+            "children": "1. Operator boundaries should correlate with high prediction error (cross-entropy spikes) in LMs\n2. Within-operator prediction error should decrease over time (model improves as it 'settles in')\n3. Operator selection should correlate with MLP nonlinearity (the 'disambiguation tax' from Paper 2)\n4. Script violations should produce larger prediction errors than operator violations\n5. L11 consensus neuron activation should spike at event boundaries (Zacks-style)"
+          },
+          {
+            "type": "p",
+            "children": "Several of these are already partially confirmed by our existing work: the disambiguation tax shows nonlinearity at sense-selection points (prediction 3), and L11 consensus behavior matches event boundary detection (prediction 5)."
+          },
+          {
+            "type": "Callout",
+            "props": {
+              "type": "tip"
+            },
+            "children": "Prediction 1 is the most directly testable: feed narratives with annotated event boundaries to GPT-2, measure cross-entropy at each token, and check whether boundaries show significant spikes. This is a weekend experiment with existing infrastructure."
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "10. The Bigger Picture: Why This Bridge Matters"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "The Free Energy Principle gives Schankian operators something they've always lacked: a principled reason to EXIST. Schank proposed operators as a useful representational scheme. The FEP says operators emerge necessarily from any system that minimizes prediction error over event sequences. They're not a design choice — they're a mathematical consequence."
+          },
+          {
+            "type": "p",
+            "children": "This also resolves the 'why these operators?' question. Why TRANSFER but not EXCHANGE? Why HARM but not TICKLE? Because the operators that minimize free energy are those at the RIGHT level of abstraction — general enough to make useful predictions across contexts, specific enough to generate accurate predictions within a context. Too general (CHANGE) = poor predictions. Too specific (TICKLE) = too narrow to be reusable."
+          },
+          {
+            "type": "p",
+            "children": "The FEP bridge connects our work to a massive literature: predictive coding in neuroscience, Bayesian cognitive science, embodied cognition, and computational psychiatry. Every finding about prediction error in human brains becomes a testable hypothesis about operator behavior in language models."
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "Quiz"
+        },
+        "children": [
+          {
+            "type": "Quiz",
+            "children": [
+              {
+                "question": "In the Free Energy framework, what IS a Schankian operator?",
+                "options": [
+                  "A label applied after the fact to categorize events",
+                  "An event-level generative model that produces predictions about next states",
+                  "A fixed lookup table of event types",
+                  "A neural network layer that classifies inputs"
+                ],
+                "answer": 1,
+                "explanation": "Operators are generative models — they actively generate predictions about what states should follow. HARM predicts injury, consequence, reaction. TRANSFER predicts possession change. The prediction distribution IS the operator."
+              },
+              {
+                "question": "What triggers an event boundary (operator switch) according to the FEP?",
+                "options": [
+                  "A timer that fires at regular intervals",
+                  "A random process that occasionally resets",
+                  "A spike in prediction error when the current operator's predictions fail",
+                  "An explicit boundary marker in the text"
+                ],
+                "answer": 2,
+                "explanation": "Zacks et al. (2007) showed event boundaries occur at points of maximum prediction error. When the current operator can't predict what's happening (free energy spikes), the system switches to a new operator that better explains observations."
+              },
+              {
+                "question": "Why is cross-entropy training loss equivalent to variational free energy?",
+                "options": [
+                  "They happen to use the same mathematical notation",
+                  "Cross-entropy measures next-token prediction accuracy, which IS the negative log-likelihood term in free energy",
+                  "They were designed to be equivalent by Friston",
+                  "They're not actually equivalent — it's just an analogy"
+                ],
+                "answer": 1,
+                "explanation": "Cross-entropy loss = -Σ log P(x_t | x_{<t}), which is exactly the negative log-likelihood term in the variational free energy bound. The KL term is absorbed into the model weights. Minimizing cross-entropy IS minimizing free energy."
+              },
+              {
+                "question": "How does active inference explain implicit state inference ('John went to a restaurant and left a big tip')?",
+                "options": [
+                  "The model memorizes all possible restaurant scenarios",
+                  "The restaurant script acts as a generative model that 'fills in' unobserved states between observed ones",
+                  "The model simply skips the unmentioned states",
+                  "Statistical co-occurrence of 'restaurant' and 'tip' is sufficient"
+                ],
+                "answer": 1,
+                "explanation": "Active inference runs the script's generative model forward, predicting the unobserved states (seated, ordered, ate, received check) that must have occurred between 'went to restaurant' and 'left a big tip.' The script IS the generative model."
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}
