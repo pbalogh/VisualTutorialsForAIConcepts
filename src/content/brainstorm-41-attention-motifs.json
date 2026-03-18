@@ -1,0 +1,330 @@
+{
+  "id": "brainstorm-41-attention-motifs",
+  "title": "Operators as Attention Motifs",
+  "subtitle": "Extracting Schankian Primitives from Transformer Attention Circuits",
+  "readTime": "20 min",
+  "state": {},
+  "content": {
+    "type": "Fragment",
+    "children": [
+      {
+        "type": "Callout",
+        "props": {
+          "type": "info"
+        },
+        "children": "What if Schankian primitives — ATRANS, PTRANS, MTRANS — already exist inside transformers as recognizable attention patterns? This tutorial explores how specific attention heads create characteristic 'motifs' when processing different event types, and how clustering these motifs could reveal the operator vocabulary that transformers have learned on their own."
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "1. Attention Heads Aren't Random — They Specialize"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "A transformer's attention mechanism isn't a single monolithic process — it's decomposed into many independent 'heads,' each attending to different aspects of the input. Research has shown these heads specialize: some track syntactic dependencies (subject→verb), some track coreference (pronoun→antecedent), and some seem to encode semantic relationships."
+          },
+          {
+            "type": "p",
+            "children": "The key insight from Clark et al. (2019) and subsequent work: BERT attention heads recapitulate known dependency relations. Head 8-10 might consistently link a verb to its direct object. Head 5-3 might link modifiers to their targets. These aren't programmed — they emerge from training."
+          },
+          {
+            "type": "Analogy",
+            "props": {
+              "concept": "Attention head specialization",
+              "analogy": "Think of an orchestra. Each section (strings, brass, woodwinds, percussion) is always playing, but for different musical phrases, different sections take the lead. The score doesn't say 'violins, learn melody' — the structure of music itself causes the specialization. Similarly, attention heads don't get assigned roles — the structure of language causes certain heads to specialize in certain relationships."
+            }
+          },
+          {
+            "type": "DeepDive",
+            "props": {
+              "title": "How do we know heads specialize?"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "Clark et al. (2019) systematically probed every attention head in BERT against gold-standard dependency parses. They found individual heads that tracked specific dependency relations with >80% accuracy — far above the ~4% baseline you'd expect from random attention. Voita et al. (2019) showed that many heads can be pruned without performance loss, but a small number are 'important heads' whose removal causes significant degradation. These important heads correspond to the specialized ones."
+              },
+              {
+                "type": "p",
+                "children": "More recently, Anthropic's attribution graph work (2025) traces complete circuits through the transformer, showing how specific heads compose into larger computational motifs. An attention head isn't just 'linking two tokens' — it's participating in a computational circuit that transforms one representation into another."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "2. From Dependency Heads to Operator Motifs"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "Here's the leap: if attention heads already encode syntactic dependencies (subject→verb, verb→object), could multi-head patterns encode SEMANTIC event types? Consider two sentences:"
+          },
+          {
+            "type": "Example",
+            "props": {
+              "title": "Same syntax, different operators"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "\"John kicked the ball across the field\" — PROPEL (physical force transfer)"
+              },
+              {
+                "type": "p",
+                "children": "\"John gave the book to Mary\" — ATRANS (abstract possession transfer)"
+              },
+              {
+                "type": "p",
+                "children": "Both are Subject-Verb-Object-Prepositional Phrase. Syntactically near-identical. But they describe fundamentally different events: one is physical motion caused by force, the other is a change in an abstract possession relation. If attention heads only encoded syntax, these should look the same. But if some heads encode semantics — the TYPE of state change — the attention patterns should differ systematically."
+              }
+            ]
+          },
+          {
+            "type": "p",
+            "children": "The hypothesis: for PROPEL events, specific heads will strongly attend between the agent and the instrument of force (kicked↔ball), and between the object and the trajectory (ball↔across↔field). For ATRANS events, different heads will attend between the source and recipient of possession (John↔Mary), and between the object and the transfer verb (book↔gave↔to). The PATTERN of which heads light up IS the operator."
+          },
+          {
+            "type": "Callout",
+            "props": {
+              "type": "key-idea"
+            },
+            "children": "An operator isn't a single neuron or a single head — it's a MOTIF: a characteristic pattern of attention across multiple heads that consistently appears when the model processes a specific type of event."
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "3. The Vote Counter Connection"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "This connects directly to a recent finding from our 'Discrete Charm of the MLP' paper (arXiv:2603.10985). We discovered that neuron N2123 in GPT-2's final MLP layer reliably signals when the model encounters 'exception' processing — tokens that break the default pattern. But here's the crucial insight: N2123 is diagnostic, not causal."
+          },
+          {
+            "type": "p",
+            "children": "Zeroing N2123 has less than 0.1% effect on perplexity. It's a vote counter — a readable summary of a distributed computation — not a switch that controls that computation. The election happens across 3,072 neurons. N2123 just displays the result."
+          },
+          {
+            "type": "Analogy",
+            "props": {
+              "concept": "Vote counters vs. switches",
+              "analogy": "Imagine an election night display board. The board shows '67% Blue, 33% Red' but removing the board doesn't change anyone's vote. N2123 is the display board. The actual voting is distributed across thousands of neurons. Now apply this to operators: we shouldn't look for individual 'ATRANS neurons' — we should look for distributed voting patterns (attention motifs) that specific neurons reliably INDICATE."
+            }
+          },
+          {
+            "type": "DeepDive",
+            "props": {
+              "title": "Why does the vote counter matter for operator discovery?"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "If operators are distributed computation patterns, we can't find them by ablating individual neurons (the switch approach). But we CAN find them by reading their vote counters — neurons or features that reliably co-fire when a specific operator is active, even though no individual neuron is causally necessary. The discovery method becomes: (1) cluster attention patterns on event sentences, (2) identify which neuron/feature clusters are diagnostic of each attention motif, (3) verify they're indicators (ablation has no effect) not causes. This is exactly the methodology that worked for N2123."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "4. How to Extract Operator Motifs"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "Here's a concrete experimental pipeline for discovering whether transformers have learned Schankian-like operators as attention motifs:"
+          },
+          {
+            "type": "DefinitionList",
+            "props": {
+              "items": [
+                {
+                  "term": "Step 1: Collect event sentences",
+                  "definition": "Curate 500+ sentences with known event types: 100 ATRANS (give, buy, sell, steal, donate), 100 PTRANS (go, move, fly, drive, run), 100 MTRANS (tell, learn, read, hear, teach), 100 PROPEL (push, kick, throw, hit, pull), 100 others (INGEST, SPEAK, ATTEND). Use both simple and complex constructions for each."
+                },
+                {
+                  "term": "Step 2: Extract attention patterns",
+                  "definition": "Run each sentence through GPT-2 (or BERT) and record the full attention matrix at every layer. For each sentence, this gives you a (layers × heads × tokens × tokens) tensor. Focus on attention between the verb and its arguments — the 'event window.'"
+                },
+                {
+                  "term": "Step 3: Define the motif signature",
+                  "definition": "For each sentence, extract a fixed-length vector summarizing which heads attended strongly between event participants. One approach: for each head, compute the mean attention weight between (agent→verb), (verb→object), (object→destination), (source→destination). This gives a (layers × heads × 4) feature vector per sentence."
+                },
+                {
+                  "term": "Step 4: Cluster the motifs",
+                  "definition": "Apply UMAP + HDBSCAN to the motif signatures. If operators exist as attention motifs, sentences describing the same event type should cluster together — even when they use different verbs. 'John gave Mary a book' and 'The company donated $1M to the charity' should land in the same cluster if ATRANS is a real motif."
+                },
+                {
+                  "term": "Step 5: Validate against Schank",
+                  "definition": "Compare discovered clusters to Schankian categories. Perfect alignment isn't expected (the model may have finer or coarser categories), but significant overlap would be strong evidence that transformers have independently discovered event-type primitives."
+                }
+              ]
+            }
+          },
+          {
+            "type": "InteractiveDemo",
+            "props": {
+              "title": "Attention Motif Clustering Simulator",
+              "description": "Explore how different event types might cluster based on their attention patterns. Each dot represents a sentence. Colors show the Schankian category. Observe how sentences with the same event type cluster together even with different surface forms.",
+              "type": "scatter-cluster",
+              "config": {
+                "clusters": [
+                  {"label": "ATRANS (possession transfer)", "color": "#4CAF50", "center": [2.1, 3.4], "spread": 0.8, "points": ["gave the book", "sold the car", "donated money", "stole the jewels", "bought a house"]},
+                  {"label": "PTRANS (physical motion)", "color": "#2196F3", "center": [-1.5, 1.2], "spread": 0.7, "points": ["walked to school", "drove to work", "flew to Paris", "ran across the field", "swam to shore"]},
+                  {"label": "MTRANS (mental transfer)", "color": "#FF9800", "center": [0.3, -2.1], "spread": 0.9, "points": ["told the story", "learned the truth", "read the paper", "heard the news", "taught the class"]},
+                  {"label": "PROPEL (force application)", "color": "#F44336", "center": [-2.8, -1.0], "spread": 0.6, "points": ["kicked the ball", "pushed the door", "threw the javelin", "hit the target", "pulled the lever"]}
+                ],
+                "note": "Simulated UMAP projection. In a real experiment, cluster separation would depend on whether the model has learned genuine operator-level representations."
+              }
+            }
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "5. Evidence That This Should Work"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "Several lines of evidence suggest that attention motifs encode something operator-like:"
+          },
+          {
+            "type": "Example",
+            "props": {
+              "title": "Evidence from existing research"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "1. BERT dependency heads (Clark et al. 2019): Individual heads track syntactic relations at >80% accuracy. If syntax is encoded, semantics likely is too — syntactic heads are the 'easy' version of what we're looking for."
+              },
+              {
+                "type": "p",
+                "children": "2. Anthropic's circuit tracing (2025): Complete computational circuits span multiple attention heads AND MLP neurons. These circuits implement specific behaviors (like induction, or entity tracking). Operators would be exactly this kind of multi-component circuit."
+              },
+              {
+                "type": "p",
+                "children": "3. IOI circuit (Wang et al. 2023): The Indirect Object Identification circuit in GPT-2 Small involves 26 heads across 7 layers, implementing a specific semantic task (identifying who to give something to). This IS an ATRANS-related circuit — it tracks the participants in a possession transfer event."
+              },
+              {
+                "type": "p",
+                "children": "4. Our own N2123 finding: The consensus/exception system in L11 creates a binary routing switch based on how 'predictable' the current token is. This routing decision is distributed but READABLE. Operators should follow the same pattern."
+              }
+            ]
+          },
+          {
+            "type": "DeepDive",
+            "props": {
+              "title": "The IOI circuit as a proto-operator"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "Wang et al. (2023) identified a complete circuit in GPT-2 Small for 'Indirect Object Identification' — processing sentences like 'When Mary and John went to the store, John gave a drink to ___.' The circuit involves: (1) Duplicate token heads that detect repeated names, (2) S-inhibition heads that suppress the subject, (3) Name mover heads that copy the correct name to the output. This is remarkably close to a SCHANKIAN ATRANS SCRIPT: identify the agent (John), identify the recipient (Mary), suppress the agent from the recipient slot, output the recipient. The circuit IS the operator, implemented as an attention motif spanning 26 heads."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "6. Challenges and Open Questions"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "This approach faces several genuine challenges:"
+          },
+          {
+            "type": "DefinitionList",
+            "props": {
+              "items": [
+                {
+                  "term": "Granularity mismatch",
+                  "definition": "Schank proposed ~11 primitive operators. Transformers might learn hundreds of finer-grained operators, or just a handful of very coarse ones. The clustering might not align with human-designed categories at all — which would be an interesting negative result."
+                },
+                {
+                  "term": "Compositional operators",
+                  "definition": "Real events often combine operators: 'John texted Mary the address' involves MTRANS (information transfer) + potentially ATRANS (the address changes 'ownership'). The attention motif might be a blend, not a clean cluster."
+                },
+                {
+                  "term": "Context sensitivity",
+                  "definition": "The same verb can invoke different operators in different contexts: 'run a company' (ATRANS-like) vs. 'run a mile' (PTRANS). The motif should differ for these — but will it?"
+                },
+                {
+                  "term": "Scale of circuits",
+                  "definition": "The IOI circuit spans 26 heads. Operator motifs might be equally large, making them hard to extract from the (layers × heads × tokens × tokens) attention tensor without sophisticated dimensionality reduction."
+                }
+              ]
+            }
+          },
+          {
+            "type": "Quiz",
+            "props": {
+              "question": "Why should we expect attention motifs to encode operators rather than just syntactic structure?",
+              "options": [
+                "Because attention heads are randomly initialized, so they must learn something new",
+                "Because the same syntactic structure (SVO) describes different event types, so the model needs additional heads to distinguish them",
+                "Because Schank designed operators to match attention patterns",
+                "Because transformers have more heads than syntactic relations"
+              ],
+              "correctIndex": 1,
+              "explanation": "The key argument is that syntax alone doesn't distinguish event types. 'John kicked the ball' and 'John gave the book' are both SVO, but describe fundamentally different events. Since the model needs to predict different continuations for these, it must represent the difference — and multi-head attention is the mechanism available for encoding relational structure between tokens."
+            }
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "7. From Motifs to a Practical Operator Vocabulary"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "If the clustering experiment succeeds — if sentences with the same event type reliably produce similar attention motifs — the next step is building a practical operator vocabulary for the model:"
+          },
+          {
+            "type": "p",
+            "children": "First, train lightweight 'operator probes': small classifiers that take the attention pattern as input and predict the operator type. If these probes achieve high accuracy on held-out sentences, the motif is a reliable indicator. Then test causality: does intervening on the identified heads (suppressing or amplifying their attention) change the model's behavior in operator-consistent ways? For example, suppressing the ATRANS motif heads while processing 'John gave Mary a book' should disrupt prediction of possession-related continuations."
+          },
+          {
+            "type": "p",
+            "children": "The vote-counter insight from N2123 predicts that individual heads in the motif will be diagnostic but not individually causal — the operator computation is distributed. But the MOTIF AS A WHOLE should be causal: ablating all heads in the motif should disrupt the operator, even though ablating any single head doesn't."
+          },
+          {
+            "type": "Callout",
+            "props": {
+              "type": "connection"
+            },
+            "children": "This connects to Entry 92 (Routing Signatures) and Entry 95 (Vote Counters Not Switches). The emerging picture: operators are distributed multi-head attention motifs, readable via vote-counter neurons in the MLP, and discoverable through clustering attention patterns on event-typed sentences. The three entries form a complete research program."
+          },
+          {
+            "type": "Quiz",
+            "props": {
+              "question": "What does the 'vote counter' prediction from N2123 imply about operator motifs?",
+              "options": [
+                "Each operator is controlled by a single master head that can be ablated",
+                "Individual heads in the motif are diagnostic but not individually causal — the motif as a whole is causal",
+                "Operators don't exist as attention patterns at all",
+                "Vote counters prove operators are stored in MLP neurons, not attention heads"
+              ],
+              "correctIndex": 1,
+              "explanation": "Just as N2123 reliably indicates exception processing but zeroing it has no effect (it's a vote counter, not a switch), individual heads in an operator motif should reliably indicate which operator is active without being individually necessary. The DISTRIBUTED pattern across many heads is what implements the operator — and ablating the full motif (not individual heads) should have causal effects."
+            }
+          }
+        ]
+      }
+    ]
+  }
+}

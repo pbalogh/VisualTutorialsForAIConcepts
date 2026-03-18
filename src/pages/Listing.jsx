@@ -1002,6 +1002,18 @@ const tutorials = [
     difficulty: 4,
   },
   {
+    id: 'brainstorm-41-attention-motifs',
+    title: 'Operators as Attention Motifs',
+    description: 'Schankian primitives may already exist inside transformers as characteristic multi-head attention patterns. Cluster attention motifs on event sentences to discover operators — connected to the N2123 vote counter finding.',
+    tags: ['Schankian', 'attention', 'mech-interp', 'operators', 'motifs', 'circuits'],
+    icon: '🎯',
+    gradient: 'from-rose-500 to-red-600',
+    shadowColor: 'shadow-rose-500/30',
+    glowColor: 'rgba(244, 63, 94, 0.4)',
+    readTime: '20 min',
+    difficulty: 3,
+  },
+  {
     id: 'brainstorm-92-routing-signatures',
     title: 'Operator Discovery via Routing Signatures',
     description: 'Knowledge neurons are routing neurons — the same 27 neurons appear for every fact (36.5× enrichment). Schankian operators should be discoverable as distinct routing configurations in the 7D consensus space.',
