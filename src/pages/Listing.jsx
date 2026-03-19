@@ -1026,6 +1026,18 @@ const tutorials = [
     difficulty: 3,
   },
   {
+    id: 'brainstorm-96-inference-time-orchestration',
+    title: 'Operators as Inference-Time Orchestration Programs',
+    description: 'What if Schankian operators aren\'t inside the model? Inspired by dendritic diffusion\'s model-agnostic orchestration layer, this tutorial reframes operators as inference-time steering protocols — external programs that configure model behavior via activation steering, not internal representations to be discovered.',
+    tags: ['Schankian', 'dendritic-diffusion', 'inference-time', 'steering', 'activation-engineering'],
+    icon: '🎛️',
+    gradient: 'from-cyan-500 to-blue-600',
+    shadowColor: 'shadow-cyan-500/30',
+    glowColor: 'rgba(6, 182, 212, 0.4)',
+    readTime: '18 min',
+    difficulty: 3,
+  },
+  {
     id: 'brainstorm-83-active-inference',
     title: 'Active Inference Meets Schankian Operators',
     description: 'Friston\'s Free Energy Principle maps directly onto Schankian operators: operators ARE event-level generative models, event boundaries ARE prediction error spikes, scripts ARE hierarchical predictions, and cross-entropy training IS free energy minimization.',

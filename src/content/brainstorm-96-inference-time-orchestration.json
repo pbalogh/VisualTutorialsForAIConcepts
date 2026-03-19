@@ -1,0 +1,302 @@
+{
+  "id": "brainstorm-96-inference-time-orchestration",
+  "title": "Operators as Inference-Time Orchestration Programs",
+  "subtitle": "What if Schankian primitives aren't inside the model — but in the interface between model and user?",
+  "readTime": "18 min",
+  "state": {},
+  "content": {
+    "type": "Fragment",
+    "children": [
+      {
+        "type": "Callout",
+        "props": {
+          "type": "info"
+        },
+        "children": "This tutorial explores a radical reframing: instead of searching for Schankian operators INSIDE neural networks, what if operators are PROGRAMS that orchestrate how we call the model? Inspired by dendritic diffusion — an algorithm that sits on top of a language model without modifying it — we ask whether PTRANS, MTRANS, and ATRANS could be inference-time steering protocols rather than internal representations."
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "1. The Search Inside the Model"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "For decades, the question has been: where are Schankian operators in the model? Researchers have looked for them as neurons (Entry 92), as subspaces (Entry 55), as SAE features (Entry 25), as attention patterns (Entry 74). The assumption is always the same: operators are REPRESENTATIONS — internal states that the model learns."
+          },
+          {
+            "type": "p",
+            "children": "But what if that assumption is wrong? What if operators aren't representations at all, but PROGRAMS?"
+          },
+          {
+            "type": "Analogy",
+            "props": {
+              "concept": "Operators as programs vs representations",
+              "analogy": "Think of a piano. You could ask: 'Where is the melody stored in the piano?' and spend years analyzing the hammers, strings, and soundboard. But the melody isn't IN the piano — it's in the PROGRAM that tells the pianist which keys to press and when. The piano is a general-purpose sound generator; the melody is an orchestration protocol applied at performance time. Similarly, a language model might be a general-purpose text generator, and Schankian operators might be the orchestration protocols applied at inference time."
+            }
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "2. The Dendritic Diffusion Insight"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "The key inspiration comes from dendritic diffusion — a text generation algorithm for masked diffusion language models. Here's the crucial architectural fact: dendritic diffusion does NOT modify the model. It doesn't change weights, add neurons, or alter attention patterns. It's purely an orchestration layer."
+          },
+          {
+            "type": "DefinitionList",
+            "children": [
+              {
+                "term": "Black-Box Interface",
+                "definition": "The model accepts tokens-with-masks and returns probability distributions. That's the entire API. Dendritic diffusion just decides HOW MUCH canvas to give the model (branch size), WHEN to measure confidence (supersaturation), and WHETHER to keep going (grow vs stop)."
+              },
+              {
+                "term": "Model-Agnostic",
+                "definition": "Because it only uses the mask-in/probability-out interface, dendritic diffusion works with ANY masked diffusion language model — LLaDA, MDLM, SEDD, Dream, or future architectures. No fine-tuning, no special tokens, no architectural changes."
+              },
+              {
+                "term": "Inference-Time Strategy",
+                "definition": "The algorithm runs entirely at inference time. Different strategies produce different text structures. The model is the same; only the orchestration changes."
+              }
+            ]
+          },
+          {
+            "type": "Callout",
+            "props": {
+              "type": "key-insight"
+            },
+            "children": "If an inference-time orchestration strategy can control discourse structure (branching, length, topic flow) WITHOUT modifying the model, then maybe Schankian operators should work the same way — external programs that control what the model generates, not internal representations to be discovered."
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "3. Operators as Steering Protocols"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "What would an operator-as-program look like concretely? Recent work on activation steering provides the mechanism."
+          },
+          {
+            "type": "p",
+            "children": "Activation steering (Steerling-8B, activation steering for MDLMs) shows that you can identify low-dimensional directions in a model's activation space that correspond to human-understandable concepts — and then ADD or SUBTRACT those directions during inference to control generation. No retraining required."
+          },
+          {
+            "type": "Example",
+            "props": {
+              "title": "PTRANS as a Steering Vector"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "Imagine we extract SAE features that activate on physical-transfer sentences ('The ball rolled across the floor', 'She carried the box upstairs', 'The river flows to the sea'). We average those feature directions to get a PTRANS steering vector."
+              },
+              {
+                "type": "p",
+                "children": "Now during dendritic diffusion, at each branch we ADD this PTRANS vector to the model's activations. The model, which is a general-purpose text generator, is now steered toward generating physical-transfer language. The operator isn't a neuron that 'stores' PTRANS — it's an external vector that CONFIGURES the model's behavior at inference time."
+              },
+              {
+                "type": "p",
+                "children": "Similarly: MTRANS (information transfer) = steer toward communication/learning language. ATRANS (possession transfer) = steer toward giving/receiving/ownership language. Each operator is a different steering protocol applied to the same model."
+              }
+            ]
+          },
+          {
+            "type": "DeepDive",
+            "props": {
+              "title": "How Activation Steering Works for Masked Diffusion"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "In autoregressive models, activation steering adds a vector to residual stream activations during the forward pass. For masked diffusion models, the same principle applies but with a twist: the model runs MULTIPLE forward passes (iterative denoising), and the steering vector can be applied at each pass. This means the steering has cumulative effect — each denoising step is nudged toward the operator's semantic direction."
+              },
+              {
+                "type": "p",
+                "children": "The 2024 paper 'Activation Steering for Masked Diffusion Language Models' (arXiv:2512.24143) demonstrated this works: behavioral features in masked diffusion models are linearly separable, and inference-time interventions can steer generation toward desired attributes."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "4. Dissolving the 'Are Operators In the Model?' Debate"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "This reframing dissolves a persistent philosophical question. Instead of asking 'does the model represent PTRANS?', we ask 'can we construct a PTRANS program that steers the model?' The first question requires finding something inside the model. The second only requires finding a useful direction in activation space — which is an engineering problem, not a metaphysical one."
+          },
+          {
+            "type": "Analogy",
+            "props": {
+              "concept": "Dissolving the representation question",
+              "analogy": "Consider a radio. You could ask: 'Does the radio CONTAIN the song?' No — the radio is a general-purpose signal processor, and the song is carried by the signal. But with the right tuning (steering), the radio produces the song. The song is 'in' the interface between signal and receiver. Similarly, PTRANS might be 'in' the interface between steering vector and model — not inside the model per se, and not purely external either, but in the interaction."
+            }
+          },
+          {
+            "type": "p",
+            "children": "This connects to Entry 95's 'vote counters, not switches' finding: neurons that reliably INDICATE operator-type processing without being causally necessary for it. If operators are steering protocols rather than internal representations, then indicator neurons are exactly what you'd expect — they're the model's internal response to being steered, not the source of the steering."
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "5. The Experimental Program"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "This idea is testable. Here's the experimental pipeline:"
+          },
+          {
+            "type": "DefinitionList",
+            "children": [
+              {
+                "term": "Step 1: Extract Operator Directions",
+                "definition": "Collect sentences for each Schankian primitive (PTRANS, MTRANS, ATRANS, etc.). Run them through the model, extract SAE features or activation patterns. Average to get a steering vector per operator."
+              },
+              {
+                "term": "Step 2: Steer During Dendritic Diffusion",
+                "definition": "During branch denoising, add the operator's steering vector to the model's activations. Generate text with PTRANS-steering, MTRANS-steering, and no steering (baseline)."
+              },
+              {
+                "term": "Step 3: Measure Operator Consistency",
+                "definition": "Does PTRANS-steered text contain more spatial/motion language? Does MTRANS-steered text contain more communication/information language? Use automated classifiers and human evaluation."
+              },
+              {
+                "term": "Step 4: Compare Supersaturation Fingerprints",
+                "definition": "Do different operators produce different supersaturation traces? Entry 93 hypothesized that operator types correspond to different crystal symmetry groups. If PTRANS-steered text shows causal-chain decay while MTRANS-steered text shows oscillating comparison patterns, that's strong evidence for the operator-as-program thesis."
+              }
+            ]
+          },
+          {
+            "type": "InteractiveDemo",
+            "props": {
+              "title": "Thought Experiment: Operator Steering Outcomes",
+              "type": "thought-experiment"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "Consider the seed text: 'The teacher explained the concept to the student.' Without steering, a masked diffusion model might continue with any topic. Now imagine applying different operator steering vectors:"
+              },
+              {
+                "type": "p",
+                "children": "🔵 MTRANS steering → 'The student understood the main idea but struggled with the details. She asked a clarifying question about...' (information transfer language)"
+              },
+              {
+                "type": "p",
+                "children": "🟢 PTRANS steering → 'The student walked to the whiteboard and pointed to the diagram. She moved her finger along the path...' (physical transfer language)"
+              },
+              {
+                "type": "p",
+                "children": "🟠 ATRANS steering → 'The student received a copy of the notes. The teacher gave her additional reference materials to take home...' (possession transfer language)"
+              },
+              {
+                "type": "p",
+                "children": "The model is identical in all three cases. Only the steering vector — the operator program — differs. The operator doesn't need to be 'in' the model; it just needs to find the right direction to push."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "6. Connections"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "This idea weaves together several threads:"
+          },
+          {
+            "type": "DefinitionList",
+            "children": [
+              {
+                "term": "Entry 93 — Supersaturation as Operator Signature",
+                "definition": "If operators are steering programs, their supersaturation fingerprints ARE the operator's effect on the model's confidence landscape."
+              },
+              {
+                "term": "Entry 95 — Vote Counters Not Switches",
+                "definition": "Indicator neurons are the model's internal response to being steered — they detect the operator's effect without causing it."
+              },
+              {
+                "term": "Entry 82 — VLA Mech Interp",
+                "definition": "In embodied models, action primitives are a thin semantic layer. The operator-as-program view says: that thin layer IS the steering interface."
+              },
+              {
+                "term": "Steerling-8B",
+                "definition": "Concept algebra (add, remove, compose concepts at inference time) is exactly the mechanism operators-as-programs would use."
+              },
+              {
+                "term": "Dendritic Diffusion",
+                "definition": "The existence proof: a model-agnostic inference-time orchestration layer that controls text structure without modifying the model."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "Quiz"
+        },
+        "children": [
+          {
+            "type": "Quiz",
+            "props": {
+              "question": "In the operator-as-program view, where does PTRANS 'live'?",
+              "options": [
+                "In specific MLP neurons that store physical-transfer knowledge",
+                "In the interface between an external steering vector and the model's activations",
+                "In the training data that contained physical-transfer sentences",
+                "In the attention patterns between subject and object tokens"
+              ],
+              "correctIndex": 1,
+              "explanation": "The key reframing: operators are not internal representations stored in neurons, but external steering vectors applied at inference time. The operator 'lives' in the interface — it's a direction in activation space that configures the model's behavior, not a weight or neuron that encodes it."
+            }
+          },
+          {
+            "type": "Quiz",
+            "props": {
+              "question": "Why does dendritic diffusion serve as an 'existence proof' for the operator-as-program thesis?",
+              "options": [
+                "Because it discovers operators automatically during generation",
+                "Because it modifies the model's weights to encode operators",
+                "Because it demonstrates that an inference-time orchestration layer can control text structure without modifying the model",
+                "Because it uses Schankian primitives as branch labels"
+              ],
+              "correctIndex": 2,
+              "explanation": "Dendritic diffusion treats the model as a black box (tokens-with-masks in, probabilities out) and controls discourse structure entirely through orchestration — when to grow, when to stop, how much canvas to provide. If discourse structure can be controlled this way, maybe operator-level semantics (PTRANS, MTRANS, ATRANS) can be too."
+            }
+          },
+          {
+            "type": "Quiz",
+            "props": {
+              "question": "What would falsify the operator-as-program hypothesis?",
+              "options": [
+                "Finding that different steering vectors produce the same text",
+                "Finding that PTRANS-steered text contains spatial language",
+                "Finding that the model's internal representations change during steering",
+                "Finding that operators can be composed (PTRANS + MTRANS)"
+              ],
+              "correctIndex": 0,
+              "explanation": "If applying different operator steering vectors produces indistinguishable text, the operators aren't functioning as meaningful programs — they're not actually configuring the model differently. The hypothesis predicts that different operators produce measurably different text with different supersaturation fingerprints."
+            }
+          }
+        ]
+      }
+    ]
+  }
+}
