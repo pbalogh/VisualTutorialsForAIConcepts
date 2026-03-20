@@ -360,6 +360,37 @@
       {
         "type": "Section",
         "props": {
+          "title": "The Hidden State Up Close: 1,536 Independent Channels"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "Before we look at the Δ pipeline, let's zoom into what Mamba's hidden state actually looks like. In vanilla Mamba, the hidden state is a matrix of shape (d_inner × d_state) — typically 1,536 channels, each with 16 state dimensions. That's 24,576 independent values being updated at every token."
+          },
+          {
+            "type": "p",
+            "children": "The critical thing to understand: these channels have NO structure. There's no grouping, no hierarchy, no branches. Each channel independently computes its own Δ, updates its own state, and produces its own output. The model below shows a simplified version — 16 channels with 4 state dims each — processing our example sentence."
+          },
+          {
+            "type": "VanillaMambaViz",
+            "props": {}
+          },
+          {
+            "type": "p",
+            "children": "Notice how some channels seem to naturally specialize — some reset at the period while others preserve their state. But this structure is emergent and uncontrolled. The dendritic architecture (next section) proposes making this structure explicit."
+          },
+          {
+            "type": "Callout",
+            "props": {
+              "type": "info"
+            },
+            "children": "In the visualization above, no channels are labeled as 'syntax' or 'topic'. The specialization you see — some channels resetting at sentence boundaries while others persist — emerges naturally from training. The dendritic proposal asks: what if we designed the architecture to encourage this structure, rather than hoping it emerges?"
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
           "title": "Inside the Δ Pipeline: From Token to Gate"
         },
         "children": [
@@ -381,6 +412,40 @@
               "type": "info"
             },
             "children": "The low-rank bottleneck (dt_rank) is a key design choice. Instead of learning d_inner × d_inner parameters for the Δ projection, Mamba uses a factorization through dt_rank (typically d_model / 16). This reduces parameters while still allowing each channel to have a distinct Δ. It's the same trick used in LoRA and attention head projections — low-rank structure captures most of the useful variation."
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "Wait — Isn't This Sequential? Mamba in a Diffusion World"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "If you're coming from the diffusion model world, you might be wondering: Mamba processes tokens left-to-right, but diffusion models denoise ALL positions simultaneously. How does an autoregressive backbone fit inside an iterative denoiser?"
+          },
+          {
+            "type": "p",
+            "children": "The key is recognizing that there are two levels of processing, and they operate on different axes:"
+          },
+          {
+            "type": "Code",
+            "props": {
+              "language": "text"
+            },
+            "children": "Level 1: DIFFUSION SCHEDULE (iterative, all positions)\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n  Step t=1000: noisy image  x_T    → Mamba predicts noise\n  Step t=999:  slightly less noisy → Mamba predicts noise\n  ...                                                    \n  Step t=1:    nearly clean         → Mamba predicts noise\n  Step t=0:    clean output x_0\n\n  At EACH step, Mamba sees ALL spatial positions.\n\nLevel 2: WITHIN A DENOISING STEP (sequential, left-to-right)\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n  Given flattened patches [p1, p2, p3, ..., pN]:\n  \n  p1 → update h[1]  (hidden state sees only p1)\n  p2 → update h[2]  (hidden state sees p1, p2)\n  p3 → update h[3]  (hidden state sees p1, p2, p3)\n  ...\n  pN → update h[N]  (hidden state sees entire image)\n\n  This is Mamba's LEFT-TO-RIGHT pass within ONE denoising step."
+          },
+          {
+            "type": "p",
+            "children": "So the diffusion process is iterative (repeating over the same image), while Mamba's recurrence is spatial (sweeping across patches within a single denoising step). They're orthogonal axes of computation."
+          },
+          {
+            "type": "Callout",
+            "props": {
+              "type": "important"
+            },
+            "children": "The dendritic branches we propose are about Mamba's INTERNAL state organization, not about the diffusion denoising schedule. Fast/slow branches organize how Mamba processes each token within a denoising step. The diffusion timestep t is an external variable that modulates the overall noise level — it's a separate axis entirely."
           }
         ]
       },

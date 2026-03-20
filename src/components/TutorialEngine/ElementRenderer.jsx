@@ -22,6 +22,7 @@ import { ComplexRotationViz, ComplexVectorViz, DimensionalityChoiceViz } from '.
 import { TriangleRotationPuzzle, CoinFlipPuzzle, TwoCoinsPuzzle, GroupMultTable } from '../visualizations/GroupTheoryPuzzleViz'
 import { MambaDeltaViz } from '../visualizations/MambaDeltaViz'
 import { MambaTokenStepViz } from '../visualizations/MambaTokenStepViz'
+import { VanillaMambaViz } from '../visualizations/VanillaMambaViz'
 
 /**
  * Registry of components that can be rendered from JSON
@@ -45,6 +46,7 @@ const componentMap = {
   GroupMultTable,
   MambaDeltaViz,
   MambaTokenStepViz,
+  VanillaMambaViz,
 
   // State bindings
   StateValue,

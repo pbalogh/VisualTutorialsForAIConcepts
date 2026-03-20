@@ -144,10 +144,19 @@ function TrunkPanel({ data, x, y, width, height, showGlow }) {
         <text x={x + 75} y={y + 60} fill="#475569" fontSize="9">0 (silent)</text>
       )}
 
-      {/* Label */}
-      <text x={x + width / 2} y={y + 82} textAnchor="middle"
-        fill="#e2e8f0" fontSize="10" fontStyle="italic">
-        {data.label}
+      {/* Trunk state value */}
+      <text x={x + width / 2} y={y + 76} textAnchor="middle"
+        fill="#e2e8f0" fontSize="10" fontWeight="600">
+        Trunk state: {data.h.toFixed(2)}
+      </text>
+      {/* Hypothesized interpretation */}
+      <text x={x + width / 2} y={y + 90} textAnchor="middle"
+        fill="#a78bfa" fontSize="9" fontStyle="italic">
+        Hypothesized: {data.label}
+      </text>
+      <text x={x + width - 8} y={y + 90} textAnchor="end"
+        fill="#64748b" fontSize="7" fontStyle="italic">
+        (?)
       </text>
     </g>
   )
@@ -211,7 +220,7 @@ export function MambaTokenStepViz() {
   const trunkX = 500
   const trunkY = 100
   const trunkW = 200
-  const trunkH = 100
+  const trunkH = 110
 
   const showGlow = step.trunk.mod > 0
 
@@ -331,6 +340,10 @@ export function MambaTokenStepViz() {
           nudging them to reset or shift their states.
         </div>
       )}
+
+      <div className="mt-2 text-xs text-amber-300/80 bg-amber-900/20 border border-amber-700/40 rounded-lg px-3 py-1.5">
+        The branch/trunk labels (NP complete, topic=cat, etc.) show what we hypothesize the architecture would learn to represent. This is a proposed architecture — the semantic interpretations require training a model and performing interpretability analysis to verify.
+      </div>
     </div>
   )
 }
