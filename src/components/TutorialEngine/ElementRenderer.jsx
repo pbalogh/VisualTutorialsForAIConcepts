@@ -20,6 +20,8 @@ import { LeadLagPlayground } from '../visualizations/LeadLagCorrelationViz'
 import { LeastSquaresPlayground } from '../visualizations/LeastSquaresViz'
 import { ComplexRotationViz, ComplexVectorViz, DimensionalityChoiceViz } from '../visualizations/ComplexRotationViz'
 import { TriangleRotationPuzzle, CoinFlipPuzzle, TwoCoinsPuzzle, GroupMultTable } from '../visualizations/GroupTheoryPuzzleViz'
+import { MambaDeltaViz } from '../visualizations/MambaDeltaViz'
+import { MambaTokenStepViz } from '../visualizations/MambaTokenStepViz'
 
 /**
  * Registry of components that can be rendered from JSON
@@ -41,7 +43,9 @@ const componentMap = {
   CoinFlipPuzzle,
   TwoCoinsPuzzle,
   GroupMultTable,
-  
+  MambaDeltaViz,
+  MambaTokenStepViz,
+
   // State bindings
   StateValue,
   StateComputed,

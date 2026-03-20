@@ -360,6 +360,60 @@
       {
         "type": "Section",
         "props": {
+          "title": "Inside the Δ Pipeline: From Token to Gate"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "A common misconception is that Mamba's Δ (delta) is a single scalar — one number controlling how much to update the hidden state. In reality, Δ is per-channel: each dimension of the state space gets its own independent gate. This is what lets Mamba selectively remember different things in different channels."
+          },
+          {
+            "type": "p",
+            "children": "The pipeline works like this: the token embedding x_t is first expanded through a linear layer, then projected down to a low-rank bottleneck (dt_rank), projected back up to full dimensionality, and finally passed through a softplus activation to ensure all Δ values are positive. Click through the tokens below to see how different words produce different Δ patterns."
+          },
+          {
+            "type": "MambaDeltaViz",
+            "props": {}
+          },
+          {
+            "type": "Callout",
+            "props": {
+              "type": "info"
+            },
+            "children": "The low-rank bottleneck (dt_rank) is a key design choice. Instead of learning d_inner × d_inner parameters for the Δ projection, Mamba uses a factorization through dt_rank (typically d_model / 16). This reduces parameters while still allowing each channel to have a distinct Δ. It's the same trick used in LoRA and attention head projections — low-rank structure captures most of the useful variation."
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "Token-by-Token: Watching Mamba Think"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "To build intuition for how Mamba processes a sequence, imagine its hidden state organized into two conceptual branches: a Fast Branch that tracks short-range syntax (subject-verb structure, clause boundaries) and a Slow Branch that tracks long-range semantics (topic, entity references). A Trunk aggregates their outputs and can send modulation signals back."
+          },
+          {
+            "type": "p",
+            "children": "Step through the sentence below and watch how each token updates the branches differently. Notice how the period '.' triggers a near-complete reset of the fast branch (high Δ → state decays) while the slow branch barely changes. Then watch the trunk fire a modulation signal at the sentence boundary."
+          },
+          {
+            "type": "MambaTokenStepViz",
+            "props": {}
+          },
+          {
+            "type": "Callout",
+            "props": {
+              "type": "tip"
+            },
+            "children": "At the '.' token, the trunk detects a sentence boundary and emits a modulation signal (mod = 0.15). This feedback nudges the branches to adjust their forget rates — similar to how biological neurons receive top-down signals that modulate their local processing. The fast branch resets almost completely (all states → 0), while the slow branch retains its topic memory. This is the dendritic diffusion principle in action: different timescales for different types of information."
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
           "title": "Mamba vs. Transformers: The Trade-offs"
         },
         "children": [
