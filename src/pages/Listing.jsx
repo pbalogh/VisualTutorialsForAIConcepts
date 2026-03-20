@@ -1062,6 +1062,18 @@ const tutorials = [
     difficulty: 3,
   },
   {
+    id: 'brainstorm-94-concept-decoupling-cats-net',
+    title: 'Concept Decoupling as Operator Formation — The CATS Net Bridge',
+    description: 'How CATS Net\'s dual-module architecture maps to Schankian operator formation and application, bridging neuroscience and symbolic AI',
+    tags: ['CATS Net', 'concept formation', 'operators', 'Gärdenfors', 'architecture'],
+    icon: '🧩',
+    gradient: 'from-emerald-500 to-teal-600',
+    shadowColor: 'shadow-emerald-500/30',
+    glowColor: 'rgba(16, 185, 129, 0.4)',
+    readTime: '18 min',
+    difficulty: 'intermediate',
+  },
+  {
     id: 'brainstorm-47-semantic-renormalization',
     title: 'Semantic Renormalization Group',
     description: 'Schankian operators as RG fixed points — why different verbs across all languages converge to the same primitives under coarse-graining, just like physical universality classes.',

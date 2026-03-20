@@ -1,0 +1,492 @@
+{
+  "type": "Fragment",
+  "meta": {
+    "title": "Concept Decoupling as Operator Formation — The CATS Net Bridge",
+    "description": "How CATS Net's dual-module architecture maps to Schankian operator formation and application, bridging neuroscience and symbolic AI",
+    "author": "Peter Balogh",
+    "lastUpdated": "2026-03-20",
+    "tags": ["CATS Net", "concept formation", "operators", "Gärdenfors", "architecture"]
+  },
+  "content": {
+    "type": "Fragment",
+    "children": [
+      {
+        "type": "Section",
+        "props": { "title": "1. The Problem: How Do Brains Form Reusable Concepts?" },
+        "children": [
+          {
+            "type": "p",
+            "children": "A cat doesn't memorize every mouse it's ever chased. It forms the concept CHASE — an abstract pattern that transfers to new mice, new rooms, new contexts. A toddler doesn't memorize every instance of giving — they form something like ATRANS that works whether you're giving a toy, a cookie, or a hug."
+          },
+          {
+            "type": "p",
+            "children": "This is the deepest puzzle in cognitive science: how do brains form reusable concepts from raw experience? Not just categories (that's 'dog' vs 'cat') but TRANSFORMATIONS — the abstract patterns of change that we apply across wildly different contexts."
+          },
+          {
+            "type": "Analogy",
+            "props": { "concept": "Concept formation as recipe extraction" },
+            "children": [
+              {
+                "type": "p",
+                "children": "Imagine you eat at 50 different Italian restaurants. You don't memorize each meal. Instead, you extract RECIPES — abstract procedures that work regardless of which kitchen you're in. 'Sauté garlic in olive oil, add tomatoes, simmer' works whether you're in Rome or your own kitchen."
+              },
+              {
+                "type": "p",
+                "children": "The recipe is DECOUPLED from any specific restaurant. That's concept decoupling: extracting the abstract transformation pattern and separating it from the specific context where you learned it."
+              }
+            ]
+          },
+          {
+            "type": "p",
+            "children": "The key constraint: these concepts aren't formed by compression alone. They're formed to be USEFUL. A concept that perfectly compresses your experiences but doesn't help you act in the world is useless. The brain forms concepts that serve downstream tasks — prediction, planning, action."
+          },
+          {
+            "type": "Callout",
+            "props": { "type": "info" },
+            "children": [
+              {
+                "type": "p",
+                "children": "This is exactly what Schankian operators are supposed to be: abstract transformation patterns (ATRANS, PTRANS, PROPEL, etc.) that are reusable across contexts. The question is: how do they FORM? CATS Net gives us a concrete computational answer."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "2. CATS Net Architecture — The Dual-Module System" },
+        "children": [
+          {
+            "type": "p",
+            "children": "CATS Net (Concept Abstraction and Task Solving Network), published in Nature Computational Science in February 2026, provides a strikingly elegant architecture for concept formation. It has exactly two modules that talk to each other through a bottleneck:"
+          },
+          {
+            "type": "DeepDive",
+            "props": { "title": "The Two Modules" },
+            "children": [
+              {
+                "type": "p",
+                "children": "The CA (Concept Abstraction) module takes in a set of experiences — examples of a concept in action — and compresses them through an information bottleneck into a low-dimensional concept vector. This vector is the 'essence' of what all those experiences have in common."
+              },
+              {
+                "type": "p",
+                "children": "The TS (Task Solving) module takes this concept vector and uses it to CONFIGURE its own processing. The concept vector doesn't just label the input — it gates, modulates, and routes the TS module's computation. Different concept vectors literally make the TS module compute different functions."
+              },
+              {
+                "type": "p",
+                "children": "The critical insight: these two modules are trained END-TO-END. The CA module learns to form concepts that make the TS module succeed at its task. Concepts aren't formed in isolation — they're sculpted by their usefulness."
+              }
+            ]
+          },
+          {
+            "type": "CodeBlock",
+            "props": { "language": "text" },
+            "children": "CATS Net Architecture\n═══════════════════════════════════════════════════════════════\n\n  EXPERIENCES                          TASK\n  ┌─────────┐                         ┌──────────┐\n  │ Example₁ │                         │ New input │\n  │ Example₂ │──→ CA Module ──→ ┐      │ to solve  │\n  │ Example₃ │    (compress)    │      └────┬─────┘\n  │   ...    │                  │           │\n  └─────────┘                  │           │\n                               ▼           ▼\n                         ┌──────────────────────┐\n                         │   Concept Vector      │\n                         │   (bottleneck: d=20-  │\n                         │    100 dimensions)    │\n                         └──────────┬───────────┘\n                                    │ gates/configures\n                                    ▼\n                              ┌───────────┐\n                              │ TS Module  │\n                              │ (solve     │──→  OUTPUT\n                              │  task)     │     (answer)\n                              └───────────┘\n\n  Key: CA and TS are trained JOINTLY.\n  CA learns concepts that make TS succeed.\n  The bottleneck forces abstraction."
+          },
+          {
+            "type": "p",
+            "children": "The bottleneck is crucial. If the concept vector had unlimited capacity, the CA module could just memorize all the examples. The narrow bottleneck FORCES it to find what's common — the abstract pattern. And because the TS module needs that vector to succeed, only task-relevant information survives the compression."
+          },
+          {
+            "type": "Example",
+            "props": { "title": "CATS Net learning 'giving'" },
+            "children": [
+              {
+                "type": "CodeBlock",
+                "props": { "language": "text" },
+                "children": "CA Module receives examples of 'giving':\n  • John gave Mary a book\n  • The teacher handed the student a pencil  \n  • Mom passed Dad the salt\n  • The company transferred ownership to the buyer\n\nCA compresses to concept vector c = [0.8, -0.2, 0.5, 0.1, ...]  (d=32)\n\nTS Module receives a NEW situation:\n  • Alice has a toy. Bob wants it. What happens after Alice gives?\n\nTS Module, CONFIGURED by c, computes:\n  • Alice: possession(toy) → ¬possession(toy)\n  • Bob:   ¬possession(toy) → possession(toy)\n  • toy:   location(Alice) → location(Bob)\n\nThe concept vector c encodes ATRANS — abstract transfer of possession.\nThe TS module applies it to a novel situation it's never seen."
+              }
+            ]
+          },
+          {
+            "type": "Callout",
+            "props": { "type": "warning" },
+            "children": [
+              {
+                "type": "p",
+                "children": "The concept vector doesn't represent 'giving' as a label or a word. It represents the COMPUTATIONAL PATTERN — what transformations to apply to entity states. This is concept-as-program, not concept-as-category."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "3. The Operator Connection — CATS Net IS Schankian Architecture" },
+        "children": [
+          {
+            "type": "p",
+            "children": "Here's the punchline: CATS Net's dual-module architecture maps DIRECTLY onto Schankian operators. The mapping is not metaphorical — it's structural."
+          },
+          {
+            "type": "DefinitionList",
+            "props": {
+              "items": [
+                {
+                  "term": "CA Module = Operator FORMATION",
+                  "definition": "The CA module does exactly what Schank proposed: it takes multiple instances of a transformation type (different givings, different movings, different tellings) and extracts the common operator. ATRANS emerges from seeing many transfers. PTRANS emerges from seeing many physical movements. The CA module IS the operator formation process."
+                },
+                {
+                  "term": "TS Module = Operator APPLICATION",
+                  "definition": "The TS module takes the formed operator (as concept vector) and applies it to new situations. This is Schankian operator application: given ATRANS and a new scenario, compute the state changes. The concept vector configures the TS module to execute that specific transformation."
+                },
+                {
+                  "term": "Concept Decoupling = Operator ABSTRACTION",
+                  "definition": "The information bottleneck forces concept decoupling: the concept vector works across contexts. ATRANS works for books, money, information, or authority. PTRANS works for balls, people, or molecules. The operator is DECOUPLED from its specific instances — exactly Schank's claim about primitive universality."
+                },
+                {
+                  "term": "Concept Vector = Operator Embedding",
+                  "definition": "The low-dimensional concept vector IS the operator in geometric form. It's not a discrete symbol (ATRANS) — it's a continuous vector in concept space. Different operator types occupy different regions of this space. The vector literally routes and gates computation."
+                }
+              ]
+            }
+          },
+          {
+            "type": "InteractiveDemo",
+            "props": {
+              "title": "How Concept Vectors Configure the Task Solver",
+              "type": "slider",
+              "config": {
+                "description": "Adjust the concept vector to see how different operator types configure the task solver differently. The sliders represent dimensions of the concept vector — different configurations activate different processing pathways.",
+                "sliders": [
+                  { "label": "Transfer Dim", "min": -1, "max": 1, "step": 0.1, "default": 0.8 },
+                  { "label": "Physical Dim", "min": -1, "max": 1, "step": 0.1, "default": -0.2 },
+                  { "label": "Mental Dim", "min": -1, "max": 1, "step": 0.1, "default": 0.1 },
+                  { "label": "Force Dim", "min": -1, "max": 1, "step": 0.1, "default": 0.0 }
+                ],
+                "presets": [
+                  { "label": "ATRANS (give/take)", "values": [0.9, -0.1, 0.1, 0.0], "description": "High transfer, low physical → ownership changes hands, object may or may not move physically" },
+                  { "label": "PTRANS (move)", "values": [-0.1, 0.9, 0.0, 0.2], "description": "Low transfer, high physical → object changes location, ownership unchanged" },
+                  { "label": "MTRANS (tell/learn)", "values": [0.7, -0.3, 0.8, 0.0], "description": "High transfer AND high mental → information changes minds, nothing physical moves" },
+                  { "label": "PROPEL (push/kick)", "values": [0.0, 0.6, 0.0, 0.9], "description": "High force, moderate physical → force applied, object set in motion" }
+                ],
+                "output_template": "Concept vector c = [{0}, {1}, {2}, {3}]\n\nTS Module routing:\n  • Possession-change pathway: {0_pct}% activated\n  • Location-change pathway:   {1_pct}% activated  \n  • Belief-change pathway:     {2_pct}% activated\n  • Force-application pathway: {3_pct}% activated\n\nThe TS module computes DIFFERENT functions\ndepending on which pathways are activated.\nThis IS the operator — not a label, but a\nrouting configuration."
+              }
+            }
+          },
+          {
+            "type": "p",
+            "children": "Notice what's happening: the concept vector doesn't symbolically say 'this is ATRANS.' It CONTINUOUSLY configures the processing pipeline. ATRANS-like vectors activate possession-change pathways. PTRANS-like vectors activate location-change pathways. The operator isn't a discrete symbol — it's a continuous routing program."
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "4. Gärdenfors Conceptual Spaces — The Geometric Foundation" },
+        "children": [
+          {
+            "type": "p",
+            "children": "Peter Gärdenfors proposed that concepts live in continuous geometric spaces defined by quality dimensions — temperature, color, size, pitch, etc. A concept like 'red' is a convex region in color space. A concept like 'tall' is a region in height space. This framework provides the mathematical foundation for what CATS Net discovers."
+          },
+          {
+            "type": "Analogy",
+            "props": { "concept": "Conceptual spaces as maps" },
+            "children": [
+              {
+                "type": "p",
+                "children": "Think of a conceptual space as a map of a city. Each dimension is a street (temperature, brightness, size). A concept like 'warm' is a NEIGHBORHOOD — a convex region you can walk through without leaving warmth. The borders are fuzzy, but the center is clear."
+              },
+              {
+                "type": "p",
+                "children": "Now operators are DIRECTIONS on this map. ATRANS points from 'X has it' toward 'Y has it.' PROPEL points from 'at rest' toward 'in motion.' You can walk different distances in these directions (gentle push vs. violent shove), but the DIRECTION is the operator."
+              }
+            ]
+          },
+          {
+            "type": "p",
+            "children": "Here's the key tension: Schank proposed exactly 11 discrete primitive operators. Gärdenfors proposes continuous spaces. CATS Net's concept vectors are continuous and typically 20-100 dimensions. Who's right?"
+          },
+          {
+            "type": "DeepDive",
+            "props": { "title": "Could operators be continuous directions rather than discrete categories?" },
+            "children": [
+              {
+                "type": "p",
+                "children": "Consider color. We experience 'red', 'blue', 'green' as discrete categories — but the underlying space (wavelength) is continuous. The categories are useful human impositions on a continuous reality. Berlin & Kay showed that all languages carve up color space into roughly the same categories, suggesting the discretization isn't arbitrary — there are natural 'joints' in the space."
+              },
+              {
+                "type": "p",
+                "children": "Operators might work the same way. The underlying concept space is continuous (Gärdenfors). But there may be natural 'joints' — directions that are especially useful, especially common, especially compositional. Schank's 11 primitives might be the operator equivalent of basic color terms: a useful discretization of a continuous space, not arbitrary, but not the only possible one."
+              },
+              {
+                "type": "p",
+                "children": "CATS Net can tell us. If concept vectors cluster tightly into ~11 groups, Schank was essentially right — operators are approximately discrete. If they spread continuously with no clear clusters, Gärdenfors was right — operators are directions in a continuous space, and Schank's 11 are a human-imposed grid."
+              },
+              {
+                "type": "p",
+                "children": "There's a third possibility: operators might be discrete at coarse resolution and continuous at fine resolution. ATRANS is a cluster, but within it, 'give', 'sell', 'bequeath', 'lend' are continuous variations on the ATRANS direction. Discrete macro-operators, continuous micro-operators."
+              }
+            ]
+          },
+          {
+            "type": "CodeBlock",
+            "props": { "language": "text" },
+            "children": "Gärdenfors Conceptual Space for Operators\n══════════════════════════════════════════\n\n         Mental Dimension\n              ↑\n              │     • MTRANS (tell)\n              │       • MBUILD (think)\n              │\n              │               • ATRANS (give)\n    ──────────┼────────────────────→ Transfer Dimension\n              │\n     PROPEL • │    • PTRANS (move)\n              │\n              │  • GRASP (hold)\n              ↓\n         Physical Dimension\n\n  Schank's 11:  discrete points (or small clusters)\n  Gärdenfors:   continuous directions in this space\n  CATS Net:     will tell us which is closer to truth\n\n  Key question: does the concept vector space have\n  natural clusters, or is it smooth?"
+          },
+          {
+            "type": "p",
+            "children": "The dimensionality matters too. Schank uses 11 categories — that's like having an 11-dimensional one-hot encoding. CATS Net typically learns 20-100 dimensional concept vectors. Gärdenfors' quality dimensions can be arbitrary. The extra dimensions in CATS Net might capture sub-type information (how forceful? how willing? how fast?) that Schank's discrete labels throw away."
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "5. The Experimental Proposal — Testing the Bridge" },
+        "children": [
+          {
+            "type": "p",
+            "children": "We can actually TEST whether operators emerge from CATS-Net-style training. Here's the concrete proposal:"
+          },
+          {
+            "type": "p",
+            "children": "Train a dual-module network on event triples: (entity_state_before, event_description, entity_state_after). The CA module sees sets of same-type events and forms concept vectors. The TS module uses those vectors to predict state changes for new entities."
+          },
+          {
+            "type": "CodeBlock",
+            "props": { "language": "text" },
+            "children": "Experimental Setup\n══════════════════\n\nTraining Data: (entity_before, event, entity_after) triples\n  • \"ball on ground\"  + \"John kicked\"    → \"ball in air, moving fast\"\n  • \"book on shelf\"   + \"Mary grabbed\"   → \"book in Mary's hand\"\n  • \"money in wallet\" + \"Alice paid Bob\" → \"money in Bob's possession\"\n  • ...thousands of such triples from narrative corpora\n\nCA Module Input: sets of triples sharing an event type\n  • {all kicking events}  → concept vector c_kick\n  • {all giving events}   → concept vector c_give  \n  • {all telling events}  → concept vector c_tell\n\nTS Module Task: given c and a NEW (entity_before, event),\n                predict entity_after\n\nAnalysis Pipeline:\n  1. Collect all learned concept vectors\n  2. Run PCA → how many principal components?\n  3. Run clustering (k-means, HDBSCAN) → how many natural clusters?\n  4. Compare clusters to Schank's 11 primitives\n  5. Measure inter-cluster vs intra-cluster variance"
+          },
+          {
+            "type": "InteractiveDemo",
+            "props": {
+              "title": "Predicting the Outcome: Discrete vs. Continuous",
+              "type": "toggle",
+              "config": {
+                "description": "What will the experiment find? Two competing hypotheses make different predictions about what PCA on concept vectors will reveal.",
+                "options": [
+                  {
+                    "label": "Hypothesis A: Operators are discrete",
+                    "content": "PCA reveals ~11 principal directions explaining >90% of variance. Concept vectors cluster tightly (high silhouette score). Clusters map onto Schank's primitives with >80% correspondence. Within-cluster variance is small relative to between-cluster variance.\n\nImplication: Schank was right. Operators ARE approximately discrete. The brain discovers the same ~11 categories that Schank proposed. CATS Net rediscovers Schankian primitives from data.\n\nThis would be extraordinary — it would mean the number and nature of semantic primitives are DETERMINED by the structure of events in the world, not by human linguistic convention."
+                  },
+                  {
+                    "label": "Hypothesis B: Operators are continuous",
+                    "content": "PCA reveals a smooth eigenvalue spectrum with no clear 'elbow.' Concept vectors fill a continuous manifold. No natural clustering emerges. The space has 20-50 meaningful dimensions, not 11.\n\nImplication: Gärdenfors was right. Operators are continuous directions in conceptual space. Schank's 11 are a useful but arbitrary discretization — like dividing a color wheel into exactly 7 colors. The underlying reality is richer.\n\nThis would mean we should stop looking for discrete primitives and instead characterize the continuous operator manifold."
+                  },
+                  {
+                    "label": "Hypothesis C: Hierarchical structure",
+                    "content": "PCA reveals ~11 coarse directions AND continuous sub-structure within each. At resolution ε₁, you see Schank's clusters. At finer resolution ε₂, each cluster is a continuous sub-manifold. 'ATRANS' is a cluster, but give/sell/lend/donate are continuous variations.\n\nImplication: BOTH were right at different scales. Operators have discrete macro-structure (Schank) and continuous micro-structure (Gärdenfors). This is the most likely outcome — and the most useful, because it gives us both discrete compositionality and continuous gradation."
+                  }
+                ]
+              }
+            }
+          },
+          {
+            "type": "Callout",
+            "props": { "type": "info" },
+            "children": [
+              {
+                "type": "p",
+                "children": "The beauty of this experiment: it's FALSIFIABLE. If concept vectors don't cluster at all, operator theory is wrong. If they cluster into exactly 11, Schank is vindicated. If they cluster into 7 or 23, we've discovered the true number of primitives. Any outcome teaches us something."
+              }
+            ]
+          },
+          {
+            "type": "p",
+            "children": "Critical design choices:"
+          },
+          {
+            "type": "ul",
+            "children": [
+              { "type": "li", "children": "Bottleneck dimensionality: too small (d=3) forces artificial discretization; too large (d=500) allows memorization. The sweet spot (d=20-64) lets the data decide what structure to form." },
+              { "type": "li", "children": "Training data diversity: need many TYPES of events across many CONTEXTS. If all your 'giving' examples involve books, the concept vector will encode 'book-transfer' not 'abstract-transfer.'" },
+              { "type": "li", "children": "Task design: the TS module's task matters. Predicting physical state changes favors PTRANS-like concepts. Predicting social consequences favors ATRANS-like concepts. Need a balanced task that rewards ALL operator types." },
+              { "type": "li", "children": "Evaluation: compare against Schank's 11, Dowty's 4 (CAUSE, BECOME, DO, ACT), Levin's 49 verb classes, and FrameNet's ~1,200 frames. Multiple granularities test the hierarchical hypothesis." }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "6. Implications — What This Means for AI" },
+        "children": [
+          {
+            "type": "p",
+            "children": "If CATS Net's architecture really does map onto Schankian operators, the implications are profound — for both AI architecture and our understanding of intelligence."
+          },
+          {
+            "type": "DefinitionList",
+            "props": {
+              "items": [
+                {
+                  "term": "Concepts as Interface Layer",
+                  "definition": "The concept vector sits BETWEEN perception (the CA module's input) and reasoning (the TS module's computation). This is exactly the 'thin semantic layer' we proposed in Entry 82 (VLA Mech Interp) — operators aren't deep in the model, they're at the interface. CATS Net shows this isn't just an architectural choice; it's how useful concepts must work."
+                },
+                {
+                  "term": "Operators as Learned Routing Programs",
+                  "definition": "The concept vector doesn't store facts — it configures computation. Different vectors make the TS module execute different functions. This means operators aren't declarative knowledge ('ATRANS means transfer of possession'); they're procedural programs ('when you see this vector pattern, route through the possession-change pathway'). Hard-coded symbols become learned routing."
+                },
+                {
+                  "term": "The SAE Connection",
+                  "definition": "Sparse Autoencoder features decompose activations into interpretable directions. CATS Net's concept vectors are also interpretable directions in a learned space. Could SAE dictionaries BE concept libraries? Each SAE feature could be a concept vector that gates/configures downstream computation — exactly the CATS Net architecture, but discovered post-hoc rather than trained explicitly."
+                },
+                {
+                  "term": "The DeepONet Connection",
+                  "definition": "In Entry 85, we showed DeepONet's branch-trunk architecture separates operator encoding from entity encoding. CATS Net does the same thing: CA = branch (operator/concept encoding), TS = trunk (entity processing). The concept vector IS the branch output. We now have TWO independent architectures converging on the same design: separate the operator from what it operates on."
+                }
+              ]
+            }
+          },
+          {
+            "type": "DeepDive",
+            "props": { "title": "Sparse dictionaries as concept libraries" },
+            "children": [
+              {
+                "type": "p",
+                "children": "Anthropic's SAE work found ~34 million monosemantic features in Claude. Each feature fires for a specific concept — 'Golden Gate Bridge', 'deception', 'code bugs'. These features decompose the model's internal state into a sparse sum of concept activations."
+              },
+              {
+                "type": "p",
+                "children": "Now think of this through CATS Net's lens. Each SAE feature is a concept vector direction. When the feature fires, it's like the CA module saying 'this input matches concept X.' The downstream computation is then configured by which features are active and how strongly — exactly how the TS module uses concept vectors."
+              },
+              {
+                "type": "p",
+                "children": "The provocative prediction: somewhere in those 34 million features, there should be features that function as Schankian operators — features that fire for 'transfer events' regardless of what's being transferred, or 'physical movement' regardless of what's moving. These would be the CA module's learned concept vectors, discovered by the SAE's compression."
+              },
+              {
+                "type": "p",
+                "children": "Entry 25 (Mining SAE Dictionaries) proposed searching for exactly these features. CATS Net tells us what to look for: features that gate/configure downstream computation in operator-specific ways, not just features that activate for operator-related inputs."
+              }
+            ]
+          },
+          {
+            "type": "Analogy",
+            "props": { "concept": "The orchestra conductor analogy" },
+            "children": [
+              {
+                "type": "p",
+                "children": "The concept vector is like a musical conductor. The orchestra (TS module) can play any piece, but the conductor determines WHICH piece and HOW. A conductor for a waltz configures the orchestra differently than a conductor for a march — different sections emphasized, different tempo, different dynamics."
+              },
+              {
+                "type": "p",
+                "children": "The concept vector for ATRANS 'conducts' the TS module to emphasize possession-tracking circuits. The vector for PTRANS 'conducts' it to emphasize spatial-tracking circuits. Same orchestra, different music — because a different conductor is waving the baton."
+              },
+              {
+                "type": "p",
+                "children": "And just as a conductor learns by studying many performances of many pieces, the CA module learns by observing many instances of many event types. The conductor doesn't memorize every note — they learn the PATTERN. That's concept formation."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "7. Connections to Our Other Work" },
+        "children": [
+          {
+            "type": "p",
+            "children": "CATS Net concept decoupling connects to several active threads in our research:"
+          },
+          {
+            "type": "ul",
+            "children": [
+              {
+                "type": "li",
+                "children": "Information Bottleneck (Entry 39): The CA module's bottleneck IS information bottleneck compression — squeeze event descriptions and what survives is the operator. CATS Net adds the task-relevance criterion that plain IB lacks."
+              },
+              {
+                "type": "li",
+                "children": "DeepONet (Entry 85): Branch-trunk factorization = CA-TS factorization. Two independent research communities arrived at the same architecture for separating 'what transformation' from 'what gets transformed.'"
+              },
+              {
+                "type": "li",
+                "children": "MoE Routing (Entry 62): If concept vectors route computation, they're doing exactly what MoE gating does — selecting which expert (pathway) to activate. The concept vector IS the router. Constrain to ~14 experts and see if you get Schank's primitives."
+              },
+              {
+                "type": "li",
+                "children": "VLA Mech Interp (Entry 82): Action primitives as a thin layer atop representations — CATS Net's concept vector IS that thin layer, sitting between the CA module's perception and the TS module's action."
+              },
+              {
+                "type": "li",
+                "children": "Active Inference (Entry 83): The CA module minimizes surprise by predicting the event type from examples. The TS module uses that prediction to act. This is Friston's perception-action loop, with the concept vector as the sufficient statistic."
+              },
+              {
+                "type": "li",
+                "children": "MDL Operator Discovery (Entry 45): The bottleneck dimensionality = the description length budget. MDL and CATS Net both use compression pressure to find primitives — MDL explicitly, CATS Net implicitly via the bottleneck."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "Summary" },
+        "children": [
+          {
+            "type": "p",
+            "children": "CATS Net provides a concrete, trainable architecture for the problem that has haunted cognitive science: how do reusable concepts form from experience? The answer: through a dual-module system where one module compresses experiences into concept vectors (operator FORMATION) and another uses those vectors to solve new tasks (operator APPLICATION). The information bottleneck forces concepts to be abstract and transferable (operator ABSTRACTION)."
+          },
+          {
+            "type": "p",
+            "children": "This maps directly onto Schankian operators: CA = learn ATRANS from examples, TS = apply ATRANS to new situations, bottleneck = ensure ATRANS works across contexts. The concept vectors live in a continuous Gärdenfors-style space, but may cluster into approximately discrete regions matching Schank's primitives."
+          },
+          {
+            "type": "p",
+            "children": "The deepest insight: concepts are not labels, not categories, not static representations. They are ROUTING PROGRAMS — continuous vectors that configure downstream computation. An operator doesn't DESCRIBE a transformation; it ENACTS one by gating and modulating a general-purpose processing module. This is the bridge between symbolic AI (Schank's discrete primitives) and neural AI (continuous learned representations) — and CATS Net shows both traditions were grasping the same elephant."
+          }
+        ]
+      },
+      {
+        "type": "Quiz",
+        "props": {
+          "questions": [
+            {
+              "question": "What is the primary role of the CA (Concept Abstraction) module in CATS Net?",
+              "options": [
+                "Classify inputs into predefined categories",
+                "Compress sets of experiences into concept vectors via an information bottleneck",
+                "Generate new examples of a concept",
+                "Evaluate the quality of the TS module's outputs"
+              ],
+              "answer": 1,
+              "explanation": "The CA module takes sets of related experiences and compresses them through an information bottleneck into low-dimensional concept vectors. The bottleneck forces it to extract what's common — the abstract pattern — rather than memorizing specific examples."
+            },
+            {
+              "question": "How does the concept vector relate to the TS (Task Solving) module?",
+              "options": [
+                "It provides a label that the TS module looks up in a table",
+                "It replaces the TS module's weights for each new task",
+                "It gates, modulates, and configures the TS module's computation — different vectors make it compute different functions",
+                "It serves as the loss function for the TS module"
+              ],
+              "answer": 2,
+              "explanation": "The concept vector literally configures how the TS module processes its input. It gates pathways, modulates activations, and routes computation — making the TS module execute different functions depending on the operator type. This is concept-as-routing-program."
+            },
+            {
+              "question": "What is 'concept decoupling' in the CATS Net framework?",
+              "options": [
+                "Splitting the network into two separate models",
+                "The concept vector working across different contexts, not tied to specific training instances",
+                "Removing concepts from the network after training",
+                "Using different concept vectors for training vs. testing"
+              ],
+              "answer": 1,
+              "explanation": "Concept decoupling means the learned concept vector is ABSTRACT — it transfers to new contexts it wasn't trained on. ATRANS works for books, money, or authority because the information bottleneck forced the CA module to extract only the universal pattern (transfer of possession), decoupled from specific instances."
+            },
+            {
+              "question": "What would finding ~11 natural clusters in CATS Net's concept vector space tell us?",
+              "options": [
+                "The network is underfitting",
+                "The bottleneck dimensionality is too small",
+                "Schank's primitive operators are approximately correct — they emerge from data rather than being human-imposed",
+                "Gärdenfors' continuous space model is definitively wrong"
+              ],
+              "answer": 2,
+              "explanation": "If concept vectors naturally cluster into ~11 groups matching Schank's primitives, it would mean the discrete operator structure is determined by the nature of events in the world, not by linguistic convention. It wouldn't disprove Gärdenfors (the space is still continuous), but would show it has natural 'joints' at Schank's categories."
+            },
+            {
+              "question": "How does CATS Net connect to the DeepONet architecture from Entry 85?",
+              "options": [
+                "They use the same training data",
+                "Both separate operator/concept encoding (CA/Branch) from entity processing (TS/Trunk) — two independent communities converging on the same factorization",
+                "CATS Net is a special case of DeepONet",
+                "They are competing architectures for different problems"
+              ],
+              "answer": 1,
+              "explanation": "CATS Net's CA module and DeepONet's Branch network both encode the operator/concept, while the TS module and Trunk network both process entities. Two independent research communities — neuroscience-inspired (CATS Net) and physics-inspired (DeepONet) — arrived at the same fundamental insight: separate WHAT transformation from WHAT gets transformed."
+            }
+          ]
+        }
+      }
+    ]
+  }
+}
