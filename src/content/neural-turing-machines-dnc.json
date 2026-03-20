@@ -311,7 +311,53 @@
               },
               {
                 "type": "p",
-                "children": "This combination is remarkably powerful. The model can look up a value by content, then sequentially scan forward from that location. It's the difference between \"find 'John' in the phonebook\" (content) and \"read the next three entries\" (location-based shift)."
+                "children": [
+                  "This combination is remarkably powerful. The model can look up a value by content, then sequentially scan forward from that location. It's the difference between \"find 'John' in the phonebook\" (content) and \"read the next three entries\" (location-based shift)",
+                  {
+                    "type": "FootnoteRef",
+                    "props": {
+                      "id": "source-ann-1774034975259-vbjav9",
+                      "targetId": "ann-1774034975259-vbjav9",
+                      "type": "ask"
+                    }
+                  },
+                  "."
+                ]
+              },
+              {
+                "type": "Sidebar",
+                "props": {
+                  "type": "note",
+                  "title": "Q: How would you use those 3 addressing tools to do this?",
+                  "expanded": true,
+                  "id": "ann-1774034975259-vbjav9",
+                  "sourceId": "source-ann-1774034975259-vbjav9"
+                },
+                "children": [
+                  {
+                    "type": "p",
+                    "children": "To \"read the next three entries\" after finding \"John,\" the NTM chains all three addressing tools in sequence. First, content-based addressing scans every memory location and compares it against a key vector representing \"John.\" This produces a weight distribution heavily focused on, say, location 42 where John's entry lives. The interpolation gate then decides how much to trust this fresh content lookup versus where the head was already pointing. Since we just did a deliberate lookup, the gate would be set high, mostly adopting the new content-based weights centered on location 42."
+                  },
+                  {
+                    "type": "p",
+                    "children": "Now the location-based shift takes over. The shift distribution acts like a small convolutional kernel over the weight vector. To move one entry forward, the model emits a shift weighted toward +1. After reading location 42, shifting by +1 moves focus to location 43. On the next time step, the model can suppress the content-based lookup by setting the interpolation gate low, keeping focus near where it already is, and shifting by +1 again to reach location 44. One more step gets it to location 45. Across three consecutive time steps, it reads locations 43, 44, and 45, the three entries after John."
+                  },
+                  {
+                    "type": "p",
+                    "children": "The key insight is that content-based addressing fires once to establish a starting point, then the interpolation gate effectively \"turns off\" content lookup on subsequent steps so the head does not jump somewhere else. The shift mechanism then does the sequential scanning. Sharpening also matters here because you want the head crisply focused on one location at a time rather than blurring across neighbors. A high sharpening parameter keeps the weights peaked so each read pulls from exactly one entry rather than a smeared average of several."
+                  },
+                  {
+                    "type": "p",
+                    "children": "Think of it like using your finger in a real phonebook. You scan the page looking for \"John\" (content addressing), you plant your finger there (interpolation commits to that spot), then you drag your finger down line by line (shift), keeping it pressed firmly so you read one entry at a time, not a blur of ink (sharpening)."
+                  },
+                  {
+                    "type": "p",
+                    "props": {
+                      "className": "text-xs text-gray-400 mt-2"
+                    },
+                    "children": "Asked about \"\"read the next three entries\" ...\" — 3/20/2026, 3:29:12 PM"
+                  }
+                ]
               }
             ]
           }
