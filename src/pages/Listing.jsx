@@ -250,6 +250,18 @@ const tutorials = [
     difficulty: 2,
   },
   {
+    id: 'neural-turing-machines-dnc',
+    title: 'Neural Turing Machines & DNCs',
+    description: 'When neural networks got their own RAM — differentiable memory, learned algorithms, and why these ideas are due for a comeback.',
+    tags: ['architecture', 'memory', 'NTM', 'DNC', 'attention', 'differentiable computing'],
+    icon: '🖥️',
+    gradient: 'from-emerald-500 to-teal-600',
+    shadowColor: 'shadow-emerald-500/30',
+    glowColor: 'rgba(16, 185, 129, 0.4)',
+    readTime: '30 min',
+    difficulty: 2,
+  },
+  {
     id: 'brainstorm-25-mining-sae-dictionaries',
     title: 'Mining SAE Dictionaries for Schankian Operators',
     description: 'What if Anthropic\'s 34M monosemantic features already contain Schankian primitives? Search instead of train — a potential shortcut that validates the hypothesis AND gets operators for free.',

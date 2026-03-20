@@ -1,0 +1,989 @@
+{
+  "id": "neural-turing-machines-dnc",
+  "title": "Neural Turing Machines & Differentiable Neural Computers",
+  "subtitle": "When Neural Networks Got Their Own RAM",
+  "readTime": "30 min",
+  "state": "published",
+  "content": {
+    "type": "Fragment",
+    "children": [
+      {
+        "type": "Callout",
+        "props": {
+          "type": "info"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": [
+              {
+                "type": "strong",
+                "children": "What if a neural network had a scratch pad?"
+              },
+              " LSTMs have a few hundred numbers of hidden state. Transformers have attention over past tokens but no explicit workspace. In 2014, Alex Graves asked a radical question: what if we gave a neural network an actual memory bank — a matrix it could read from and write to, using learned addressing? The result was the ",
+              {
+                "type": "strong",
+                "children": "Neural Turing Machine"
+              },
+              " (NTM), and its successor, the ",
+              {
+                "type": "strong",
+                "children": "Differentiable Neural Computer"
+              },
+              " (DNC). These architectures didn't just process sequences — they ",
+              {
+                "type": "em",
+                "children": "computed"
+              },
+              " with structured memory. They learned to copy, sort, and traverse graphs. And then the field moved on to transformers. This tutorial tells their story — what they got right, why they didn't scale, and why their ideas may be due for a comeback."
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "1. The Memory Bottleneck"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "Before NTMs, recurrent neural networks had a fundamental limitation: their entire memory was their hidden state vector. An LSTM with 512 hidden units has exactly 512 numbers to store everything it has ever seen. This is like trying to write a novel using only a sticky note."
+          },
+          {
+            "type": "DeepDive",
+            "props": {
+              "title": "The Sticky Note Problem"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "Consider what an LSTM must pack into its hidden state when processing the sentence: \"The patient who was referred by Dr. Smith, who graduated from Harvard Medical School in 1995 and completed a residency at Johns Hopkins, arrived at the clinic.\""
+              },
+              {
+                "type": "p",
+                "children": "The LSTM must simultaneously encode:"
+              },
+              {
+                "type": "ul",
+                "children": [
+                  {
+                    "type": "li",
+                    "children": "Who is the main subject (the patient)"
+                  },
+                  {
+                    "type": "li",
+                    "children": "Who referred them (Dr. Smith)"
+                  },
+                  {
+                    "type": "li",
+                    "children": "Where Dr. Smith went to school (Harvard)"
+                  },
+                  {
+                    "type": "li",
+                    "children": "When (1995)"
+                  },
+                  {
+                    "type": "li",
+                    "children": "Where the residency was (Johns Hopkins)"
+                  },
+                  {
+                    "type": "li",
+                    "children": "That we're still waiting for the main verb"
+                  }
+                ]
+              },
+              {
+                "type": "p",
+                "children": [
+                  "All of this in, say, 512 floating-point numbers. And every new token ",
+                  {
+                    "type": "em",
+                    "children": "overwrites"
+                  },
+                  " parts of this state. The LSTM's gating mechanism tries to protect important information, but it's fundamentally playing Tetris — cramming more and more facts into a fixed-size space."
+                ]
+              }
+            ]
+          },
+          {
+            "type": "p",
+            "children": "The insight behind NTMs was simple and profound: separate the computation from the storage. Give the network a controller (the 'CPU') and a memory bank (the 'RAM'), and let it learn to use the memory."
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "2. The Neural Turing Machine (Graves et al., 2014)"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "A Turing machine has three components: a tape (infinite memory), a head (reads and writes to tape), and a controller (decides what to do). The Neural Turing Machine mirrors this with differentiable components that can be trained end-to-end via backpropagation."
+          },
+          {
+            "type": "Analogy",
+            "props": {
+              "concept": "NTM Architecture",
+              "analogy": "A Librarian and Their Library"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": [
+                  "Think of the NTM as a ",
+                  {
+                    "type": "strong",
+                    "children": "librarian"
+                  },
+                  " (the controller network) managing a ",
+                  {
+                    "type": "strong",
+                    "children": "library"
+                  },
+                  " (the memory matrix). The librarian can:"
+                ]
+              },
+              {
+                "type": "ul",
+                "children": [
+                  {
+                    "type": "li",
+                    "children": [
+                      {
+                        "type": "strong",
+                        "children": "Read:"
+                      },
+                      " Look up books by content (\"find me something about cats\") or by location (\"what's on shelf 3?\")"
+                    ]
+                  },
+                  {
+                    "type": "li",
+                    "children": [
+                      {
+                        "type": "strong",
+                        "children": "Write:"
+                      },
+                      " Add new books, erase old ones, or update existing entries"
+                    ]
+                  },
+                  {
+                    "type": "li",
+                    "children": [
+                      {
+                        "type": "strong",
+                        "children": "Navigate:"
+                      },
+                      " Move to the next shelf (sequential access) or jump to a specific shelf (random access)"
+                    ]
+                  }
+                ]
+              },
+              {
+                "type": "p",
+                "children": "The magic: the librarian learns which books to read, what to write, and where to look — all from training data, with no explicit programming."
+              }
+            ]
+          },
+          {
+            "type": "Section",
+            "props": {
+              "title": "2.1 The Memory Matrix"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "The memory is a simple 2D matrix M of size N × W, where N is the number of memory locations (slots) and W is the width of each slot (a vector). Think of it as N rows, each storing a W-dimensional vector."
+              },
+              {
+                "type": "Example",
+                "props": {
+                  "title": "A Tiny Memory Bank"
+                },
+                "children": [
+                  {
+                    "type": "p",
+                    "children": "A memory with N=4 slots and W=3 width:"
+                  },
+                  {
+                    "type": "pre",
+                    "children": "Slot 0: [0.2, 0.8, 0.1]   ← maybe stores \"cat\"\nSlot 1: [0.9, 0.1, 0.3]   ← maybe stores \"chased\"\nSlot 2: [0.3, 0.7, 0.5]   ← maybe stores \"dog\"\nSlot 3: [0.0, 0.0, 0.0]   ← empty (available)"
+                  },
+                  {
+                    "type": "p",
+                    "children": "Real NTMs use something like N=128 slots × W=20 width. The model decides what each slot means through training."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "Section",
+            "props": {
+              "title": "2.2 Reading: Soft Attention Over Memory"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": [
+                  "Reading from memory uses a ",
+                  {
+                    "type": "strong",
+                    "children": "weight vector"
+                  },
+                  " w of length N, where each entry w_i says \"how much attention to pay to slot i.\" The read result is a weighted sum:"
+                ]
+              },
+              {
+                "type": "pre",
+                "children": "r = Σ_i  w_i · M[i]\n\nExample with weights [0.1, 0.7, 0.2, 0.0]:\nr = 0.1·[0.2,0.8,0.1] + 0.7·[0.9,0.1,0.3] + 0.2·[0.3,0.7,0.5] + 0.0·[0.0,0.0,0.0]\nr = [0.71, 0.29, 0.32]   ← mostly \"chased\", a bit of \"cat\" and \"dog\""
+              },
+              {
+                "type": "p",
+                "children": [
+                  "This is ",
+                  {
+                    "type": "em",
+                    "children": "exactly"
+                  },
+                  " the same mechanism as attention in transformers — a weighted combination of value vectors. In fact, transformers can be seen as a simplified version of this: every token's representation is a 'memory slot,' and attention weights determine which slots to read. The NTM just made the memory explicit and separate from the input."
+                ]
+              }
+            ]
+          },
+          {
+            "type": "Section",
+            "props": {
+              "title": "2.3 Writing: Erase Then Add"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "Writing is a two-step process. First, selectively erase old content; then, add new content:"
+              },
+              {
+                "type": "pre",
+                "children": "Step 1 — Erase:\n  M[i] ← M[i] · (1 - w_i · e)     where e is the \"erase vector\"\n  (w_i=1, e=1 → slot fully erased)\n  (w_i=0 → slot untouched)\n\nStep 2 — Add:\n  M[i] ← M[i] + w_i · a            where a is the \"add vector\"\n  (writes new content proportional to attention weight)"
+              },
+              {
+                "type": "p",
+                "children": "The controller network produces both the erase vector e and the add vector a. This gives the model fine-grained control: it can overwrite a slot completely (erase then add), append information (add without erase), or partially modify content."
+              }
+            ]
+          },
+          {
+            "type": "Section",
+            "props": {
+              "title": "2.4 Addressing: How to Find the Right Slot"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "This is where NTMs get clever. The model can find memory locations in two fundamentally different ways, and can blend them:"
+              },
+              {
+                "type": "p",
+                "children": [
+                  {
+                    "type": "strong",
+                    "children": "Content-based addressing"
+                  },
+                  " — \"Find the slot that looks like this key vector.\""
+                ]
+              },
+              {
+                "type": "pre",
+                "children": "For each slot i:\n  similarity(i) = cosine(k, M[i])        k = key vector from controller\n  w_content(i) = softmax(β · similarity)  β = sharpness parameter\n\nHigh β → sharp focus on best match\nLow β  → blurry attention over similar slots"
+              },
+              {
+                "type": "p",
+                "children": [
+                  {
+                    "type": "strong",
+                    "children": "Location-based addressing"
+                  },
+                  " — \"Shift attention from where I was to a nearby slot.\""
+                ]
+              },
+              {
+                "type": "pre",
+                "children": "Three steps:\n1. Interpolation gate g ∈ [0,1]:\n   w_gated = g · w_content + (1-g) · w_previous\n   (g=1: use content lookup; g=0: keep previous location)\n\n2. Convolutional shift s:\n   w_shifted(i) = Σ_j w_gated(j) · s(i-j)\n   (s = [0.1, 0.8, 0.1] means \"mostly stay, slight chance of ±1\")\n\n3. Sharpening γ ≥ 1:\n   w_final(i) = w_shifted(i)^γ / Σ_j w_shifted(j)^γ\n   (prevents attention from blurring over repeated shifts)"
+              },
+              {
+                "type": "p",
+                "children": "This combination is remarkably powerful. The model can look up a value by content, then sequentially scan forward from that location. It's the difference between \"find 'John' in the phonebook\" (content) and \"read the next three entries\" (location-based shift)."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "3. What Could NTMs Learn?"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "NTMs demonstrated something remarkable: they could learn algorithms from input-output examples alone, with no explicit programming."
+          },
+          {
+            "type": "Section",
+            "props": {
+              "title": "3.1 Copy Task"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "Given a sequence of vectors, output the same sequence. Trivial for a human, but requires the model to: (1) write each input to sequential memory slots, (2) after seeing the end-of-input marker, rewind to the beginning, (3) read and output each slot in order."
+              },
+              {
+                "type": "pre",
+                "children": "Input:  [A, B, C, D, END]\nOutput: [A, B, C, D]\n\nLearned behavior:\n  Step 1-4: Write A→slot0, B→slot1, C→slot2, D→slot3\n  Step 5:   Detect END, shift read head to slot 0\n  Step 6-9: Read slot0→A, shift+1, read slot1→B, ..."
+              },
+              {
+                "type": "p",
+                "children": "The NTM learned to use memory as a tape — writing sequentially, then reading sequentially. An LSTM can also learn copy, but its performance degrades sharply for sequences longer than those seen in training. The NTM generalized: trained on length-20 sequences, it could copy length-100 sequences perfectly, because the algorithm it learned (write sequentially, read sequentially) doesn't depend on length."
+              }
+            ]
+          },
+          {
+            "type": "Section",
+            "props": {
+              "title": "3.2 Sorting"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "Given (key, value) pairs, output the values sorted by key. The NTM learned a form of content-based retrieval — scanning memory for the minimum key, outputting its value, marking it as used, and repeating. This isn't bubble sort or merge sort; it's a neural network inventing its own sorting procedure using the primitives of read, write, and address."
+              }
+            ]
+          },
+          {
+            "type": "Section",
+            "props": {
+              "title": "3.3 Associative Recall"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "Given pairs like (A→X, B→Y, C→Z), then queried with B, output Y. This requires content-based addressing: look up the slot where B is stored, then read the associated value. This is key-value memory — the same concept that powers transformer attention, but discovered here first as an explicit mechanism."
+              }
+            ]
+          },
+          {
+            "type": "DeepDive",
+            "props": {
+              "title": "The Algorithm Discovery Insight"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "The profound result wasn't that NTMs solved these tasks — purpose-built algorithms solve them trivially. It was that the NTM discovered algorithmic strategies from data alone. Nobody told it to use sequential addressing for copying. Nobody told it to use content-based lookup for association. The architecture provided the computational primitives (read, write, address by content, shift by location), and gradient descent found the right way to compose them."
+              },
+              {
+                "type": "p",
+                "children": [
+                  "This is the core argument for providing models with ",
+                  {
+                    "type": "strong",
+                    "children": "computational structure without hardcoding knowledge"
+                  },
+                  ". The NTM doesn't know what sorting is. It has the tools to invent a sorting procedure, and training pressure to do so. This distinction — between providing primitives and providing solutions — is the key insight that may still be underexploited in modern architectures."
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "4. The Differentiable Neural Computer (Graves et al., 2016)"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": [
+              "Two years later, Graves and colleagues at DeepMind published the DNC — a more sophisticated version that solved several of the NTM's limitations. Published in ",
+              {
+                "type": "em",
+                "children": "Nature"
+              },
+              ", it demonstrated graph traversal, question answering, and multi-step reasoning from examples."
+            ]
+          },
+          {
+            "type": "Analogy",
+            "props": {
+              "concept": "NTM vs DNC",
+              "analogy": "Notepad vs Filing Cabinet"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": [
+                  "The NTM is like a ",
+                  {
+                    "type": "strong",
+                    "children": "notepad"
+                  },
+                  " — you write things down in order and flip through pages. The DNC is like a ",
+                  {
+                    "type": "strong",
+                    "children": "filing cabinet with an index system"
+                  },
+                  ":"
+                ]
+              },
+              {
+                "type": "ul",
+                "children": [
+                  {
+                    "type": "li",
+                    "children": "It knows which drawers are empty (dynamic memory allocation)"
+                  },
+                  {
+                    "type": "li",
+                    "children": "It tracks the order things were filed (temporal linking)"
+                  },
+                  {
+                    "type": "li",
+                    "children": "It can free up old drawers when they're no longer needed (memory deallocation)"
+                  },
+                  {
+                    "type": "li",
+                    "children": "It has multiple clerks who can read simultaneously (multiple read heads)"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "Section",
+            "props": {
+              "title": "4.1 Dynamic Memory Allocation"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "The NTM had no concept of \"which slots are free.\" It could accidentally overwrite important data. The DNC adds a usage vector u that tracks how much each slot has been used:"
+              },
+              {
+                "type": "pre",
+                "children": "u ∈ [0,1]^N    (0 = totally free, 1 = heavily used)\n\nAllocation weights (prefer free slots):\n  Sort slots by usage: φ = argsort(u)   (least-used first)\n  a(φ[j]) = (1 - u(φ[j])) · Π_{i=1}^{j-1} u(φ[i])\n\nThis means: allocate to the least-used slot,\nbut only if all even-less-used slots are already taken."
+              },
+              {
+                "type": "p",
+                "children": "This is analogous to malloc() in C — the system finds free memory for you. The DNC can also deallocate: when a read head accesses a slot, its usage can be reduced via a \"free gate,\" signaling that the data has been consumed and the slot can be reused."
+              }
+            ]
+          },
+          {
+            "type": "Section",
+            "props": {
+              "title": "4.2 Temporal Link Matrix"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "This is the DNC's most elegant addition. It maintains an N × N matrix L where L[i,j] records \"slot j was written immediately after slot i.\" This lets the model traverse memories in the order they were written — forward or backward."
+              },
+              {
+                "type": "pre",
+                "children": "After writing to slots in order: 3, 7, 1, 5\n\nTemporal links:\n  L[3,7] ≈ 1   (7 was written after 3)\n  L[7,1] ≈ 1   (1 was written after 7)\n  L[1,5] ≈ 1   (5 was written after 1)\n\nForward traversal from slot 3:\n  f = L^T · w   →  follows the chain 3→7→1→5\n\nBackward traversal from slot 5:\n  b = L · w     →  follows the chain 5→1→7→3"
+              },
+              {
+                "type": "p",
+                "children": [
+                  "Why does this matter? Because it separates ",
+                  {
+                    "type": "strong",
+                    "children": "temporal order"
+                  },
+                  " from ",
+                  {
+                    "type": "strong",
+                    "children": "physical location"
+                  },
+                  ". In an NTM, if you write things to slots 0, 1, 2, 3 sequentially, then the physical order matches the temporal order. But if memory gets fragmented (you free slot 1, reuse it for something new), the physical layout no longer reflects the writing order. The temporal link matrix preserves this history regardless of where things are physically stored. It's a linked list implemented as a matrix."
+                ]
+              }
+            ]
+          },
+          {
+            "type": "Section",
+            "props": {
+              "title": "4.3 Multiple Read Heads"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "The DNC uses multiple independent read heads, each with its own addressing mechanism. Each head can independently choose between three addressing modes:"
+              },
+              {
+                "type": "ul",
+                "children": [
+                  {
+                    "type": "li",
+                    "children": [
+                      {
+                        "type": "strong",
+                        "children": "Content lookup:"
+                      },
+                      " Find slots matching a key (like the NTM)"
+                    ]
+                  },
+                  {
+                    "type": "li",
+                    "children": [
+                      {
+                        "type": "strong",
+                        "children": "Forward temporal:"
+                      },
+                      " Read what was written next after the current focus"
+                    ]
+                  },
+                  {
+                    "type": "li",
+                    "children": [
+                      {
+                        "type": "strong",
+                        "children": "Backward temporal:"
+                      },
+                      " Read what was written just before the current focus"
+                    ]
+                  }
+                ]
+              },
+              {
+                "type": "p",
+                "children": "A learned \"read mode\" vector π ∈ ℝ³ blends these three modes per head. This lets one head do content lookup (\"find the node labeled 'London'\") while another follows temporal links (\"what was stored right after that?\")."
+              }
+            ]
+          },
+          {
+            "type": "Section",
+            "props": {
+              "title": "4.4 Graph Traversal: The Killer Demo"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "The DNC's flagship result was learning to traverse graphs from examples. Given a description of a graph (edges presented as pairs) and a query (\"find a path from A to E\"), the DNC learned to:"
+              },
+              {
+                "type": "ul",
+                "children": [
+                  {
+                    "type": "li",
+                    "children": "Store each node and its connections in memory"
+                  },
+                  {
+                    "type": "li",
+                    "children": "Use content-based addressing to find the start node"
+                  },
+                  {
+                    "type": "li",
+                    "children": "Follow temporal and content links to traverse edges"
+                  },
+                  {
+                    "type": "li",
+                    "children": "Output the path"
+                  }
+                ]
+              },
+              {
+                "type": "p",
+                "children": "It generalized to graph structures not seen in training — different sizes, different connectivities. The learned algorithm was genuinely general, not a memorized lookup table."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "5. NTM vs DNC: Side by Side"
+        },
+        "children": [
+          {
+            "type": "pre",
+            "children": "Feature              │ NTM (2014)           │ DNC (2016)\n─────────────────────┼──────────────────────┼──────────────────────\nMemory               │ N×W matrix           │ N×W matrix\nRead heads           │ 1                    │ Multiple (typically 4)\nWrite heads          │ 1                    │ 1\nContent addressing   │ ✓ (cosine + softmax) │ ✓ (cosine + softmax)\nLocation addressing  │ Shift + interpolation│ Temporal links (L matrix)\nMemory allocation    │ None (overwrite risk)│ Usage tracking + free gates\nDeallocation         │ None                 │ ✓ (free gates)\nSequential access    │ Convolutional shift  │ Temporal link traversal\nController           │ LSTM or feedforward  │ LSTM (typically)\nPublished in         │ arXiv                │ Nature"
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "6. Why Didn't They Scale?"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "Despite their elegance, NTMs and DNCs never achieved the dominance of transformers. Understanding why is as instructive as understanding how they work."
+          },
+          {
+            "type": "Section",
+            "props": {
+              "title": "6.1 The Soft Attention Tax"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "Every memory operation uses soft attention over ALL N slots. Reading costs O(N·W) and writing costs the same. With multiple read heads and the temporal link matrix (N×N), the DNC's memory overhead scales quadratically with the number of memory slots."
+              },
+              {
+                "type": "pre",
+                "children": "Per-timestep cost:\n  NTM:  O(N·W)           for read + write\n  DNC:  O(R·N·W + N²)    for R read heads + temporal links\n  LSTM: O(H²)             for hidden size H\n\nWith N=256 slots, W=64, R=4 read heads:\n  DNC per step: ~65K + 65K = ~130K operations\n  LSTM per step: ~262K operations (H=512)\n\nSeems comparable, but the DNC operations are harder to\nparallelize and have complex gradient flows."
+              },
+              {
+                "type": "p",
+                "children": "The real issue: increasing memory capacity requires increasing N, which makes the temporal link matrix grow as N². A DNC with 10,000 memory slots needs a 100-million-element link matrix. This doesn't scale the way simply adding transformer layers or widening hidden dimensions does."
+              }
+            ]
+          },
+          {
+            "type": "Section",
+            "props": {
+              "title": "6.2 Training Instability"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "The soft addressing mechanism creates extremely complex gradient landscapes. The content-based lookup involves cosine similarity inside a softmax inside a gated interpolation — gradients have to flow through all of this. Small changes in the key vector can cause the attention to jump discontinuously between slots, making optimization fragile."
+              },
+              {
+                "type": "p",
+                "children": "Transformers, by contrast, have a much more direct path: Q·K^T is a simple dot product, and the gradient flows cleanly through the softmax. The attention mechanism is essentially the same (content-based soft lookup), but stripped of the location-based addressing, interpolation gates, and sharpening steps that make NTM training finicky."
+              }
+            ]
+          },
+          {
+            "type": "Section",
+            "props": {
+              "title": "6.3 Transformers Ate Their Lunch"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": [
+                  "In 2017, \"Attention Is All You Need\" showed that you don't need recurrence at all — just attention over the input sequence, parallelized across all positions simultaneously. This was the NTM's content-based addressing, ",
+                  {
+                    "type": "em",
+                    "children": "simplified and scaled"
+                  },
+                  ":"
+                ]
+              },
+              {
+                "type": "pre",
+                "children": "NTM:         Controller → produces key → content lookup over memory\nTransformer: Each token → produces Q,K,V → attention over all tokens\n\nKey simplifications:\n  ✗ No separate memory bank (tokens ARE memory)\n  ✗ No location-based addressing\n  ✗ No write mechanism (memory is read-only within a layer)\n  ✗ No usage tracking or allocation\n  ✓ Massively parallel (no sequential dependency)\n  ✓ Simple gradient flow\n  ✓ Scales to billions of parameters"
+              },
+              {
+                "type": "p",
+                "children": "Transformers can be viewed as NTMs that traded explicit memory management for simplicity and parallelism. They gave up the ability to write, allocate, and deallocate memory — and it turned out that for most tasks, you don't need those things if you have enough parameters and enough attention heads."
+              }
+            ]
+          },
+          {
+            "type": "DeepDive",
+            "props": {
+              "title": "What Transformers Lost"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "But the simplification has costs:"
+              },
+              {
+                "type": "ul",
+                "children": [
+                  {
+                    "type": "li",
+                    "children": [
+                      {
+                        "type": "strong",
+                        "children": "No true write:"
+                      },
+                      " Transformers can't selectively store and later retrieve a fact. They must encode everything into the residual stream, which is overwritten by subsequent layers. (NTMs could explicitly write to a slot and read it back later.)"
+                    ]
+                  },
+                  {
+                    "type": "li",
+                    "children": [
+                      {
+                        "type": "strong",
+                        "children": "No memory management:"
+                      },
+                      " Every token gets the same amount of 'memory' (one slot in the KV cache). There's no way to allocate more space for important information or free up space when something becomes irrelevant."
+                    ]
+                  },
+                  {
+                    "type": "li",
+                    "children": [
+                      {
+                        "type": "strong",
+                        "children": "No temporal linking:"
+                      },
+                      " Transformers use positional encoding to track order, but can't follow chains of associations the way DNCs traverse their temporal link matrix."
+                    ]
+                  },
+                  {
+                    "type": "li",
+                    "children": [
+                      {
+                        "type": "strong",
+                        "children": "Context window limits:"
+                      },
+                      " A transformer's 'memory' is its context window. Everything beyond that window is simply gone. NTMs/DNCs had a fixed-size memory that could, in principle, compress and manage information indefinitely."
+                    ]
+                  }
+                ]
+              },
+              {
+                "type": "p",
+                "children": "These are exactly the capabilities that modern LLM research is now trying to bolt back on: retrieval-augmented generation (external memory), chain-of-thought (explicit workspace), context extension (bigger memory). The NTM had all of these as built-in architectural features."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "7. The Legacy: Ideas That Outlived the Architecture"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "NTMs and DNCs may not have scaled, but their ideas are everywhere in modern deep learning — often unacknowledged."
+          },
+          {
+            "type": "Section",
+            "props": {
+              "title": "7.1 Attention Is Memory Access"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": [
+                  "The NTM's content-based addressing IS attention. The paper predates \"Attention Is All You Need\" by three years. When Bahdanau et al. (2015) introduced attention for machine translation, they cited the NTM. The transformer took this one idea — soft lookup by content similarity — and made it the ",
+                  {
+                    "type": "em",
+                    "children": "entire"
+                  },
+                  " architecture."
+                ]
+              }
+            ]
+          },
+          {
+            "type": "Section",
+            "props": {
+              "title": "7.2 Memory-Augmented Networks"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "The idea of external memory lives on in: Memory Networks (Weston et al., 2014), End-to-End Memory Networks (Sukhbaatar et al., 2015), Retrieval-Augmented Generation (RAG), and even tool use in modern LLMs (where the 'tool' is an external memory system). Every time a model looks something up in a database, it's doing a simplified version of what NTMs did."
+              }
+            ]
+          },
+          {
+            "type": "Section",
+            "props": {
+              "title": "7.3 Differentiable Data Structures"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "The NTM showed that traditional data structures (arrays, stacks, queues) could be made differentiable and trained with gradient descent. This spawned a line of research on differentiable stacks (Grefenstette et al., 2015), differentiable queues, and differentiable program interpreters. The principle: don't hard-code the algorithm, provide computational primitives and let the network learn how to compose them."
+              }
+            ]
+          },
+          {
+            "type": "Section",
+            "props": {
+              "title": "7.4 The Controller-Memory Split"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "Perhaps the most important legacy: the separation of computation (controller) from storage (memory). This is the von Neumann architecture applied to neural networks. Modern state space models (Mamba, S4) have a version of this — the hidden state is a persistent memory that the input-dependent gates (the 'controller') read from and write to. The key difference is that SSMs use a flat state vector rather than an addressable memory bank, but the principle of separating processing from storage is the same."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "8. Connection to Stack-SSM: The Next Chapter?"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "The NTM/DNC story poses a tantalizing question: what if they had the right idea but the wrong substrate?"
+          },
+          {
+            "type": "p",
+            "children": "NTMs tried to give neural networks general-purpose memory with arbitrary read/write/address operations. This was too much — too many degrees of freedom, too complex to optimize, too expensive to scale. Transformers went the other direction: strip away explicit memory, use the input sequence itself as memory, and just scale."
+          },
+          {
+            "type": "p",
+            "children": [
+              "But maybe there's a middle path. State space models like Mamba already have persistent state (the hidden vector) that's separate from the input. What if you gave that state ",
+              {
+                "type": "em",
+                "children": "just enough"
+              },
+              " structure — not a full addressable memory bank, but something like a stack? Not arbitrary read/write, but push and pop?"
+            ]
+          },
+          {
+            "type": "pre",
+            "children": "Memory complexity spectrum:\n\n  LSTM          Mamba         Stack-SSM       NTM           DNC\n  ─────────────────────────────────────────────────────────────\n  flat vector   flat vector   stack of        N×W matrix    N×W matrix\n  (h ∈ ℝ^H)    (h ∈ ℝ^{D×N}) vectors         + addressing  + links\n                              (push/pop)                    + allocation\n  \n  ← less structure                              more structure →\n  ← easier to train                             harder to train →\n  ← less expressive memory                      more expressive memory →"
+          },
+          {
+            "type": "p",
+            "children": [
+              "Stack-SSM sits in the sweet spot: more structured than flat state (can handle nesting, scope, recursion), but simpler than full addressable memory (only two operations: push and pop). The NTM taught us that providing computational primitives to neural networks is powerful. The lesson from its failure is: ",
+              {
+                "type": "strong",
+                "children": "choose the right primitives for the problem"
+              },
+              ". For language, push and pop may be the right primitives — because language is fundamentally about nested scope, not arbitrary random access."
+            ]
+          },
+          {
+            "type": "DeepDive",
+            "props": {
+              "title": "From NTMs to Learnable Primitives"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "The deepest lesson from this line of work isn't about any specific architecture. It's about the relationship between structure and learning:"
+              },
+              {
+                "type": "ul",
+                "children": [
+                  {
+                    "type": "li",
+                    "children": [
+                      {
+                        "type": "strong",
+                        "children": "Too much structure"
+                      },
+                      " (NTM/DNC): Hard to train, doesn't scale, but learns genuine algorithms"
+                    ]
+                  },
+                  {
+                    "type": "li",
+                    "children": [
+                      {
+                        "type": "strong",
+                        "children": "Too little structure"
+                      },
+                      " (Transformer): Easy to train, scales beautifully, but wastes parameters re-discovering structure via superposition"
+                    ]
+                  },
+                  {
+                    "type": "li",
+                    "children": [
+                      {
+                        "type": "strong",
+                        "children": "Just right?"
+                      },
+                      " (Stack-SSM, or its successors): Provide the right computational primitives, let the model learn how to use them"
+                    ]
+                  }
+                ]
+              },
+              {
+                "type": "p",
+                "children": "The ultimate goal might be a model that doesn't just use hand-designed primitives like push/pop, but discovers its own. The NTM's general-purpose memory was an attempt at this, but the search space was too large. A more constrained starting point — with primitives that match the structure of the target domain — might give gradient descent enough of a foothold to discover operations we haven't thought of."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "9. Timeline & Key Papers"
+        },
+        "children": [
+          {
+            "type": "pre",
+            "children": "2014 │ Neural Turing Machines            │ Graves et al.     │ arXiv\n     │ (content + location addressing,    │                   │\n     │  differentiable read/write)        │                   │\n─────┼────────────────────────────────────┼───────────────────┤\n2015 │ Memory Networks                    │ Weston et al.     │ ICLR\n     │ Learning to Transduce (diff. stack)│ Grefenstette et al│ NIPS\n     │ Attention for MT (Bahdanau)        │ Bahdanau et al.   │ ICLR\n─────┼────────────────────────────────────┼───────────────────┤\n2016 │ Differentiable Neural Computer     │ Graves et al.     │ Nature\n     │ (temporal links, allocation,       │                   │\n     │  multiple read heads, free gates)  │                   │\n─────┼────────────────────────────────────┼───────────────────┤\n2017 │ Attention Is All You Need          │ Vaswani et al.    │ NIPS\n     │ (NTM content addressing, massively │                   │\n     │  simplified and parallelized)      │                   │\n─────┼────────────────────────────────────┼───────────────────┤\n2018 │ Relational Memory Core             │ Santoro et al.    │ NIPS\n     │ Ordered Neurons (ON-LSTM)          │ Shen et al.       │ ICLR\n─────┼────────────────────────────────────┼───────────────────┤\n2023 │ Mamba (selective SSMs)             │ Gu & Dao          │ arXiv\n     │ (input-dependent state = learned   │                   │\n     │  controller-memory interaction)    │                   │"
+          }
+        ]
+      },
+      {
+        "type": "Quiz",
+        "props": {
+          "questions": [
+            {
+              "question": "What is the key difference between how an NTM and an LSTM store information?",
+              "options": [
+                "NTMs use attention; LSTMs use gates",
+                "NTMs have an external memory matrix separate from the controller; LSTMs store everything in hidden state",
+                "NTMs are recurrent; LSTMs are feedforward",
+                "NTMs use discrete memory; LSTMs use continuous memory"
+              ],
+              "correct": 1,
+              "explanation": "The NTM's core innovation is separating computation (the controller) from storage (the memory matrix). An LSTM must pack everything into its fixed-size hidden state vector — there's no separate workspace. The NTM's controller can read from and write to an external memory bank."
+            },
+            {
+              "question": "What does the DNC's temporal link matrix track?",
+              "options": [
+                "How similar two memory slots are",
+                "How often each slot has been read",
+                "The order in which memory slots were written to",
+                "How long ago each slot was last accessed"
+              ],
+              "correct": 2,
+              "explanation": "The temporal link matrix L records which slot was written immediately after which other slot, creating a linked list of write order. This lets the DNC follow temporal chains forward ('what was written next?') or backward ('what was written before?'), independent of physical memory location."
+            },
+            {
+              "question": "Why is the NTM's content-based addressing significant for the history of deep learning?",
+              "options": [
+                "It was the first use of cosine similarity in neural networks",
+                "It directly inspired the attention mechanism used in transformers",
+                "It proved that neural networks are Turing-complete",
+                "It replaced backpropagation with reinforcement learning"
+              ],
+              "correct": 1,
+              "explanation": "The NTM's content-based addressing (compute similarity between a query and memory slots, then softmax to get weights, then weighted sum) is exactly the attention mechanism. Bahdanau et al. cited the NTM when introducing attention for machine translation in 2015, and the transformer's self-attention is a parallelized version of this same operation."
+            },
+            {
+              "question": "What's the main reason NTMs/DNCs didn't scale as well as transformers?",
+              "options": [
+                "They require labeled data",
+                "Soft attention over all memory slots plus complex addressing creates hard-to-optimize, expensive computation",
+                "They can only process fixed-length sequences",
+                "They need quantum computers"
+              ],
+              "correct": 1,
+              "explanation": "NTMs/DNCs have complex gradient flows (cosine similarity inside softmax inside interpolation gates), quadratic scaling of the temporal link matrix (N²), and sequential processing that prevents parallelization. Transformers simplified to just the content-based attention part, enabling massive parallelism and cleaner gradients."
+            },
+            {
+              "question": "Where does Stack-SSM sit on the structure spectrum between LSTMs and DNCs?",
+              "options": [
+                "Less structure than an LSTM",
+                "Same as a DNC but faster",
+                "Between flat state (LSTM/Mamba) and full addressable memory (NTM/DNC) — structured but constrained",
+                "It replaces all memory with attention"
+              ],
+              "correct": 2,
+              "explanation": "Stack-SSM adds just enough structure (push/pop operations on a stack of state frames) to handle nested scope without the full complexity of arbitrary read/write/address. It's more structured than Mamba's flat state but simpler than the NTM's general-purpose memory — targeting the sweet spot where the computational primitives match the structure of language."
+            }
+          ]
+        }
+      }
+    ]
+  }
+}
