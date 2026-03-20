@@ -36,6 +36,36 @@
       {
         "type": "Section",
         "props": {
+          "title": "\ud83d\udce1 Mar 20, 2026: Beam Search for Discrete Diffusion & SAE Steering in MoE"
+        },
+        "children": [
+          {
+            "type": "Callout",
+            "props": { "type": "warning" },
+            "children": [
+              {
+                "type": "p",
+                "children": "Strong day for diffusion inference strategies \u2014 a new beam search framework for discrete diffusion, plus SAE-decoded steering vectors in a 35B MoE model."
+              }
+            ]
+          },
+          {
+            "type": "p",
+            "children": "\ud83d\udd34 D5P4: Partition Determinantal Point Process for Diversity in Parallel Discrete Diffusion Decoding (Lys et al., 2603.19146) \u2014 Introduces a generalized beam-search framework for discrete diffusion that generates candidates in parallel with modular beam-selection objectives. Their diversity-focused instantiation uses Determinantal Point Processes (DPPs) for MAP inference during beam selection, enabling explicit trade-offs between model probability and diversity with near-zero compute overhead. Why it matters: Another entry in the growing family of inference strategies for masked diffusion models, directly relevant to our dendritic diffusion paper. They address batch-level diversity (multiple candidate sequences); we address structural diversity (branching within a single generation). The two approaches are complementary and potentially composable."
+          },
+          {
+            "type": "p",
+            "children": "\ud83d\udfe1 Behavioral Steering via SAE-Decoded Probe Vectors in 35B MoE (Yap et al., 2603.16335) \u2014 Trains linear probes on SAE latent activations in Qwen 3.5-35B-A3B (a GatedDeltaNet/attention hybrid MoE), then projects probe weights back through the SAE decoder for continuous steering vectors. Key finding: steering during autoregressive decoding has ZERO effect (p > 0.35) \u2014 behavioral commitments are computed during prefill in GatedDeltaNet architectures. Also: all five 'personality traits' collapse to a single agency axis. Why it matters: (1) SAE-decoded steering vectors are the inverse of our SAE-as-noise-schedule idea for diffusion \u2014 they go from SAE features to intervention, we go from SAE features to generation control. (2) The prefill-only finding connects to our consensus neuron work: decisions are made early, not during token-by-token generation. (3) The trait collapse to one axis echoes our finding that N2123's 7 neurons capture a single diagnostic dimension."
+          },
+          {
+            "type": "p",
+            "children": "\ud83d\udfe1 Prism: Hierarchical Search + Self-Verification for Discrete Diffusion (Bai et al., 2602.01842, updated Mar 16) \u2014 Test-time scaling for discrete diffusion LMs via hierarchical search and self-verification. Yet another inference-time strategy for MDLMs, confirming this is now a recognized subfield. Relevant to our positioning of dendritic diffusion as part of an emerging 'inference strategy layer' for diffusion models."
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
           "title": "\ud83d\udce1 Mar 19, 2026: Gap-Aware Models & Schankian Scripts"
         },
         "children": [
