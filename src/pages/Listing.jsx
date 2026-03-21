@@ -178,6 +178,18 @@ const tutorials = [
     difficulty: 'intermediate',
   },
   {
+    id: 'brainstorm-79-type-constructors',
+    title: 'Schankian Primitives as Type Constructors',
+    description: 'How Schank\'s semantic primitives map to type theory — operators generate event structure spaces, parse shapes are types, words are values. With testable predictions for shape embedding clustering.',
+    tags: ['Schankian', 'type theory', 'parse shapes', 'syntax-semantics', 'brainstorm'],
+    icon: '🏗️',
+    gradient: 'from-indigo-500 to-violet-600',
+    shadowColor: 'rgba(99, 102, 241, 0.3)',
+    glowColor: 'rgba(99, 102, 241, 0.15)',
+    readTime: '18 min',
+    difficulty: 'advanced',
+  },
+  {
     id: 'brainstorm-78-operator-decomposition-trees',
     title: 'Operator Decomposition Trees',
     description: 'How Schankian operators form recursive decomposition trees — simultaneously story plan, interpretable trace, and editable outline',

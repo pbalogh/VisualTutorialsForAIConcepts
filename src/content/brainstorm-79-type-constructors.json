@@ -1,0 +1,350 @@
+{
+  "type": "Fragment",
+  "meta": {
+    "title": "Schankian Primitives as Type Constructors",
+    "description": "How Schank's semantic primitives map to type theory — operators generate event structure spaces, parse shapes are types, and words are values",
+    "author": "Peter Balogh",
+    "lastUpdated": "2026-03-21",
+    "tags": [
+      "type theory",
+      "schankian primitives",
+      "parse shapes",
+      "event structure",
+      "syntax-semantics interface"
+    ]
+  },
+  "content": {
+    "type": "Fragment",
+    "children": [
+      {
+        "type": "Section",
+        "props": {
+          "title": "1. The Big Idea: Operators Aren't Labels — They're Type Constructors"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "When Schank proposed ATRANS, PTRANS, MTRANS, and other conceptual primitives, he was doing semantic decomposition — breaking the meaning of verbs into atomic operations. 'Give' = ATRANS, 'walk' = PTRANS, 'tell' = MTRANS. Most people think of these as labels, like semantic tags you stick on events."
+          },
+          {
+            "type": "p",
+            "children": "But what if they're something much more powerful? What if each Schankian primitive is a TYPE CONSTRUCTOR — a function that takes parameters and generates the space of all possible event structures of that kind?"
+          },
+          {
+            "type": "Callout",
+            "props": {
+              "type": "key-insight"
+            },
+            "children": "ATRANS(agent, object, source, destination) doesn't just label a transfer event — it DEFINES the structural shape of every possible transfer sentence. It tells you how many participants there are, what roles they play, and what syntactic constructions can express them."
+          },
+          {
+            "type": "Analogy",
+            "props": {
+              "title": "Programming Analogy: Classes vs. Instances"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "Think of it like object-oriented programming. A class definition like `class Transfer(agent, object, source, dest)` isn't an instance — it's a CONSTRUCTOR. You call it with specific values (`Transfer('Alice', 'book', 'Alice', 'Bob')`) to get an instance. The class constrains what instances are possible. Similarly, ATRANS constrains what sentences are possible."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "2. Each Primitive Generates a Different Event Topology"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "The key insight is that different Schankian primitives don't just carry different meanings — they create different STRUCTURAL possibilities. Each primitive defines a different event topology: how many participants, what relationships between them, and crucially, which syntactic shapes can express the event."
+          },
+          {
+            "type": "DefinitionList",
+            "children": [
+              {
+                "type": "dt",
+                "children": "ATRANS — Abstract Transfer"
+              },
+              {
+                "type": "dd",
+                "children": "Type signature: ATRANS(agent, object, source, destination). Creates a 4-slot event type. Natural syntactic realizations: ditransitive ('She gave him the book'), NP-PP ('She gave the book to him'), passive ('The book was given to him'). The key structural constraint: there MUST be a path from source to destination."
+              },
+              {
+                "type": "dt",
+                "children": "PTRANS — Physical Transfer"
+              },
+              {
+                "type": "dd",
+                "children": "Type signature: PTRANS(agent, object, path). Creates a 3-slot event with a path parameter. Natural syntactic realizations: motion verbs with directional PPs ('walked to the store'), path verbs ('crossed the bridge'), manner-of-motion ('crawled through the tunnel'). The structural constraint: the path PP is obligatory."
+              },
+              {
+                "type": "dt",
+                "children": "MTRANS — Mental Transfer"
+              },
+              {
+                "type": "dd",
+                "children": "Type signature: MTRANS(source_mind, information, target_mind). Creates a 3-slot event with an embedded proposition. Natural syntactic realizations: reported speech ('She told him that...'), complement clauses ('He informed her of...'), indirect speech ('She communicated the findings'). The structural constraint: an embedded clause or nominalization for the information."
+              },
+              {
+                "type": "dt",
+                "children": "MBUILD — Mental Construction"
+              },
+              {
+                "type": "dd",
+                "children": "Type signature: MBUILD(thinker, conclusion, premises). Creates a 3-slot event with internal mental structure. Natural syntactic realizations: cognitive verbs ('He realized that...'), inference constructions ('She concluded from X that Y'), perception-cognition ('He noticed the flaw'). The structural constraint: a mental content complement."
+              }
+            ]
+          },
+          {
+            "type": "DeepDive",
+            "title": "Why Topology Matters More Than Labels",
+            "children": [
+              {
+                "type": "p",
+                "children": "Consider: 'She donated the painting to the museum' and 'The treaty transferred sovereignty to the new government.' These sentences exist in totally different semantic domains (art vs. politics), use different vocabulary, and describe different situations. But they share the SAME type constructor — ATRANS — and therefore the same structural possibilities. You can passivize both: 'The painting was donated...' and 'Sovereignty was transferred...' You can ditransitivize both (awkwardly for 'donate', naturally for 'transfer'). The structural affordances come from the TYPE, not the specific content."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "3. The Type Theory Stack for Language"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "This gives us a complete type-theoretic architecture for language, mapping concepts from programming language theory to linguistic structure:"
+          },
+          {
+            "type": "Example",
+            "props": {
+              "title": "The Full Type Stack"
+            },
+            "children": [
+              {
+                "type": "pre",
+                "children": "Type constructors  →  Schankian primitives (ATRANS, PTRANS, MTRANS...)\nType classes       →  Register constraints (formal, casual, academic)\nTypes              →  Parse shapes — structural templates with typed slots\nValues             →  Words — specific lexical items that fill the slots\nType inference     →  Bidirectional shape ↔ word constraint\nEffects/State      →  Register flow (syntactic priming across sentences)\nRuntime            →  Prosody (how the structure actually sounds)"
+              }
+            ]
+          },
+          {
+            "type": "p",
+            "children": "Let's walk through how this works for a concrete example. Suppose we want to express an ATRANS event: Alice gave Bob the book."
+          },
+          {
+            "type": "Example",
+            "props": {
+              "title": "From Type Constructor to Sentence"
+            },
+            "children": [
+              {
+                "type": "pre",
+                "children": "1. TYPE CONSTRUCTOR: ATRANS(agent, object, source, destination)\n   → This is the semantic primitive. It tells us what KIND of event.\n\n2. TYPE CLASS CONSTRAINT: Register = 'casual conversation'\n   → This restricts which shapes are natural. Passive is less likely.\n\n3. TYPE (Parse Shape): (S (NP) (VP (V) (NP) (NP)))\n   → Ditransitive construction selected. Three NP slots to fill.\n\n4. VALUES (Words): 'Alice' → agent NP, 'gave' → V, 'Bob' → indirect NP, 'the book' → direct NP\n   → Lexical insertion. Words inhabit the typed slots.\n\n5. TYPE CHECKING: Does 'gave' accept ditransitive frame? ✓\n   Does 'Alice' fit agent role? ✓ Does register allow this? ✓\n   → Grammaticality verified."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "4. Why This Is Different from Construction Grammar"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "You might think this is just Construction Grammar (Goldberg, 1995) with different labels. It's not. The difference is COMPOSITIONALITY. Goldberg's constructions are flat form-meaning pairs — the ditransitive construction means 'X causes Y to receive Z.' But our type constructors COMPOSE."
+          },
+          {
+            "type": "p",
+            "children": "Consider: 'She told him what she thought about the gift he had given her.' This sentence involves three nested operators:"
+          },
+          {
+            "type": "Example",
+            "props": {
+              "title": "Composed Type Constructors"
+            },
+            "children": [
+              {
+                "type": "pre",
+                "children": "MTRANS(she, MBUILD(she, opinion, ATRANS(he, gift, he, her)), him)\n  │         │              │\n  │         │              └─ ATRANS: ditransitive deep inside\n  │         └─ MBUILD: cognition verb with complement\n  └─ MTRANS: speech act with embedded clause\n\nEach operator constrains the SHAPE of its portion of the sentence:\n- MTRANS → 'She told him [that-clause]'\n- MBUILD → 'what she thought [about-PP]'\n- ATRANS → 'the gift he had given her' (relative clause, passive-ish)\n\nThe overall sentence shape is DETERMINED by the composition of types."
+              }
+            ]
+          },
+          {
+            "type": "Callout",
+            "props": {
+              "type": "key-insight"
+            },
+            "children": "This is DEPENDENT TYPES in action. The shape of the inner clause DEPENDS on the outer operator. An MTRANS demands an embedded clause for its 'information' parameter. An MBUILD demands a mental content complement. An ATRANS in a relative clause takes a different shape than ATRANS in a main clause. The type of the inner expression depends on the type of the outer one."
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "5. Testable Prediction: Shape Clustering by Operator"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "If Schankian primitives really are type constructors that determine syntactic shapes, then sentences expressing the same primitive should have SIMILAR parse tree shapes, regardless of their domain or vocabulary. This is directly testable."
+          },
+          {
+            "type": "InteractiveDemo",
+            "props": {
+              "title": "Predicted Shape Clusters",
+              "description": "Sentences grouped by their Schankian operator should cluster in shape embedding space, even when their vocabulary is completely different."
+            },
+            "children": [
+              {
+                "type": "pre",
+                "children": "ATRANS cluster (predicted to be close in shape space):\n  'She gave him the book'           → (S NP (VP V NP NP))\n  'The treaty transferred sovereignty' → (S NP (VP V NP (PP to NP)))\n  'Congress allocated funds'         → (S NP (VP V NP (PP to NP)))\n\nPTRANS cluster (predicted to be close to each other, far from ATRANS):\n  'He walked to the store'           → (S NP (VP V (PP to NP)))\n  'The comet traversed the system'   → (S NP (VP V NP))\n  'She crawled through the tunnel'   → (S NP (VP V (PP through NP)))\n\nMTRANS cluster (predicted to be its own region):\n  'She told him the news'            → (S NP (VP V NP NP))\n  'The paper communicates findings'  → (S NP (VP V NP))\n  'He informed her that...'          → (S NP (VP V NP (SBAR that S)))\n\nKey test: ATRANS and MTRANS can share surface shapes\n(both can be ditransitive) but their DISTRIBUTION over\nshapes should differ — MTRANS favors SBAR complements\nmore than ATRANS does."
+              }
+            ]
+          },
+          {
+            "type": "p",
+            "children": "This experiment is running right now. We're parsing 110K+ sentences across 11 genres (news, fiction, encyclopedia, academic, dialogue, legal, recipes, religious text, children's stories, speeches, and web text), extracting parse shapes, and building a bag-of-productions embedding space. The first PCA analysis will tell us whether shapes cluster by register/genre — and with operator labels, whether they also cluster by Schankian primitive."
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "6. Connection to Abstraction Diffusion"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "This type-theoretic view connects directly to our abstraction diffusion framework, where text generation proceeds top-down by expanding non-terminal grammar symbols into concrete words. The generation pipeline becomes type-directed synthesis:"
+          },
+          {
+            "type": "Example",
+            "props": {
+              "title": "Type-Directed Generation Pipeline"
+            },
+            "children": [
+              {
+                "type": "pre",
+                "children": "Step 1: Semantic intent → Select operator (ATRANS)\n         'I want to express a transfer event'\n\nStep 2: Operator → Available parse shapes\n         ATRANS offers: ditransitive, NP-PP, passive, ...\n         Register constraint: casual → prefer ditransitive\n\nStep 3: Shape selection → [S [NP] [VP [V] [NP] [NP]]]\n         'I'll use the ditransitive frame'\n\nStep 4: Abstraction diffusion → expand non-terminals\n         [NP] → 'she', [V] → 'gave', [NP] → 'him', [NP] → 'the book'\n         Context and seed words guide expansion\n\nStep 5: Type checking → grammaticality verification\n         Does 'gave' license ditransitive? ✓\n         Do the NPs satisfy selectional restrictions? ✓\n\nResult: 'She gave him the book' — type-checked and register-appropriate"
+              }
+            ]
+          },
+          {
+            "type": "Callout",
+            "props": {
+              "type": "key-insight"
+            },
+            "children": "Every step is explicit, inspectable, and controllable. Want more formal? Shift the register constraint → different shape distribution. Want a passive? Override shape selection. Want different content? Change the seed words but keep the shape. You're not hoping the model figures out what you mean from a prompt — you're directly manipulating typed structural knobs."
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "7. Beyond Halliday: Discovering Unnamed Dimensions"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "Halliday's Systemic Functional Linguistics identifies three register parameters: field (what you're talking about), tenor (your relationship to the audience), and mode (spoken vs. written). In our type-theoretic framework, these are three type class constraints. But are there only three?"
+          },
+          {
+            "type": "p",
+            "children": "When we embed parse shapes into a continuous vector space and run PCA, we can find out empirically. If the effective dimensionality of shape space is 3, Halliday was right. If it's 7 or 12 or 20, there are register dimensions that linguists haven't named because they were working from introspection, not data."
+          },
+          {
+            "type": "InteractiveDemo",
+            "props": {
+              "title": "Candidate Hidden Dimensions",
+              "description": "Beyond field/tenor/mode, these structural dimensions might emerge from shape PCA:"
+            },
+            "children": [
+              {
+                "type": "ul",
+                "children": [
+                  {
+                    "type": "li",
+                    "children": "Cognitive load management — how information is parceled for working memory"
+                  },
+                  {
+                    "type": "li",
+                    "children": "Epistemic stance — commitment to truth (hedged vs. assertive)"
+                  },
+                  {
+                    "type": "li",
+                    "children": "Temporal texture — how events are positioned relative to discourse time"
+                  },
+                  {
+                    "type": "li",
+                    "children": "Surprise scheduling — how predictability varies across the text"
+                  },
+                  {
+                    "type": "li",
+                    "children": "Attention management — foregrounding vs. backgrounding strategies"
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "Quiz: Test Your Understanding"
+        },
+        "children": [
+          {
+            "type": "Quiz",
+            "props": {
+              "question": "Why are Schankian primitives better described as type constructors than as labels?",
+              "options": [
+                "Labels are less formal than type constructors",
+                "Type constructors generate the space of possible structures, not just tag existing ones",
+                "Type constructors are used in programming languages",
+                "Labels can't be composed, but type constructors always can"
+              ],
+              "correctIndex": 1,
+              "explanation": "A label just says 'this event is an ATRANS.' A type constructor says 'ATRANS(agent, object, source, dest) generates ALL possible transfer event structures with these four slots.' It defines what's structurally possible, constraining both syntax and semantics. The key difference is generative power: labels classify, type constructors CREATE."
+            }
+          },
+          {
+            "type": "Quiz",
+            "props": {
+              "question": "What is the key difference between this approach and Construction Grammar (Goldberg)?",
+              "options": [
+                "Construction Grammar uses different primitives",
+                "Construction Grammar doesn't handle syntax",
+                "This approach supports hierarchical composition (dependent types), while constructions are flat form-meaning pairs",
+                "Construction Grammar is older"
+              ],
+              "correctIndex": 2,
+              "explanation": "Goldberg's constructions are single-level form-meaning pairs (e.g., ditransitive = 'X causes Y to receive Z'). But operator types COMPOSE: MTRANS(she, MBUILD(she, opinion, ATRANS(he, gift)), him) creates a nested structure where each operator's type constrains the shape of its arguments. The inner ATRANS takes a different shape inside a relative clause than it would as a main clause — that's dependent types."
+            }
+          },
+          {
+            "type": "Quiz",
+            "props": {
+              "question": "What testable prediction does this framework make about parse shape embeddings?",
+              "options": [
+                "All sentences should have similar parse shapes",
+                "Sentences with the same Schankian primitive should cluster in shape space regardless of domain",
+                "Parse shapes should be random and unpredictable",
+                "Formal sentences should always have deeper parse trees"
+              ],
+              "correctIndex": 1,
+              "explanation": "If operators are type constructors that determine structural possibilities, then 'She gave him the book' (everyday ATRANS) and 'The treaty transferred sovereignty' (political ATRANS) should have more similar SHAPES than 'She gave him the book' (ATRANS) and 'She walked to the store' (PTRANS) — even though the first pair shares zero vocabulary. Shape similarity should track operator type, not surface lexical similarity."
+            }
+          }
+        ]
+      }
+    ]
+  }
+}
