@@ -322,6 +322,18 @@ const tutorials = [
     difficulty: 3,
   },
   {
+    id: 'brainstorm-75-kan-operators',
+    title: 'KAN Edge Functions as Interpretable Operators',
+    description: 'How Kolmogorov-Arnold Networks learn per-dimension spline functions that are structurally identical to Schankian operators, with automatic symbolic extraction yielding human-readable equations.',
+    tags: ['KAN', 'Kolmogorov-Arnold', 'operators', 'interpretability', 'splines'],
+    icon: '📐',
+    gradient: 'from-violet-500 to-fuchsia-600',
+    shadowColor: 'shadow-violet-500/30',
+    glowColor: 'rgba(139, 92, 246, 0.4)',
+    readTime: '25 min',
+    difficulty: 3,
+  },
+  {
     id: 'brainstorm-82-vla-mech-interp',
     title: 'VLA Mech Interp — Action Primitives as Thin Semantic Layer',
     description: 'How Vision-Language-Action models reveal action primitives are a thin layer atop semantic representations — direct evidence for the operator-as-interface thesis.',

@@ -1,0 +1,464 @@
+{
+  "id": "brainstorm-75-kan-operators",
+  "title": "KAN Edge Functions as Interpretable Operators",
+  "subtitle": "Kolmogorov-Arnold Decomposition — how KANs learn univariate spline functions on edges that are structurally identical to Schankian operators, with automatic symbolic extraction giving human-readable equations",
+  "readTime": "25 min",
+  "state": {},
+  "content": {
+    "type": "Fragment",
+    "children": [
+      {
+        "type": "Callout",
+        "props": {
+          "type": "info"
+        },
+        "children": "This tutorial explores how Kolmogorov-Arnold Networks (KANs) provide a natural architecture for learning Schankian operators as interpretable, per-dimension functions. Unlike MLPs which learn opaque weight matrices, KANs learn univariate spline functions on each edge — structurally identical to how operators should transform individual semantic dimensions."
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "1. The Kolmogorov-Arnold Representation Theorem"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "In 1957, Andrey Kolmogorov proved a stunning theorem: any continuous multivariate function can be exactly decomposed into a finite composition of univariate functions and addition. Specifically, any f(x₁, ..., xₙ) can be written as a sum of compositions of single-variable functions."
+          },
+          {
+            "type": "Callout",
+            "props": {
+              "type": "formula"
+            },
+            "children": "f(x₁, ..., xₙ) = Σᵢ Φᵢ( Σⱼ φᵢⱼ(xⱼ) )\n\nwhere φᵢⱼ and Φᵢ are univariate continuous functions.\n\nThe key insight: ANY multivariate function decomposes into per-variable transformations followed by simple aggregation."
+          },
+          {
+            "type": "Analogy",
+            "props": {
+              "concept": "Kolmogorov-Arnold decomposition",
+              "analogy": "Imagine you're a chef who can only operate one ingredient at a time. Kolmogorov-Arnold says: that's fine! Any recipe (multivariate function) can be executed by (1) preparing each ingredient separately with its own specific technique (univariate functions φᵢⱼ), then (2) combining them (addition), then (3) applying a finishing step (outer functions Φᵢ). You never need to simultaneously manipulate two ingredients — sequential, per-ingredient processing is universal."
+            }
+          },
+          {
+            "type": "DeepDive",
+            "props": {
+              "title": "Why was this theorem controversial?",
+              "id": "controversy"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "Hilbert's 13th problem (1900) asked whether some functions inherently require multivariate operations. Kolmogorov and Arnold proved: no! The theorem was celebrated by mathematicians but initially dismissed by ML researchers because the inner functions φᵢⱼ can be extremely non-smooth (fractal-like), making them impractical for computation. KANs (2024) solved this by using learnable B-splines instead of exact Kolmogorov functions — trading exact representation for smooth, trainable approximations."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "2. KANs vs MLPs — Functions on Edges, Not Nodes"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "The fundamental architectural difference: MLPs learn weight matrices on edges and apply fixed nonlinearities (ReLU, GELU) on nodes. KANs flip this — they learn flexible univariate functions (B-splines) on edges and use simple summation on nodes."
+          },
+          {
+            "type": "InteractiveDemo",
+            "props": {
+              "title": "MLP vs KAN Architecture",
+              "id": "mlp-vs-kan",
+              "type": "comparison"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "**MLP:** Input → [multiply by weight w₁] → [apply ReLU] → [multiply by weight w₂] → [apply ReLU] → Output"
+              },
+              {
+                "type": "p",
+                "children": "**KAN:** Input → [apply learned spline φ₁(x)] → [sum at node] → [apply learned spline φ₂(x)] → [sum at node] → Output"
+              },
+              {
+                "type": "Callout",
+                "props": {
+                  "type": "key"
+                },
+                "children": "In an MLP, the nonlinearity is fixed (ReLU/GELU) and identical everywhere. In a KAN, each edge learns its OWN nonlinear function — a B-spline with learnable control points. This means each edge can capture a different transformation shape: linear, quadratic, sigmoid, step, or anything in between."
+              }
+            ]
+          },
+          {
+            "type": "DeepDive",
+            "props": {
+              "title": "What is a B-spline?",
+              "id": "bsplines"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "A B-spline is a piecewise polynomial curve defined by control points on a grid. The 'B' stands for 'basis' — each control point defines a basis function, and the spline is their weighted sum. By adjusting the control point weights (via gradient descent), a KAN edge can learn any smooth univariate function within its grid resolution."
+              },
+              {
+                "type": "Callout",
+                "props": {
+                  "type": "formula"
+                },
+                "children": "φ(x) = Σₖ cₖ · Bₖ(x)\n\nwhere Bₖ are B-spline basis functions and cₖ are learnable coefficients.\nGrid refinement: increase the number of control points to capture finer detail.\nThis is the KAN's 'resolution' parameter — analogous to width in MLPs."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "3. Why KANs Are Structurally Identical to Schankian Operators"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "Here's the key connection: a Schankian operator transforms an entity's state vector dimension-by-dimension. PTRANS changes spatial coordinates. ATRANS changes possession markers. MTRANS changes knowledge states. Each primitive acts on specific semantic dimensions while leaving others unchanged."
+          },
+          {
+            "type": "p",
+            "children": "A KAN edge does exactly this — it applies a learned univariate function to ONE dimension of the input. The full KAN layer applies different learned functions to each dimension, then sums them. This is structurally identical to an operator that transforms each semantic dimension with its own characteristic function."
+          },
+          {
+            "type": "InteractiveDemo",
+            "props": {
+              "title": "Operator as KAN Edge Functions",
+              "id": "operator-kan-mapping",
+              "type": "visualization"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "Consider an entity state vector with 4 dimensions: [location, possession, knowledge, mood]."
+              },
+              {
+                "type": "DefinitionList",
+                "children": [
+                  {
+                    "term": "PTRANS ('walk to store')",
+                    "definition": "φ_location(x) = sigmoid shift (0→1), φ_possession(x) = identity (no change), φ_knowledge(x) = identity, φ_mood(x) = slight decrease (effort)"
+                  },
+                  {
+                    "term": "ATRANS ('give the book')",
+                    "definition": "φ_location(x) = identity, φ_possession(x) = step function (1→0 for giver, 0→1 for receiver), φ_knowledge(x) = identity, φ_mood(x) = varies by context"
+                  },
+                  {
+                    "term": "MTRANS ('tell the news')",
+                    "definition": "φ_location(x) = identity, φ_possession(x) = identity, φ_knowledge(x) = step function (0→1 for receiver), φ_mood(x) = depends on news valence"
+                  }
+                ]
+              },
+              {
+                "type": "Callout",
+                "props": {
+                  "type": "key"
+                },
+                "children": "Each operator is a different SET of edge functions. PTRANS has a non-trivial φ_location but trivial φ_possession. ATRANS has a non-trivial φ_possession but trivial φ_location. The operator's IDENTITY is determined by WHICH dimensions have non-trivial splines — this is automatic disentanglement!"
+              }
+            ]
+          },
+          {
+            "type": "Analogy",
+            "props": {
+              "concept": "KAN operators as mixing board channels",
+              "analogy": "A KAN operator is like a sound mixing board where each channel (dimension) has its own EQ curve (spline function). A PTRANS event is like adjusting only the bass channel (location) while leaving treble (knowledge) and mid (possession) flat. An MTRANS event cranks the treble (knowledge transfer) while leaving bass untouched. The operator type is defined by WHICH channels have non-flat EQ curves — and KANs learn these curves automatically from data."
+            }
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "4. Automatic Symbolic Extraction — From Splines to Equations"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "Perhaps the most exciting property of KANs for our purposes: learned spline functions can be automatically converted to symbolic expressions. A KAN that learns φ(x) = x² + 0.5 will, through symbolic regression, yield exactly that equation — human-readable and inspectable."
+          },
+          {
+            "type": "p",
+            "children": "For Schankian operators, this means: train a KAN on event data, extract the learned edge functions, and read off what each operator DOES to each semantic dimension. Not an opaque matrix multiplication, but explicit equations like 'PTRANS shifts location by distance × speed' or 'ATRANS flips the possession bit of the transferred object.'"
+          },
+          {
+            "type": "Example",
+            "props": {
+              "title": "Symbolic extraction pipeline"
+            },
+            "children": [
+              {
+                "type": "Callout",
+                "props": {
+                  "type": "formula"
+                },
+                "children": "Step 1: Train KAN on (entity_before, event, entity_after) triples\nStep 2: Extract edge spline for each dimension\nStep 3: Fit symbolic expression via sparse regression\n\nExample output:\n  PTRANS.location:   φ(x) = x + Δd          (additive displacement)\n  PTRANS.possession: φ(x) = x               (identity — no change)\n  ATRANS.possession: φ(x) = 1 - x           (flip — transfer)\n  MTRANS.knowledge:  φ(x) = max(x, k_new)   (monotonic knowledge gain)"
+              },
+              {
+                "type": "p",
+                "children": "The symbolic form tells us exactly what each operator does. PTRANS adds a displacement. ATRANS flips a binary. MTRANS takes a max (you can't unknow something). These aren't imposed by the architecture — they're discovered from data."
+              }
+            ]
+          },
+          {
+            "type": "DeepDive",
+            "props": {
+              "title": "How symbolic regression works on KAN splines",
+              "id": "symbolic-regression"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "KAN's symbolic extraction uses a library of candidate functions (x, x², sin(x), exp(x), sigmoid(x), etc.) and fits the learned spline to the best combination via sparse regression (LASSO or similar). The grid refinement process helps: first learn a coarse spline (few control points), extract symbolic form, then verify by checking if the symbolic function matches a fine-grid spline. If they match, the symbolic form is correct; if not, the function may be genuinely non-symbolic (which is also informative — some operator dimensions may not have clean closed-form expressions)."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "5. KA-GNN: KANs on Graphs for Event Processing"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "Events don't exist in isolation — they form graphs of entities and relations. KA-GNN (Kolmogorov-Arnold Graph Neural Networks) extends the KAN architecture to graph-structured data, learning edge functions that transform messages between nodes."
+          },
+          {
+            "type": "p",
+            "children": "For Schankian operators on entity-event graphs: entities are nodes, events are edges, and each event-edge learns a KAN function that transforms the source entity's state into the target entity's state. The edge function IS the operator, and it's interpretable by construction."
+          },
+          {
+            "type": "InteractiveDemo",
+            "props": {
+              "title": "KA-GNN Event Graph",
+              "id": "ka-gnn-graph",
+              "type": "visualization"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "Consider a simple narrative graph:"
+              },
+              {
+                "type": "Callout",
+                "props": {
+                  "type": "example"
+                },
+                "children": "Alice ──[ATRANS: give book]──→ Bob ──[MTRANS: tell secret]──→ Carol\n  │                                │                              │\n  ▼                                ▼                              ▼\nState: {has_book: 1→0}      State: {has_book: 0→1,        State: {knows_secret:\n                                    knows_secret: 0→1}            0→1}\n\nEach edge learns its OWN set of spline functions.\nATRANS edge: non-trivial on possession dims, trivial on knowledge dims.\nMTRANS edge: non-trivial on knowledge dims, trivial on possession dims.\nThe graph structure + KAN architecture = interpretable narrative processing."
+              }
+            ]
+          },
+          {
+            "type": "DeepDive",
+            "props": {
+              "title": "Message passing with learned splines",
+              "id": "message-passing"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "In a standard GNN, message passing multiplies node features by a learned weight matrix. In KA-GNN, message passing applies learned spline functions per-dimension. The message from node u to node v through edge (u,v) is: m_{u→v} = Σⱼ φ_{(u,v),j}(h_u[j]), where each φ is an independently learned spline. This is exactly a Schankian operator: each dimension of the entity state is transformed by its own characteristic function."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "6. Connections to Other Brainstorm Entries"
+        },
+        "children": [
+          {
+            "type": "DefinitionList",
+            "children": [
+              {
+                "term": "Entry 12: Disentangled Operator Dimensions",
+                "definition": "KANs provide automatic disentanglement — each edge function operates on ONE dimension. Non-trivial splines reveal which dimensions each operator cares about. This IS the disentanglement that Entry 12 hoped for, achieved architecturally."
+              },
+              {
+                "term": "Entry 45: MDL Operator Discovery",
+                "definition": "KAN spline pruning and grid refinement naturally implement MDL (Minimum Description Length). Simpler splines (fewer control points) are preferred. If an edge function is close to identity, it gets pruned — revealing which dimensions are relevant for each operator."
+              },
+              {
+                "term": "Entry 54: DreamCoder Library Learning",
+                "definition": "DreamCoder discovers reusable program fragments via compression. KAN symbolic extraction discovers reusable function fragments. If the same symbolic expression (e.g., φ(x) = 1-x) appears across multiple ATRANS edges, it's a learned library primitive. DreamCoder for continuous functions."
+              },
+              {
+                "term": "Entry 69: Clifford Algebra Multivectors",
+                "definition": "Clifford algebra provides the grade structure (scalar, vector, bivector). KAN edge functions could be constrained to grade-specific operations: grade-0 splines for intensity changes, grade-1 for directional shifts, grade-2 for relational rotations. KAN + Clifford = interpretable geometric operators."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "7. Experimental Design"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "A concrete experiment to test whether KAN-learned edge functions recover Schankian operators:"
+          },
+          {
+            "type": "Example",
+            "props": {
+              "title": "Proposed experiment"
+            },
+            "children": [
+              {
+                "type": "Callout",
+                "props": {
+                  "type": "formula"
+                },
+                "children": "Dataset: ATOMIC or similar (entity_before, event, entity_after) triples\nLabels: Event type (ATRANS, PTRANS, MTRANS, MBUILD, etc.)\n\nArchitecture:\n  Input: concat(entity_before_embedding, event_embedding)  [d=256]\n  KAN layer 1: 256 → 128 (with learned splines per edge)\n  KAN layer 2: 128 → 128\n  Output: predicted entity_after_embedding  [d=128]\n\nTraining: MSE loss on entity_after prediction\n\nAnalysis:\n  1. Extract all learned spline functions from Layer 1 edges\n  2. For each event type, identify which edges have non-trivial splines\n  3. Cluster events by spline similarity (not label) → check if clusters ≈ Schank primitives\n  4. Run symbolic regression on the non-trivial splines → read off operator equations\n  5. Compare: do events of the same Schank type share symbolic expressions?"
+              }
+            ]
+          },
+          {
+            "type": "Callout",
+            "props": {
+              "type": "warning"
+            },
+            "children": "Key prediction: Events sharing a Schankian primitive should have similar spline shapes on the SAME dimensions, even when they involve completely different entities and domains. 'Alice gave Bob the book' and 'The government transferred control' should both show flip-like splines on possession dimensions — because they're both ATRANS."
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "8. Advantages Over MLP-Based Approaches"
+        },
+        "children": [
+          {
+            "type": "InteractiveDemo",
+            "props": {
+              "title": "Why KANs beat MLPs for operator learning",
+              "id": "kan-advantages",
+              "type": "comparison"
+            },
+            "children": [
+              {
+                "type": "DefinitionList",
+                "children": [
+                  {
+                    "term": "Interpretability",
+                    "definition": "MLPs: opaque weight matrices requiring post-hoc analysis (probing, SAEs). KANs: each edge function is directly visualizable and symbolically extractable. No probing needed — the operator IS the spline."
+                  },
+                  {
+                    "term": "Sparsity",
+                    "definition": "MLPs: all weights participate, need pruning or regularization for sparsity. KANs: trivial (identity) edge functions are naturally pruned, revealing which dimensions each operator affects. Sparsity is structural, not imposed."
+                  },
+                  {
+                    "term": "Compositionality",
+                    "definition": "MLPs: composition = matrix multiplication, hard to decompose. KANs: composition = function composition of univariate splines, directly readable. PTRANS∘ATRANS = compose their per-dimension splines."
+                  },
+                  {
+                    "term": "Efficiency",
+                    "definition": "KANs can be more parameter-efficient than MLPs for the same accuracy on scientific tasks. Fewer parameters for the same expressivity = better operators from less data."
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "Quiz: Test Your Understanding"
+        },
+        "children": [
+          {
+            "type": "Quiz",
+            "props": {
+              "questions": [
+                {
+                  "question": "What is the fundamental architectural difference between KANs and MLPs?",
+                  "options": [
+                    "KANs use more layers",
+                    "KANs learn functions on edges (not fixed nonlinearities on nodes)",
+                    "KANs are larger models",
+                    "KANs only work on graph data"
+                  ],
+                  "correct": 1,
+                  "explanation": "MLPs apply fixed nonlinearities (ReLU/GELU) at nodes and learn linear weights on edges. KANs flip this: they learn flexible spline functions on edges and use simple addition at nodes. Each edge can learn a DIFFERENT nonlinear transformation."
+                },
+                {
+                  "question": "Why are KANs structurally similar to Schankian operators?",
+                  "options": [
+                    "Both were invented in the 1970s",
+                    "Both use recurrent architectures",
+                    "Both apply per-dimension transformations that can be identity (no change) on irrelevant dimensions",
+                    "Both require labeled training data"
+                  ],
+                  "correct": 2,
+                  "explanation": "A Schankian operator transforms specific semantic dimensions while leaving others unchanged — PTRANS changes location but not possession. A KAN edge function does exactly this: each dimension gets its own learned function, which can be identity (no change) on dimensions the operator doesn't affect."
+                },
+                {
+                  "question": "What makes KAN-discovered operators more interpretable than MLP probing?",
+                  "options": [
+                    "KANs are smaller models",
+                    "KAN edge splines can be automatically converted to symbolic equations",
+                    "KANs don't need training",
+                    "KANs always produce correct results"
+                  ],
+                  "correct": 1,
+                  "explanation": "KAN edge functions (B-splines) can be fitted to symbolic expressions via sparse regression — yielding human-readable equations like φ(x) = 1-x for a possession-transfer operation. MLP weights require post-hoc probing or SAE decomposition, which gives correlational not structural interpretability."
+                },
+                {
+                  "question": "In the KA-GNN formulation, what plays the role of the Schankian operator?",
+                  "options": [
+                    "The node features",
+                    "The adjacency matrix",
+                    "The learned edge spline functions",
+                    "The loss function"
+                  ],
+                  "correct": 2,
+                  "explanation": "In KA-GNN, each edge learns its own set of spline functions that transform messages from source to target node. For entity-event graphs, the edge splines ARE the operators — transforming entity states through events, with different spline shapes for different event types."
+                }
+              ]
+            }
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "Further Reading"
+        },
+        "children": [
+          {
+            "type": "DefinitionList",
+            "children": [
+              {
+                "term": "KAN: Kolmogorov-Arnold Networks (Liu et al., 2024)",
+                "definition": "The original paper proposing learnable B-spline edge functions as an alternative to MLPs. Demonstrates interpretability, symbolic extraction, and competitive accuracy on scientific tasks."
+              },
+              {
+                "term": "KAN 2.0 (Nature Computational Science, 2025)",
+                "definition": "Extended KANs with MultKAN (multiplication nodes), improved symbolic regression, and Kanpiler (symbolic compilation to standard code). Shows KANs can rediscover physics equations from data."
+              },
+              {
+                "term": "KA-GNN (arXiv:2406.18354)",
+                "definition": "Kolmogorov-Arnold Graph Neural Networks — extends KAN edge functions to graph-structured data. Directly applicable to entity-event graphs for operator learning."
+              },
+              {
+                "term": "Spinor-based Word Embeddings (arXiv:2410.00038)",
+                "definition": "Uses geometric algebra (Clifford algebra) for word embeddings, providing grade-structured representations that could combine with KAN edge functions for geometrically interpretable operators."
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}
