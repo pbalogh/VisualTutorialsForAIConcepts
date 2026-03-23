@@ -1122,6 +1122,18 @@ const tutorials = [
     difficulty: 4,
   },
   {
+    id: 'brainstorm-72-resonator-networks',
+    title: 'Resonator Networks — VSA Operator Factorization',
+    description: 'How Vector Symbolic Architectures decompose event vectors into operator × agent × patient — codebook convergence IS Schankian primitive discovery.',
+    tags: ['Schankian', 'VSA', 'resonator', 'factorization', 'binding'],
+    icon: '📡',
+    gradient: 'from-cyan-500 to-blue-600',
+    shadowColor: 'shadow-cyan-500/30',
+    glowColor: 'rgba(6, 182, 212, 0.4)',
+    readTime: '30 min',
+    difficulty: 4,
+  },
+  {
     id: 'thoughtblend',
     title: 'ThoughtBlend',
     description: 'Synthesize perspectives through dialectical color mixing — add sources as color swatches and blend them into structured text or dialogue',

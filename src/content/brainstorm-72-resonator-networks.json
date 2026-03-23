@@ -1,0 +1,499 @@
+{
+  "id": "brainstorm-72-resonator-networks",
+  "title": "Resonator Networks — VSA Operator Factorization",
+  "subtitle": "How Vector Symbolic Architectures can decompose event vectors into operator × agent × patient — and why convergence IS operator discovery",
+  "readTime": "30 min",
+  "state": {
+    "selectedEvent": 0,
+    "resonatorStep": 0,
+    "showBinding": false,
+    "quizScore": 0,
+    "codebookSize": 14,
+    "noiseLevel": 0.1
+  },
+  "content": {
+    "type": "Fragment",
+    "children": [
+      {
+        "type": "Callout",
+        "props": { "type": "info" },
+        "children": "This tutorial explores Resonator Networks — a family of attractor dynamics from Vector Symbolic Architectures (VSAs) — and shows how they can factor composite event vectors into their semantic components: operator, agent, and patient. The codebook of operators that emerges IS the Schankian primitive inventory. No supervision required: binding is invertible, composition is algebraic, and convergence reveals structure."
+      },
+
+      {
+        "type": "Section",
+        "props": { "title": "1. The Problem: Events Are Bound Together" },
+        "children": [
+          {
+            "type": "p",
+            "children": "When a transformer processes 'The cat chased the mouse,' it produces a single vector — a holographic superposition of everything: the chasing, the cat, the mouse, their roles. All tangled together. How do you pull apart the operator (CHASE) from the agent (cat) and patient (mouse)?"
+          },
+          {
+            "type": "Example",
+            "props": {
+              "title": "The Factorization Challenge",
+              "language": "text"
+            },
+            "children": "Event vector e ≈ OPERATOR ⊗ AGENT ⊗ PATIENT\n\nGiven: e = [0.23, -0.41, 0.87, -0.12, ...] (768 dims)\n\nWanted:\n  OPERATOR = PROPEL  (from ~14 Schankian primitives)\n  AGENT    = cat     (from entity vocabulary)\n  PATIENT  = mouse   (from entity vocabulary)\n\nChallenge: ⊗ is a nonlinear binding operation.\nYou can't just divide or project."
+          },
+          {
+            "type": "p",
+            "children": "Traditional approaches try to learn separate extraction networks — one for the operator, one for each role filler. But resonator networks solve this with elegant math: they set up a system of coupled oscillators that naturally converge to the correct factorization."
+          },
+          {
+            "type": "Analogy",
+            "props": {
+              "concept": "Resonator Factorization",
+              "analogy": "Tuning a radio to separate overlapping stations"
+            },
+            "children": "Imagine three radio signals multiplied together into a single waveform. A resonator network is like three tuning circuits that feed into each other: as one locks onto a frequency, it helps the others narrow their search. Eventually all three resonate at the correct frequencies — and you've recovered the original signals."
+          }
+        ]
+      },
+
+      {
+        "type": "Section",
+        "props": { "title": "2. Vector Symbolic Architectures: A 5-Minute Primer" },
+        "children": [
+          {
+            "type": "p",
+            "children": "VSAs are a family of algebraic frameworks for computing with high-dimensional vectors. They provide three core operations that make factorization possible:"
+          },
+          {
+            "type": "DefinitionList",
+            "props": {
+              "items": [
+                {
+                  "term": "⊕ Bundling (Superposition)",
+                  "definition": "Add vectors together: A ⊕ B = A + B. Creates a vector similar to both inputs. Like storing multiple items in the same cupboard — they're all there, slightly blurred."
+                },
+                {
+                  "term": "⊗ Binding (Multiplication)",
+                  "definition": "Combine two vectors into one that resembles neither: A ⊗ B ≈ random. The key property: it's INVERTIBLE. If you know B, you can recover A. This is what makes factorization possible."
+                },
+                {
+                  "term": "S(·) Similarity (Dot Product)",
+                  "definition": "Measure how close two vectors are: S(A, B) = cos(A, B). Used to look up items in a codebook. High similarity = match found."
+                },
+                {
+                  "term": "★ Inverse / Unbinding",
+                  "definition": "For circular convolution: A⁻¹ ⊗ (A ⊗ B) ≈ B. For MAP codes: A ⊗ A = identity. The magic ingredient — binding can be undone."
+                }
+              ]
+            }
+          },
+          {
+            "type": "DeepDive",
+            "props": { "title": "Why High Dimensions Make This Work" },
+            "children": [
+              {
+                "type": "p",
+                "children": "In 10,000 dimensions, two random vectors are almost perfectly orthogonal (cosine similarity ≈ 0 ± 0.01). This means:"
+              },
+              {
+                "type": "Example",
+                "props": {
+                  "title": "The Blessing of Dimensionality",
+                  "language": "text"
+                },
+                "children": "With d = 10,000 dimensions:\n\n• Random vectors are ~orthogonal: cos(A, B) ≈ 0\n• Binding produces quasi-random results: cos(A, A⊗B) ≈ 0\n• But unbinding recovers originals: cos(B, A⁻¹ ⊗ (A⊗B)) ≈ 1.0\n• Bundling preserves similarity: cos(A, A⊕B⊕C) ≈ 0.58\n\nThe information capacity scales as O(d / log d).\nWith d = 10,000 you can reliably bind ~5-7 items\nand bundle ~100 items."
+              },
+              {
+                "type": "p",
+                "children": "This is why transformer embeddings (768-4096 dims) are naturally suited to VSA operations. They're already in the right dimensionality regime."
+              }
+            ]
+          },
+          {
+            "type": "p",
+            "children": "The specific binding operation matters. Holographic Reduced Representations (HRR) use circular convolution. Multiply-Add-Permute (MAP) codes use element-wise XOR or multiplication with permutation. For our purposes, the algebraic properties are the same."
+          }
+        ]
+      },
+
+      {
+        "type": "Section",
+        "props": { "title": "3. Encoding Events as Bound Vectors" },
+        "children": [
+          {
+            "type": "p",
+            "children": "Here's how an event becomes a single vector using role-filler binding:"
+          },
+          {
+            "type": "Example",
+            "props": {
+              "title": "Event Encoding with VSA Binding",
+              "language": "python"
+            },
+            "children": "import numpy as np\nfrom scipy.signal import fftconvolve\n\ndef bind(a, b):\n    \"\"\"Circular convolution binding (HRR)\"\"\"\n    return np.real(np.fft.ifft(np.fft.fft(a) * np.fft.fft(b)))\n\ndef unbind(a, b):\n    \"\"\"Inverse binding: correlation\"\"\"\n    return np.real(np.fft.ifft(np.fft.fft(a) * np.conj(np.fft.fft(b))))\n\n# Codebook: random vectors for roles and fillers\nd = 1024  # dimensionality\nrng = np.random.default_rng(42)\n\n# Role vectors (fixed)\nR_OP    = rng.standard_normal(d)  # operator role\nR_AGENT = rng.standard_normal(d)  # agent role  \nR_PAT   = rng.standard_normal(d)  # patient role\n\n# Filler vectors (from codebooks)\nPROPEL = rng.standard_normal(d)   # operator: PROPEL\ncat    = rng.standard_normal(d)   # entity: cat\nmouse  = rng.standard_normal(d)   # entity: mouse\n\n# Encode: \"The cat chased the mouse\"\nevent = bind(R_OP, PROPEL) + bind(R_AGENT, cat) + bind(R_PAT, mouse)\n\n# Decode: unbind with role vector, match against codebook\nrecovered_op = unbind(event, R_OP)\nprint(f'cos(recovered, PROPEL) = {np.dot(recovered_op, PROPEL) / (np.linalg.norm(recovered_op) * np.linalg.norm(PROPEL)):.3f}')\n# → ~0.58 (clear match despite noise from other bindings)"
+          },
+          {
+            "type": "p",
+            "children": "Simple unbinding works for small structures. But what if you DON'T know the role vectors? What if the binding has more than 3 factors? What if there's noise? That's where resonator networks come in."
+          }
+        ]
+      },
+
+      {
+        "type": "Section",
+        "props": { "title": "4. Resonator Networks: Coupled Attractor Dynamics" },
+        "children": [
+          {
+            "type": "p",
+            "children": "A resonator network (Kent et al., 2020; Frady et al., 2020) is a system of coupled iterative estimators. Each estimator searches a codebook for its factor, informed by the current estimates of all other factors."
+          },
+          {
+            "type": "InteractiveDemo",
+            "props": {
+              "title": "Resonator Network Dynamics",
+              "description": "Watch three coupled estimators converge to the correct factorization. Each column shows one factor's similarity to all codebook entries at each iteration. The system starts from random estimates and converges to sharp peaks.",
+              "inputs": [
+                {
+                  "type": "slider",
+                  "label": "Noise Level",
+                  "stateKey": "noiseLevel",
+                  "min": 0,
+                  "max": 0.5,
+                  "step": 0.05
+                },
+                {
+                  "type": "slider",
+                  "label": "Codebook Size",
+                  "stateKey": "codebookSize",
+                  "min": 5,
+                  "max": 30,
+                  "step": 1
+                },
+                {
+                  "type": "counter",
+                  "label": "Iteration Step",
+                  "stateKey": "resonatorStep",
+                  "min": 0,
+                  "max": 20
+                }
+              ],
+              "display": "The resonator update rule:\n\n  x̂_op^(t+1) = C_op · S(event ⊘ x̂_agent^(t) ⊘ x̂_patient^(t))\n  x̂_agent^(t+1) = C_agent · S(event ⊘ x̂_op^(t+1) ⊘ x̂_patient^(t))\n  x̂_patient^(t+1) = C_patient · S(event ⊘ x̂_op^(t+1) ⊘ x̂_agent^(t+1))\n\nwhere:\n  ⊘ = unbinding (inverse of ⊗)\n  S(·) = similarity against codebook\n  C = codebook matrix (each row is a codebook entry)\n\nThe coupled dynamics create a winner-take-all attractor:\nas one factor sharpens, it provides cleaner input to the others."
+            }
+          },
+          {
+            "type": "p",
+            "children": "The key insight: each estimator unbinds the current guesses for the OTHER factors from the composite event vector, then looks up the residual in its OWN codebook. As estimates improve, the residuals get cleaner, which improves the estimates further. It's a virtuous cycle."
+          },
+          {
+            "type": "Example",
+            "props": {
+              "title": "Resonator Network Algorithm",
+              "language": "python"
+            },
+            "children": "def resonator_factorize(event, codebooks, n_iters=15):\n    \"\"\"\n    Factor event vector into components via resonator dynamics.\n    \n    event: d-dimensional composite vector\n    codebooks: list of (n_entries × d) matrices\n              [operator_codebook, agent_codebook, patient_codebook]\n    \"\"\"\n    n_factors = len(codebooks)\n    d = event.shape[0]\n    \n    # Initialize estimates randomly from codebooks\n    estimates = [cb[np.random.randint(len(cb))] for cb in codebooks]\n    \n    for t in range(n_iters):\n        for i in range(n_factors):\n            # Unbind all OTHER factors from the event\n            residual = event.copy()\n            for j in range(n_factors):\n                if j != i:\n                    residual = unbind(residual, estimates[j])\n            \n            # Compute similarity to codebook entries\n            sims = codebooks[i] @ residual  # (n_entries,)\n            sims = np.exp(sims) / np.sum(np.exp(sims))  # softmax\n            \n            # Update estimate as weighted sum of codebook\n            estimates[i] = codebooks[i].T @ sims  # (d,)\n            estimates[i] /= np.linalg.norm(estimates[i])  # normalize\n    \n    # Final: pick closest codebook entry for each factor\n    labels = []\n    for i in range(n_factors):\n        sims = codebooks[i] @ estimates[i]\n        labels.append(np.argmax(sims))\n    \n    return labels, estimates"
+          },
+          {
+            "type": "DeepDive",
+            "props": { "title": "Why Does It Converge? The Energy Landscape" },
+            "children": [
+              {
+                "type": "p",
+                "children": "Resonator networks can be understood as coordinate descent on an energy function. Each update minimizes the reconstruction error for one factor while holding the others fixed. The system has multiple fixed points (one per valid factorization), and the dynamics flow downhill toward the nearest attractor."
+              },
+              {
+                "type": "p",
+                "children": "Convergence is NOT guaranteed for all cases — with many factors or large codebooks, the system can oscillate or converge to spurious attractors. The capacity scales roughly as O(d^(1/n)) where d is dimensionality and n is number of factors. For 3 factors with d=1024: ~10 codebook entries per factor is reliable. With d=4096 (standard transformer): ~40 entries — more than enough for ~14 Schankian primitives."
+              }
+            ]
+          }
+        ]
+      },
+
+      {
+        "type": "Section",
+        "props": { "title": "5. The Schankian Connection: Codebooks ARE Primitive Inventories" },
+        "children": [
+          {
+            "type": "p",
+            "children": "Here's the conceptual leap that makes this exciting for operator discovery:"
+          },
+          {
+            "type": "Callout",
+            "props": { "type": "warning" },
+            "children": "The operator codebook doesn't need to be predefined. You can LEARN it. Start with a random codebook, factor a corpus of event vectors, and update the codebook entries to minimize reconstruction error. What converges IS your primitive inventory — discovered, not assumed."
+          },
+          {
+            "type": "DefinitionList",
+            "props": {
+              "items": [
+                {
+                  "term": "Operator Codebook (C_op)",
+                  "definition": "~14 entries, one per Schankian primitive. Learned end-to-end. After training: ATRANS, PTRANS, PROPEL, MOVE, GRASP, INGEST, EXPEL, MTRANS, MBUILD, SPEAK, ATTEND, etc."
+                },
+                {
+                  "term": "Entity Codebook (C_entity)",
+                  "definition": "Larger vocabulary of entity vectors. Can be initialized from pretrained embeddings (word2vec, BERT CLS tokens) or learned jointly."
+                },
+                {
+                  "term": "Role Binding (implicit)",
+                  "definition": "Unlike explicit role vectors, the resonator network discovers which factor slot corresponds to which semantic role through the structure of the data. Agent vs. patient is determined by binding ORDER, not labels."
+                },
+                {
+                  "term": "Convergence = Discovery",
+                  "definition": "When the resonator converges, it has found a factorization that explains the event. If it converges CONSISTENTLY to a small set of operator vectors across diverse events, those vectors are semantic primitives."
+                }
+              ]
+            }
+          },
+          {
+            "type": "Example",
+            "props": {
+              "title": "Training the Operator Codebook",
+              "language": "python"
+            },
+            "children": "def train_codebooks(event_vectors, n_ops=14, n_entities=500,\n                    d=1024, epochs=100, lr=0.01):\n    \"\"\"\n    Learn operator and entity codebooks from unlabeled event vectors.\n    \"\"\"\n    # Initialize codebooks randomly\n    C_op = np.random.randn(n_ops, d)\n    C_op /= np.linalg.norm(C_op, axis=1, keepdims=True)\n    \n    C_agent = np.random.randn(n_entities, d)\n    C_agent /= np.linalg.norm(C_agent, axis=1, keepdims=True)\n    \n    C_patient = C_agent.copy()  # shared entity space\n    \n    for epoch in range(epochs):\n        total_loss = 0\n        for event in event_vectors:\n            # Factor using current codebooks\n            labels, estimates = resonator_factorize(\n                event, [C_op, C_agent, C_patient]\n            )\n            \n            # Reconstruct\n            recon = bind(bind(estimates[0], estimates[1]), estimates[2])\n            \n            # Update codebooks toward better reconstruction\n            error = event - recon\n            loss = np.sum(error ** 2)\n            total_loss += loss\n            \n            # Gradient update on codebook entries\n            C_op[labels[0]] += lr * unbind(error, \n                bind(estimates[1], estimates[2]))\n            C_op[labels[0]] /= np.linalg.norm(C_op[labels[0]])\n        \n        if epoch % 10 == 0:\n            print(f'Epoch {epoch}: loss = {total_loss:.3f}')\n    \n    return C_op, C_agent, C_patient"
+          }
+        ]
+      },
+
+      {
+        "type": "Section",
+        "props": { "title": "6. Connections: Tensor Products, Info Bottleneck, and Clifford Algebra" },
+        "children": [
+          {
+            "type": "p",
+            "children": "This approach doesn't exist in isolation — it connects to three other ideas in our brainstorm series:"
+          },
+          {
+            "type": "Callout",
+            "props": { "type": "note" },
+            "children": "Entry 6 (Tensor Products): Tensor products fail because outer products scale as O(d²). VSA binding stays at O(d) — same dimensionality in, same dimensionality out. This is why VSAs can compose without dimensionality explosion."
+          },
+          {
+            "type": "Callout",
+            "props": { "type": "note" },
+            "children": "Entry 39 (Information Bottleneck): The resonator codebook IS an information bottleneck. Each factor is quantized to the nearest codebook entry. The codebook size controls the compression rate. Small operator codebook = high compression = primitives."
+          },
+          {
+            "type": "Callout",
+            "props": { "type": "note" },
+            "children": "Entry 69 (Clifford Algebra): Clifford multivectors generalize both complex numbers and VSA operations. The geometric product A·B = A⊗B + A∧B decomposes into symmetric (binding) and antisymmetric (orientation) parts. Resonator dynamics in Clifford space would automatically preserve geometric structure."
+          },
+          {
+            "type": "DeepDive",
+            "props": { "title": "VSA Binding vs. Tensor Product: The Dimensional Argument" },
+            "children": [
+              {
+                "type": "p",
+                "children": "The fundamental problem with tensor products for composition: if agent ∈ ℝ^d and patient ∈ ℝ^d, then agent ⊗ patient ∈ ℝ^(d×d). Three factors → d³. With d=768, that's 453 billion dimensions — absurd."
+              },
+              {
+                "type": "p",
+                "children": "VSA binding solves this by using circular convolution (or element-wise operations) that map ℝ^d × ℝ^d → ℝ^d. You lose some information (the representation is lossy), but in high dimensions the loss is negligible. The binding A ⊗ B is approximately orthogonal to both A and B, yet A can be recovered from A ⊗ B if you know B."
+              },
+              {
+                "type": "p",
+                "children": "This is why resonator networks work in the same dimensional space as transformers. No need to reshape, project, or explode the dimensionality. Plug in transformer event vectors directly."
+              }
+            ]
+          }
+        ]
+      },
+
+      {
+        "type": "Section",
+        "props": { "title": "7. The Architecture: Resonator Layer for Transformers" },
+        "children": [
+          {
+            "type": "p",
+            "children": "How would you actually use this in practice? Here's a concrete architecture for extracting Schankian operators from transformer representations:"
+          },
+          {
+            "type": "Example",
+            "props": {
+              "title": "Resonator Extraction Layer",
+              "language": "python"
+            },
+            "children": "import torch\nimport torch.nn as nn\n\nclass ResonatorLayer(nn.Module):\n    \"\"\"Extract operator, agent, patient from event vectors\n    using differentiable resonator dynamics.\"\"\"\n    \n    def __init__(self, d=768, n_operators=14, n_entities=500,\n                 n_iters=10):\n        super().__init__()\n        self.n_iters = n_iters\n        \n        # Learnable codebooks\n        self.op_codebook = nn.Parameter(\n            torch.randn(n_operators, d) * 0.02)\n        self.entity_codebook = nn.Parameter(\n            torch.randn(n_entities, d) * 0.02)\n        \n        # Learnable role vectors\n        self.role_op = nn.Parameter(torch.randn(d) * 0.02)\n        self.role_agent = nn.Parameter(torch.randn(d) * 0.02)\n        self.role_patient = nn.Parameter(torch.randn(d) * 0.02)\n        \n        # Project from transformer space to VSA space\n        self.proj = nn.Linear(d, d)\n    \n    def bind(self, a, b):\n        \"\"\"Circular convolution via FFT\"\"\"\n        return torch.fft.irfft(\n            torch.fft.rfft(a) * torch.fft.rfft(b),\n            n=a.shape[-1])\n    \n    def unbind(self, a, b):\n        \"\"\"Correlation (inverse binding)\"\"\"\n        return torch.fft.irfft(\n            torch.fft.rfft(a) * torch.fft.rfft(b).conj(),\n            n=a.shape[-1])\n    \n    def forward(self, event_vec):\n        \"\"\"event_vec: (batch, d) from transformer\"\"\"\n        x = self.proj(event_vec)  # → VSA space\n        \n        # Initialize estimates from codebook means\n        op_est = self.op_codebook.mean(0).expand_as(x)\n        ag_est = self.entity_codebook.mean(0).expand_as(x)\n        pt_est = self.entity_codebook.mean(0).expand_as(x)\n        \n        # Iterative resonator dynamics\n        for _ in range(self.n_iters):\n            # Update operator estimate\n            residual = self.unbind(\n                self.unbind(x, ag_est), pt_est)\n            op_sims = residual @ self.op_codebook.T  # (B, n_ops)\n            op_attn = torch.softmax(op_sims * 10, dim=-1)\n            op_est = op_attn @ self.op_codebook  # (B, d)\n            \n            # Update agent estimate\n            residual = self.unbind(\n                self.unbind(x, op_est), pt_est)\n            ag_sims = residual @ self.entity_codebook.T\n            ag_attn = torch.softmax(ag_sims * 10, dim=-1)\n            ag_est = ag_attn @ self.entity_codebook\n            \n            # Update patient estimate\n            residual = self.unbind(\n                self.unbind(x, op_est), ag_est)\n            pt_sims = residual @ self.entity_codebook.T\n            pt_attn = torch.softmax(pt_sims * 10, dim=-1)\n            pt_est = pt_attn @ self.entity_codebook\n        \n        return {\n            'operator': op_est, 'op_probs': op_attn,\n            'agent': ag_est, 'ag_probs': ag_attn,\n            'patient': pt_est, 'pt_probs': pt_attn,\n        }"
+          },
+          {
+            "type": "p",
+            "children": "The entire resonator loop is differentiable — gradients flow through the softmax attention and FFT operations. This means you can train it end-to-end with a reconstruction loss: does rebinding the factored components reproduce the original event vector?"
+          }
+        ]
+      },
+
+      {
+        "type": "Section",
+        "props": { "title": "8. Why This Beats Custom Inverse Models" },
+        "children": [
+          {
+            "type": "p",
+            "children": "You might ask: why not just train three separate neural networks to extract operator, agent, and patient? The resonator approach has several advantages:"
+          },
+          {
+            "type": "DefinitionList",
+            "props": {
+              "items": [
+                {
+                  "term": "1. Algebraic Consistency",
+                  "definition": "Rebinding the factors EXACTLY reproduces the input (up to noise). Separate networks have no such guarantee — they can extract plausible-looking but inconsistent components."
+                },
+                {
+                  "term": "2. Unsupervised Discovery",
+                  "definition": "No labeled data needed. The reconstruction objective is self-supervised. Separate extraction networks typically need role-labeled training data (expensive to create)."
+                },
+                {
+                  "term": "3. Codebook Interpretability",
+                  "definition": "Each operator IS a vector in the codebook. You can inspect it, compare it to other operators, measure distances. It's not a black-box classifier — it's a geometric object."
+                },
+                {
+                  "term": "4. Compositionality",
+                  "definition": "Binding is associative: (A ⊗ B) ⊗ C = A ⊗ (B ⊗ C). This means you can nest operators, build hierarchical event structures, and compose complex events from primitives — for free."
+                },
+                {
+                  "term": "5. Well-Studied Theory",
+                  "definition": "VSA capacity bounds, convergence guarantees, and noise robustness are mathematically characterized. You know exactly when the system will work and when it won't."
+                }
+              ]
+            }
+          }
+        ]
+      },
+
+      {
+        "type": "Section",
+        "props": { "title": "9. Open Questions and Challenges" },
+        "children": [
+          {
+            "type": "p",
+            "children": "This approach is promising but not without challenges:"
+          },
+          {
+            "type": "DefinitionList",
+            "props": {
+              "items": [
+                {
+                  "term": "How many operators?",
+                  "definition": "Schank proposed ~14. But the 'right' number is an empirical question. Too few = too coarse (everything is ATRANS). Too many = not primitive. Can we use codebook size as a hyperparameter and let reconstruction loss pick the right granularity?"
+                },
+                {
+                  "term": "Multi-operator events",
+                  "definition": "'She grabbed the knife and stabbed him' involves GRASP → PROPEL → HARM. How do you factor a vector that's a SEQUENCE of bound structures? Possible answer: hierarchical resonators (factor the event into sub-events first)."
+                },
+                {
+                  "term": "Bridging transformer and VSA spaces",
+                  "definition": "Transformer representations aren't natively in VSA format. The projection layer (self.proj) does heavy lifting. Is linear projection enough, or do we need a more complex mapping?"
+                },
+                {
+                  "term": "Convergence speed",
+                  "definition": "10-15 iterations is typical. That's fine for analysis but expensive for real-time inference. Can we amortize the iteration cost with a learned initialization network?"
+                }
+              ]
+            }
+          },
+          {
+            "type": "DeepDive",
+            "props": { "title": "The Codebook Size Problem: MDL to the Rescue?" },
+            "children": [
+              {
+                "type": "p",
+                "children": "Entry 45 (MDL Operator Discovery) suggests using Minimum Description Length to select the right codebook size. The idea: the best codebook is the one that minimizes (reconstruction error) + (codebook complexity). A 14-entry codebook that explains 90% of variance beats a 100-entry codebook that explains 95% — because the extra 5% isn't worth 86 more primitives."
+              },
+              {
+                "type": "p",
+                "children": "In practice: train resonator networks with codebook sizes from 5 to 50. Plot reconstruction error vs. codebook size. Look for the 'elbow' — where adding more entries gives diminishing returns. That elbow IS the number of primitives."
+              }
+            ]
+          }
+        ]
+      },
+
+      {
+        "type": "Section",
+        "props": { "title": "10. Key Takeaways" },
+        "children": [
+          {
+            "type": "Callout",
+            "props": { "type": "success" },
+            "children": "The core insight: you don't need to define Schankian primitives — you can DISCOVER them. Set up a resonator network with a small operator codebook, train it to factor event vectors, and what converges IS your primitive inventory. Binding is invertible, composition is algebraic, and the whole system is differentiable. VSAs turn operator discovery from a classification problem into a factorization problem."
+          }
+        ]
+      },
+
+      {
+        "type": "Section",
+        "props": { "title": "Quiz: Test Your Understanding" },
+        "children": [
+          {
+            "type": "Quiz",
+            "props": {
+              "question": "Why do VSA binding operations stay in ℝ^d instead of exploding to ℝ^(d²) like tensor products?",
+              "options": [
+                "VSAs use lower-dimensional vectors",
+                "Circular convolution maps d × d → d via the convolution theorem",
+                "VSAs discard half the information",
+                "Tensor products are computed incorrectly"
+              ],
+              "correctIndex": 1,
+              "explanation": "Circular convolution computes binding in the frequency domain via element-wise multiplication of FFTs. Since FFT preserves dimensionality, the bound result is the same dimension as the inputs. Some information is lost (the representation is lossy), but in high dimensions the loss is negligible."
+            }
+          },
+          {
+            "type": "Quiz",
+            "props": {
+              "question": "In a resonator network, what does each estimator do at each iteration?",
+              "options": [
+                "Randomly samples a new codebook entry",
+                "Unbinds the OTHER factors' estimates, then looks up the residual in its OWN codebook",
+                "Runs gradient descent on the reconstruction loss",
+                "Averages all codebook entries weighted by the event vector"
+              ],
+              "correctIndex": 1,
+              "explanation": "Each estimator unbinds the current estimates of the other factors from the composite event vector, leaving a 'residual' that should resemble its own factor. It then compares this residual against its codebook to update its estimate. This coupled dynamics is what creates the attractor behavior."
+            }
+          },
+          {
+            "type": "Quiz",
+            "props": {
+              "question": "Why is the operator codebook size a crucial hyperparameter for Schankian primitive discovery?",
+              "options": [
+                "Larger codebooks always give better results",
+                "The codebook size must exactly equal 14 (Schank's count)",
+                "Too few = too coarse, too many = not primitive; the 'elbow' in reconstruction error reveals the natural number of primitives",
+                "Codebook size doesn't matter because resonators always converge"
+              ],
+              "correctIndex": 2,
+              "explanation": "The codebook size controls the granularity of factorization. A Minimum Description Length analysis — plotting reconstruction error vs. codebook size and finding the elbow — empirically discovers how many distinct operators the data actually supports. This is a principled way to validate Schank's claim of ~14 primitives."
+            }
+          }
+        ]
+      },
+
+      {
+        "type": "Section",
+        "props": { "title": "Further Reading" },
+        "children": [
+          {
+            "type": "DefinitionList",
+            "props": {
+              "items": [
+                {
+                  "term": "Frady et al. (2020)",
+                  "definition": "\"Resonator Networks\" — the foundational paper on using attractor dynamics for VSA factorization. arXiv:2009.12691"
+                },
+                {
+                  "term": "Plate (1991/2003)",
+                  "definition": "\"Holographic Reduced Representations\" — the original HRR framework. Circular convolution binding, distributed representations."
+                },
+                {
+                  "term": "Kanerva (2009)",
+                  "definition": "\"Hyperdimensional Computing\" — comprehensive survey of VSA operations and their information-theoretic properties."
+                },
+                {
+                  "term": "Kent et al. (2020)",
+                  "definition": "\"Resonator Networks for Factoring Distributed Representations\" — capacity analysis and convergence guarantees."
+                }
+              ]
+            }
+          }
+        ]
+      }
+    ]
+  }
+}
