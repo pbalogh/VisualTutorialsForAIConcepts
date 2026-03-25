@@ -1293,6 +1293,18 @@ const tutorials = [
     glowColor: 'teal',
     readTime: '15 min',
     difficulty: 2,
+  },
+  {
+    id: 'baby-dragon-hatchling',
+    title: 'Baby Dragon Hatchling (BDH)',
+    description: 'A brain-inspired post-transformer architecture with Hebbian learning, synaptic memory, and scale-free hub routing',
+    tags: ['BDH', 'brain-inspired', 'Hebbian learning', 'architecture', 'continuous learning'],
+    icon: '🐉',
+    gradient: 'from-orange-500 to-red-500',
+    shadowColor: 'shadow-orange-500/25',
+    glowColor: 'orange',
+    readTime: '18 min',
+    difficulty: 'Intermediate',
   }
 ]
 
