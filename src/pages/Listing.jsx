@@ -127,6 +127,18 @@ function CreateTutorialModal({ isOpen, onClose }) {
 
 const tutorials = [
   {
+    id: 'dragon-hatchling-bdh',
+    title: 'Dragon Hatchling (BDH)',
+    description: 'A biologically-inspired LLM architecture combining scale-free networks, Hebbian learning, and inherent interpretability',
+    tags: ['architecture', 'biological', 'SSM', 'interpretability', 'spiking neurons'],
+    icon: '🐉',
+    gradient: 'from-orange-500 to-red-500',
+    shadowColor: 'shadow-orange-500/25',
+    glowColor: 'orange',
+    readTime: '18 min',
+    difficulty: 'Advanced',
+  },
+  {
     id: 'symmetry-representations',
     title: 'Symmetry in Language Statistics → Geometry of Representations',
     description: 'Why months form circles, years form manifolds, and cities encode lat/long — how translation symmetry in co-occurrence statistics analytically determines representational geometry. Based on Karkada et al. (arXiv:2602.15029).',

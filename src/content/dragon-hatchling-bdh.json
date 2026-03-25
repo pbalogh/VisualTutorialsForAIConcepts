@@ -1,0 +1,716 @@
+{
+  "id": "dragon-hatchling-bdh",
+  "title": "Dragon Hatchling (BDH): The Missing Link Between Transformers and the Brain",
+  "subtitle": "A biologically-inspired LLM architecture combining scale-free networks, Hebbian learning, spiking neurons, and inherent interpretability — that actually rivals GPT-2",
+  "readTime": "18 min",
+  "state": {},
+  "content": {
+    "type": "Fragment",
+    "children": [
+      {
+        "type": "Section",
+        "props": {
+          "title": "What If We Built an LLM That Works Like a Brain?"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "Since the 1940s, AI researchers have drawn inspiration from neuroscience. But modern LLMs — Transformers — have drifted far from how brains actually work. They use dense matrix multiplications, softmax attention over the entire context, and activation vectors that are opaque and polysemantic. The brain uses sparse, local, spiking neurons organized into scale-free networks with Hebbian learning."
+          },
+          {
+            "type": "p",
+            "children": "Dragon Hatchling (BDH), introduced by Kosowski et al. (2025) from Pathway, is a new LLM architecture that bridges this gap. It's simultaneously: (1) a graph-based model of locally-interacting neuron particles, (2) a GPU-friendly attention-based state-space model, and (3) a biologically plausible brain model with Hebbian synaptic plasticity. And it matches GPT-2 performance at the same parameter counts."
+          },
+          {
+            "type": "Callout",
+            "props": {
+              "type": "key"
+            },
+            "children": "BDH is not just brain-inspired hand-waving. It's a practical, trainable architecture with Transformer-like scaling laws from 10M to 1B parameters, matching GPT-2 on language and translation tasks. It also achieves 97.4% accuracy on extreme Sudoku — where leading LLMs score ~0%."
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "Scale-Free Biological Networks"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "The human brain has ~80 billion neurons and >100 trillion synapses. But it's not a random graph or a regular lattice. It's a scale-free network — a graph where the degree distribution follows a power law. Most neurons have few connections, but a small number of 'hub' neurons have a huge number of connections."
+          },
+          {
+            "type": "Analogy",
+            "props": {
+              "concept": "Scale-free networks",
+              "analogy": "Think of airline routes. Most airports have a few connections, but hubs like Atlanta or London Heathrow connect to hundreds of cities. This isn't random — it emerges from preferential attachment ('the rich get richer'). The brain's connectivity has the same structure. BDH's neuron interaction graph emerges with this same heavy-tailed degree distribution during training."
+            }
+          },
+          {
+            "type": "h3",
+            "children": "Why Scale-Free Matters for AI"
+          },
+          {
+            "type": "p",
+            "children": "Scale-free networks have two critical properties that matter for reasoning systems:"
+          },
+          {
+            "type": "DefinitionList",
+            "props": {
+              "items": [
+                {
+                  "term": "High modularity",
+                  "definition": "The network organizes into tightly-connected clusters (modules) with sparse connections between them. This means information can be processed locally within modules, then integrated globally through hub neurons — just like specialized brain regions."
+                },
+                {
+                  "term": "Heavy-tailed degree distribution",
+                  "definition": "P(degree = k) ~ k^(-γ). A few hub neurons participate in many interactions, enabling efficient information routing. This creates a 'small world' property where any two neurons are connected through short paths."
+                }
+              ]
+            }
+          },
+          {
+            "type": "p",
+            "children": "In BDH, this network structure isn't hardcoded — it emerges naturally during training from the ReLU-lowrank feed-forward blocks. The trained parameter matrices, when read as adjacency matrices of graphs, exhibit both high Newman modularity and heavy-tailed degree distributions."
+          },
+          {
+            "type": "InteractiveDemo",
+            "props": {
+              "id": "scale-free-vs-random-network",
+              "title": "Scale-Free vs. Random Networks",
+              "description": "Compare how information flows through different network topologies. A random (Erdős–Rényi) network has uniform degree, while a scale-free (Barabási–Albert) network has hubs. Notice how the scale-free network has higher modularity — tightly connected clusters with sparse inter-cluster connections — which is exactly what BDH's neuron graphs look like after training.",
+              "type": "network-comparison",
+              "config": {
+                "leftNetwork": {
+                  "type": "random",
+                  "label": "Random (Erdős–Rényi)",
+                  "nodes": 50,
+                  "edgeProbability": 0.08,
+                  "description": "Uniform degree distribution. Every node has roughly the same number of connections. Low modularity."
+                },
+                "rightNetwork": {
+                  "type": "scale-free",
+                  "label": "Scale-Free (Barabási–Albert)",
+                  "nodes": 50,
+                  "preferentialAttachment": 2,
+                  "description": "Power-law degree distribution. A few hubs with many connections, most nodes with few. High modularity — like the brain, and like trained BDH."
+                },
+                "metrics": ["degree_distribution", "modularity", "avg_path_length", "clustering_coefficient"],
+                "interactiveControls": ["toggle_signal_propagation", "highlight_hubs", "show_communities"]
+              }
+            }
+          },
+          {
+            "type": "DeepDive",
+            "props": {
+              "title": "Newman Modularity and Why BDH's Graph Structure Matters"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "Newman modularity Q measures how well a network decomposes into communities. Q ranges from -0.5 to 1, where Q > 0.3 typically indicates significant community structure. Biological neural networks typically have Q ≈ 0.4-0.7."
+              },
+              {
+                "type": "p",
+                "children": "In BDH, the ReLU-lowrank block replaces the standard MLP in a Transformer. It uses factored matrices: instead of a large weight matrix W, it uses Dₓ · E · Dᵧ where Dₓ and Dᵧ are n×d matrices (d ≪ n) and E is a d×d matrix. When you apply ReLU between these factors, the effective connectivity graph between the n neurons becomes sparse and modular."
+              },
+              {
+                "type": "p",
+                "children": "The paper shows empirically that after training, the effective graphs read from these parameter matrices have: (1) heavy-tailed degree distributions following P(k) ~ k^(-γ) with γ ≈ 2-3, consistent with biological networks, and (2) high Newman modularity, meaning neurons self-organize into functional clusters — analogous to brain regions specializing in different aspects of language processing."
+              },
+              {
+                "type": "p",
+                "children": "This modularity has a theoretical basis: ReLU-lowrank propagation exhibits supermodularity on input perturbations. Informally, if you activate neurons in the same module, they reinforce each other more than neurons in different modules would. This creates natural 'concept clusters' in the network."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "Locally-Interacting Neuron Particles"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "At its core, BDH is a system of n neuron particles that interact on a graph. Each neuron has local state. Each synapse (edge) carries both fixed parameters (learned during training) and dynamic state (updated during inference via Hebbian learning). The key insight: all computation is local — each neuron only communicates with its neighbors."
+          },
+          {
+            "type": "h3",
+            "children": "The Equations of Reasoning"
+          },
+          {
+            "type": "p",
+            "children": "BDH combines two fundamental rules that together form what the authors call 'the equations of reasoning':"
+          },
+          {
+            "type": "Example",
+            "props": {
+              "title": "Rule 1: Modus Ponens (Belief Propagation)"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "If neuron i believes fact X(i) with strength X(i), and the ruleset σ says that fact i implies fact j with strength σ(i,j), then neuron j receives evidence A(j) += X(i) · σ(i,j). This is weighted modus ponens: beliefs propagate along weighted edges."
+              },
+              {
+                "type": "Code",
+                "props": {
+                  "language": "text"
+                },
+                "children": "Rule 1 (Modus Ponens):\n  X(i), σ(i,j) → A(j)\n\n  \"If I believe X(i), and the rule σ(i,j) exists,\n   then I have evidence for A(j) = X(i) · σ(i,j)\""
+              }
+            ]
+          },
+          {
+            "type": "Example",
+            "props": {
+              "title": "Rule 2: Hebbian Learning (Rule Reweighting)"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "If neuron i fired (Y(i) > 0) and this led to neuron j firing (X(j) > 0), then strengthen the connection: σ(i,j) += Y(i) · X(j). Neurons that fire together wire together. This is the dynamic state update — working memory during inference."
+              },
+              {
+                "type": "Code",
+                "props": {
+                  "language": "text"
+                },
+                "children": "Rule 2 (Hebbian Learning):\n  Y(i), X(j) → σ(i,j)\n\n  \"If neuron i fired and then neuron j fired,\n   strengthen the connection σ(i,j) += Y(i) · X(j)\"\n\n  This IS the attention state update in BDH!"
+              }
+            ]
+          },
+          {
+            "type": "Callout",
+            "props": {
+              "type": "insight"
+            },
+            "children": "The Hebbian update rule (Rule 2) is mathematically equivalent to the state update in linear attention. When BDH processes a token, the outer product Y·Xᵀ that updates the synaptic weights σ is exactly the same as the KVᵀ update in a linear attention state-space model. This is the 'missing link' — attention in Transformers corresponds to Hebbian synaptic plasticity in the brain."
+          },
+          {
+            "type": "p",
+            "children": "The system has two types of connections: fixed parameters G (learned during training via backpropagation — the 'slow weights') and evolving connections σ (updated during inference via Hebbian learning — the 'fast weights'). This mirrors the brain's distinction between structural connectivity (anatomy) and functional connectivity (dynamic synaptic strengths)."
+          },
+          {
+            "type": "Analogy",
+            "props": {
+              "concept": "Fixed vs. evolving connections",
+              "analogy": "Think of a city's infrastructure. The roads and highways are the fixed connections G — built once, expensive to change, but they define the possible routes. The traffic patterns on those roads are the evolving connections σ — they change moment to moment based on what's happening. When you hear 'The cat sat on the ___', your brain's fixed wiring knows language structure, but the dynamic synaptic weights (σ) strengthen the concept 'cat' → 'mat' connection in real-time. BDH does exactly this."
+            }
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "SSM + Attention Hybrid: The BDH-GPU Architecture"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "The theoretical BDH model operates on a sparse graph — beautiful but hard to run on GPUs which love dense matrix operations. The BDH-GPU variant solves this by approximating the graph communication with a 'mean field' approach: instead of each neuron sending messages only to its graph neighbors, neurons broadcast to all others through a shared field (like radio vs. wired communication)."
+          },
+          {
+            "type": "h3",
+            "children": "The State-Space Formulation"
+          },
+          {
+            "type": "p",
+            "children": "BDH-GPU is parameterized by two numbers: n (the neuron dimension — very large, e.g. thousands) and d (a compression dimension, typically 256, with log(n) < d ≪ n). A model has approximately 3nd parameters total. The architecture uses:"
+          },
+          {
+            "type": "DefinitionList",
+            "props": {
+              "items": [
+                {
+                  "term": "ReLU-lowrank feed-forward block",
+                  "definition": "Replaces the standard MLP. Uses factored matrices Dₓ · E · Dᵧ with ReLU between factors. This naturally produces sparse, positive activations and creates the scale-free graph structure."
+                },
+                {
+                  "term": "Linear attention in dimension n",
+                  "definition": "Unlike softmax attention which requires storing the full KV cache, BDH uses linear attention where the state is an n×n matrix (or compressed to n×d). This is mathematically equivalent to the Hebbian synaptic weight updates in the graph model."
+                },
+                {
+                  "term": "Positive activation vectors in Rⁿ",
+                  "definition": "All activations are positive (enforced by ReLU) and sparse (~5% non-zero). Each component corresponds to a specific neuron particle. This is radically different from Transformers where activations are dense and can be positive or negative."
+                }
+              ]
+            }
+          },
+          {
+            "type": "DeepDive",
+            "props": {
+              "title": "How BDH-GPU Relates to the Full BDH Graph Model"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "The paper proves (Claims 3 and 4) that any BDH-GPU model can be exactly represented as a BDH graph model with the same n neurons and same O(nd) parameters. The key insight is that the factored matrices Dₓ, E, Dᵧ in BDH-GPU correspond to bipartite graph structures in BDH."
+              },
+              {
+                "type": "p",
+                "children": "Think of it this way: BDH is the 'true' model — neurons talking to neighbors on a graph. BDH-GPU is a mathematical reformulation where the graph communication is 'compiled' into matrix operations. The graph structure is still there, encoded in the learned parameter matrices. You can literally read out the graph adjacency matrix from the trained weights and see the scale-free structure."
+              },
+              {
+                "type": "p",
+                "children": "The mean-field approximation that BDH-GPU uses is like replacing 'each neuron sends specific messages to its neighbors' with 'each neuron broadcasts a summary, and each neuron picks up what's relevant'. This loses some specificity but gains massive parallelism. The linear attention mechanism is what implements this 'broadcast and filter' pattern."
+              },
+              {
+                "type": "Code",
+                "props": {
+                  "language": "python"
+                },
+                "children": "# BDH-GPU core computation (simplified from paper's Appendix E)\n# State s is an n×d matrix (synaptic weights)\n# x is the input activation (positive, sparse, n-dimensional)\n\n# ReLU-lowrank feed-forward (produces sparse positive activations)\ny = relu(Dx @ E @ Dy.T @ x)  # n-dim, sparse, positive\n\n# Linear attention state update (= Hebbian learning!)\n# s += outer_product(key, value)  i.e.  σ(i,j) += Y(i)·X(j)\nk = Wk @ y   # key: what this token 'is'\nv = Wv @ y   # value: what this token 'carries'\ns = s + outer(k, v)  # Hebbian update to synaptic state\n\n# Attention readout (= modus ponens!)\nq = Wq @ y   # query: what am I looking for?\nout = s @ q  # weighted sum over all stored associations"
+              }
+            ]
+          },
+          {
+            "type": "Callout",
+            "props": {
+              "type": "tip"
+            },
+            "children": "BDH-GPU uses linear attention (no softmax), which means: (1) the state can be maintained as a fixed-size matrix regardless of context length — natural support for long contexts, (2) inference is O(n) per token not O(T) where T is context length, and (3) the state update is literally an outer product, which is literally Hebbian learning. The math is the same."
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "Hebbian Learning and Synaptic Plasticity"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "Here's where BDH gets truly remarkable. In Transformers, the KV cache stores past token information but has no biological interpretation. In BDH, the working memory during inference IS synaptic plasticity — the same mechanism the brain uses."
+          },
+          {
+            "type": "h3",
+            "children": "How It Works During Inference"
+          },
+          {
+            "type": "p",
+            "children": "When BDH processes text, each token activates a sparse set of neurons (the positive entries in the activation vector y). These activations then update the synaptic state matrix σ via the Hebbian rule: σ(i,j) += Y(i) · X(j). This means:"
+          },
+          {
+            "type": "p",
+            "children": "• If 'cat' activates neurons {3, 17, 42} and 'mat' later activates neurons {17, 55, 89}, then synapses (3,55), (3,89), (17,55), (17,89), (42,55), (42,89) all get strengthened. Neuron 17 — shared between both — gets especially reinforced connections."
+          },
+          {
+            "type": "p",
+            "children": "• The paper confirms empirically that specific, individual synapses strengthen whenever BDH 'hears or reasons about' a specific concept. A synapse between neuron i and neuron j might consistently activate when the model processes text about 'royalty' — across many different prompts."
+          },
+          {
+            "type": "InteractiveDemo",
+            "props": {
+              "id": "hebbian-learning-step-through",
+              "title": "Hebbian Learning in BDH: Step-Through",
+              "description": "Watch how synaptic weights evolve as BDH processes a sequence of tokens. Each token activates a sparse set of neurons (shown as lit-up nodes). The Hebbian rule strengthens connections between co-activated neurons. After several tokens about 'king' and 'queen', see how the 'royalty' synapses become dominant in the state matrix.",
+              "type": "hebbian-step-through",
+              "config": {
+                "neurons": 20,
+                "sequence": [
+                  {"token": "The", "activations": [1, 5, 12], "description": "Common function word → activates generic neurons"},
+                  {"token": "king", "activations": [3, 7, 14, 18], "description": "Content word → activates 'royalty' cluster neurons 3, 7, 14"},
+                  {"token": "wore", "activations": [2, 9, 12], "description": "Verb → activates action neurons, shared neuron 12 with 'The'"},
+                  {"token": "a", "activations": [1, 5], "description": "Function word → minimal activation"},
+                  {"token": "crown", "activations": [3, 7, 11, 16], "description": "'Crown' shares neurons 3, 7 with 'king' → royalty synapses strengthen!"},
+                  {"token": ".", "activations": [1], "description": "Punctuation → near-silent"},
+                  {"token": "The", "activations": [1, 5, 12], "description": "Same word, same activation pattern"},
+                  {"token": "queen", "activations": [3, 7, 14, 19], "description": "'Queen' activates the SAME royalty neurons 3, 7, 14 as 'king'! Synapses reinforced again."}
+                ],
+                "highlightSynapses": [[3, 7], [3, 14], [7, 14]],
+                "synapseLabel": "Royalty concept synapses",
+                "showStateMatrix": true,
+                "showActivationSparsity": true
+              }
+            }
+          },
+          {
+            "type": "Example",
+            "props": {
+              "title": "Monosemantic Synapses: Empirical Evidence"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "The paper runs an elegant experiment: feed the model many different prompts, and track which synapses (i,j) in the state matrix σ get the strongest activation. They find that individual synapses are monosemantic — each one consistently responds to a specific concept."
+              },
+              {
+                "type": "p",
+                "children": "For example, a specific synapse σ(i,j) might light up whenever the text mentions 'music' — whether it's 'The band played jazz', 'She practiced piano', or 'The symphony was beautiful'. This is radically different from Transformers, where individual neurons are typically polysemantic (responding to many unrelated concepts). BDH achieves monosemanticity by design, not by post-hoc analysis with SAEs."
+              }
+            ]
+          },
+          {
+            "type": "Callout",
+            "props": {
+              "type": "warning"
+            },
+            "children": "The timescale matters. In the brain, Hebbian potentiation at synapses operates on a scale of minutes — enough for short-term working memory during a conversation. In BDH, the synaptic state σ accumulates over hundreds of tokens, which maps to roughly the same timescale if we assume typical speech rates. This is a genuine biological correspondence, not just a metaphor."
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "Inherent Interpretability"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "One of BDH's most exciting properties is that interpretability isn't bolted on after the fact — it's built into the architecture. This comes from three design choices working together:"
+          },
+          {
+            "type": "h3",
+            "children": "1. Sparse Positive Activations"
+          },
+          {
+            "type": "p",
+            "children": "In standard Transformers, activation vectors are dense (most entries non-zero) and can be positive or negative. In BDH, activations are positive (enforced by ReLU) and empirically sparse (~5% non-zero entries). Each non-zero entry means 'neuron i is active for this token'. You can literally read which neurons fired."
+          },
+          {
+            "type": "h3",
+            "children": "2. Monosemanticity Without SAEs"
+          },
+          {
+            "type": "p",
+            "children": "In Transformers, individual neurons tend to be polysemantic — neuron 42 might activate for 'cats', 'the color blue', and 'French cuisine'. This is why Anthropic and others developed Sparse Autoencoders (SAEs) to decompose these into interpretable features. BDH doesn't need SAEs because its neurons are already monosemantic — each neuron tends to represent one concept or feature."
+          },
+          {
+            "type": "h3",
+            "children": "3. Interpretable State"
+          },
+          {
+            "type": "p",
+            "children": "In Transformers, the 'state' during inference is the KV cache — a dense, high-dimensional blob that's hard to interpret. In BDH, the state is the synaptic weight matrix σ, where each entry σ(i,j) represents the current strength of association between neuron i and neuron j. You can inspect individual synapses and understand what the model is 'thinking about'. This goes beyond neuron-level interpretability to state-level interpretability."
+          },
+          {
+            "type": "Analogy",
+            "props": {
+              "concept": "Interpretability comparison",
+              "analogy": "Imagine trying to understand what someone is thinking. With a Transformer, it's like looking at an fMRI scan — you see big blobs of activity but can't read individual thoughts. With BDH, it's like having a direct readout of which specific neural connections are active — 'ah, the royalty→crown synapse is strong, they're thinking about monarchs'. This is the difference between neuron-level and state-level interpretability."
+            }
+          },
+          {
+            "type": "DeepDive",
+            "props": {
+              "title": "Why Positive Activations Enable Interpretability"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "There's a deep mathematical reason why positive activations help. In standard Transformers, an activation vector lives in Rᵈ — a d-dimensional space where cancellations can hide information. A neuron with value -3 might be 'suppressing' a concept, but you can't easily tell which concept or why."
+              },
+              {
+                "type": "p",
+                "children": "In BDH, activation vectors live in the positive orthant of Rⁿ (all entries ≥ 0). This is geometrically very different: in the positive orthant, vectors can only point in 'positive' directions. The only way to represent a concept is to activate the corresponding neurons — there's no cancellation. This is why BDH activations naturally decompose into a small set of active concepts."
+              },
+              {
+                "type": "p",
+                "children": "The paper uses Locality-Sensitive Hashing (LSH) to show that key vectors for linear attention can always be moved into the positive orthant without losing expressiveness. This isn't just a convenience — it's a principled design choice that makes the 'concept space' of the model naturally align with the positive orthant, where each dimension corresponds to a specific concept."
+              },
+              {
+                "type": "p",
+                "children": "Combined with the high dimensionality (n can be thousands), BDH has room for each concept to get its own dedicated neuron(s), rather than sharing neurons across concepts. This is what makes monosemanticity possible even at relatively small model sizes (below 100M parameters)."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "Scaling Laws: Rivaling GPT-2"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "Theory is nice, but does it work? The paper shows that BDH-GPU follows the same scaling laws as optimized GPT-2 Transformers, at parameter scales from 10M to 1B, on language modeling and translation tasks."
+          },
+          {
+            "type": "h3",
+            "children": "Parameter Scaling"
+          },
+          {
+            "type": "p",
+            "children": "BDH-GPU scales in one primary dimension: n (the neuron count). A model has approximately 3nd parameters where d ≈ 256. So a 1B parameter model would have n ≈ 1.3M neurons. The architecture uses multiple layers and heads, similar to a Transformer, but the key scaling knob is n."
+          },
+          {
+            "type": "Example",
+            "props": {
+              "title": "BDH vs. GPT-2 Architecture Comparison"
+            },
+            "children": [
+              {
+                "type": "Code",
+                "props": {
+                  "language": "text"
+                },
+                "children": "Feature                  GPT-2 Transformer      BDH-GPU\n─────────────────────────────────────────────────────────\nAttention type           Softmax (quadratic)    Linear (O(n) per token)\nActivation sign          Mixed (+/-)            Positive only (ReLU)\nActivation sparsity      Dense (~100% nonzero)  Sparse (~5% nonzero)\nFeed-forward             MLP (up-project/down)  ReLU-lowrank (Dx·E·Dy)\nState during inference   KV cache (grows w/ T)  Fixed-size σ matrix\nInterpretability          Requires SAEs          Built-in monosemanticity\nBrain correspondence     Vague analogies        Direct formal equivalence\nScaling parameter        d_model                n (neuron count)\nParams at 1B scale       ~1B                    ~1B (same performance)"
+              }
+            ]
+          },
+          {
+            "type": "p",
+            "children": "The empirical results show that when you plot validation loss vs. parameter count on a log-log scale, BDH-GPU and GPT-2 follow essentially the same curve. BDH is slightly better at some scales, slightly worse at others, but the key finding is that the scaling exponent is the same — meaning BDH benefits from scale in the same way Transformers do."
+          },
+          {
+            "type": "Callout",
+            "props": {
+              "type": "key"
+            },
+            "children": "The Sudoku result is particularly striking. BDH achieves 97.4% accuracy on ~250,000 difficult Sudoku puzzles — without chain-of-thought, backtracking, or external tools. Leading LLMs (O3-mini, DeepSeek R1, Claude 3.7) score ~0% on the same benchmark. This suggests BDH's larger latent reasoning space (the n×n state matrix) enables a fundamentally different kind of reasoning."
+          },
+          {
+            "type": "DeepDive",
+            "props": {
+              "title": "FLOPS Comparison and Efficiency"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "At the same parameter count, BDH-GPU and GPT-2 have comparable FLOPS per token during training. The ReLU-lowrank block costs O(nd) FLOPS (same as an MLP), and linear attention costs O(nd) per token (vs. O(Td) for softmax attention where T is sequence length)."
+              },
+              {
+                "type": "p",
+                "children": "During inference, BDH-GPU has an advantage for long contexts: since its state is a fixed-size matrix (not a growing KV cache), the per-token cost is constant regardless of how many tokens have been processed. This is the same advantage that SSMs like Mamba have over Transformers, but BDH gets it while also having attention and biological interpretability."
+              },
+              {
+                "type": "p",
+                "children": "The paper notes that BDH-GPU hasn't yet been optimized with techniques like FlashAttention analogs, custom CUDA kernels, or architectural search over the n/d ratio. The current results use 'vanilla' implementations, suggesting significant room for optimization."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "Biological Plausibility: A Model of Speech"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "BDH isn't just brain-inspired — the paper argues it's biologically plausible as a model for how the brain actually processes language. The claim is strong: BDH's inference dynamics can be directly implemented by biological spiking neural networks with Hebbian learning."
+          },
+          {
+            "type": "h3",
+            "children": "The Brain Model"
+          },
+          {
+            "type": "p",
+            "children": "BDH can be expressed as a brain model with:"
+          },
+          {
+            "type": "DefinitionList",
+            "props": {
+              "items": [
+                {
+                  "term": "n spiking neurons",
+                  "definition": "Organized into excitatory and inhibitory circuits with integrate-and-fire thresholding — standard neuroscience."
+                },
+                {
+                  "term": "Hebbian synaptic plasticity",
+                  "definition": "Working memory stored in synaptic weights, updated when pre- and post-synaptic neurons fire together. Potentiation timescale: minutes (hundreds of tokens at speech rate)."
+                },
+                {
+                  "term": "Scale-free connectivity",
+                  "definition": "The neuron interaction graph has the same heavy-tailed degree distribution and high modularity seen in real cortical networks."
+                },
+                {
+                  "term": "Sparse activation",
+                  "definition": "At any given time, only ~5% of neurons are active — matching the sparse coding observed in cortical circuits."
+                }
+              ]
+            }
+          },
+          {
+            "type": "Analogy",
+            "props": {
+              "concept": "BDH as a brain model",
+              "analogy": "Imagine you're listening to a story about a knight saving a princess. Your brain doesn't activate all 80 billion neurons for every word. Instead, hearing 'knight' activates a sparse cluster of neurons related to medieval concepts. 'Save' activates action neurons, some shared with the knight cluster. The Hebbian rule strengthens knight→save connections. By the time you hear 'dragon', the knight→danger→save pathway is pre-activated and you process it faster. BDH does exactly this — same mechanism, same timescale, same sparsity level."
+            }
+          },
+          {
+            "type": "p",
+            "children": "The biological plausibility extends to several specific mechanisms:"
+          },
+          {
+            "type": "p",
+            "children": "• Excitatory/inhibitory balance: BDH's ReLU-lowrank block naturally separates into excitatory (positive weight) and inhibitory (negative weight) pathways, matching Dale's law in neuroscience."
+          },
+          {
+            "type": "p",
+            "children": "• No backpropagation through time: Section 7.2 of the paper shows BDH can be trained without BPTT, using only local learning rules. This addresses a long-standing criticism of neural networks — that BPTT is biologically implausible because real neurons can't send error signals backward through time."
+          },
+          {
+            "type": "p",
+            "children": "• Model merging: Section 7.1 shows that two BDH models can be concatenated (literally stacked their neuron populations) to form a larger working model. This is analogous to how brain regions can be combined — you can't concatenate two GPT-2 models, but you can concatenate two BDH models."
+          },
+          {
+            "type": "Callout",
+            "props": {
+              "type": "insight"
+            },
+            "children": "The implications for neuroscience are as significant as for AI. If BDH is correct, it suggests that the brain's language processing can emerge from just: (1) sparse spiking in a scale-free graph, (2) Hebbian plasticity at synapses, and (3) integrate-and-fire thresholding. No mysterious global coordination needed — everything is local, and the macro-level language ability emerges from micro-level dynamics."
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "Bonus Properties: Model Merging and Training Without BPTT"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "Two additional results from the paper hint at BDH's potential beyond standard LLM use cases:"
+          },
+          {
+            "type": "h3",
+            "children": "Model Merging by Concatenation"
+          },
+          {
+            "type": "p",
+            "children": "Because BDH is parameterized by n (neuron count), two models with n₁ and n₂ neurons can be directly concatenated into one model with n₁ + n₂ neurons. The combined model inherits capabilities from both parent models. This is fundamentally impossible with Transformers (you can't just concatenate two GPT-2 weight matrices), but it's natural for BDH because each neuron is an independent particle whose interactions are mediated by the graph."
+          },
+          {
+            "type": "h3",
+            "children": "Training Without Backpropagation Through Time"
+          },
+          {
+            "type": "p",
+            "children": "Standard RNNs and SSMs require BPTT — sending gradients backward through the entire sequence. This is computationally expensive and biologically implausible. BDH can be trained with only local-in-time gradients, because the Hebbian state update (the outer product σ += Y·Xᵀ) provides a natural learning signal. The paper shows this works in practice, opening the door to truly brain-like online learning."
+          },
+          {
+            "type": "DeepDive",
+            "props": {
+              "title": "Towards 'Thermodynamic Limit' Theory for Reasoning Models"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "The authors' long-term vision is ambitious: they want PAC-like (Probably Approximately Correct) bounds for generalization of reasoning over time. The key enabler is BDH's scale-free property."
+              },
+              {
+                "type": "p",
+                "children": "In statistical physics, scale-free systems have well-defined 'thermodynamic limits' — as the system size n → ∞, macroscopic properties converge to predictable values. This is why we can predict the behavior of a gas (10²³ particles) from equations that don't depend on the exact number of particles."
+              },
+              {
+                "type": "p",
+                "children": "The hope is that BDH, being a scale-free interacting particle system, admits similar limit behavior for reasoning. If true, this would mean: (1) we could formally bound how a BDH model generalizes to longer reasoning chains than it saw during training, (2) we could predict the behavior of larger models from smaller ones, and (3) we'd have a principled theory of AI safety based on mathematical guarantees rather than empirical testing."
+              },
+              {
+                "type": "p",
+                "children": "This is speculative — the paper doesn't prove these bounds yet. But it establishes the mathematical framework (BDH as an interacting particle system with scale-free graphs) that would be needed for such a theory. The authors call this 'Axiomatic AI' — understanding models from their micro-foundations rather than treating them as black boxes."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "Quiz: Test Your Understanding"
+        },
+        "children": [
+          {
+            "type": "Quiz",
+            "props": {
+              "question": "In BDH, what is the Hebbian learning rule σ(i,j) += Y(i)·X(j) mathematically equivalent to in the attention mechanism?",
+              "options": [
+                "The softmax normalization in standard Transformer attention",
+                "The outer product state update in linear attention (KVᵀ)",
+                "The query-key dot product in multi-head attention",
+                "The skip connection in residual blocks"
+              ],
+              "correctIndex": 1,
+              "explanation": "The Hebbian update σ(i,j) += Y(i)·X(j) is an outer product of the pre-synaptic signal Y and post-synaptic signal X. In linear attention, the state update is S += kvᵀ — also an outer product. These are mathematically identical operations, which is the core insight connecting brain-like Hebbian learning to Transformer-like attention."
+            }
+          },
+          {
+            "type": "Quiz",
+            "props": {
+              "question": "Why does BDH achieve monosemanticity (each neuron represents one concept) without needing Sparse Autoencoders?",
+              "options": [
+                "BDH uses a special loss function that penalizes polysemanticity",
+                "BDH has far more parameters than Transformers, giving each concept its own space",
+                "BDH's activations are positive (via ReLU) and sparse (~5%), living in a very high-dimensional space (n >> d), so each concept naturally gets its own neuron(s)",
+                "BDH pre-assigns each neuron to a concept before training"
+              ],
+              "correctIndex": 2,
+              "explanation": "BDH activations are positive (ReLU enforced), sparse (~5% non-zero), and live in dimension n (thousands). Positive activations prevent cancellation — a concept can only be represented by activating neurons, not by suppressing them. High dimensionality with sparsity means there's room for each concept to claim its own neuron(s). No special loss or pre-assignment needed — it emerges from the architecture."
+            }
+          },
+          {
+            "type": "Quiz",
+            "props": {
+              "question": "What does 'scale-free' mean in the context of BDH's neuron interaction network?",
+              "options": [
+                "The model can be scaled to any size without changing its architecture",
+                "The network's degree distribution follows a power law — few hubs with many connections, many nodes with few",
+                "The model produces the same output regardless of input scale",
+                "The training loss is independent of the number of parameters"
+              ],
+              "correctIndex": 1,
+              "explanation": "A scale-free network has a degree distribution P(k) ~ k^(-γ) — a power law. This means most neurons have few connections, but a small number of 'hub' neurons have very many. This is the same structure seen in biological neural networks, the internet, social networks, and airline routes. In BDH, this structure emerges naturally during training from the ReLU-lowrank blocks."
+            }
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "Summary: Why BDH Matters"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "Dragon Hatchling (BDH) is remarkable because it doesn't sacrifice any of the things we want:"
+          },
+          {
+            "type": "DefinitionList",
+            "props": {
+              "items": [
+                {
+                  "term": "Performance",
+                  "definition": "Matches GPT-2 scaling laws from 10M to 1B parameters. 97.4% on extreme Sudoku."
+                },
+                {
+                  "term": "Interpretability",
+                  "definition": "Sparse positive activations, monosemantic neurons and synapses, readable state — all by design."
+                },
+                {
+                  "term": "Theoretical foundations",
+                  "definition": "Formal equivalence between the GPU-friendly architecture and a biologically plausible graph model."
+                },
+                {
+                  "term": "Biological plausibility",
+                  "definition": "Spiking neurons, Hebbian learning, scale-free graphs, excitatory/inhibitory circuits — all matching neuroscience."
+                },
+                {
+                  "term": "Practical advantages",
+                  "definition": "Constant-memory inference (no growing KV cache), model merging by concatenation, training without BPTT."
+                }
+              ]
+            }
+          },
+          {
+            "type": "p",
+            "children": "Whether BDH or something like it becomes the successor to the Transformer remains to be seen. But it demonstrates something profound: that the 'missing link' between AI and neuroscience might not be missing at all. The same mathematical structure — locally-interacting particles on a scale-free graph with Hebbian plasticity — can simultaneously describe a GPU-friendly language model and a biologically plausible model of how the brain processes speech."
+          },
+          {
+            "type": "Callout",
+            "props": {
+              "type": "key"
+            },
+            "children": "Paper: 'The Dragon Hatchling: The Missing Link between the Transformer and Models of the Brain' by Kosowski, Uznański, Chorowski, Stamirowska, Bartoszkiewicz (Pathway, 2025). arXiv:2509.26507. Code: github.com/pathwaycom/bdh"
+          }
+        ]
+      }
+    ]
+  }
+}
