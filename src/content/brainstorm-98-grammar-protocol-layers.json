@@ -1,0 +1,520 @@
+{
+  "id": "brainstorm-98-grammar-protocol-layers",
+  "title": "Grammar Tags as Protocol Layers",
+  "subtitle": "Modular Memory Through Shared Symbolic Interfaces — teaching neural modules a structural PROTOCOL instead of forcing structure into the architecture",
+  "readTime": "15 min",
+  "state": {},
+  "content": {
+    "type": "Fragment",
+    "children": [
+      {
+        "type": "Callout",
+        "props": {
+          "type": "info"
+        },
+        "children": "This tutorial explores a key insight: instead of building structure INTO a neural architecture (like Stack-SSM), you can teach the model a structural PROTOCOL via grammar tags in training data. Grammar tags become a shared symbolic interface — a Rosetta Stone — that lets independent neural modules communicate through inspectable, debuggable channels."
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "1. The Problem: Why Can't Neural Modules Talk?"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "Modern neural networks are monolithic. A transformer processes everything through attention — every token can see every other token in a single undifferentiated soup. This sounds powerful, and it is. But it creates a fundamental problem for modularity."
+          },
+          {
+            "type": "Analogy",
+            "props": {
+              "concept": "Attention as Telepathy",
+              "analogy": "Imagine a room full of people who communicate by telepathy. Everyone can hear everyone's thoughts simultaneously. Incredibly efficient? Yes. But now try to debug a disagreement. Try to figure out WHO told WHOM WHAT. Try to add a new person to the room without disrupting everyone's mental connections. You can't — because there's no inspectable interface. Attention is telepathy: powerful but opaque. Modular systems need something more like email — explicit, inspectable, routable messages."
+            }
+          },
+          {
+            "type": "p",
+            "children": "The dream of modular neural systems is old: separate modules for syntax, semantics, world knowledge, discourse — each doing what it's best at, then combining their outputs. But the central challenge has always been: how do the modules communicate?"
+          },
+          {
+            "type": "Example",
+            "props": {
+              "title": "The Communication Problem in Practice"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "Consider two hypothetical modules: a Syntax Module that tracks grammatical structure, and a Content Module that generates words. The Content Module needs to know 'we're inside a noun phrase now' to generate appropriate words. The Syntax Module needs to know 'the content module just generated a verb' to update its parse state. How do they share this information?"
+              },
+              {
+                "type": "p",
+                "children": "Option A: Shared hidden states (attention). Works, but the interface is a high-dimensional vector with no human-interpretable meaning. You can't inspect it, debug it, or verify it."
+              },
+              {
+                "type": "p",
+                "children": "Option B: Explicit symbolic tags. The Syntax Module emits '[NP' and the Content Module reads it and knows it's generating a noun phrase. The tag IS the interface — inspectable, debuggable, and meaningful."
+              }
+            ]
+          },
+          {
+            "type": "Callout",
+            "props": {
+              "type": "key"
+            },
+            "children": "The core insight: modular neural systems need a PROTOCOL — a shared symbolic language that modules can read and write. Grammar tags are that protocol."
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "2. Grammar Tags as the Rosetta Stone"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "The idea is deceptively simple: interleave constituency parse tags directly into the token stream. Instead of training on raw text, train on text where the grammatical structure is made explicit through inline tags."
+          },
+          {
+            "type": "Example",
+            "props": {
+              "title": "Raw Text vs Grammar-Annotated Text"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "Raw text: 'The cat sat on the mat'"
+              },
+              {
+                "type": "p",
+                "children": "Grammar-annotated: '[S [NP [DT The] [NN cat]] [VP [VBD sat] [PP [IN on] [NP [DT the] [NN mat]]]]]'"
+              },
+              {
+                "type": "p",
+                "children": "The grammar tags ([S, [NP, [DT, etc.) are added as regular tokens in the sequence. The model sees BOTH the words AND the structure, interleaved. It learns that '[NP' signals 'a noun phrase is starting' and ']' signals 'the current constituent is ending.'"
+              }
+            ]
+          },
+          {
+            "type": "Analogy",
+            "props": {
+              "concept": "Protocol Tags as Road Signs",
+              "analogy": "Think of grammar tags like road signs on a highway. The road (content) exists independently, but the signs (tags) tell you WHERE you are: 'Entering downtown,' 'Speed limit 35,' 'Exit 5 ahead.' Without signs, you can still drive — but you can't coordinate with other drivers about location. Grammar tags give neural modules the same shared reference frame: 'We're in a noun phrase now. A verb phrase is starting next.'"
+            }
+          },
+          {
+            "type": "InteractiveDemo",
+            "props": {
+              "title": "Parse Tree → Linear Token Stream",
+              "description": "Watch how a hierarchical parse tree gets 'flattened' into a linear sequence of tokens. The tree structure [S [NP [DT The] [NN cat]] [VP [VBD sat]]] becomes the linear stream: [S → [NP → [DT → The → ] → [NN → cat → ] → ] → [VP → [VBD → sat → ] → ]. Each opening bracket '[X' marks entering a constituent, each ']' marks leaving one. The model reads this LEFT TO RIGHT — but the tree structure is fully recoverable from the brackets!",
+              "prompt": "Consider: why is this better than giving the model the tree as a separate data structure? Think about what a language model actually processes — a sequence of tokens. By encoding the tree IN the sequence, the model can learn structure using the same machinery it uses for everything else.",
+              "scenarios": [
+                {
+                  "input": "Step 1: The full tree",
+                  "reveal": "        [S]\n       /    \\\n    [NP]    [VP]\n   /    \\      \\\n [DT]  [NN]  [VBD]\n  |      |      |\n The   cat    sat\n\nThis is the parse tree. It's hierarchical — it has parent-child relationships, nesting, scope."
+                },
+                {
+                  "input": "Step 2: Linearize with bracket notation",
+                  "reveal": "[S [NP [DT The ] [NN cat ] ] [VP [VBD sat ] ] ]\n\nEach '[X' = enter node X. Each ']' = leave current node. Reading left to right, you can reconstruct the ENTIRE tree. The linear sequence is isomorphic to the tree."
+                },
+                {
+                  "input": "Step 3: What the model actually sees",
+                  "reveal": "Token stream: [S, [NP, [DT, The, ], [NN, cat, ], ], [VP, [VBD, sat, ], ], ]\n\nEach grammar tag is just another token in the vocabulary. The model predicts the NEXT token — sometimes that's a word ('cat'), sometimes it's a structural tag ('[VP'). Structure and content are unified in one sequence."
+                }
+              ],
+              "height": 350
+            }
+          },
+          {
+            "type": "DeepDive",
+            "props": {
+              "title": "Why inline tags instead of a separate encoder?",
+              "id": "inline-vs-separate"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "You might ask: why not have a separate syntax encoder that feeds structure information to the content model via cross-attention or some other mechanism? The answer is elegance and learnability."
+              },
+              {
+                "type": "p",
+                "children": "Inline tags exploit the model's EXISTING sequence processing machinery. The model already knows how to predict the next token — now some of those tokens happen to be structural markers. There's no new architecture needed, no special cross-attention mechanism, no alignment problem between two separate representations."
+              },
+              {
+                "type": "p",
+                "children": "Furthermore, inline tags create a SINGLE shared representation that any module can read. A syntax module, a semantics module, and a discourse module can all read the same token stream. The tags are the protocol — the shared language that makes modular communication possible without hidden-state telepathy."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "3. Three Protocol Layers"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "Grammar tags are just one layer of protocol. The full vision involves three stacked protocol layers, each providing a different level of structural information:"
+          },
+          {
+            "type": "InteractiveDemo",
+            "props": {
+              "title": "The Three-Layer Protocol Stack",
+              "description": "Like the OSI network model, structural information flows through three protocol layers. Each layer adds a different kind of annotation to the token stream, and each layer can be read by different modules. Click through to see how the same sentence gets annotated at each level.",
+              "prompt": "Notice how each layer provides DIFFERENT information. Surface syntax tells you WHAT grammatical roles words play. Semantic operators tell you WHAT CONCEPTUAL ACTION is happening. Pragmatic markers tell you WHY the speaker is saying this NOW. Three levels, three purposes, one unified stream.",
+              "scenarios": [
+                {
+                  "input": "Layer 1 — Surface Protocol (Syntax)",
+                  "reveal": "Input: 'The cat chased the mouse across the kitchen'\n\nAnnotated: [S [NP [DT The] [NN cat]] [VP [VBD chased] [NP [DT the] [NN mouse]] [PP [IN across] [NP [DT the] [NN kitchen]]]]]\n\nWhat it tells modules: grammatical structure — where noun phrases are, what the verb is, how prepositional phrases attach. This is the WHAT of structure."
+                },
+                {
+                  "input": "Layer 2 — Semantic Protocol (Operators)",
+                  "reveal": "Input: 'The cat chased the mouse across the kitchen'\n\nAnnotated: PTRANS(agent=cat, object=cat, from=unknown, to=kitchen) + PTRANS(agent=cat, object=mouse, from=kitchen, to=unknown, manner=pursuit)\n\nWhat it tells modules: conceptual primitives — what ACTIONS are happening at the level of physical transfers, mental transfers, state changes. This is the MEANING of structure. PTRANS = physical transfer of an entity from one location to another."
+                },
+                {
+                  "input": "Layer 3 — Pragmatic Protocol (Discourse)",
+                  "reveal": "Input: 'The cat chased the mouse across the kitchen'\n\nAnnotated: [NARRATE: event-sequence] [FOREGROUND: chase-event] [NEW-ENTITY: mouse] [SETTING: kitchen]\n\nWhat it tells modules: discourse function — is this introducing a character? Advancing the plot? Providing background? Setting the scene? This is the WHY of structure — why the speaker chose to say THIS, HERE, NOW."
+                },
+                {
+                  "input": "All three layers combined",
+                  "reveal": "The three layers STACK. A single sentence simultaneously carries:\n\n• Surface: [S [NP ...] [VP ...]] — grammatical skeleton\n• Semantic: PTRANS(agent=cat...) — conceptual content\n• Pragmatic: [NARRATE] [FOREGROUND] — discourse purpose\n\nEach layer is independently readable. A syntax module reads Layer 1. An event-understanding module reads Layer 2. A discourse planner reads Layer 3. They all share the same token stream — that's the protocol."
+                }
+              ],
+              "height": 400
+            }
+          },
+          {
+            "type": "Callout",
+            "props": {
+              "type": "key"
+            },
+            "children": "The protocol layers are COMPOSABLE. You can train with just Layer 1 (syntax tags) and get benefits. Add Layer 2 (operators) and get more. Add Layer 3 (discourse) and get even more. Each layer is independently useful but they compound when stacked."
+          },
+          {
+            "type": "DeepDive",
+            "props": {
+              "title": "How do protocol layers map to the OSI model?",
+              "id": "osi-mapping"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "The analogy to network protocols is more than surface-deep. In the OSI model, Layer 1 (Physical) handles bit transmission, Layer 3 (Network) handles routing, Layer 7 (Application) handles user-facing data. Each layer has its own 'headers' that get added to the data."
+              },
+              {
+                "type": "p",
+                "children": "Similarly: Surface syntax tags are like frame headers (delimiting structural units), Semantic operators are like IP headers (routing meaning to the right conceptual 'address'), and Pragmatic markers are like HTTP headers (specifying the purpose and context of the communication)."
+              },
+              {
+                "type": "p",
+                "children": "The key property: each layer can be processed independently. A module that only cares about syntax can ignore the semantic and pragmatic annotations. A module that only cares about discourse can skip the parse tags. The protocol layers are orthogonal."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "4. Training vs Generation: Oracle Annotations vs Learned Modules"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "Here's where the rubber meets the road. There's an elegant asymmetry between training time and generation time that makes this whole approach practical."
+          },
+          {
+            "type": "Example",
+            "props": {
+              "title": "The Training-Time Shortcut"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "At training time, you have the ANSWERS. Tools like benepar (Berkeley Neural Parser) can parse any English sentence into a constituency tree with high accuracy. So you take your training corpus, run benepar on every sentence, and interleave the parse tags with the text. The model trains on this enriched data — learning BOTH the content patterns AND the structural patterns simultaneously."
+              },
+              {
+                "type": "p",
+                "children": "This is the 'oracle annotation' trick: at training time, an oracle (benepar) provides grammar tags for free. The model learns to predict them as part of the sequence, just like it learns to predict words."
+              }
+            ]
+          },
+          {
+            "type": "Analogy",
+            "props": {
+              "concept": "Oracle Annotations as Training Wheels",
+              "analogy": "Think of a child learning to ride a bike with training wheels. During training (learning phase), the training wheels (oracle annotations) provide perfect structural support — the child doesn't need to balance on their own. But over time, the child internalizes the balance. When the training wheels come off (generation time), the child can balance independently. Similarly, benepar provides 'perfect' parse tags during training, but the model internalizes the structural patterns and can generate its own tags during inference."
+            }
+          },
+          {
+            "type": "Callout",
+            "props": {
+              "type": "warning"
+            },
+            "children": "The generation-time challenge: at inference, there's no oracle. The model must produce grammar tags ITSELF. This requires either (a) the same model generating both structure and content (Phase 1), or (b) a dedicated structural head that produces tags while a separate content model fills in the words (Phase 2)."
+          },
+          {
+            "type": "DeepDive",
+            "props": {
+              "title": "Why benepar and not a different parser?",
+              "id": "why-benepar"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "Benepar (Berkeley Neural Parser) is used because it provides constituency parses — full hierarchical bracket structures — rather than just dependency parses (which only give head-dependent relations). Constituency parses map naturally to inline bracket notation: [S [NP ...] [VP ...]] is literally the constituency tree written out."
+              },
+              {
+                "type": "p",
+                "children": "Benepar also achieves ~95.7 F1 on the Penn Treebank, making its annotations reliable enough to serve as oracle training data. The small error rate is actually fine — the model learns the DISTRIBUTION of parse structures, smoothing over occasional parser errors."
+              },
+              {
+                "type": "p",
+                "children": "Alternative parsers could work: spaCy's constituency parser, Stanford CoreNLP, or even a fine-tuned T5. The key requirement is high-quality constituency parses that can be linearized into bracket notation."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "5. The Grammar-Mamba Experiment"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "The Grammar-Mamba experiment tests this protocol idea in practice, using Mamba (a state-space model) as the backbone. The experiment has two phases, each testing a different hypothesis."
+          },
+          {
+            "type": "Example",
+            "props": {
+              "title": "Phase 1: Same Model, Different Data"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "Hypothesis: A model trained on grammar-annotated text will develop better structural understanding than the same model trained on raw text, even though the architecture is identical."
+              },
+              {
+                "type": "p",
+                "children": "Setup: Train two identical Mamba models. Model A trains on raw WikiText. Model B trains on WikiText where every sentence has been parsed by benepar and annotated with inline grammar tags."
+              },
+              {
+                "type": "p",
+                "children": "Key question: Does Model B learn to track hierarchical structure better? Can it close brackets correctly? Does it maintain long-range syntactic dependencies that Model A drops?"
+              }
+            ]
+          },
+          {
+            "type": "Example",
+            "props": {
+              "title": "Phase 2: Structural Head + Content Model"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "Hypothesis: A two-module system — one module generating structural tags, another generating content words — will outperform a single model doing both."
+              },
+              {
+                "type": "p",
+                "children": "Setup: Module 1 (Structural Head) predicts the NEXT STRUCTURAL TAG given the sequence so far. Module 2 (Content Model) predicts the NEXT CONTENT WORD given the sequence so far INCLUDING the structural tag just emitted. The structural head is a lightweight model; the content model is the main Mamba."
+              },
+              {
+                "type": "p",
+                "children": "This is true modularity: one module handles 'what structure comes next?' and another handles 'what word fills this structural slot?' They communicate through the grammar tags in the token stream — the protocol."
+              }
+            ]
+          },
+          {
+            "type": "DeepDive",
+            "props": {
+              "title": "Evaluation: How do you test structural understanding?",
+              "id": "evaluation-tests"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "Several tests evaluate whether the grammar protocol actually improves structural competence:"
+              },
+              {
+                "type": "p",
+                "children": "1. BRACKET MATCHING: Generate text and check if opening brackets are correctly closed. A model that truly tracks structure should maintain a mental 'stack' of open constituents. Accuracy on this test directly measures hierarchical tracking."
+              },
+              {
+                "type": "p",
+                "children": "2. LONG-RANGE AGREEMENT: Test subject-verb agreement across intervening clauses. 'The cat [that chased the mice [that ate the cheese]] WAS...' — the model must track that 'cat' (singular) is the subject despite two plural nouns intervening."
+              },
+              {
+                "type": "p",
+                "children": "3. GARDEN PATH RECOVERY: Present sentences that require structural reanalysis. 'The horse raced past the barn fell.' Grammar-aware models should handle these better because the tags force explicit structural commitment."
+              },
+              {
+                "type": "p",
+                "children": "4. STRUCTURAL GENERALIZATION: Test on structures NOT seen in training — novel combinations of known constituents. This tests whether the model learned the RULES of the protocol, not just memorized specific parse trees."
+              }
+            ]
+          },
+          {
+            "type": "Callout",
+            "props": {
+              "type": "key"
+            },
+            "children": "The critical prediction: Phase 1 shows that protocol-enriched DATA improves structure tracking. Phase 2 shows that protocol-aware ARCHITECTURE (structural head + content model) improves it further. Data and architecture are complementary levers."
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "6. Why This Beats Stack-SSM"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "Stack-SSM (and similar architectures like Stack-RNN, Stack-LSTM) tried to give neural models structural competence by building a STACK DATA STRUCTURE directly into the architecture. The stack tracks nesting depth, push/pop operations mirror entering/leaving constituents. It's clever engineering. But it has fundamental limitations."
+          },
+          {
+            "type": "Analogy",
+            "props": {
+              "concept": "Filing Cabinet vs Teaching to Organize",
+              "analogy": "Stack-SSM is like buying someone a filing cabinet and saying 'now your papers are organized.' But the person still doesn't know WHAT to file, WHERE to file it, or WHY filing matters. The cabinet is a tool, not knowledge. Grammar tags as protocol is like TEACHING someone to organize: 'this is a category, here's how categories nest, here's why you label things.' The person internalizes the organizational principle and can organize ANYTHING — with or without the cabinet."
+            }
+          },
+          {
+            "type": "Example",
+            "props": {
+              "title": "Concrete Limitations of Stack-SSM"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "1. ARCHITECTURAL RIGIDITY: The stack is hardcoded. It can track one kind of nesting (push/pop) but can't represent other structural relationships. Grammar tags can encode ANY structure — constituency, dependency, scope, discourse — because they're DATA, not architecture."
+              },
+              {
+                "type": "p",
+                "children": "2. TRAINING DIFFICULTY: Stack operations are discrete (push or pop), which creates gradient problems. The model must learn WHEN to push and pop through indirect supervision. Grammar tags in the training data provide DIRECT supervision — the model sees exactly what structure looks like."
+              },
+              {
+                "type": "p",
+                "children": "3. NON-COMPOSABLE: You can't easily stack a Stack-SSM with other structural modules. But grammar tags compose naturally — add semantic operators on top of syntax tags, add discourse markers on top of those. Each layer is just more tokens in the sequence."
+              }
+            ]
+          },
+          {
+            "type": "Callout",
+            "props": {
+              "type": "key"
+            },
+            "children": "The fundamental difference: Stack-SSM builds structure into the ARCHITECTURE (the mechanism). Grammar tags build structure into the DATA (the protocol). Architecture changes require retraining from scratch. Protocol changes just require re-annotating data. The protocol approach is more flexible, more composable, and more debuggable."
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "7. Connections to Schankian Primitives"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "Now we can see how grammar tags connect to the broader Schankian project. Schank's conceptual primitives (ATRANS, PTRANS, MTRANS, MBUILD, etc.) are ANOTHER protocol layer — they annotate text at the SEMANTIC level, just as grammar tags annotate at the SYNTACTIC level."
+          },
+          {
+            "type": "Example",
+            "props": {
+              "title": "Same Framework, Different Abstraction Level"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "Consider: 'John gave Mary a book'"
+              },
+              {
+                "type": "p",
+                "children": "Surface protocol (syntax): [S [NP John] [VP [VBD gave] [NP Mary] [NP [DT a] [NN book]]]]"
+              },
+              {
+                "type": "p",
+                "children": "Semantic protocol (Schankian): ATRANS(actor=John, object=book, from=John, to=Mary)"
+              },
+              {
+                "type": "p",
+                "children": "Same sentence. Same inline annotation approach. Different level of abstraction. The syntax tags tell you the GRAMMATICAL structure. The Schankian operator tells you the CONCEPTUAL structure — that this is a transfer of possession."
+              }
+            ]
+          },
+          {
+            "type": "p",
+            "children": "This is the deep insight: the grammar-tag-as-protocol framework GENERALIZES. Syntax tags were the proof of concept. Schankian operators are the next layer. Discourse markers are the layer above that. Each is a protocol layer that makes implicit structure explicit."
+          },
+          {
+            "type": "Analogy",
+            "props": {
+              "concept": "Protocol Layers as Microscope Magnifications",
+              "analogy": "Think of protocol layers like microscope magnifications. At 1x (pragmatic layer), you see the big picture: 'this paragraph introduces a character.' At 10x (semantic layer), you see the conceptual events: 'PTRANS — someone moved somewhere.' At 100x (syntax layer), you see the grammatical machinery: '[NP [DT The] [NN detective]].' Same text, three levels of zoom, each revealing different structure. And crucially, a module working at one magnification doesn't need to understand the others."
+            }
+          },
+          {
+            "type": "Callout",
+            "props": {
+              "type": "key"
+            },
+            "children": "The Schankian project benefits directly: if grammar tags work as a protocol for syntax, then Schankian operators can work as a protocol for semantics. The same training approach applies — annotate data with operator labels at training time, learn to generate them at inference time. Grammar-Mamba is the prototype; Operator-Mamba is the next step."
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "Check Your Understanding"
+        },
+        "children": [
+          {
+            "type": "Quiz",
+            "props": {
+              "question": "What is the key advantage of grammar tags as a protocol over Stack-SSM's architectural approach?",
+              "options": [
+                "Grammar tags make the model faster at inference time",
+                "Grammar tags encode structure in the DATA (composable, debuggable, flexible) rather than in the ARCHITECTURE (rigid, non-composable)",
+                "Grammar tags use fewer parameters than a stack mechanism",
+                "Grammar tags only work with transformers, not SSMs"
+              ],
+              "correct": 1,
+              "explanation": "The fundamental advantage is that grammar tags put structure in the data (as a protocol) rather than in the architecture (as a mechanism). This means you can add new protocol layers just by re-annotating data, compose multiple layers in one stream, and inspect/debug the structural decisions by reading the tags. Stack-SSM's architectural approach is rigid — you'd need to redesign the architecture to handle different kinds of structure."
+            }
+          },
+          {
+            "type": "Quiz",
+            "props": {
+              "question": "Why is there an asymmetry between training time and generation time in the grammar protocol approach?",
+              "options": [
+                "Training is done on GPUs but generation is done on CPUs",
+                "At training time, an oracle parser (benepar) provides perfect grammar tags for free; at generation time, the model must produce its own tags",
+                "Training uses more data than generation",
+                "Grammar tags are removed before generation to save tokens"
+              ],
+              "correct": 1,
+              "explanation": "This is the elegant asymmetry: during training, tools like benepar can annotate every sentence with grammar tags automatically, providing free structural supervision. But during generation, there's no input text to parse — the model is creating new text. So it must either generate the tags itself (Phase 1) or use a dedicated structural head to produce tags that guide the content model (Phase 2). The oracle bootstraps the learning; the learned model then flies solo."
+            }
+          },
+          {
+            "type": "Quiz",
+            "props": {
+              "question": "How do the three protocol layers (Surface, Semantic, Pragmatic) relate to each other?",
+              "options": [
+                "They are mutually exclusive — you can only use one at a time",
+                "They are ordered — you must implement Layer 1 before Layer 2",
+                "They are composable and independently readable — each adds different structural information to the same token stream, and modules can read whichever layer they need",
+                "They replace each other — Layer 3 makes Layer 1 obsolete"
+              ],
+              "correct": 2,
+              "explanation": "The three layers are COMPOSABLE and INDEPENDENTLY READABLE. They all annotate the same token stream but provide different information: syntax (what grammatical roles), semantics (what conceptual actions), and pragmatics (what discourse purpose). A module can read just the layer it needs and ignore the rest. And they compound — adding more layers gives more structural information without invalidating existing layers."
+            }
+          }
+        ]
+      }
+    ]
+  }
+}

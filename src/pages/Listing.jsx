@@ -1281,6 +1281,18 @@ const tutorials = [
     glowColor: 'rgba(234, 179, 8, 0.4)',
     readTime: '16 min',
     difficulty: 2,
+  },
+  {
+    id: 'brainstorm-98-grammar-protocol-layers',
+    title: 'Grammar Tags as Protocol Layers',
+    description: 'How symbolic grammar tags create inspectable interfaces between neural modules — from Stack-SSM to Grammar-Mamba',
+    tags: ['grammar', 'protocol', 'modularity', 'mamba', 'syntax'],
+    icon: '🔌',
+    gradient: 'from-teal-500 to-cyan-500',
+    shadowColor: 'shadow-teal-500/25',
+    glowColor: 'teal',
+    readTime: '15 min',
+    difficulty: 2,
   }
 ]
 
