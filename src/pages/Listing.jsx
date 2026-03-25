@@ -1307,16 +1307,16 @@ const tutorials = [
     difficulty: 2,
   },
   {
-    id: 'baby-dragon-hatchling',
-    title: 'Baby Dragon Hatchling (BDH)',
-    description: 'A brain-inspired post-transformer architecture with Hebbian learning, synaptic memory, and scale-free hub routing',
-    tags: ['BDH', 'brain-inspired', 'Hebbian learning', 'architecture', 'continuous learning'],
+    id: 'dragon-hatchling-bdh',
+    title: 'Dragon Hatchling (BDH)',
+    description: 'A biologically-inspired LLM architecture combining scale-free networks, Hebbian learning, and inherent interpretability',
+    tags: ['architecture', 'biological', 'SSM', 'interpretability', 'spiking neurons'],
     icon: '🐉',
     gradient: 'from-orange-500 to-red-500',
     shadowColor: 'shadow-orange-500/25',
     glowColor: 'orange',
     readTime: '18 min',
-    difficulty: 'Intermediate',
+    difficulty: 'Advanced',
   }
 ]
 
