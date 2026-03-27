@@ -1307,6 +1307,18 @@ const tutorials = [
     difficulty: 2,
   },
   {
+    id: 'brainstorm-100-operator-params-distributions',
+    title: 'Operator Parameters as Evolved Distributions',
+    description: 'Unifying symbolic regression, probabilistic programming, and evolutionary algorithms — the three-layer language of thought',
+    tags: ['operators', 'probabilistic-programming', 'evolutionary-algorithms', 'symbolic-regression', 'webppl'],
+    icon: '🧬',
+    gradient: 'from-purple-500 to-pink-500',
+    shadowColor: 'shadow-purple-500/25',
+    glowColor: 'purple',
+    readTime: '25 min',
+    difficulty: 3,
+  },
+  {
     id: 'dragon-hatchling-bdh',
     title: 'Dragon Hatchling (BDH)',
     description: 'A biologically-inspired LLM architecture combining scale-free networks, Hebbian learning, and inherent interpretability',

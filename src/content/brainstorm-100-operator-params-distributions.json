@@ -1,0 +1,837 @@
+{
+  "type": "Fragment",
+  "meta": {
+    "title": "Operator Parameters as Evolved Distributions",
+    "description": "Unifying symbolic regression, probabilistic programming, and evolutionary algorithms for discovered semantic operators",
+    "author": "Clawd",
+    "date": "2026-03-27",
+    "tags": ["schankian-operators", "evolutionary-algorithms", "probabilistic-programming", "symbolic-regression", "webppl"]
+  },
+  "content": {
+    "type": "Fragment",
+    "children": [
+      {
+        "type": "Section",
+        "props": {
+          "title": "🧬 Operator Parameters as Evolved Distributions"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "Semantic operators (like Schankian primitives) aren't just discrete symbols. Each has **parameters**: success probability, magnitude of effect, noise levels. Instead of hand-coding these or learning them as point estimates, what if we **evolve both structure AND parameters** simultaneously?"
+          },
+          {
+            "type": "Callout",
+            "props": {
+              "type": "info"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "**Core insight:** Combine three techniques — symbolic regression (discover functional forms), probabilistic programming (parameters as distributions), evolutionary algorithms (optimize both) — into a unified framework for learning the language of thought."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "🎯 Part 1: The Problem — Point Estimates Are Brittle"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "Traditional approaches to learning operators have two failure modes:"
+          },
+          {
+            "type": "Example",
+            "props": {
+              "title": "Failure Mode 1: Hand-Coded Parameters"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "**Schank's original ATRANS:** \"Transfer possession from A to B.\""
+              },
+              {
+                "type": "p",
+                "children": "**Problem:** Real transfers aren't deterministic. They fail. The thief tries to steal the jewel, but the alarm goes off. The email never arrives. The gift is refused."
+              },
+              {
+                "type": "p",
+                "children": "Hand-coded operators can't capture this uncertainty. They're binary: success or deterministic failure."
+              }
+            ]
+          },
+          {
+            "type": "Example",
+            "props": {
+              "title": "Failure Mode 2: Point-Estimate Learning"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "**Neural approach:** Learn `ATRANS` as a function with scalar parameters."
+              },
+              {
+                "type": "code",
+                "props": {
+                  "language": "python"
+                },
+                "children": "def ATRANS(obj, from_entity, to_entity, success_rate=0.9):\n    if random.random() < success_rate:\n        from_entity.possession -= obj.value\n        to_entity.possession += obj.value\n    # else: transfer fails"
+              },
+              {
+                "type": "p",
+                "children": "**Problem:** `success_rate=0.9` is a **point estimate**. It doesn't generalize:"
+              },
+              {
+                "type": "ul",
+                "children": [
+                  {
+                    "type": "li",
+                    "children": "Trained on 100 examples → overfits to that domain"
+                  },
+                  {
+                    "type": "li",
+                    "children": "No uncertainty quantification (how confident are we?)"
+                  },
+                  {
+                    "type": "li",
+                    "children": "Can't transfer to new domains (narratives → robotics)"
+                  },
+                  {
+                    "type": "li",
+                    "children": "Can't compose with other operators (error propagation)"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "DeepDive",
+            "props": {
+              "title": "Why Distributions Are Better Than Point Estimates"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "A **distribution** over parameters captures:"
+              },
+              {
+                "type": "ol",
+                "children": [
+                  {
+                    "type": "li",
+                    "children": "**Uncertainty:** Not \"success rate = 0.9\", but \"Beta(9, 1)\" (high confidence it's around 0.9)"
+                  },
+                  {
+                    "type": "li",
+                    "children": "**Generalization:** Distributions encode assumptions (priors) that transfer across domains"
+                  },
+                  {
+                    "type": "li",
+                    "children": "**Composability:** Chaining operators propagates uncertainty naturally (product of distributions)"
+                  },
+                  {
+                    "type": "li",
+                    "children": "**Bayesian learning:** Update beliefs with new data instead of starting from scratch"
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "🏗️ Part 2: The Three-Layer Framework"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "Instead of treating operators as isolated functions, we build them as **three layers** of abstraction:"
+          },
+          {
+            "type": "DefinitionList",
+            "props": {
+              "items": [
+                {
+                  "term": "Layer 1: Neural Substrate",
+                  "definition": "**What:** Evolved kernels in state-space models (SSMs), SAE features as semantic attractors. **Role:** The hardware — how the brain/model represents and transforms information. **Example:** Grammar-Mamba uses evolved SSM kernels tuned for grammatical structure."
+                },
+                {
+                  "term": "Layer 2: Symbolic Operators",
+                  "definition": "**What:** Discovered functional forms via symbolic regression. **Role:** The instruction set — atomic operations in the language of thought. **Example:** `ATRANS(obj, from, to) = from.possession - δ*obj.value` (where δ is a learned parameter)."
+                },
+                {
+                  "term": "Layer 3: Probabilistic Programs",
+                  "definition": "**What:** Operator parameters as distributions (Beta, Gaussian, etc.) **Role:** The runtime — how operators compose, propagate uncertainty, and execute in context. **Example:** `δ ~ Beta(a, b)` learned from observations, not hand-coded."
+                }
+              ]
+            }
+          },
+          {
+            "type": "Analogy",
+            "props": {
+              "concept": "Three-layer framework",
+              "analogy": "Computer architecture"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "**Layer 1 (kernels)** = transistors and circuits (hardware). **Layer 2 (operators)** = assembly instructions (ISA). **Layer 3 (programs)** = high-level code with runtime behavior."
+              },
+              {
+                "type": "p",
+                "children": "You can't skip layers. Assembly (operators) needs hardware (kernels). Programs need both assembly and hardware. The magic is when all three co-evolve."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "🔬 Part 3: How It Works — Evolutionary Probabilistic Symbolic Regression"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "Here's the synthesis: combine three established techniques into one pipeline."
+          },
+          {
+            "type": "DeepDive",
+            "props": {
+              "title": "Technique 1: Symbolic Regression"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "**What:** Use genetic programming to evolve mathematical expressions that fit data."
+              },
+              {
+                "type": "p",
+                "children": "**How:** Start with primitives (sin, exp, +, *, variables). Evolve tree-structured expressions. Select for fit + parsimony (Occam's razor)."
+              },
+              {
+                "type": "p",
+                "children": "**Example:** Given (before_state, event, after_state) triples, evolve: `ATRANS(obj, from, to) = from.possession - δ*obj.value`"
+              },
+              {
+                "type": "p",
+                "children": "This is **Layer 2** — discovering the functional form."
+              }
+            ]
+          },
+          {
+            "type": "DeepDive",
+            "props": {
+              "title": "Technique 2: Probabilistic Programming (WebPPL)"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "**What:** Represent parameters as distributions, not scalars."
+              },
+              {
+                "type": "p",
+                "children": "**How:** Use distributions (Beta, Gaussian, Dirichlet) as types. Sample from them. Use Bayesian inference to update beliefs."
+              },
+              {
+                "type": "code",
+                "props": {
+                  "language": "javascript"
+                },
+                "children": "var model = Infer({method: 'MCMC'}, function() {\n  // Prior: success rate unknown\n  var p_success = sample(Beta({a: 2, b: 2}));\n  \n  // Observe: 9 out of 10 transfers succeeded\n  observe(Binomial({p: p_success, n: 10}), 9);\n  \n  return p_success; // Posterior: ~Beta(11, 3)\n});"
+              },
+              {
+                "type": "p",
+                "children": "This is **Layer 3** — parameters as distributions."
+              }
+            ]
+          },
+          {
+            "type": "DeepDive",
+            "props": {
+              "title": "Technique 3: Evolutionary Algorithms"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "**What:** Optimize both structure (functional form) AND parameters (distribution hyperparameters) simultaneously."
+              },
+              {
+                "type": "p",
+                "children": "**How:** Genetic algorithm over:"
+              },
+              {
+                "type": "ul",
+                "children": [
+                  {
+                    "type": "li",
+                    "children": "**Genotype:** Expression tree (Layer 2) + distribution hyperparameters (Layer 3)"
+                  },
+                  {
+                    "type": "li",
+                    "children": "**Fitness:** Accuracy on (before, event, after) data + parsimony penalty + composability score"
+                  },
+                  {
+                    "type": "li",
+                    "children": "**Mutation:** Modify tree structure OR tweak hyperparameters"
+                  },
+                  {
+                    "type": "li",
+                    "children": "**Crossover:** Combine successful operators"
+                  }
+                ]
+              },
+              {
+                "type": "p",
+                "children": "This is the **glue** — joint optimization of Layers 2 and 3."
+              }
+            ]
+          },
+          {
+            "type": "InteractiveDemo",
+            "props": {
+              "title": "Toy Example: Evolve ATRANS with Uncertain Success Rate",
+              "initialCode": "// Simplified evolutionary loop (pseudocode)\nvar population = init_random_operators(100);\n\nfor (gen = 0; gen < 50; gen++) {\n  // Evaluate fitness: how well does each operator explain data?\n  population.forEach(op => {\n    op.fitness = evaluate(op, training_data);\n  });\n  \n  // Select top performers\n  var elite = population.sortBy('fitness').slice(0, 20);\n  \n  // Mutate: tweak structure OR hyperparameters\n  var offspring = elite.map(op => mutate(op));\n  \n  // Crossover: mix successful operators\n  offspring = offspring.concat(crossover(elite));\n  \n  population = elite.concat(offspring);\n}\n\n// Best operator after 50 generations:\n// ATRANS(obj, from, to):\n//   δ ~ Beta(9, 1)  // learned from data!\n//   from.possession -= δ * obj.value\n//   to.possession += δ * obj.value",
+              "language": "javascript"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "**Key insight:** We're not just evolving the function. We're evolving the **distributional assumptions** (Beta vs Gaussian vs uniform) AND the hyperparameters (a, b)."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "🎨 Part 4: Worked Example — Discovering ATRANS from Event Data"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "Let's walk through the full pipeline with a concrete example."
+          },
+          {
+            "type": "Example",
+            "props": {
+              "title": "Step 1: Collect Data"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "**Input:** Narratives with annotated state changes:"
+              },
+              {
+                "type": "code",
+                "props": {
+                  "language": "json"
+                },
+                "children": "[\n  {\n    \"event\": \"Alice gave Bob a book.\",\n    \"before\": {\"Alice\": {\"books\": 5}, \"Bob\": {\"books\": 2}},\n    \"after\": {\"Alice\": {\"books\": 4}, \"Bob\": {\"books\": 3}}\n  },\n  {\n    \"event\": \"The thief stole the jewel.\",\n    \"before\": {\"owner\": {\"jewels\": 1}, \"thief\": {\"jewels\": 0}},\n    \"after\": {\"owner\": {\"jewels\": 1}, \"thief\": {\"jewels\": 0}}  // FAILED\n  },\n  {\n    \"event\": \"She emailed the report.\",\n    \"before\": {\"sender\": {\"has_report\": true}, \"receiver\": {\"has_report\": false}},\n    \"after\": {\"sender\": {\"has_report\": true}, \"receiver\": {\"has_report\": true}}\n  }\n]"
+              },
+              {
+                "type": "p",
+                "children": "**Note:** Some events succeed, some fail. This is the noise we need to model."
+              }
+            ]
+          },
+          {
+            "type": "Example",
+            "props": {
+              "title": "Step 2: Initialize Population"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "Generate 100 random operators. Each has:"
+              },
+              {
+                "type": "ul",
+                "children": [
+                  {
+                    "type": "li",
+                    "children": "**Structure:** Random tree (e.g., `from.x - k*obj.y + noise()`)"
+                  },
+                  {
+                    "type": "li",
+                    "children": "**Parameters:** Random distributions (e.g., `k ~ Gaussian(0, 1)`, `noise ~ Uniform(0, 0.5)`)"
+                  }
+                ]
+              },
+              {
+                "type": "p",
+                "children": "Most will be garbage. Evolution will fix that."
+              }
+            ]
+          },
+          {
+            "type": "Example",
+            "props": {
+              "title": "Step 3: Evolve for 50 Generations"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "**Fitness function:**"
+              },
+              {
+                "type": "code",
+                "props": {
+                  "language": "javascript"
+                },
+                "children": "function fitness(operator, data) {\n  var accuracy = 0;\n  data.forEach(triple => {\n    var predicted = operator.apply(triple.before, triple.event);\n    accuracy += distance(predicted, triple.after);\n  });\n  \n  var parsimony = operator.tree_size(); // penalize complexity\n  var composability = test_composition(operator); // does it chain cleanly?\n  \n  return accuracy - 0.1*parsimony + 0.2*composability;\n}"
+              },
+              {
+                "type": "p",
+                "children": "**Mutations:**"
+              },
+              {
+                "type": "ul",
+                "children": [
+                  {
+                    "type": "li",
+                    "children": "Swap a subtree (change structure)"
+                  },
+                  {
+                    "type": "li",
+                    "children": "Tweak distribution hyperparameters (e.g., `a: 9 → a: 10`)"
+                  },
+                  {
+                    "type": "li",
+                    "children": "Change distribution type (e.g., `Beta → Gaussian`)"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "Example",
+            "props": {
+              "title": "Step 4: Convergence (Generation 50)"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "**Discovered operator:**"
+              },
+              {
+                "type": "code",
+                "props": {
+                  "language": "javascript"
+                },
+                "children": "function ATRANS_evolved(obj, from_entity, to_entity) {\n  // SUCCESS RATE: Beta(9, 1) — learned from data!\n  var p_success = sample(Beta({a: 9, b: 1}));\n  \n  if (sample(Bernoulli({p: p_success}))) {\n    // MAGNITUDE: Delta (deterministic) — always transfer full value\n    var delta = 1.0;\n    \n    return {\n      from: {...from_entity, possession: from_entity.possession - delta*obj.value},\n      to: {...to_entity, possession: to_entity.possession + delta*obj.value}\n    };\n  } else {\n    // Transfer failed — return unchanged states\n    return {from: from_entity, to: to_entity};\n  }\n}"
+              },
+              {
+                "type": "p",
+                "children": "**What we learned:**"
+              },
+              {
+                "type": "ul",
+                "children": [
+                  {
+                    "type": "li",
+                    "children": "**Structure:** `possession_before - delta*value` (simple additive)"
+                  },
+                  {
+                    "type": "li",
+                    "children": "**Success distribution:** Beta(9, 1) ≈ 90% success rate, high confidence"
+                  },
+                  {
+                    "type": "li",
+                    "children": "**Magnitude:** Deterministic (not noisy) — when it works, full transfer"
+                  }
+                ]
+              },
+              {
+                "type": "p",
+                "children": "This matches Schank's ATRANS! But we **discovered** it from data, not hard-coded it."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "🌉 Part 5: Connecting the Three Layers"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "The power comes from **co-evolution** across layers:"
+          },
+          {
+            "type": "DeepDive",
+            "props": {
+              "title": "Layer 1 ↔ Layer 2: Kernels Shape Operator Discovery"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "**Example:** Grammar-Mamba uses evolved SSM kernels. These kernels capture syntactic structure (subject, object, verb). When we run operator discovery on top, the operators naturally align with grammatical roles."
+              },
+              {
+                "type": "p",
+                "children": "**Why:** The kernel provides a **structured latent space**. Operators discovered in that space inherit the structure."
+              },
+              {
+                "type": "p",
+                "children": "**Analogy:** You can't discover meaningful image features if your input is random pixels. You need a good representation (conv layers). Same here — kernels ARE the representation."
+              }
+            ]
+          },
+          {
+            "type": "DeepDive",
+            "props": {
+              "title": "Layer 2 ↔ Layer 3: Operators Define Program Primitives"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "**Example:** Discovered ATRANS becomes a **callable function** in a probabilistic program:"
+              },
+              {
+                "type": "code",
+                "props": {
+                  "language": "javascript"
+                },
+                "children": "// Probabilistic program: model a gift-giving scenario\nvar model = Infer({method: 'MCMC'}, function() {\n  var initial_state = {Alice: {books: 5}, Bob: {books: 2}};\n  \n  // ATRANS is a discovered operator with learned parameters\n  var result = ATRANS_evolved({value: 1}, initial_state.Alice, initial_state.Bob);\n  \n  // Condition on observed outcome\n  observe(Delta({v: result.to.books}), 3); // Bob ends with 3 books\n  \n  // Infer: did the transfer succeed?\n  return result.from.books === 4; // true if it worked\n});\n\nexpectation(model); // ≈ 0.9 (high confidence it succeeded)"
+              },
+              {
+                "type": "p",
+                "children": "**Key insight:** The operator's parameter distributions (Beta(9,1)) become the program's **types**. This is the language of thought."
+              }
+            ]
+          },
+          {
+            "type": "DeepDive",
+            "props": {
+              "title": "Layer 1 ↔ Layer 3: Kernels Enable Composability"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "**Example:** Two operators compose cleanly IF their parameter distributions match the kernel's geometry:"
+              },
+              {
+                "type": "code",
+                "props": {
+                  "language": "javascript"
+                },
+                "children": "// PTRANS: physical transfer (move object)\nvar PTRANS = function(obj, from_loc, to_loc) {\n  var p_success = sample(Beta({a: 8, b: 2})); // 80% success\n  // ...\n};\n\n// ATRANS ∘ PTRANS = \"mail a package\"\n// Kernel ensures: output space of PTRANS matches input space of ATRANS\nvar mail = function(pkg, sender, receiver) {\n  var moved = PTRANS(pkg, sender.location, receiver.location);\n  if (moved.success) {\n    return ATRANS(pkg, sender, receiver);\n  } else {\n    return {success: false}; // couldn't deliver\n  }\n};"
+              },
+              {
+                "type": "p",
+                "children": "**Why this works:** The kernel (Layer 1) defines a **metric space**. Operators (Layer 2) are transformations in that space. Distributions (Layer 3) respect the metric. All three layers align."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "🎓 Part 6: Why This Resolves Old Debates"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "This framework **ends the symbolic/connectionist war** by showing they're different layers of the same architecture."
+          },
+          {
+            "type": "Analogy",
+            "props": {
+              "concept": "Three-layer framework",
+              "analogy": "Symbolic AI vs Connectionism"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "**Symbolic AI (GOFAI):** \"Cognition is rule-based programs\" — They had Layer 2 and 3, but hard-coded them. No learning."
+              },
+              {
+                "type": "p",
+                "children": "**Connectionism:** \"Cognition is distributed patterns\" — They had Layer 1, but no interpretable primitives. No compositionality."
+              },
+              {
+                "type": "p",
+                "children": "**This framework:** \"Cognition is programs **discovered** from neural patterns\" — Learn Layer 1 (kernels), discover Layer 2 (operators), compile to Layer 3 (programs). Best of both."
+              }
+            ]
+          },
+          {
+            "type": "DeepDive",
+            "props": {
+              "title": "Fodor, Tenenbaum, and Hinton Walk Into a Bar..."
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "**Fodor:** \"There's a language of thought — symbolic, compositional, innate.\""
+              },
+              {
+                "type": "p",
+                "children": "**Tenenbaum:** \"Thought is probabilistic program execution — Bayesian inference over structured models.\""
+              },
+              {
+                "type": "p",
+                "children": "**Hinton:** \"Neural networks can discover symbolic structure through learning (wake-sleep, capsules).\""
+              },
+              {
+                "type": "p",
+                "children": "**This framework:** All three are right. Fodor's LoT = Layer 2 (operators). Tenenbaum's PPLs = Layer 3 (programs). Hinton's learning = Layer 1 → Layer 2 discovery via evolution."
+              },
+              {
+                "type": "p",
+                "children": "The language of thought exists (Fodor), it's executable as probabilistic programs (Tenenbaum), and it's **learned** from neural activity (Hinton). QED."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "🚀 Part 7: Research Directions"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "This is a **research program**, not a finished system. Here's what to explore:"
+          },
+          {
+            "type": "ol",
+            "children": [
+              {
+                "type": "li",
+                "children": "**Joint optimization:** Can we evolve kernels (Layer 1) + operators (Layer 2) + distributions (Layer 3) in one loop? Or must they be trained separately?"
+              },
+              {
+                "type": "li",
+                "children": "**Multi-timescale learning:** Fast adaptation (update posteriors with new data) + slow evolution (refine operator structure). How do these interact?"
+              },
+              {
+                "type": "li",
+                "children": "**Cross-domain transfer:** If we learn ATRANS on narratives, does it transfer to robotics planning? Test on ATOMIC → robotic manipulation."
+              },
+              {
+                "type": "li",
+                "children": "**Composability validation:** Do evolved operators compose cleanly? Or do we get interference (ATRANS ∘ PTRANS breaks)? Need formal tests."
+              },
+              {
+                "type": "li",
+                "children": "**Comparison to hand-coded:** Are discovered operators **better** than Schank's? Run ablations: evolved vs hand-coded vs point-estimate."
+              },
+              {
+                "type": "li",
+                "children": "**Causal discovery:** Can we infer causal graphs from operator compositions? (ATRANS causes CHANGE_possession, etc.)"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "🧪 Quiz: Test Your Understanding"
+        },
+        "children": [
+          {
+            "type": "Quiz",
+            "props": {
+              "questions": [
+                {
+                  "question": "What's the key advantage of distributions over point estimates for operator parameters?",
+                  "options": [
+                    "Distributions are faster to compute",
+                    "Distributions capture uncertainty and transfer better across domains",
+                    "Distributions require less training data",
+                    "Distributions eliminate the need for symbolic regression"
+                  ],
+                  "correctIndex": 1,
+                  "explanation": "Distributions encode uncertainty (how confident are we?), generalize better (priors transfer), and compose naturally (propagate error). Point estimates overfit and can't quantify confidence."
+                },
+                {
+                  "question": "In the three-layer framework, what does Layer 2 (symbolic operators) provide?",
+                  "options": [
+                    "The hardware (how information is represented)",
+                    "The instruction set (atomic operations)",
+                    "The runtime (how programs execute)",
+                    "The data (training examples)"
+                  ],
+                  "correctIndex": 1,
+                  "explanation": "Layer 1 = hardware (kernels). Layer 2 = instruction set (operators like ATRANS). Layer 3 = runtime (probabilistic programs). Layer 2 is the middle layer — the primitives."
+                },
+                {
+                  "question": "Why use evolutionary algorithms instead of gradient descent?",
+                  "options": [
+                    "Evolutionary algorithms are always faster",
+                    "Gradient descent can't optimize discrete structures (expression trees)",
+                    "Evolutionary algorithms require less memory",
+                    "Gradient descent requires labeled data"
+                  ],
+                  "correctIndex": 1,
+                  "explanation": "Symbolic regression evolves tree structures (discrete, non-differentiable). Gradient descent needs continuous parameters. Evolutionary algorithms handle both structure AND parameters."
+                },
+                {
+                  "question": "What does 'Beta(9, 1)' as a success rate parameter mean?",
+                  "options": [
+                    "Success probability is exactly 0.9",
+                    "Success probability is around 0.9, with high confidence",
+                    "9 successes and 1 failure observed",
+                    "The operator runs 9 times faster than baseline"
+                  ],
+                  "correctIndex": 1,
+                  "explanation": "Beta(9, 1) is a distribution with mean ≈ 0.9 and low variance (high confidence). It's not a point estimate — it's a belief about the success rate. (Also encodes pseudo-counts: 9 heads, 1 tail.)"
+                },
+                {
+                  "question": "How does this framework resolve the symbolic/connectionist debate?",
+                  "options": [
+                    "It proves symbolic AI was right all along",
+                    "It proves connectionism was right all along",
+                    "It shows they're different layers of the same system (kernels → operators → programs)",
+                    "It replaces both with evolutionary algorithms"
+                  ],
+                  "correctIndex": 2,
+                  "explanation": "Symbolic AI had operators and programs (Layers 2-3) but couldn't learn them. Connectionism had representations (Layer 1) but no primitives. This framework learns all three layers — synthesis, not victory."
+                }
+              ]
+            }
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "📚 Further Reading"
+        },
+        "children": [
+          {
+            "type": "ul",
+            "children": [
+              {
+                "type": "li",
+                "children": [
+                  {
+                    "type": "link",
+                    "props": {
+                      "href": "https://direct.mit.edu/evco/article/31/2/81/115462/"
+                    },
+                    "children": "Evolutionary Algorithms for Parameter Optimization (MIT Press, 2023)"
+                  }
+                ]
+              },
+              {
+                "type": "li",
+                "children": [
+                  {
+                    "type": "link",
+                    "props": {
+                      "href": "https://link.springer.com/chapter/10.1007/978-3-540-44511-1_8"
+                    },
+                    "children": "Probabilistic Model-Building Evolutionary Algorithms (Springer)"
+                  }
+                ]
+              },
+              {
+                "type": "li",
+                "children": [
+                  {
+                    "type": "link",
+                    "props": {
+                      "href": "https://docs.webppl.org/en/master/distributions.html"
+                    },
+                    "children": "WebPPL Distributions Reference"
+                  },
+                  {
+                    "type": "text",
+                    "children": " — see our "
+                  },
+                  {
+                    "type": "link",
+                    "props": {
+                      "href": "#/webppl-distributions"
+                    },
+                    "children": "interactive tutorial"
+                  }
+                ]
+              },
+              {
+                "type": "li",
+                "children": [
+                  {
+                    "type": "link",
+                    "props": {
+                      "href": "http://probmods.org"
+                    },
+                    "children": "Probabilistic Models of Cognition (probmods.org)"
+                  },
+                  {
+                    "type": "text",
+                    "children": " — full textbook on probabilistic programming"
+                  }
+                ]
+              },
+              {
+                "type": "li",
+                "children": "Related brainstorms: #89 (Wake-Sleep Library Learning), #99 (Kolmogorov Complexity of Events)"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "💡 Key Takeaways"
+        },
+        "children": [
+          {
+            "type": "Callout",
+            "props": {
+              "type": "success"
+            },
+            "children": [
+              {
+                "type": "ol",
+                "children": [
+                  {
+                    "type": "li",
+                    "children": "**Operators have parameters.** Don't treat them as deterministic functions."
+                  },
+                  {
+                    "type": "li",
+                    "children": "**Distributions > point estimates.** Capture uncertainty, transfer better, compose naturally."
+                  },
+                  {
+                    "type": "li",
+                    "children": "**Three layers co-evolve:** Kernels (Layer 1) → Operators (Layer 2) → Programs (Layer 3). All three needed."
+                  },
+                  {
+                    "type": "li",
+                    "children": "**Evolutionary + probabilistic + symbolic = synthesis.** Combine three established techniques into one framework."
+                  },
+                  {
+                    "type": "li",
+                    "children": "**This resolves old debates.** Symbolic AI, connectionism, and Bayesian cognition are layers of the same system."
+                  },
+                  {
+                    "type": "li",
+                    "children": "**Thoreau was right:** 'As you simplify your life, the laws of the universe will be simpler.' The right distributions (Beta, Gaussian) are the simplest laws that explain the data. Compression = finding the right distributional assumptions."
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}
