@@ -1,0 +1,897 @@
+{
+  "type": "Fragment",
+  "meta": {
+    "title": "WebPPL Distributions — Interactive Guide",
+    "description": "Build intuition for probability distributions in WebPPL through interactive examples",
+    "author": "Clawd",
+    "date": "2026-03-27",
+    "tags": ["webppl", "probabilistic-programming", "distributions", "bayesian"]
+  },
+  "content": {
+    "type": "Fragment",
+    "children": [
+      {
+        "type": "Section",
+        "props": {
+          "title": "📊 WebPPL Distributions — Interactive Guide"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "Probability distributions are the building blocks of probabilistic programs. In WebPPL, distributions are first-class objects you can sample from, score, and compose. This tutorial builds intuition through interactive examples."
+          },
+          {
+            "type": "Callout",
+            "props": {
+              "type": "info"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "**Core idea:** A distribution represents uncertainty. `sample(dist)` draws a random value. `dist.score(val)` tells you how (un)surprising that value is."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "🎲 Part 1: Discrete Distributions (Coin Flips, Dice, Categories)"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "Discrete distributions have countable outcomes (true/false, integers, categories). Let's start with the simplest: **Bernoulli** (a biased coin)."
+          },
+          {
+            "type": "InteractiveDemo",
+            "props": {
+              "title": "Bernoulli: The Biased Coin",
+              "initialCode": "var coin = Bernoulli({p: 0.7});\nvar flip = sample(coin);\nflip;",
+              "language": "webppl"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "**Try this:**"
+              },
+              {
+                "type": "ul",
+                "children": [
+                  {
+                    "type": "li",
+                    "children": "Run it multiple times — you'll get `true` about 70% of the time"
+                  },
+                  {
+                    "type": "li",
+                    "children": "Change `p: 0.7` to `p: 0.1` — now `true` is rare"
+                  },
+                  {
+                    "type": "li",
+                    "children": "Try `coin.score(true)` — this is `log(0.7) ≈ -0.36`. Low surprise = high probability."
+                  },
+                  {
+                    "type": "li",
+                    "children": "Try `coin.score(false)` — this is `log(0.3) ≈ -1.2`. Higher surprise = lower probability."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "DeepDive",
+            "props": {
+              "title": "What's `.score()` doing?"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "`.score(val)` returns the **log-probability** of `val`. Why log?"
+              },
+              {
+                "type": "ul",
+                "children": [
+                  {
+                    "type": "li",
+                    "children": "**Numerical stability:** Probabilities can be tiny (0.0001). Logs avoid underflow."
+                  },
+                  {
+                    "type": "li",
+                    "children": "**Composability:** `log(p1 * p2) = log(p1) + log(p2)`. Products become sums."
+                  },
+                  {
+                    "type": "li",
+                    "children": "**Information theory:** `-log(p)` is \"surprisal\" (Shannon information). Rare events are surprising."
+                  }
+                ]
+              },
+              {
+                "type": "p",
+                "children": "**Rule of thumb:** More negative score = less probable. `score(val) = 0` means `P(val) = 1` (certainty)."
+              }
+            ]
+          },
+          {
+            "type": "InteractiveDemo",
+            "props": {
+              "title": "Categorical: Weighted Die",
+              "initialCode": "var die = Categorical({ps: [1, 1, 1, 1, 1, 1], vs: ['⚀','⚁','⚂','⚃','⚄','⚅']});\nvar roll = sample(die);\nroll;",
+              "language": "webppl"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "**Experiments:**"
+              },
+              {
+                "type": "ul",
+                "children": [
+                  {
+                    "type": "li",
+                    "children": "Fair die: `ps: [1,1,1,1,1,1]` — each face equally likely"
+                  },
+                  {
+                    "type": "li",
+                    "children": "Loaded die: `ps: [10,1,1,1,1,1]` — ⚀ is 10× more likely"
+                  },
+                  {
+                    "type": "li",
+                    "children": "Check: `die.score('⚀')` vs `die.score('⚁')` — scores reflect the weights"
+                  },
+                  {
+                    "type": "li",
+                    "children": "**Key insight:** `ps` don't need to sum to 1. WebPPL normalizes them. `ps: [2,2,2]` = `ps: [1,1,1]`."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "Analogy",
+            "props": {
+              "concept": "Categorical",
+              "analogy": "Voting with weighted ballots"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "Imagine each element in `vs` is a candidate. `ps` are their vote counts. `sample()` picks a candidate with probability proportional to their votes. `ps: [100, 50, 30]` means the first candidate gets ~55.5% of the total votes."
+              }
+            ]
+          },
+          {
+            "type": "InteractiveDemo",
+            "props": {
+              "title": "Binomial: Flipping N Coins",
+              "initialCode": "var experiment = Binomial({p: 0.5, n: 10});\nvar heads = sample(experiment);\nheads;",
+              "language": "webppl"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "Binomial answers: *\"If I flip `n` fair coins (each with success probability `p`), how many heads?\"*"
+              },
+              {
+                "type": "ul",
+                "children": [
+                  {
+                    "type": "li",
+                    "children": "`n: 10, p: 0.5` — fair coin, expect ~5 heads"
+                  },
+                  {
+                    "type": "li",
+                    "children": "`n: 100, p: 0.01` — 100 trials, 1% success rate → expect ~1 success"
+                  },
+                  {
+                    "type": "li",
+                    "children": "Score the expected value: `experiment.score(5)` (for n=10, p=0.5) is high. `experiment.score(0)` is very negative (rare)."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "Example",
+            "props": {
+              "title": "Real-world Binomial: A/B Test"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "You show 1000 users a new button. Each clicks with probability `p` (unknown). You observe 47 clicks. What's `p`?"
+              },
+              {
+                "type": "code",
+                "props": {
+                  "language": "javascript"
+                },
+                "children": "var model = Infer({method: 'MCMC', samples: 10000}, function() {\n  var p = sample(Uniform({a: 0, b: 1}));\n  var clicks = Binomial({p: p, n: 1000});\n  observe(clicks, 47);\n  return p;\n});\n\nexpectation(model); // ≈ 0.047"
+              },
+              {
+                "type": "p",
+                "children": "This is **Bayesian inference**: condition on observed data (47 clicks), infer the latent parameter (`p`)."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "📈 Part 2: Continuous Distributions (Numbers on a Line)"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "Continuous distributions have uncountably many outcomes (any real number in a range). The workhorse is **Gaussian** (normal distribution)."
+          },
+          {
+            "type": "InteractiveDemo",
+            "props": {
+              "title": "Gaussian: The Bell Curve",
+              "initialCode": "var height = Gaussian({mu: 170, sigma: 10});\nvar person = sample(height);\nperson;",
+              "language": "webppl"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "**Intuition:**"
+              },
+              {
+                "type": "ul",
+                "children": [
+                  {
+                    "type": "li",
+                    "children": "`mu` (mean): center of the bell curve. Most samples near here."
+                  },
+                  {
+                    "type": "li",
+                    "children": "`sigma` (std dev): spread. Small σ = tight cluster. Large σ = wide spread."
+                  },
+                  {
+                    "type": "li",
+                    "children": "68% of samples within `mu ± sigma`, 95% within `mu ± 2*sigma`"
+                  }
+                ]
+              },
+              {
+                "type": "p",
+                "children": "**Try:**"
+              },
+              {
+                "type": "ul",
+                "children": [
+                  {
+                    "type": "li",
+                    "children": "`sigma: 1` — almost everyone between 169-171 cm"
+                  },
+                  {
+                    "type": "li",
+                    "children": "`sigma: 30` — huge variance, people from 110-230 cm"
+                  },
+                  {
+                    "type": "li",
+                    "children": "`height.score(170)` vs `height.score(200)` — which is more surprising?"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "DeepDive",
+            "props": {
+              "title": "Why Gaussian Everywhere?"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "**Central Limit Theorem:** Sum many independent random variables → result is Gaussian (even if the originals aren't). Example: height = genetics + nutrition + environment + ... Each factor adds a bit. The sum? Gaussian."
+              },
+              {
+                "type": "p",
+                "children": "**Maximum entropy:** If you only know the mean and variance, Gaussian is the least-assuming distribution. It's the \"I don't know\" prior for continuous values."
+              }
+            ]
+          },
+          {
+            "type": "InteractiveDemo",
+            "props": {
+              "title": "Uniform: Any Value Equally Likely",
+              "initialCode": "var random_time = Uniform({a: 0, b: 60});\nvar seconds = sample(random_time);\nseconds;",
+              "language": "webppl"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "Uniform(`a`, `b`) = flat line from `a` to `b`. Every value in `[a, b]` equally probable."
+              },
+              {
+                "type": "ul",
+                "children": [
+                  {
+                    "type": "li",
+                    "children": "Use when: \"I have no idea, could be anything in this range.\""
+                  },
+                  {
+                    "type": "li",
+                    "children": "Score is constant: `random_time.score(10) == random_time.score(50)` (both in range)"
+                  },
+                  {
+                    "type": "li",
+                    "children": "Score is `-Infinity` outside range: `random_time.score(70)` (impossible)"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "InteractiveDemo",
+            "props": {
+              "title": "Beta: Probability of a Probability",
+              "initialCode": "var coin_bias = Beta({a: 2, b: 5});\nvar p = sample(coin_bias);\np;",
+              "language": "webppl"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "Beta is a distribution over `[0, 1]` — perfect for modeling probabilities. **Use case:** You have a coin, but you don't know if it's fair. Beta represents your uncertainty about its bias `p`."
+              },
+              {
+                "type": "ul",
+                "children": [
+                  {
+                    "type": "li",
+                    "children": "`a` and `b` are pseudo-counts. Think: \"I've seen `a-1` heads and `b-1` tails.\""
+                  },
+                  {
+                    "type": "li",
+                    "children": "`Beta({a: 1, b: 1})` = Uniform (no data, all biases equally likely)"
+                  },
+                  {
+                    "type": "li",
+                    "children": "`Beta({a: 10, b: 2})` = bias toward high `p` (lots of heads observed)"
+                  },
+                  {
+                    "type": "li",
+                    "children": "`Beta({a: 100, b: 100})` = very confident `p ≈ 0.5` (equal heads/tails, large sample)"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "Analogy",
+            "props": {
+              "concept": "Beta distribution",
+              "analogy": "Bayesian learning from coin flips"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "Start: `Beta({a: 1, b: 1})` — \"I know nothing.\" Flip coin, get heads. Update: `Beta({a: 2, b: 1})` — \"slightly biased toward heads.\" Flip again, get tails. Update: `Beta({a: 2, b: 2})` — \"maybe fair?\" Beta is your evolving belief about the coin's bias."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "🎯 Part 3: Multivariate Distributions (Vectors, Not Scalars)"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "So far: distributions over single values (one number, one category). Now: distributions over **vectors** (multiple correlated values)."
+          },
+          {
+            "type": "InteractiveDemo",
+            "props": {
+              "title": "DiagCovGaussian: Independent Dimensions",
+              "initialCode": "var person = DiagCovGaussian({mu: Vector([170, 70]), sigma: Vector([10, 5])});\nvar sample_person = sample(person);\nsample_person;",
+              "language": "webppl"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "This models a 2D vector: `[height, weight]`. Each dimension is independent Gaussian."
+              },
+              {
+                "type": "ul",
+                "children": [
+                  {
+                    "type": "li",
+                    "children": "`mu: Vector([170, 70])` — mean height 170 cm, mean weight 70 kg"
+                  },
+                  {
+                    "type": "li",
+                    "children": "`sigma: Vector([10, 5])` — height varies ±10 cm, weight varies ±5 kg"
+                  },
+                  {
+                    "type": "li",
+                    "children": "**Key:** Diagonal covariance = dimensions are **uncorrelated**. Tall people aren't more/less likely to be heavy."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "InteractiveDemo",
+            "props": {
+              "title": "MultivariateGaussian: Correlated Dimensions",
+              "initialCode": "var person = MultivariateGaussian({\n  mu: Vector([170, 70]),\n  cov: Matrix([[100, 40], [40, 25]])\n});\nvar sample_person = sample(person);\nsample_person;",
+              "language": "webppl"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "Now the covariance matrix has off-diagonal terms: `cov[0][1] = 40`. This means height and weight are **positively correlated**."
+              },
+              {
+                "type": "ul",
+                "children": [
+                  {
+                    "type": "li",
+                    "children": "Positive cov: tall people tend to be heavier"
+                  },
+                  {
+                    "type": "li",
+                    "children": "Negative cov: one variable goes up, other goes down (e.g., altitude ↔ temperature)"
+                  },
+                  {
+                    "type": "li",
+                    "children": "Zero cov: independent (same as DiagCovGaussian)"
+                  }
+                ]
+              },
+              {
+                "type": "p",
+                "children": "**Visual:** DiagCovGaussian = circular/elliptical cloud aligned with axes. MultivariateGaussian = tilted ellipse."
+              }
+            ]
+          },
+          {
+            "type": "DeepDive",
+            "props": {
+              "title": "When to use which?"
+            },
+            "children": [
+              {
+                "type": "ul",
+                "children": [
+                  {
+                    "type": "li",
+                    "children": "**DiagCovGaussian:** Variables are independent. Faster, fewer parameters."
+                  },
+                  {
+                    "type": "li",
+                    "children": "**MultivariateGaussian:** Variables correlate. More expressive, but O(d²) parameters for d dimensions."
+                  },
+                  {
+                    "type": "li",
+                    "children": "**Rule of thumb:** Start with DiagCov. Upgrade to Multivariate if you need to model correlations."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "InteractiveDemo",
+            "props": {
+              "title": "Dirichlet: Distribution Over Probability Vectors",
+              "initialCode": "var topic_dist = Dirichlet({alpha: Vector([5, 2, 1])});\nvar probs = sample(topic_dist);\nprobs;",
+              "language": "webppl"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "Dirichlet is like Beta, but for **probability vectors** (multiple categories that sum to 1)."
+              },
+              {
+                "type": "ul",
+                "children": [
+                  {
+                    "type": "li",
+                    "children": "`alpha: Vector([5, 2, 1])` — pseudo-counts for 3 categories"
+                  },
+                  {
+                    "type": "li",
+                    "children": "Higher alpha[i] → category `i` gets higher probability"
+                  },
+                  {
+                    "type": "li",
+                    "children": "Sum of alpha controls concentration: `[100, 100, 100]` = very confident equal split. `[1, 1, 1]` = uniform over simplex."
+                  }
+                ]
+              },
+              {
+                "type": "p",
+                "children": "**Use case:** Topic modeling. Each document is a mix of topics. Dirichlet represents uncertainty about the mix."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "🔧 Part 4: Special-Purpose Distributions"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "WebPPL has distributions for specific use cases. Here are the essentials:"
+          },
+          {
+            "type": "InteractiveDemo",
+            "props": {
+              "title": "Delta: Deterministic \"Distribution\"",
+              "initialCode": "var always_five = Delta({v: 5});\nvar val = sample(always_five);\nval;",
+              "language": "webppl"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "Delta assigns probability 1 to a single value. Not random at all! **Why use it?**"
+              },
+              {
+                "type": "ul",
+                "children": [
+                  {
+                    "type": "li",
+                    "children": "Uniform API: treat deterministic values as distributions"
+                  },
+                  {
+                    "type": "li",
+                    "children": "Marginal inference: `Infer()` returns a distribution. If the result is deterministic, it's a Delta."
+                  },
+                  {
+                    "type": "li",
+                    "children": "**Warning:** Don't use Delta with random args in MCMC. It breaks the sampler."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "InteractiveDemo",
+            "props": {
+              "title": "Mixture: Combine Distributions",
+              "initialCode": "var heights = Mixture({\n  dists: [Gaussian({mu: 165, sigma: 5}), Gaussian({mu: 178, sigma: 5})],\n  ps: [0.5, 0.5]\n});\nvar person = sample(heights);\nperson;",
+              "language": "webppl"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "Mixture = weighted average of distributions. Here: 50% from first Gaussian (women's heights), 50% from second (men's heights)."
+              },
+              {
+                "type": "ul",
+                "children": [
+                  {
+                    "type": "li",
+                    "children": "Sample by: pick a component (via `Categorical(ps)`), then sample from it"
+                  },
+                  {
+                    "type": "li",
+                    "children": "Result: bimodal distribution (two peaks)"
+                  },
+                  {
+                    "type": "li",
+                    "children": "Change `ps: [0.9, 0.1]` → 90% women, 10% men"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "InteractiveDemo",
+            "props": {
+              "title": "Poisson: Count Data (Rare Events)",
+              "initialCode": "var emails_per_hour = Poisson({mu: 3});\nvar count = sample(emails_per_hour);\ncount;",
+              "language": "webppl"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "Poisson models counts when events occur independently at a constant rate."
+              },
+              {
+                "type": "ul",
+                "children": [
+                  {
+                    "type": "li",
+                    "children": "`mu`: average count (also the variance — Poisson has one parameter)"
+                  },
+                  {
+                    "type": "li",
+                    "children": "Use for: emails per hour, typos per page, customers per minute"
+                  },
+                  {
+                    "type": "li",
+                    "children": "Low `mu` = most samples near 0. High `mu` = approximates Gaussian."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "Example",
+            "props": {
+              "title": "KDE: Learn Distribution from Data"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "Kernel Density Estimation: fit a distribution to observed data (non-parametric)."
+              },
+              {
+                "type": "code",
+                "props": {
+                  "language": "javascript"
+                },
+                "children": "var data = [170, 172, 168, 175, 171, 169, 173];\nvar height_dist = KDE({data: data});\nvar new_person = sample(height_dist);\nnew_person;"
+              },
+              {
+                "type": "p",
+                "children": "KDE smooths the data with Gaussian kernels. Result: continuous distribution that fits your observations. **Use when:** you have samples but don't know the underlying parametric form."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "🧠 Part 5: Connecting to Your Research (Language of Thought)"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "You're building a **three-layer framework**: neural kernels → symbolic operators → probabilistic programs. Distributions are the glue at **Layer 3**."
+          },
+          {
+            "type": "DeepDive",
+            "props": {
+              "title": "Operators as Probabilistic Functions"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "Schankian operators (ATRANS, PTRANS, etc.) aren't deterministic. They're **probabilistic state transformations**:"
+              },
+              {
+                "type": "code",
+                "props": {
+                  "language": "javascript"
+                },
+                "children": "var ATRANS = function(object, from_entity, to_entity) {\n  // Transfer is noisy — might fail\n  var success = sample(Bernoulli({p: 0.9}));\n  \n  if (success) {\n    return {\n      from: {...from_entity, possession: from_entity.possession - object.value},\n      to: {...to_entity, possession: to_entity.possession + object.value}\n    };\n  } else {\n    // Transfer failed — states unchanged\n    return {from: from_entity, to: to_entity};\n  }\n};"
+              },
+              {
+                "type": "p",
+                "children": "Now `ATRANS` is a **probabilistic program**. You can:"
+              },
+              {
+                "type": "ul",
+                "children": [
+                  {
+                    "type": "li",
+                    "children": "**Forward inference:** Given initial state, what are likely outcomes?"
+                  },
+                  {
+                    "type": "li",
+                    "children": "**Inverse inference (abduction):** Given final state, what operator sequence caused it?"
+                  },
+                  {
+                    "type": "li",
+                    "children": "**Learning:** Observe (before, event, after) triples, infer operator parameters (like success probability)"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "Example",
+            "props": {
+              "title": "Bayesian Operator Discovery"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "Symbolic regression finds operators. But operators have **parameters** (like ATRANS success rate). Use distributions to learn them:"
+              },
+              {
+                "type": "code",
+                "props": {
+                  "language": "javascript"
+                },
+                "children": "var model = Infer({method: 'MCMC'}, function() {\n  // Prior: success rate unknown, could be anything\n  var p_success = sample(Beta({a: 2, b: 2}));\n  \n  var ATRANS = function(obj, from, to) {\n    return sample(Bernoulli({p: p_success})) ? 'success' : 'fail';\n  };\n  \n  // Observe 10 transfers, 9 succeeded\n  observe(Binomial({p: p_success, n: 10}), 9);\n  \n  return p_success;\n});\n\nexpectation(model); // ≈ 0.85"
+              },
+              {
+                "type": "p",
+                "children": "This is **probabilistic program induction**: learn the parameters of discovered operators from data."
+              }
+            ]
+          },
+          {
+            "type": "DeepDive",
+            "props": {
+              "title": "Distributions as Types in the Language of Thought"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "In your three-layer framework:"
+              },
+              {
+                "type": "ul",
+                "children": [
+                  {
+                    "type": "li",
+                    "children": "**Layer 1 (kernels):** Continuous transformations (Gaussian, Beta, etc.)"
+                  },
+                  {
+                    "type": "li",
+                    "children": "**Layer 2 (operators):** Discrete primitives (Categorical over operator types)"
+                  },
+                  {
+                    "type": "li",
+                    "children": "**Layer 3 (programs):** Compositions of operators, each with parameter distributions"
+                  }
+                ]
+              },
+              {
+                "type": "p",
+                "children": "**Key insight:** Distributions aren't just for modeling uncertainty. They're **types** in a probabilistic language. `Bernoulli` is the type of binary outcomes. `Categorical` is the type of discrete choices. `Gaussian` is the type of continuous magnitudes."
+              },
+              {
+                "type": "p",
+                "children": "When you discover an operator via symbolic regression, you're discovering its **type signature** (inputs, outputs, parameter distributions). That signature IS the operator's definition in the language of thought."
+              }
+            ]
+          },
+          {
+            "type": "Callout",
+            "props": {
+              "type": "success"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "**Thoreau's quote applies:** \"As you simplify your life, the laws of the universe will be simpler.\" The right distributions (Beta for probabilities, Poisson for counts, Gaussian for sums) are the **simplest laws** that explain the data. Compression = finding the right distributional assumptions."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "📚 Quick Reference: Which Distribution When?"
+        },
+        "children": [
+          {
+            "type": "table",
+            "props": {
+              "headers": ["Use Case", "Distribution", "Parameters"],
+              "rows": [
+                ["Binary outcome (yes/no)", "Bernoulli", "p (success probability)"],
+                ["Count successes in N trials", "Binomial", "p, n"],
+                ["Pick from categories", "Categorical", "ps (weights), vs (values)"],
+                ["Continuous value (unknown dist)", "Gaussian", "mu (mean), sigma (std)"],
+                ["Continuous value (no info)", "Uniform", "a (min), b (max)"],
+                ["Probability of a probability", "Beta", "a, b (pseudo-counts)"],
+                ["Count rare events", "Poisson", "mu (rate)"],
+                ["Correlated continuous values", "MultivariateGaussian", "mu (vector), cov (matrix)"],
+                ["Independent continuous values", "DiagCovGaussian", "mu (vector), sigma (vector)"],
+                ["Mix of distributions", "Mixture", "dists (array), ps (weights)"],
+                ["Probability vector", "Dirichlet", "alpha (concentration)"],
+                ["Learn from data", "KDE", "data (samples), width (kernel)"]
+              ]
+            }
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "🎓 Quiz: Test Your Intuition"
+        },
+        "children": [
+          {
+            "type": "Quiz",
+            "props": {
+              "questions": [
+                {
+                  "question": "You flip a coin 100 times, get 53 heads. Which distribution models the number of heads?",
+                  "options": [
+                    "Bernoulli({p: 0.53})",
+                    "Binomial({p: 0.53, n: 100})",
+                    "Gaussian({mu: 53, sigma: 5})",
+                    "Categorical({ps: [53, 47]})"
+                  ],
+                  "correctIndex": 1,
+                  "explanation": "Binomial models count of successes in n trials. Bernoulli is for a single trial. Gaussian is continuous (could work as approximation). Categorical is for different categories, not counts."
+                },
+                {
+                  "question": "Which distribution for modeling someone's height, given you know nothing but the range 150-200 cm?",
+                  "options": [
+                    "Gaussian({mu: 175, sigma: 10})",
+                    "Uniform({a: 150, b: 200})",
+                    "Beta({a: 1, b: 1})",
+                    "Exponential({a: 0.01})"
+                  ],
+                  "correctIndex": 1,
+                  "explanation": "Uniform = 'no idea, equally likely anywhere in range'. Gaussian assumes concentration around a mean (you said you know nothing). Beta is for [0,1]. Exponential is for positive reals with decay."
+                },
+                {
+                  "question": "You want to model uncertainty about the bias of an unfair coin. Which distribution?",
+                  "options": [
+                    "Bernoulli({p: ???})",
+                    "Beta({a: 1, b: 1})",
+                    "Uniform({a: 0, b: 1})",
+                    "Both Beta and Uniform work"
+                  ],
+                  "correctIndex": 3,
+                  "explanation": "Beta is the standard choice (conjugate prior for Bernoulli). Uniform({a:0, b:1}) is Beta({a:1, b:1}) — both represent 'no prior knowledge'. Bernoulli is the coin's distribution, not your uncertainty about it."
+                },
+                {
+                  "question": "What does `dist.score(val) = -5` mean?",
+                  "options": [
+                    "Probability is -5 (impossible)",
+                    "Log-probability is -5, so P(val) ≈ 0.0067",
+                    "The value is 5 standard deviations away",
+                    "The distribution has 5 parameters"
+                  ],
+                  "correctIndex": 1,
+                  "explanation": "Score is log-probability. exp(-5) ≈ 0.0067. Negative scores are normal (log of fraction < 1). Probabilities can't be negative."
+                },
+                {
+                  "question": "You observe samples [1.2, 1.5, 1.1, 8.3, 1.3]. Which distribution likely generated them?",
+                  "options": [
+                    "Gaussian (one cluster)",
+                    "Mixture (outlier suggests two components)",
+                    "Uniform (flat distribution)",
+                    "Poisson (count data)"
+                  ],
+                  "correctIndex": 1,
+                  "explanation": "Most samples cluster around 1.2-1.5, but 8.3 is an outlier. Mixture of two Gaussians fits better than a single wide Gaussian. Uniform would produce values across the whole range evenly."
+                }
+              ]
+            }
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "🚀 Next Steps"
+        },
+        "children": [
+          {
+            "type": "ul",
+            "children": [
+              {
+                "type": "li",
+                "children": "**Experiment:** Open [WebPPL online editor](http://webppl.org) and try the examples"
+              },
+              {
+                "type": "li",
+                "children": "**Read:** [Probabilistic Models of Cognition](http://probmods.org) (probmods.org) — full textbook using these distributions"
+              },
+              {
+                "type": "li",
+                "children": "**Build:** Implement a simple Bayesian model (e.g., coin bias inference from flips)"
+              },
+              {
+                "type": "li",
+                "children": "**Connect:** How do Schankian operators map to parameter distributions? (Your Layer 3 research)"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}
