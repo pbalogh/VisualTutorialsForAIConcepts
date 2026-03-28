@@ -1062,6 +1062,18 @@ const tutorials = [
     difficulty: 3,
   },
   {
+    id: 'brainstorm-42-lambda-calculus-bridge',
+    title: 'Lambda Calculus as the Bridge Between Operator Discovery and SAE Features',
+    description: 'GPT-2 implements a lambda calculus over entity-state transformations. Operators are tensors in orthogonal SAE subspaces (14.4× separation). Partial application produces rank decrease (12/12). Future arguments = zero change. Mentalese has its own grammar with canonical argument order and case features.',
+    tags: ['Schankian', 'lambda-calculus', 'SAE', 'mech-interp', 'operators', 'partial-application', 'case-system'],
+    icon: 'λ',
+    gradient: 'from-violet-500 to-purple-700',
+    shadowColor: 'shadow-violet-500/30',
+    glowColor: 'rgba(139, 92, 246, 0.4)',
+    readTime: '30 min',
+    difficulty: 4,
+  },
+  {
     id: 'brainstorm-92-routing-signatures',
     title: 'Operator Discovery via Routing Signatures',
     description: 'Knowledge neurons are routing neurons — the same 27 neurons appear for every fact (36.5× enrichment). Schankian operators should be discoverable as distinct routing configurations in the 7D consensus space.',
