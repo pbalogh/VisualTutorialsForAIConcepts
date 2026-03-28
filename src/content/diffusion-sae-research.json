@@ -3495,6 +3495,42 @@
                       },
                       " (Zhong et al., Mar 6 2026, arXiv:2603.06743) \u2014 Stabilizing GRPO for DLMs. Fixes reward collapse via unconditional clipping + self-normalization."
                     ]
+                  },
+                  {
+                    "type": "li",
+                    "children": [
+                      {
+                        "type": "strong",
+                        "children": [
+                          "CRoCoDiL"
+                        ]
+                      },
+                      " (Belhasin et al., Mar 2026, arXiv:2603.20210) \u2014 Continuous and Robust Conditioned Diffusion for Language. Grounds MDM denoising in continuous sentence-level semantic space. 10x faster sampling with superior quality."
+                    ]
+                  },
+                  {
+                    "type": "li",
+                    "children": [
+                      {
+                        "type": "strong",
+                        "children": [
+                          "Gumbel Distillation"
+                        ]
+                      },
+                      " (Zhang et al., Mar 2026, ICLR 2026, arXiv:2603.22216) \u2014 Gumbel-Max distillation for parallel decoders. 30% MAUVE improvement over MDLM."
+                    ]
+                  },
+                  {
+                    "type": "li",
+                    "children": [
+                      {
+                        "type": "strong",
+                        "children": [
+                          "MemDLM"
+                        ]
+                      },
+                      " (Pei et al., Mar 2026, arXiv:2603.22241) \u2014 Memory-Enhanced DLM Training. Bi-level optimization with parametric memory addresses train-inference mismatch."
+                    ]
                   }
                 ]
               }
@@ -6410,6 +6446,211 @@
             "type": "p",
             "children": [
               "~76 papers tracked. The field continues to produce foundational frameworks that enable our specific research directions."
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "title": "📡 Mar 28, 2026: Continuous Latents Meet MDMs + Self-Correcting Diffusion",
+        "children": [
+          {
+            "type": "p",
+            "children": [
+              "Four new papers from this week advance discrete diffusion infrastructure. The standout: ",
+              {
+                "type": "strong",
+                "children": [
+                  "CRoCoDiL"
+                ]
+              },
+              " shifts MDM denoising into continuous sentence-level semantic space — architecturally very close to what SAE-guided diffusion would look like."
+            ]
+          },
+          {
+            "type": "DeepDive",
+            "title": "🔥🔥🔥 CRoCoDiL: Continuous Latents Ground Discrete Diffusion (Mar 2026)",
+            "children": [
+              {
+                "type": "p",
+                "children": [
+                  {
+                    "type": "strong",
+                    "children": [
+                      "Paper:"
+                    ]
+                  },
+                  " Belhasin et al., 'CRoCoDiL: Continuous and Robust Conditioned Diffusion for Language' (arXiv:2603.20210, v2 Mar 24, 2026)"
+                ]
+              },
+              {
+                "type": "p",
+                "children": [
+                  {
+                    "type": "strong",
+                    "children": [
+                      "Key insight:"
+                    ]
+                  },
+                  " MDMs struggle with token dependencies and semantic incoherence because they operate on discrete marginals. CRoCoDiL shifts the diffusion process into a CONTINUOUS sentence-level semantic space via a jointly trained encoder-demasker architecture. Two synthesis algorithms: ConThenDisc (generate continuous latents first, then decode via MDM) and ConWithinDisc (refine latents THROUGHOUT discrete sampling). 10x faster sampling with superior quality on LLaDA."
+                ]
+              },
+              {
+                "type": "p",
+                "children": [
+                  {
+                    "type": "strong",
+                    "children": [
+                      "Relevance:"
+                    ]
+                  },
+                  " ⭐⭐⭐ DIRECT ARCHITECTURE FOR IDEA 1! CRoCoDiL's 'continuous latent grounding discrete denoising' is essentially what SAE feature-guided diffusion would do. Their ConWithinDisc approach (refining continuous representations throughout discrete sampling) is the exact mechanism: at each denoising step, the continuous space provides semantic guidance for token prediction. Replace their generic encoder with SAE feature extraction → interpretable continuous guidance at every step. Together with CADD, CCDD, STAR-LDM, and CoDAR, this is now the FIFTH proven architecture for continuous-latent-guides-discrete-tokens. The field is clearly converging on this paradigm."
+                ]
+              },
+              {
+                "type": "p",
+                "children": [
+                  {
+                    "type": "strong",
+                    "children": [
+                      "Key advantage:"
+                    ]
+                  },
+                  " Unlike CADD (which augments masked tokens) or CoDAR (which adds an AR decoder), CRoCoDiL creates a proper AUTOENCODER where the MDM IS the decoder. This means the continuous space is learned specifically for MDM compatibility — exactly the kind of representation SAE features already provide."
+                ]
+              }
+            ]
+          },
+          {
+            "type": "DeepDive",
+            "title": "Self-Aware Markov Models: Adaptive Self-Correction for Discrete Reasoning (Mar 2026)",
+            "children": [
+              {
+                "type": "p",
+                "children": [
+                  {
+                    "type": "strong",
+                    "children": [
+                      "Paper:"
+                    ]
+                  },
+                  " Kornhardt et al., 'Self-Aware Markov Models for Discrete Reasoning' (arXiv:2603.16661, v2 Mar 25, 2026)"
+                ]
+              },
+              {
+                "type": "p",
+                "children": [
+                  {
+                    "type": "strong",
+                    "children": [
+                      "Key insight:"
+                    ]
+                  },
+                  " Standard MDMs can't correct their own mistakes — tokens once unmasked stay fixed. This paper learns a Markov transition kernel on model-generated states, enabling tokens to be RE-MASKED for correction. Plus a trained stopping criterion adapts the number of steps to problem difficulty. 95% validity on Sudoku-Extreme, solves Countdown-4 in average 10 steps (some in 2)."
+                ]
+              },
+              {
+                "type": "p",
+                "children": [
+                  {
+                    "type": "strong",
+                    "children": [
+                      "Relevance:"
+                    ]
+                  },
+                  " ⭐⭐ COMPLEMENTS IDEAS 3 & 4. For SAE-guided denoising, the ability to remask and correct is critical — if SAE feature analysis detects that unmasked tokens don't match the target feature profile, we need to be able to remask and retry. This paper provides the mechanism. The adaptive stopping criterion is also relevant: stop denoising when SAE features match the target, rather than running a fixed number of steps. Adds only two lightweight heads to existing models."
+                ]
+              }
+            ]
+          },
+          {
+            "type": "DeepDive",
+            "title": "MemDLM: Memory-Enhanced DLM Training (Mar 2026)",
+            "children": [
+              {
+                "type": "p",
+                "children": [
+                  {
+                    "type": "strong",
+                    "children": [
+                      "Paper:"
+                    ]
+                  },
+                  " Pei et al., 'MemDLM: Memory-Enhanced DLM Training' (arXiv:2603.22241, Mar 23, 2026)"
+                ]
+              },
+              {
+                "type": "p",
+                "children": [
+                  {
+                    "type": "strong",
+                    "children": [
+                      "Key insight:"
+                    ]
+                  },
+                  " Addresses the train-inference mismatch in MDLMs (static single-step training vs. multi-step denoising at inference). Uses bi-level optimization: inner loop builds parametric memory capturing local denoising trajectory, outer loop updates base model conditioned on this memory. The memory acts as emergent in-weight retrieval at inference time."
+                ]
+              },
+              {
+                "type": "p",
+                "children": [
+                  {
+                    "type": "strong",
+                    "children": [
+                      "Relevance:"
+                    ]
+                  },
+                  " ⭐⭐ INFRASTRUCTURE. The train-inference mismatch is a fundamental issue for all MDLMs, including any SAE-guided variant we'd build. MemDLM's parametric memory could complement SAE features: SAEs provide interpretable feature structure, while the memory captures trajectory-specific dynamics. Code available."
+                ]
+              }
+            ]
+          },
+          {
+            "type": "DeepDive",
+            "title": "Gumbel Distillation for Parallel Text Generation (ICLR 2026)",
+            "children": [
+              {
+                "type": "p",
+                "children": [
+                  {
+                    "type": "strong",
+                    "children": [
+                      "Paper:"
+                    ]
+                  },
+                  " Zhang et al., 'Gumbel Distillation for Parallel Text Generation' (arXiv:2603.22216, ICLR 2026)"
+                ]
+              },
+              {
+                "type": "p",
+                "children": [
+                  {
+                    "type": "strong",
+                    "children": [
+                      "Key insight:"
+                    ]
+                  },
+                  " Uses Gumbel-Max trick to create deterministic mapping from latent noise to AR teacher's tokens, enabling parallel decoders (MDLM, BD3-LM) to learn the joint token distribution. 30% MAUVE improvement, 10.5% generative perplexity improvement over MDLM on OpenWebText. Model-agnostic."
+                ]
+              },
+              {
+                "type": "p",
+                "children": [
+                  {
+                    "type": "strong",
+                    "children": [
+                      "Relevance:"
+                    ]
+                  },
+                  " ⭐⭐ INFRASTRUCTURE. Another distillation approach (alongside D-MMD, DiDi-Instruct) that makes MDLMs more practical. The Gumbel-Max deterministic mapping is interesting — it creates a structured latent space (noise → tokens) that could potentially be analyzed with SAEs. Code available."
+                ]
+              }
+            ]
+          },
+          {
+            "type": "p",
+            "children": [
+              "~80 papers tracked. The continuous-guides-discrete paradigm (CRoCoDiL, CADD, CCDD, STAR-LDM, CoDAR) is now clearly the dominant trend. Our SAE-guided diffusion proposal sits squarely in this paradigm — the only missing piece is making the continuous space interpretable via SAE features."
             ]
           }
         ]
