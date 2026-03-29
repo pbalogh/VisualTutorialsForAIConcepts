@@ -86,6 +86,30 @@
       },
       {
         "type": "Section",
+        "props": {
+          "title": "\ud83d\udd2c Mar 29, 2026: DID, S2D2, Confidence Decoding Theory"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "**DID: Deletion-Insertion Diffusion** (2603.23507): Replaces masking/unmasking with deletion/insertion as diffusion processes. Eliminates computational overhead from non-informative [MASK] and [PAD] tokens. Natively supports variable-length sequences. Has intrinsic self-correction via insertion that dynamically adjusts token positions. Uses score-based approach with parallelized dynamic programming. **Relevance:** \u2b50\u2b50 NEW PARADIGM for Idea 3 & 4 — deletion-insertion operates on sequence structure rather than token identity, which aligns with our hierarchical/semantic noise schedule vision. The self-correction mechanism is a natural fit for SAE-guided refinement: insert tokens guided by SAE feature targets, delete tokens whose features don't match."
+          },
+          {
+            "type": "p",
+            "children": "**S2D2: Self-Speculative Decoding for Diffusion LLMs** (2603.25702): Training-free framework that exploits the fact that block-diffusion models become autoregressive when block size = 1. The same model acts as both drafter (diffusion mode) and verifier (AR mode). Up to 4.7\u00d7 speedup over AR decoding. Works across three block-diffusion families including LLaDA2.1-Mini. **Relevance:** \u2b50 Infrastructure — faster diffusion decoding makes SAE-guided generation more practical by reducing the per-step overhead budget."
+          },
+          {
+            "type": "p",
+            "children": "**Confidence-Based Decoding: Provably Efficient** (2603.22248): First theoretical analysis of confidence-based decoding in DLMs. Shows entropy-sum strategy achieves \u03b5-accurate sampling in O\u0303(H(X\u2080)/\u03b5) iterations — substantial acceleration when data has low entropy relative to sequence length. Adapts to intrinsic complexity without hyperparameter tuning. **Relevance:** \u2b50\u2b50 THEORY FOR IDEA 3 — provides formal justification for confidence/entropy-based unmasking schedules. Our SAE-feature-aware scheduling could be formalized within this framework: SAE feature confidence as a proxy for entropy, with theoretical guarantees on sampling quality."
+          },
+          {
+            "type": "p",
+            "children": "**AR vs MDM: Controlled Comparison** (2603.22075): Small-scale (50M tokens, TinyStories) but clean comparison. Key finding: MDLM produces structurally more diverse outputs (93.4% unique openings vs AR's 0.2%) at the cost of occasional grammar issues. MDLM converges slower but keeps improving when AR overfits. **Relevance:** \u2b50 Background — the diversity finding supports using diffusion for creative/varied generation where SAE feature steering could address the fluency gap."
+          }
+        ]
+      },
+      {
+        "type": "Section",
         "title": "Idea 1: Structured Latent Spaces",
         "children": [
           {
@@ -6650,7 +6674,7 @@
           {
             "type": "p",
             "children": [
-              "~80 papers tracked. The continuous-guides-discrete paradigm (CRoCoDiL, CADD, CCDD, STAR-LDM, CoDAR) is now clearly the dominant trend. Our SAE-guided diffusion proposal sits squarely in this paradigm — the only missing piece is making the continuous space interpretable via SAE features."
+              "~84 papers tracked. The continuous-guides-discrete paradigm (CRoCoDiL, CADD, CCDD, STAR-LDM, CoDAR) is now clearly the dominant trend. Our SAE-guided diffusion proposal sits squarely in this paradigm — the only missing piece is making the continuous space interpretable via SAE features. Meanwhile, DID (deletion-insertion) and S2D2 (self-speculative decoding) show the infrastructure layer is maturing fast, and confidence-based decoding now has theoretical backing."
             ]
           }
         ]
