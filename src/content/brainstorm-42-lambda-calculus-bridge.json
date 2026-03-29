@@ -96,7 +96,133 @@
               },
               {
                 "type": "p",
-                "children": "Over a finite entity vocabulary, lambda terms compile to TENSORS. A 3-argument operator is a rank-3 tensor. Applying one argument = tensor contraction, reducing rank by 1. This gives us a quantitative prediction: the effective rank of SAE features should decrease at each argument position."
+                "children": [
+                  "Over a finite entity vocabulary, lambda terms compile to TENSORS",
+                  {
+                    "type": "FootnoteRef",
+                    "props": {
+                      "id": "source-ann-1774793513845-dau6v8",
+                      "targetId": "ann-1774793513845-dau6v8",
+                      "type": "branch"
+                    }
+                  },
+                  ". A 3-argument operator is a rank-3 tensor. Applying one argument = tensor contraction, reducing rank by 1. This gives us a quantitative prediction: the effective rank of SAE features should decrease at each argument position."
+                ]
+              }
+            ]
+          },
+          {
+            "type": "DeepDive",
+            "props": {
+              "title": "Deep Dive: TENSORS",
+              "defaultOpen": true,
+              "id": "ann-1774793513845-dau6v8",
+              "sourceId": "source-ann-1774793513845-dau6v8"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "When the tutorial says lambda terms 'compile to tensors,' it's making a profound claim: the abstract, symbolic operations we discovered (like ATRANS or PTRANS) aren't just logical notation — they have a concrete geometric existence as multi-dimensional arrays of numbers. This is the key that connects the symbolic world of operator discovery to the neural world of SAE features. If an operator like give(agent, object, recipient) is a rank-3 tensor, then we should be able to find that tensor lurking inside the activation patterns of a language model."
+              },
+              {
+                "type": "Example",
+                "props": {
+                  "title": "Example: give as a Rank-3 Tensor"
+                },
+                "children": [
+                  {
+                    "type": "p",
+                    "children": "Suppose our entity vocabulary is just {Alice, Bob, Book}. The operator give(agent, object, recipient) is a 3×3×3 tensor T where each entry T[i][j][k] encodes the 'strength' of that particular give event."
+                  },
+                  {
+                    "type": "Formula",
+                    "props": {
+                      "label": "Full tensor"
+                    },
+                    "children": "T[agent, object, recipient] → scalar activation"
+                  },
+                  {
+                    "type": "p",
+                    "children": "Now apply one argument — say we fix agent=Alice. This is tensor contraction: we slice along the first dimension, collapsing the rank-3 tensor into a rank-2 matrix:"
+                  },
+                  {
+                    "type": "Formula",
+                    "props": {
+                      "label": "After one application"
+                    },
+                    "children": "T[Alice, :, :] → 3×3 matrix (object × recipient)"
+                  },
+                  {
+                    "type": "p",
+                    "children": "Apply another — fix object=Book — and you get a rank-1 vector over possible recipients. Apply the last argument and you collapse to a single scalar. Each application contracts one dimension away."
+                  },
+                  {
+                    "type": "ComparisonTable",
+                    "props": {
+                      "headers": [
+                        "Lambda Expression",
+                        "Tensor Rank",
+                        "Shape (3 entities)"
+                      ],
+                      "rows": [
+                        [
+                          "give",
+                          "3",
+                          "3 × 3 × 3"
+                        ],
+                        [
+                          "give(Alice, ·, ·)",
+                          "2",
+                          "3 × 3"
+                        ],
+                        [
+                          "give(Alice, Book, ·)",
+                          "1",
+                          "3"
+                        ],
+                        [
+                          "give(Alice, Book, Bob)",
+                          "0",
+                          "scalar"
+                        ]
+                      ]
+                    }
+                  }
+                ]
+              },
+              {
+                "type": "Analogy",
+                "children": "Think of a tensor like a spreadsheet that gained extra dimensions. A regular spreadsheet (matrix) has rows and columns — rank 2. A rank-3 tensor is a stack of spreadsheets, one per 'page.' Each time you apply an argument, you pick a specific page, row, or column, eliminating one dimension. Partial application in lambda calculus is literally this: choosing a specific index along one axis and collapsing the structure by one dimension."
+              },
+              {
+                "type": "DefinitionList",
+                "props": {
+                  "items": [
+                    {
+                      "term": "Rank (tensor order)",
+                      "definition": "The number of indices needed to address an entry. Equals the number of unfilled argument slots in the corresponding lambda term."
+                    },
+                    {
+                      "term": "Tensor contraction",
+                      "definition": "Fixing one index (applying one argument), which reduces rank by 1. This is the numerical equivalent of partial application in lambda calculus."
+                    },
+                    {
+                      "term": "Effective rank (of SAE features)",
+                      "definition": "A measurable property of neural activation patterns. The tutorial's key prediction: if operators really are tensors in the network, then SAE features at the second argument position should have lower effective rank than features at the first — because the network has already 'contracted' one dimension."
+                    },
+                    {
+                      "term": "Finite entity vocabulary",
+                      "definition": "The constraint that makes this work. With a bounded set of entities, lambda terms over those entities become finite-dimensional tensors — objects we can actually find and measure inside neural networks."
+                    }
+                  ]
+                }
+              },
+              {
+                "type": "Callout",
+                "props": {
+                  "type": "tip"
+                },
+                "children": "This tensor view gives you a falsifiable experimental test: extract SAE features at each argument position of a verb like 'give,' compute their effective matrix rank, and check whether rank decreases from subject → object → recipient. If it does, you've found evidence that the network is literally performing tensor contraction — that lambda calculus isn't just a convenient notation, but a description of the actual computation happening inside the model."
               }
             ]
           }
@@ -142,13 +268,55 @@
               "title": "Operator Similarity Matrix",
               "description": "Pairwise cosine similarities between operator subspaces at Layer 6. Note: ATRANS↔PTRANS is nearly zero (orthogonal), while SPEAK↔MTRANS shows overlap (both involve information transfer).",
               "type": "table",
-              "headers": ["", "ATRANS", "PTRANS", "MTRANS", "INGEST", "SPEAK"],
+              "headers": [
+                "",
+                "ATRANS",
+                "PTRANS",
+                "MTRANS",
+                "INGEST",
+                "SPEAK"
+              ],
               "rows": [
-                ["ATRANS", "1.000", "0.013", "0.065", "0.044", "0.089"],
-                ["PTRANS", "0.013", "1.000", "0.071", "0.058", "0.052"],
-                ["MTRANS", "0.065", "0.071", "1.000", "0.082", "0.139"],
-                ["INGEST", "0.044", "0.058", "0.082", "1.000", "0.150"],
-                ["SPEAK", "0.089", "0.052", "0.139", "0.150", "1.000"]
+                [
+                  "ATRANS",
+                  "1.000",
+                  "0.013",
+                  "0.065",
+                  "0.044",
+                  "0.089"
+                ],
+                [
+                  "PTRANS",
+                  "0.013",
+                  "1.000",
+                  "0.071",
+                  "0.058",
+                  "0.052"
+                ],
+                [
+                  "MTRANS",
+                  "0.065",
+                  "0.071",
+                  "1.000",
+                  "0.082",
+                  "0.139"
+                ],
+                [
+                  "INGEST",
+                  "0.044",
+                  "0.058",
+                  "0.082",
+                  "1.000",
+                  "0.150"
+                ],
+                [
+                  "SPEAK",
+                  "0.089",
+                  "0.052",
+                  "0.139",
+                  "0.150",
+                  "1.000"
+                ]
               ]
             }
           }
@@ -240,12 +408,42 @@
               "title": "Counterfactual Argument Substitution",
               "description": "L2 norm of SAE feature change at verb position when varying one argument. Zero for future arguments confirms partial application.",
               "type": "table",
-              "headers": ["Role Varied", "Layer 6", "Layer 8", "Layer 10", "Interpretation"],
+              "headers": [
+                "Role Varied",
+                "Layer 6",
+                "Layer 8",
+                "Layer 10",
+                "Interpretation"
+              ],
               "rows": [
-                ["Agent", "59.3", "68.4", "75.6", "Already bound — changing it changes everything"],
-                ["Object", "0.0", "0.0", "0.0", "FREE VARIABLE — not yet processed"],
-                ["Recipient", "0.0", "0.0", "0.0", "FREE VARIABLE — not yet processed"],
-                ["Operator", "55.8", "65.3", "78.3", "The verb itself — changing function changes representation"]
+                [
+                  "Agent",
+                  "59.3",
+                  "68.4",
+                  "75.6",
+                  "Already bound — changing it changes everything"
+                ],
+                [
+                  "Object",
+                  "0.0",
+                  "0.0",
+                  "0.0",
+                  "FREE VARIABLE — not yet processed"
+                ],
+                [
+                  "Recipient",
+                  "0.0",
+                  "0.0",
+                  "0.0",
+                  "FREE VARIABLE — not yet processed"
+                ],
+                [
+                  "Operator",
+                  "55.8",
+                  "65.3",
+                  "78.3",
+                  "The verb itself — changing function changes representation"
+                ]
               ]
             }
           },
@@ -287,14 +485,42 @@
               "title": "Syntactic Variant Convergence Classes",
               "description": "Cosine similarity of final-position SAE representations between syntactic variants (Layer 6). Three equivalence classes emerge.",
               "type": "table",
-              "headers": ["Variant Pair", "Cosine Sim", "Class"],
+              "headers": [
+                "Variant Pair",
+                "Cosine Sim",
+                "Class"
+              ],
               "rows": [
-                ["Active ↔ Cleft", "0.998", "CLASS A: Recipient-final"],
-                ["Active ↔ Topicalized", "0.995", "CLASS A: Recipient-final"],
-                ["Cleft ↔ Topicalized", "0.995", "CLASS A: Recipient-final"],
-                ["Active ↔ Passive", "0.027", "CLASS B: Agent-final"],
-                ["Active ↔ Double-obj", "0.006", "CLASS C: Object-final"],
-                ["Passive ↔ Double-obj", "0.002", "Different non-canonical orders"]
+                [
+                  "Active ↔ Cleft",
+                  "0.998",
+                  "CLASS A: Recipient-final"
+                ],
+                [
+                  "Active ↔ Topicalized",
+                  "0.995",
+                  "CLASS A: Recipient-final"
+                ],
+                [
+                  "Cleft ↔ Topicalized",
+                  "0.995",
+                  "CLASS A: Recipient-final"
+                ],
+                [
+                  "Active ↔ Passive",
+                  "0.027",
+                  "CLASS B: Agent-final"
+                ],
+                [
+                  "Active ↔ Double-obj",
+                  "0.006",
+                  "CLASS C: Object-final"
+                ],
+                [
+                  "Passive ↔ Double-obj",
+                  "0.002",
+                  "Different non-canonical orders"
+                ]
               ]
             }
           },
@@ -392,11 +618,23 @@
               "title": "Hierarchical Operator Clustering",
               "description": "Agglomerative clustering of operator centroids at Layer 6. At each level, the most distinct operator separates first.",
               "type": "table",
-              "headers": ["k", "Clusters"],
+              "headers": [
+                "k",
+                "Clusters"
+              ],
               "rows": [
-                ["3", "{ATRANS}, {INGEST}, {everything else}"],
-                ["4", "{ATRANS}, {INGEST}, {PTRANS}, {mental+social}"],
-                ["5", "{ATRANS}, {INGEST}, {PTRANS}, {MTRANS}, {other}"]
+                [
+                  "3",
+                  "{ATRANS}, {INGEST}, {everything else}"
+                ],
+                [
+                  "4",
+                  "{ATRANS}, {INGEST}, {PTRANS}, {mental+social}"
+                ],
+                [
+                  "5",
+                  "{ATRANS}, {INGEST}, {PTRANS}, {MTRANS}, {other}"
+                ]
               ]
             }
           },
