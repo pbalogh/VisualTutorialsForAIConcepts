@@ -222,7 +222,53 @@
                 "props": {
                   "type": "tip"
                 },
-                "children": "This tensor view gives you a falsifiable experimental test: extract SAE features at each argument position of a verb like 'give,' compute their effective matrix rank, and check whether rank decreases from subject → object → recipient. If it does, you've found evidence that the network is literally performing tensor contraction — that lambda calculus isn't just a convenient notation, but a description of the actual computation happening inside the model."
+                "children": [
+                  "This tensor view gives you a falsifiable experimental test: extract SAE features at each argument position of a verb like 'give,' compute their effective matrix rank",
+                  {
+                    "type": "FootnoteRef",
+                    "props": {
+                      "id": "source-ann-1774793736641-ljo0lj",
+                      "targetId": "ann-1774793736641-ljo0lj",
+                      "type": "ask"
+                    }
+                  },
+                  ", and check whether rank decreases from subject → object → recipient. If it does, you've found evidence that the network is literally performing tensor contraction — that lambda calculus isn't just a convenient notation, but a description of the actual computation happening inside the model."
+                ]
+              }
+            ]
+          },
+          {
+            "type": "Sidebar",
+            "props": {
+              "type": "note",
+              "title": "Q: How do we do this? AFAIK they're stored as vectors in a high-dimensional space (say, 25K); how do we compute the effective matrix rank of a vector? Or do we use multiple features to make a matrix in which each row is the vector for that feature, and then find the rank of that matrix? Do we use PCA?",
+              "expanded": true,
+              "id": "ann-1774793736641-ljo0lj",
+              "sourceId": "source-ann-1774793736641-ljo0lj"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "You're exactly right to push on this — a single feature vector doesn't have a \"rank,\" so the passage is implicitly asking you to collect multiple features into a matrix and then assess that matrix's dimensionality. Here's the concrete procedure: for a given argument position (say, the subject slot of \"give\"), you gather the SAE feature activation vectors across many different sentences where different nouns fill that slot. Each sentence gives you one vector (the SAE activations at that token position), and you stack these into a matrix where rows are sentences and columns are SAE feature dimensions. Now you have a matrix whose rank you can measure."
+              },
+              {
+                "type": "p",
+                "children": "The \"effective\" part is key, because in practice the mathematical rank of a real-valued matrix is almost always full — tiny noise makes every singular value nonzero. So instead you use PCA or, equivalently, an SVD. You compute the singular values, and then ask: how many singular values do you need to capture, say, 95% of the total variance? That count is your effective rank. A more formal version uses the entropy of the normalized singular value distribution (sometimes called the Roy effective rank), which gives you a smooth, continuous number rather than requiring an arbitrary threshold. Either way, fewer significant singular values means lower effective rank, meaning the representations at that position are more constrained — they live in a lower-dimensional subspace."
+              },
+              {
+                "type": "p",
+                "children": "The prediction from the tensor contraction view is that when you do this separately for each argument position of \"give,\" you should find that subject representations occupy a higher-dimensional subspace than direct object representations, which in turn occupy a higher-dimensional subspace than recipient representations. This would mirror how tensor contraction works: each time you \"fill in\" an argument, you reduce the tensor's order by one, which geometrically means collapsing one dimension of freedom. So PCA is indeed the right instinct — you're using it not to reduce dimensions for convenience, but as the actual measurement tool to test whether the network's internal representations show the dimensional reduction that lambda-style currying predicts."
+              },
+              {
+                "type": "p",
+                "children": "As a concrete example: gather 500 sentences with \"give,\" extract the SAE activation vector at the subject position for each, stack them into a 500×25000 matrix, run SVD, and count how many singular values you need for 95% variance — maybe you get 150. Do the same at the object position — maybe you get 80. And at the recipient — maybe 40. That decreasing sequence (150 → 80 → 40) would be direct evidence of tensor contraction, suggesting each argument binding genuinely reduces the dimensionality of the network's internal representation, exactly as lambda calculus would predict."
+              },
+              {
+                "type": "p",
+                "props": {
+                  "className": "text-xs text-gray-400 mt-2"
+                },
+                "children": "Asked about \"ompute their effective matrix ...\" — 3/29/2026, 10:15:08 AM"
               }
             ]
           }
