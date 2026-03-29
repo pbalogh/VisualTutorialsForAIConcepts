@@ -1,0 +1,617 @@
+{
+  "type": "Fragment",
+  "meta": {
+    "title": "Lambda Calculus as a Knowledge Store: Possible Worlds for AI Memory",
+    "description": "What if AI could tell the difference between facts, fiction, beliefs, and hypotheticals? A working prototype that uses lambda calculus and modal logic to give AI structured memory with possible worlds.",
+    "author": "Peter Balogh",
+    "lastUpdated": "2026-03-29",
+    "tags": [
+      "lambda calculus",
+      "knowledge representation",
+      "modal logic",
+      "possible worlds",
+      "AI memory",
+      "event sourcing",
+      "Schank",
+      "conceptual dependency"
+    ]
+  },
+  "content": {
+    "type": "Fragment",
+    "children": [
+      {
+        "type": "Section",
+        "props": {
+          "title": "1. The Problem — Why AI Memory is Broken"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "Here's a question that should bother you: if you train a large language model on Kurt Vonnegut's Cat's Cradle, can it still reliably tell you that water freezes at 0°C?"
+          },
+          {
+            "type": "p",
+            "children": "The honest answer is: maybe not. And the reason cuts to the heart of how LLMs store knowledge."
+          },
+          {
+            "type": "Callout",
+            "props": {
+              "type": "warning"
+            },
+            "children": "\"See the cat?\" said Newt. \"See the cradle?\" There was no cat. There was no cradle. — Kurt Vonnegut, Cat's Cradle"
+          },
+          {
+            "type": "p",
+            "children": "LLMs store everything in weight space — facts, fiction, beliefs, hypotheticals — all superimposed in the same neural soup. The model that learned \"water freezes at 0°C\" from a physics textbook also learned \"ice-nine causes water to freeze at room temperature\" from Vonnegut. Both facts live in the same weights, with no tag saying one is ACTUAL PHYSICS and the other is FICTION."
+          },
+          {
+            "type": "p",
+            "children": "We call this the Cat's Cradle Problem: the inability to separate ontological categories in neural knowledge storage."
+          },
+          {
+            "type": "DeepDive",
+            "props": {
+              "title": "Why Current Solutions Don't Fix This"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "RAG (Retrieval-Augmented Generation) retrieves documents, but doesn't know if a retrieved passage describes reality or fiction. If your vector database contains both a chemistry textbook and Cat's Cradle, a query about 'unusual freezing behavior' might surface either one."
+              },
+              {
+                "type": "p",
+                "children": "Fine-tuning just pushes more patterns into weight space — still no ontological tags."
+              },
+              {
+                "type": "p",
+                "children": "Prompt engineering ('only use factual sources') is a hope, not a mechanism. The model has no internal representation of what 'factual' means."
+              },
+              {
+                "type": "p",
+                "children": "What we actually need: a knowledge store where every fact has a TYPE — actual vs fictional vs believed vs hypothetical — and where the system can reason about which type applies to a given query."
+              }
+            ]
+          },
+          {
+            "type": "p",
+            "children": "That's what this tutorial is about. We're going to build a knowledge store using lambda calculus that solves this problem — and it's not vaporware. The prototype exists and runs."
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "2. Lambda Calculus Basics (Just Enough)"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "Don't run away. We need exactly three ideas from lambda calculus, and then we're done with the theory."
+          },
+          {
+            "type": "p",
+            "children": "Idea 1: Functions are values. You can pass them around, store them, return them from other functions. If you've used Python lambdas or JavaScript arrow functions, you already know this."
+          },
+          {
+            "type": "CodeBlock",
+            "props": {
+              "language": "python"
+            },
+            "children": "# A function that makes functions\nmake_greeter = lambda name: lambda: f\"Hello, {name}!\"\ngreet_peter = make_greeter(\"Peter\")\ngreet_peter()  # → \"Hello, Peter!\""
+          },
+          {
+            "type": "p",
+            "children": "Idea 2: Partial application (currying). If a function takes three arguments, you can give it one and get back a function that takes two. Give it two and get back a function that takes one. This is currying, and it turns out to be incredibly powerful for knowledge representation."
+          },
+          {
+            "type": "CodeBlock",
+            "props": {
+              "language": "python"
+            },
+            "children": "# A knowledge transfer event: who gave what to whom\nATRANS = lambda giver: lambda receiver: lambda obj: {\n    \"type\": \"ATRANS\",\n    \"giver\": giver,\n    \"receiver\": receiver,\n    \"object\": obj\n}\n\n# Full application: a complete fact\nATRANS(\"Robert\")(\"Tom\")(\"ball\")\n# → {type: ATRANS, giver: Robert, receiver: Tom, object: ball}\n\n# Partial application: a QUERY\ngave_to_tom = ATRANS(?)(\"Tom\")(?)\n# → \"Who gave what to Tom?\" — a pattern with holes"
+          },
+          {
+            "type": "Callout",
+            "props": {
+              "type": "key-insight"
+            },
+            "children": "The key insight: DATA IS BEHAVIOR. In Church encoding, there's no distinction between data and the functions that operate on it. A fact like 'Robert gave the ball to Tom' is literally a function — and a query like 'who gave what to Tom?' is the same function with holes (unbound variables). This is the foundation of everything that follows."
+          },
+          {
+            "type": "p",
+            "children": "Idea 3: Composition. You can chain functions together. MAIL = ATRANS ∘ PTRANS — mailing something is an abstract transfer (ATRANS) composed with a physical transfer (PTRANS). This gives us hierarchical knowledge for free."
+          },
+          {
+            "type": "p",
+            "children": "That's it. Three ideas. Now let's use them to build a knowledge store."
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "3. Event-Sourced Knowledge"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "The first big design decision: facts are events, and events are immutable. Once something happened, it happened. You don't go back and edit history — you add new events."
+          },
+          {
+            "type": "Analogy",
+            "children": "Think of it like a bank ledger. You never erase a transaction. If there's an error, you add a correcting entry. The current balance is computed by folding over ALL the entries. This is exactly how our knowledge store works — the 'balance' is the current state of the world, computed from the full event log."
+          },
+          {
+            "type": "Example",
+            "props": {
+              "title": "Tracking a Ball"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "Robert gives the ball to Tom. Then Tom gives the ball to Mary. Let's see how the event log handles this:"
+              },
+              {
+                "type": "CodeBlock",
+                "props": {
+                  "language": "python"
+                },
+                "children": "store = LambdaStore()\n\n# Event 1: Robert gives ball to Tom\nstore.assert_fact(\"ATRANS\", giver=\"Robert\", receiver=\"Tom\", object=\"ball\")\n\n# Event 2: Tom gives ball to Mary\nstore.assert_fact(\"ATRANS\", giver=\"Tom\", receiver=\"Mary\", object=\"ball\")\n\n# Who has the ball NOW? (Fold over log — last event wins)\nstore.query_current(\"object\", \"ball\")\n# → ATRANS(giver=Tom, receiver=Mary, object=ball)\n\n# Full history of the ball\nstore.history(\"ball\")\n# → [Robert→Tom, Tom→Mary]"
+              },
+              {
+                "type": "p",
+                "children": "Notice: we never modified the first event. We just added a second one. The current state is computed, not stored. This means we can always answer both 'who has the ball?' AND 'who has EVER had the ball?' — something mutable stores can't do without extra bookkeeping."
+              }
+            ]
+          },
+          {
+            "type": "p",
+            "children": "Retractions work the same way. If we learn that the first event was wrong — Robert never actually gave Tom the ball — we don't delete it. We add a retraction event:"
+          },
+          {
+            "type": "CodeBlock",
+            "props": {
+              "language": "python"
+            },
+            "children": "# Oops, that didn't happen\nstore.retract(\"ATRANS\", giver=\"Robert\", receiver=\"Tom\", object=\"ball\")\n\n# The original event is still in the log (history is preserved)\n# But query_current now skips it\nstore.query_current(\"object\", \"ball\")\n# → ATRANS(giver=Tom, receiver=Mary, object=ball)\n# (Tom still gave it to Mary — that event stands)"
+          },
+          {
+            "type": "Callout",
+            "props": {
+              "type": "info"
+            },
+            "children": "World state = fold over the event log. This is the same principle behind event sourcing in software engineering, append-only databases, and even git. Immutability isn't a limitation — it's a superpower. It means every past state is recoverable."
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "4. The Modal Extension — Possible Worlds"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "Now for the real magic. Everything so far has been a single world — the actual world. But remember the Cat's Cradle Problem: we need to store facts about DIFFERENT kinds of truth. That's where possible worlds come in."
+          },
+          {
+            "type": "Analogy",
+            "children": "Think of possible worlds as git branches. Your main branch (w0) is the actual world — ground truth. When Peter reads Cat's Cradle, we fork a new branch (w_cats_cradle) of type FICTIONAL. When Tom forms a belief, we fork w_tom_beliefs of type EPISTEMIC. Each branch has its own event log, its own facts — and critically, its own TYPE that tells the system how to treat those facts."
+          },
+          {
+            "type": "p",
+            "children": "The system supports six modalities — six different TYPES of truth:"
+          },
+          {
+            "type": "ul",
+            "children": [
+              {
+                "type": "li",
+                "children": "ACTUAL — the real world. Water freezes at 0°C. The sky is blue. These are ground truth."
+              },
+              {
+                "type": "li",
+                "children": "FICTIONAL — stories, novels, movies. Ice-nine freezes water at room temperature. Retrievable for literary discussion, but can NEVER pollute beliefs about the real world."
+              },
+              {
+                "type": "li",
+                "children": "EPISTEMIC — what someone believes. Tom thinks Paris is in Germany. This is Tom's world, not the actual world. It can differ from reality and that's fine — it's a belief."
+              },
+              {
+                "type": "li",
+                "children": "HYPOTHETICAL — 'what if?' reasoning. Temporary branches for counterfactual exploration. What if gravity were twice as strong? Forked, explored, maybe discarded."
+              },
+              {
+                "type": "li",
+                "children": "DEONTIC — what SHOULD be true. Obligations, rules, norms. Scientists should not create ice-nine. This is prescriptive, not descriptive."
+              },
+              {
+                "type": "li",
+                "children": "REMEMBERED — was true but might be stale. Tom's phone number used to be 555-1234. It might have changed. Flagged for potential staleness."
+              }
+            ]
+          },
+          {
+            "type": "Example",
+            "props": {
+              "title": "The Cat's Cradle Scenario — Full Code"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "Here's the moment where it all comes together. Watch how the modal store handles the exact scenario that breaks LLMs:"
+              },
+              {
+                "type": "CodeBlock",
+                "props": {
+                  "language": "python"
+                },
+                "children": "# Actual world: water freezes at 0°C\nstore.assert_fact(\"PROPATTR\", entity=\"water\",\n    property=\"freezing_point\", value=\"0°C\", world=\"w0\")\n\n# Peter reads Cat's Cradle (event in actual world)\nstore.assert_fact(\"READING\", agent=\"Peter\",\n    object=\"Cats_Cradle\", world=\"w0\")\n\n# Fork a fictional world\nstore.fork_world(\"w0\", \"w_cats_cradle\",\n    Modality.FICTIONAL, source=\"Cat's Cradle\")\n\n# In the novel: ice-nine freezes water at room temperature\nstore.assert_fact(\"PROPATTR\", entity=\"ice_nine\",\n    property=\"freezing_point\",\n    value=\"room_temperature\", world=\"w_cats_cradle\")"
+              },
+              {
+                "type": "p",
+                "children": "Now the critical queries — the ones that LLMs get wrong:"
+              },
+              {
+                "type": "CodeBlock",
+                "props": {
+                  "language": "python"
+                },
+                "children": "# Query: Does water freeze at room temperature?\nstore.query(\"PROPATTR\", world=\"w0\",\n    property=\"freezing_point\", entity=\"water\")\n# → 0°C  (actual world answers correctly: NO)\n\n# Query: Is there a BOOK about water freezing at room temp?\nstore.query_across_worlds(\"PROPATTR\",\n    modalities=[Modality.FICTIONAL],\n    property=\"freezing_point\",\n    value=\"room_temperature\")\n# → Found in w_cats_cradle: ice_nine freezes at room_temperature\n#   Source: Cat's Cradle (FICTIONAL)"
+              },
+              {
+                "type": "p",
+                "children": "See the difference? The system doesn't just KNOW both facts — it knows which world each fact belongs to and what KIND of world it is. Fictional knowledge is quarantined. It can be retrieved when you ask about fiction, but it can never contaminate the actual world."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "5. Belief Protection in Action"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "Let's push the Cat's Cradle scenario further. This is where the modal store really shines — handling the messy interplay between fiction, belief, and reality."
+          },
+          {
+            "type": "DeepDive",
+            "props": {
+              "title": "The Full Cat's Cradle Walkthrough"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "Tom reads Cat's Cradle. Before reading, Tom's epistemic world (what Tom believes) inherits from the actual world:"
+              },
+              {
+                "type": "CodeBlock",
+                "props": {
+                  "language": "python"
+                },
+                "children": "# Tom's belief world starts as a branch of actual reality\nstore.fork_world(\"w0\", \"w_tom_beliefs\",\n    Modality.EPISTEMIC, agent=\"Tom\")\n\n# Tom reads the novel (actual-world event)\nstore.assert_fact(\"READING\", agent=\"Tom\",\n    object=\"Cats_Cradle\", world=\"w0\")\n\n# Tom KNOWS it's fiction — he doesn't believe ice-nine is real\n# His epistemic world still says water freezes at 0°C\nstore.query(\"PROPATTR\", world=\"w_tom_beliefs\",\n    property=\"freezing_point\", entity=\"water\")\n# → 0°C (Tom's beliefs are NOT polluted by fiction)"
+              },
+              {
+                "type": "p",
+                "children": "But now something interesting — what if Tom is confused? What if he half-remembers something about ice-nine and starts to wonder if it's real?"
+              },
+              {
+                "type": "CodeBlock",
+                "props": {
+                  "language": "python"
+                },
+                "children": "# Tom forms a confused belief\nstore.assert_fact(\"PROPATTR\", entity=\"ice_nine\",\n    property=\"exists\", value=\"maybe\",\n    world=\"w_tom_beliefs\")\n\n# We can now detect the inconsistency!\nstore.diff_worlds(\"w0\", \"w_tom_beliefs\")\n# → Divergence: w_tom_beliefs contains\n#   ice_nine.exists = maybe\n#   w0 has no such fact\n#   Source trace: originated from FICTIONAL world w_cats_cradle"
+              },
+              {
+                "type": "p",
+                "children": "The system can trace exactly WHERE a belief came from. If Tom's epistemic world contains something that originated in a FICTIONAL world, that's a flag — it means fiction leaked into belief. A cognitive agent could use this to self-correct."
+              }
+            ]
+          },
+          {
+            "type": "Example",
+            "props": {
+              "title": "Deontic Reasoning — What Should Be True"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "Beyond fiction and belief, the modal store handles obligation — what SHOULD be true:"
+              },
+              {
+                "type": "CodeBlock",
+                "props": {
+                  "language": "python"
+                },
+                "children": "# Fork a deontic world (what should be)\nstore.fork_world(\"w0\", \"w_ethics\",\n    Modality.DEONTIC)\n\n# Scientists should not create ice-nine\nstore.assert_fact(\"OBLIGATION\",\n    agent=\"scientists\",\n    action=\"create\", object=\"ice_nine\",\n    polarity=\"negative\",\n    world=\"w_ethics\")\n\n# In the fictional world, Felix Hoenikker DID create it\n# We can detect the violation:\nstore.check_deontic_violation(\n    actual_world=\"w_cats_cradle\",\n    deontic_world=\"w_ethics\")\n# → VIOLATION: Felix Hoenikker created ice_nine\n#   (violates: scientists should not create ice_nine)"
+              },
+              {
+                "type": "p",
+                "children": "Even though the violation happens in a fictional world, the system can reason about it. This enables literary analysis, ethical reasoning, and normative AI behavior — all from the same framework."
+              }
+            ]
+          },
+          {
+            "type": "Callout",
+            "props": {
+              "type": "info"
+            },
+            "children": "World diff is exactly like git diff, but between realities. You can compare what Tom believes vs what's actually true, what should be true vs what is true, or what a novel says vs what science says. Every divergence has a traceable origin."
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "6. Why Lambda Calculus is the Right Abstraction"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "You might be wondering: why lambda calculus? Why not just use a database? The answer is that lambda calculus gives us something no other formalism does — computation and data in the same representation."
+          },
+          {
+            "type": "InteractiveDemo",
+            "props": {
+              "title": "Lambda Store vs. The Alternatives",
+              "prompt": "For each alternative, think about what it CAN'T do that the lambda store can. Then reveal the answer.",
+              "scenarios": [
+                {
+                  "input": "Triple Store (RDF/OWL): (water, freezing_point, 0°C)",
+                  "reveal": "Triple stores represent facts as subject-predicate-object triples. They handle actual-world knowledge well. But they have NO native concept of possible worlds — (water, freezing_point, 0°C) and (ice_nine, freezing_point, room_temp) would coexist with no way to tag one as fictional. Named graphs are a partial workaround but add complexity without the modal type system. And triples can't express composition: MAIL = ATRANS ∘ PTRANS has no natural representation."
+                },
+                {
+                  "input": "Vector Database: embed('water freezes at 0°C') → [0.12, -0.34, ...]",
+                  "reveal": "Vector DBs find similar content but have ZERO semantic structure. The embedding for 'water freezes at room temperature' (from Cat's Cradle) would be VERY close to 'water freezes at 0°C' (from physics) — they'd show up in the same query results. Cosine similarity can't distinguish fact from fiction. There's no mechanism for modal types, belief tracking, or event sourcing."
+                },
+                {
+                  "input": "SQL Database: INSERT INTO facts (subject, predicate, object, world) ...",
+                  "reveal": "SQL can add a 'world' column, and that gets you surprisingly far. But SQL can't represent partial queries as data (curried functions), can't compose facts (MAIL = ATRANS ∘ PTRANS), and can't express modal operators as first-class values. The lambda store's □P = λw. ∀w'. accessible(w,w') → P(w') is a QUERY and a COMPUTATION in one — SQL can't do that."
+                },
+                {
+                  "input": "Lambda Store: ATRANS = λgiver. λreceiver. λobject. Event",
+                  "reveal": "Human-readable AND machine-executable. Facts and queries are the SAME type (lambda terms with different binding states). Composition is natural: build complex events from primitives. Modal operators ARE lambda terms — they're not metadata bolted on, they're part of the representation itself. The type system (FICTIONAL, EPISTEMIC, etc.) prevents category errors at the structural level, not as an afterthought."
+                }
+              ]
+            }
+          },
+          {
+            "type": "p",
+            "children": "The deep reason: in lambda calculus, the modal operators ARE lambda terms."
+          },
+          {
+            "type": "CodeBlock",
+            "props": {
+              "language": "text"
+            },
+            "children": "Necessity (□):  □P = λw. ∀w'. accessible(w,w') → P(w')\n\"P is true in ALL accessible worlds\"\n\nPossibility (◇): ◇P = λw. ∃w'. accessible(w,w') ∧ P(w')\n\"P is true in SOME accessible world\"\n\nBelief (B_a):    B_a(P) = λw. ∀w'. w' ∈ beliefs(a,w) → P(w')\n\"Agent a believes P in all their belief-worlds\""
+          },
+          {
+            "type": "p",
+            "children": "These aren't just mathematical notation — they're executable code. The necessity operator is a function that takes a proposition and checks it against all accessible worlds. The belief operator checks a proposition against an agent's belief worlds. The type system ensures you can't accidentally treat fictional-world facts as actual-world facts."
+          },
+          {
+            "type": "Callout",
+            "props": {
+              "type": "key-insight"
+            },
+            "children": "Composition is natural: MAIL = ATRANS ∘ PTRANS (mailing = abstract transfer composed with physical transfer). Complex events are built from primitives using function composition — the same operation that lambda calculus was literally invented for."
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "7. What This Means for AI"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "Here's the thing that should excite you: LLMs have a 'dead brain' problem. Between prompts, they stop thinking. There's no persistent state, no ongoing reasoning, no continuous cognition. Each conversation starts from scratch (plus whatever context you paste in)."
+          },
+          {
+            "type": "p",
+            "children": "The lambda knowledge store offers a path out of this. Here's how:"
+          },
+          {
+            "type": "ul",
+            "children": [
+              {
+                "type": "li",
+                "children": "Lambda bindings as lightweight learning: When the system learns a new fact, it creates a lambda binding — no weight updates needed, no fine-tuning, no retraining. The fact is immediately available with full modal typing."
+              },
+              {
+                "type": "li",
+                "children": "SSM hidden state as a lambda environment: State Space Models (Mamba, etc.) maintain a hidden state between tokens. That hidden state could BE a lambda environment — a set of active bindings that persist across the conversation and update with each new fact."
+              },
+              {
+                "type": "li",
+                "children": "Structured memory for agents: AI agents that take actions in the world need to distinguish between 'what is true', 'what the user believes', 'what I hypothesize', and 'what should be true'. The modal store gives them this for free."
+              },
+              {
+                "type": "li",
+                "children": "Cross-session continuity: The event log persists. Fork a hypothetical world in session 1, resume reasoning about it in session 5. The lambda store is the agent's long-term structured memory."
+              }
+            ]
+          },
+          {
+            "type": "DeepDive",
+            "props": {
+              "title": "The Path from Prototype to Production"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "The prototype exists. It runs. You can create worlds, assert facts, fork branches, query across modalities, and detect belief contamination. What's still on the frontier:"
+              },
+              {
+                "type": "ol",
+                "children": [
+                  {
+                    "type": "li",
+                    "children": "Neural integration — connecting the lambda store to a neural network's hidden state so that structured knowledge and learned representations work together."
+                  },
+                  {
+                    "type": "li",
+                    "children": "Scale — the current implementation is a research prototype. Production would need efficient indexing, distributed storage, and fast modal queries."
+                  },
+                  {
+                    "type": "li",
+                    "children": "Automatic world creation — right now worlds are forked explicitly. An intelligent system should detect when it's reading fiction and fork a FICTIONAL world automatically."
+                  },
+                  {
+                    "type": "li",
+                    "children": "Belief revision — when evidence changes, how should beliefs propagate across worlds? This is active research in both AI and philosophy."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "Callout",
+            "props": {
+              "type": "success"
+            },
+            "children": "This is active research — the prototype exists and runs, the neural integration is the frontier. We're not describing a dream; we're describing a working system that needs to be connected to the right neural substrate. The pieces exist. The theory is sound. The engineering is the next step."
+          },
+          {
+            "type": "p",
+            "children": "The vision: an AI system that doesn't just store information, but KNOWS what kind of information it is. That can tell you about ice-nine without confusing it with real physics. That can hold beliefs, entertain hypotheticals, and reason about obligations — all while keeping its ontological categories clean."
+          },
+          {
+            "type": "p",
+            "children": "See the cat? See the cradle? With the right knowledge store, an AI can finally see both — and know which one is real."
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "8. Interactive Explorations"
+        },
+        "children": [
+          {
+            "type": "InteractiveDemo",
+            "props": {
+              "title": "Build Your Own World Graph",
+              "prompt": "Trace through each step of world-building. At each stage, think about: what's in each world? What queries would return different results depending on which world you ask?",
+              "scenarios": [
+                {
+                  "input": "Step 1: Create the actual world (w0) with basic facts",
+                  "reveal": "w0 contains: water.freezing_point = 0°C, Paris.country = France, gravity.value = 9.8 m/s². This is ground truth. Every other world branches from here and inherits these facts unless explicitly overridden."
+                },
+                {
+                  "input": "Step 2: Peter reads Cat's Cradle → fork w_cats_cradle (FICTIONAL)",
+                  "reveal": "w_cats_cradle inherits all of w0, then adds: ice_nine.freezing_point = room_temperature, ice_nine.creator = Felix_Hoenikker. Query 'freezing_point of water' in w_cats_cradle still returns 0°C (inherited from w0). Query 'freezing_point of ice_nine' only exists in this branch."
+                },
+                {
+                  "input": "Step 3: Tom believes Paris is in Germany → fork w_tom_beliefs (EPISTEMIC)",
+                  "reveal": "w_tom_beliefs inherits all of w0, then overrides: Paris.country = Germany. Now: query Paris.country in w0 → France. Query Paris.country in w_tom_beliefs → Germany. The system can detect this divergence and flag it: Tom has a false belief about Paris."
+                },
+                {
+                  "input": "Step 4: 'What if gravity were 2x?' → fork w_2x_gravity (HYPOTHETICAL)",
+                  "reveal": "w_2x_gravity inherits all of w0, overrides gravity.value = 19.6 m/s². This world is tagged HYPOTHETICAL — it's for reasoning, not belief. We can derive consequences (buildings need to be shorter, planes need more fuel) without polluting any belief world."
+                },
+                {
+                  "input": "Step 5: Cross-world query — 'What do we know about unusual freezing?'",
+                  "reveal": "The query router checks ALL worlds but TAGS the results by modality:\n• w0 (ACTUAL): water freezes at 0°C, no unusual freezing\n• w_cats_cradle (FICTIONAL): ice-nine freezes at room temp — SOURCE: Cat's Cradle\n• w_tom_beliefs (EPISTEMIC): no freezing-related beliefs\n• w_2x_gravity (HYPOTHETICAL): no freezing-related overrides\n\nThe system gives you a complete picture WITHOUT confusing fiction with reality."
+                }
+              ]
+            }
+          },
+          {
+            "type": "InteractiveDemo",
+            "props": {
+              "title": "Query Router — Which World Should Answer?",
+              "prompt": "For each question, think about which world(s) the system should consult, and what modality type matters. Then reveal the answer.",
+              "scenarios": [
+                {
+                  "input": "Question: 'At what temperature does water freeze?'",
+                  "reveal": "Route to: w0 (ACTUAL) only. This is a factual question about the real world. Answer: 0°C. Fictional and epistemic worlds are irrelevant — we want ground truth."
+                },
+                {
+                  "input": "Question: 'What does Tom think about Paris?'",
+                  "reveal": "Route to: w_tom_beliefs (EPISTEMIC). This is asking about a specific agent's beliefs, not about reality. Answer: Tom believes Paris is in Germany. The system might also flag: this diverges from w0 where Paris.country = France."
+                },
+                {
+                  "input": "Question: 'Is there any science fiction about unusual phase transitions?'",
+                  "reveal": "Route to: ALL worlds with modality FICTIONAL. This is explicitly asking about fiction. Answer: In w_cats_cradle, ice-nine causes water to freeze at room temperature (source: Cat's Cradle by Kurt Vonnegut). The FICTIONAL tag is what makes this query possible without contaminating factual queries."
+                },
+                {
+                  "input": "Question: 'Should scientists create ice-nine?'",
+                  "reveal": "Route to: w_ethics (DEONTIC). This is a normative question — what SHOULD be true. Answer: No — there's an obligation against it. The system can also cross-reference with w_cats_cradle to explain WHY (the fictional consequences serve as cautionary evidence)."
+                },
+                {
+                  "input": "Question: 'What would happen if we doubled gravity?'",
+                  "reveal": "Route to: w_2x_gravity (HYPOTHETICAL). This is a counterfactual — reasoning about a world that doesn't exist. The system can derive consequences within this branch without affecting any other world. If the branch doesn't exist yet, the query might trigger its creation."
+                }
+              ]
+            }
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "Quiz"
+        },
+        "children": [
+          {
+            "type": "Quiz",
+            "props": {
+              "questions": [
+                {
+                  "question": "Why can't an LLM that was trained on Cat's Cradle reliably distinguish ice-nine from real water physics?",
+                  "options": [
+                    "The training data was corrupted",
+                    "LLMs store all knowledge in the same weight space with no ontological tags — facts and fiction are superimposed",
+                    "Cat's Cradle is too similar to real physics textbooks",
+                    "The model needs more training data to learn the difference"
+                  ],
+                  "correctIndex": 1,
+                  "explanation": "LLMs represent all learned information as weight adjustments in the same parameter space. There's no structural distinction between 'this came from a physics textbook' and 'this came from a novel.' Both produce gradient updates that modify the same weights. The model has no metadata layer saying 'this is fictional' — it's all just statistical patterns."
+                },
+                {
+                  "question": "What's the lambda calculus equivalent of 'who has the ball?'",
+                  "options": [
+                    "A database SELECT query with a WHERE clause",
+                    "A fully applied lambda term with all arguments bound",
+                    "A partially applied lambda term — ATRANS(?, ?, ball) — a function with unbound variables",
+                    "A special query operator that searches the event log"
+                  ],
+                  "correctIndex": 2,
+                  "explanation": "In the lambda store, queries are the SAME type as facts — they're lambda terms. A complete fact like ATRANS(Robert, Tom, ball) has all variables bound. A query like ATRANS(?, ?, ball) is partially applied — it has 'holes' (unbound variables) that match any value. This is the deep insight: data and queries are structurally identical, differing only in binding state."
+                },
+                {
+                  "question": "In the modal store, what modality type would you use for 'Tom thinks Paris is in Germany'?",
+                  "options": [
+                    "FICTIONAL — it's not true, so it's fiction",
+                    "HYPOTHETICAL — it's a 'what if' scenario",
+                    "EPISTEMIC — it represents what an agent believes, regardless of truth",
+                    "REMEMBERED — it's something Tom vaguely recalls"
+                  ],
+                  "correctIndex": 2,
+                  "explanation": "EPISTEMIC modality represents an agent's beliefs — what they hold to be true in their mental model of the world. Tom's belief that Paris is in Germany is false, but it's not fiction (Tom isn't writing a novel) and it's not hypothetical (Tom genuinely believes it). It's an epistemic state — a belief that happens to be wrong. The system can detect this by comparing Tom's epistemic world with the actual world."
+                },
+                {
+                  "question": "Why is the event log append-only instead of mutable?",
+                  "options": [
+                    "It's simpler to implement",
+                    "Append-only preserves full history, enables time-travel queries, and makes retractions traceable — past states are always recoverable",
+                    "Mutable stores are slower",
+                    "Lambda calculus requires immutability"
+                  ],
+                  "correctIndex": 1,
+                  "explanation": "Immutability is a feature, not a limitation. An append-only log means: (1) you can always reconstruct any past state by replaying events up to that point, (2) retractions are themselves events with full provenance — you know WHEN something was retracted and WHY, (3) concurrent access is safe — no read-write conflicts, and (4) the complete history enables questions like 'who has EVER had the ball?' that mutable stores can't answer without extra bookkeeping."
+                }
+              ]
+            }
+          }
+        ]
+      }
+    ]
+  }
+}
