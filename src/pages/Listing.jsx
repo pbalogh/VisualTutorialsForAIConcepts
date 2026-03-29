@@ -1331,6 +1331,18 @@ const tutorials = [
     difficulty: 3,
   },
   {
+    id: 'brainstorm-82-compression-codebook-consolidation',
+    title: 'Operators as the Compression Codebook for Memory Consolidation',
+    description: 'Why Schankian primitives are the schemas that make sleep learning possible — connecting operator libraries to neuroscience of memory consolidation.',
+    tags: ['Schankian', 'memory consolidation', 'compression', 'sleep', 'neuroscience'],
+    icon: '🌙',
+    gradient: 'from-indigo-500 to-violet-600',
+    shadowColor: 'shadow-indigo-500/30',
+    glowColor: 'rgba(99, 102, 241, 0.4)',
+    readTime: '22 min',
+    difficulty: 3,
+  },
+  {
     id: 'modal-lambda-knowledge-store',
     title: 'Lambda Calculus as a Knowledge Store: Possible Worlds for AI Memory',
     description: 'What if AI could tell the difference between facts, fiction, beliefs, and hypotheticals? A working prototype using lambda calculus and modal logic for structured memory with possible worlds.',

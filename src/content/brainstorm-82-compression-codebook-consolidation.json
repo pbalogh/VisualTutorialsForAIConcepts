@@ -1,0 +1,518 @@
+{
+  "id": "brainstorm-82-compression-codebook-consolidation",
+  "title": "Operators as the Compression Codebook for Memory Consolidation",
+  "subtitle": "Why Schankian primitives are the schemas that make sleep learning possible",
+  "readTime": "22 min",
+  "state": {},
+  "content": {
+    "type": "Fragment",
+    "children": [
+      {
+        "type": "Callout",
+        "props": { "type": "info" },
+        "children": "This tutorial connects neuroscience of memory consolidation with our operator-based compression framework. The core claim: Schankian primitives ARE the schema codebook that explains why schema-congruent memories consolidate in 48 hours while incongruent ones take weeks. Our Archivist-Skeptic system implements this computationally."
+      },
+      {
+        "type": "Section",
+        "props": { "title": "1. The Neuroscience Puzzle: Why Do Some Memories Stick Faster?" },
+        "children": [
+          {
+            "type": "p",
+            "children": "In 2007, Tse et al. published a landmark paper in Science that upended decades of memory consolidation theory. They showed that rats who had already learned a spatial schema (which flavors mapped to which locations) could consolidate NEW schema-congruent memories into neocortex in just 48 hours — instead of the usual weeks."
+          },
+          {
+            "type": "p",
+            "children": "This was revolutionary. The standard model (Squire & Alvarez, 1995) said hippocampal-to-cortical transfer always takes weeks of gradual replay. Tse et al. showed the timeline collapses when the new information fits an existing schema. But nobody had a computational explanation for WHY."
+          },
+          {
+            "type": "DeepDive",
+            "props": {
+              "title": "🧠 The Tse et al. (2007) Experiment",
+              "id": "tse-experiment"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "**Setup:** Rats learned a 'flavor-place' schema — 6 flavors each associated with a specific location in an arena (e.g., banana flavor → NE corner). After weeks of training, the schema was solid."
+              },
+              {
+                "type": "p",
+                "children": "**Test:** Two NEW flavor-place pairs were introduced. One was congruent (new flavor, but using the same arena and spatial logic). The other was incongruent (same flavors but in a completely different arena layout)."
+              },
+              {
+                "type": "p",
+                "children": "**Result:** Schema-congruent memories showed immediate early gene expression (zif268) in neocortex within 48 hours, indicating rapid cortical consolidation. Incongruent memories still depended on hippocampus after the same period. The schema acted as an accelerant."
+              },
+              {
+                "type": "p",
+                "children": "**Implication:** Schemas aren't just organizational — they're consolidation infrastructure. They provide the 'slots' into which new information can be rapidly assimilated."
+              }
+            ]
+          },
+          {
+            "type": "Analogy",
+            "left": {
+              "title": "Without Schema (Slow Consolidation)",
+              "items": [
+                "New memory has no template to attach to",
+                "Hippocampus must replay it hundreds of times",
+                "Gradual cortical synaptic strengthening over weeks",
+                "Like filing a document when you have no filing system",
+                "Each item stored from scratch"
+              ]
+            },
+            "right": {
+              "title": "With Schema (Fast Consolidation)",
+              "items": [
+                "Existing template with open 'slots'",
+                "A few replays suffice to 'click' it into place",
+                "Cortical trace established within 48 hours",
+                "Like filing a document into an existing folder",
+                "New item compressed as delta from schema"
+              ]
+            }
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "2. Schemas ARE Compression Codebooks" },
+        "children": [
+          {
+            "type": "p",
+            "children": "Here's our key insight: a schema is precisely a compression codebook. When you have a codebook entry for 'flavor-place association', a new flavor-place pair can be encoded as a short delta — just the new flavor and the new location. Without the codebook, you'd need to encode the entire structure from scratch: what an arena is, what flavors are, what spatial locations mean, what 'association' means."
+          },
+          {
+            "type": "p",
+            "children": "And Schankian operators are exactly this kind of codebook. Each operator (ATRANS, PTRANS, MTRANS, etc.) is a reusable template that compresses common event patterns. 'John gave Mary the book' doesn't need to encode the full physics of object transfer — it compresses to ATRANS(object=book, from=John, to=Mary). The operator IS the schema."
+          },
+          {
+            "type": "Example",
+            "props": {
+              "title": "Compression Ratio: With vs Without Codebook"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "Consider encoding the event 'The teacher explained photosynthesis to the students':"
+              },
+              {
+                "type": "code",
+                "props": { "language": "python" },
+                "children": "# WITHOUT operator codebook (raw encoding)\nraw_encoding = {\n    'agent': embed('teacher'),        # 768 dims\n    'action': embed('explained'),      # 768 dims  \n    'theme': embed('photosynthesis'),   # 768 dims\n    'recipient': embed('students'),     # 768 dims\n    'manner': embed('verbal'),          # 768 dims\n    'causation': embed('understanding'),# 768 dims\n    # Total: ~4608 floating point values\n}\n\n# WITH operator codebook (compressed)\ncompressed = {\n    'operator': 'MTRANS',  # 1 codebook index (mental transfer)\n    'slots': {\n        'source': 'teacher',          # 1 entity ref\n        'content': 'photosynthesis',   # 1 entity ref  \n        'destination': 'students',     # 1 entity ref\n    }\n    # Total: 1 operator ID + 3 entity refs ≈ 4 values\n    # Compression ratio: ~1000:1\n}"
+              },
+              {
+                "type": "p",
+                "children": "The operator encodes the STRUCTURE of mental transfer. Only the CONTENT varies. This is exactly what schemas do in memory consolidation — they encode the invariant structure, so only the variable content needs to be consolidated."
+              }
+            ]
+          },
+          {
+            "type": "Callout",
+            "props": { "type": "key" },
+            "children": "The compression ratio IS the consolidation speed. Higher compression = fewer bits to consolidate = faster hippocampal-to-cortical transfer. Tse et al.'s 48-hour consolidation is what happens when the compression ratio is very high (schema-congruent). Weeks-long consolidation is what happens when the ratio is low (no matching codebook entry)."
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "3. The Consolidation Pipeline: Hippocampal Replay and Sharp-Wave Ripples" },
+        "children": [
+          {
+            "type": "p",
+            "children": "During sleep, the hippocampus replays recent experiences during sharp-wave ripples (SWRs) — brief (50-100ms) bursts of high-frequency oscillation. These replays are compressed in time (5-20x faster than real-time) and are thought to drive consolidation into neocortex (Diekelmann & Born, 2010)."
+          },
+          {
+            "type": "p",
+            "children": "Here's what makes our framework compelling: the replay IS compression. Each SWR replays an experience, and if the neocortex already has the right schema (codebook entry), it only needs to update the variable slots. If it doesn't have the schema, the replay must also build the schema from scratch — which takes many more replay cycles."
+          },
+          {
+            "type": "DeepDive",
+            "props": {
+              "title": "🌊 Sharp-Wave Ripples as Compression Events",
+              "id": "swr-compression"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "**The biology:** During NREM sleep, the hippocampus generates SWRs (150-250 Hz oscillations). Each SWR replays a sequence of place cells in compressed time. The neocortex 'listens' during slow oscillations and spindles, potentially accepting the replayed information."
+              },
+              {
+                "type": "p",
+                "children": "**Our interpretation:** Each SWR is an attempted compression. The hippocampus sends: 'Here's an experience.' The neocortex tries to compress it using existing codebook entries. If compression succeeds (high ratio), the neocortex stores just the compressed version. If compression fails (no matching codebook), the experience bounces back to hippocampus for more replay cycles."
+              },
+              {
+                "type": "p",
+                "children": "**Prediction:** The number of SWR replay cycles needed for consolidation should be inversely proportional to the compression ratio achievable with the existing codebook. Schema-congruent memories need few replays. Truly novel experiences need hundreds."
+              }
+            ]
+          },
+          {
+            "type": "InteractiveDemo",
+            "props": {
+              "title": "🎮 Schema-Congruent vs Incongruent Consolidation",
+              "id": "consolidation-speed-demo",
+              "height": 400,
+              "code": "// Simulates how codebook size affects consolidation speed\nconst codebook = [\n  { op: 'ATRANS', desc: 'physical transfer', slots: ['agent','object','from','to'] },\n  { op: 'PTRANS', desc: 'physical movement', slots: ['agent','object','from','to'] },\n  { op: 'MTRANS', desc: 'mental transfer', slots: ['source','content','dest'] },\n  { op: 'MBUILD', desc: 'mental construction', slots: ['agent','result'] },\n  { op: 'INGEST', desc: 'taking in', slots: ['agent','object'] },\n  { op: 'PROPEL', desc: 'force application', slots: ['agent','object','force'] }\n];\nconst memories = [\n  { event: 'Teacher explains gravity to students', matchOp: 'MTRANS', congruent: true, rawBits: 4608, compressedBits: 4 },\n  { event: 'Chef hands plate to waiter', matchOp: 'ATRANS', congruent: true, rawBits: 3840, compressedBits: 4 },\n  { event: 'Quantum entanglement collapse ceremony', matchOp: null, congruent: false, rawBits: 6144, compressedBits: 6144 },\n  { event: 'Dog fetches ball from the yard', matchOp: 'PTRANS', congruent: true, rawBits: 3072, compressedBits: 3 },\n  { event: 'Hyperdimensional phase transition ritual', matchOp: null, congruent: false, rawBits: 5120, compressedBits: 5120 }\n];\nconst t = Math.floor(Date.now() / 4000) % memories.length;\nconst m = memories[t];\nconst ratio = m.rawBits / m.compressedBits;\nconst replaysNeeded = m.congruent ? Math.ceil(5 / ratio * 10) : 200;\nconst hours = m.congruent ? 48 : 336;\nconst bar = (n, max, ch) => ch.repeat(Math.min(Math.round(n/max*30), 30));\nlet out = '╔══════════════════════════════════════════════════╗\\n';\nout += '║  SLEEP CONSOLIDATION SIMULATOR                   ║\\n';\nout += '╚══════════════════════════════════════════════════╝\\n\\n';\nout += `Memory: \"${m.event}\"\\n\\n`;\nif (m.congruent) {\n  out += `✅ SCHEMA MATCH: ${m.matchOp} operator found in codebook\\n`;\n  out += `   Slots to fill: ${codebook.find(c=>c.op===m.matchOp).slots.join(', ')}\\n\\n`;\n} else {\n  out += `❌ NO SCHEMA MATCH: no codebook entry fits\\n`;\n  out += `   Must encode entire structure from scratch\\n\\n`;\n}\nout += `Raw encoding:    ${m.rawBits} bits\\n`;\nout += `Compressed:      ${m.compressedBits} bits\\n`;\nout += `Compression:     ${ratio.toFixed(0)}:1\\n\\n`;\nout += `SWR Replays needed: ${bar(replaysNeeded, 200, '█')} ${replaysNeeded}\\n`;\nout += `Time to consolidate: ${bar(hours, 336, '░')} ${hours}h (${(hours/24).toFixed(0)} days)\\n\\n`;\nout += m.congruent ? '→ Fast track: hippocampus → neocortex in ~48h' : '→ Slow lane: stuck in hippocampus for weeks';\nout += '\\n\\n(cycles every 4s — compare congruent vs incongruent memories)';\nreturn out;"
+            }
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "4. The Archivist-Skeptic System: Two Agents Debating What to Keep" },
+        "children": [
+          {
+            "type": "p",
+            "children": "Our Archivist-Skeptic sleep consolidation system implements this consolidation process as a debate between two agents. During the 'sleep' phase, these agents review buffered experiences and decide what gets promoted to permanent (cortical) storage."
+          },
+          {
+            "type": "p",
+            "children": "**The Archivist** advocates for keeping memories. It argues that an experience might be useful, that it connects to existing knowledge, or that it fills a gap in the codebook. **The Skeptic** argues for forgetting. It points out redundancy, low compression value, and the cost of storage. The debate mimics the hippocampal-neocortical negotiation during sleep."
+          },
+          {
+            "type": "Example",
+            "props": {
+              "title": "An Archivist-Skeptic Debate Round"
+            },
+            "children": [
+              {
+                "type": "code",
+                "props": { "language": "python" },
+                "children": "class ArchivistSkepticConsolidation:\n    def sleep_cycle(self, buffer, codebook, permanent_store):\n        \"\"\"One night of sleep = one consolidation pass.\"\"\"\n        promoted = []\n        forgotten = []\n        new_operators = []\n        \n        for memory in buffer:\n            # Try to compress with existing codebook\n            compressed, ratio = codebook.compress(memory)\n            \n            # Archivist makes the case\n            archivist_score = self.archivist_evaluate(memory, compressed, ratio)\n            # Factors: novelty, connection to existing knowledge,\n            #          emotional salience, prediction error\n            \n            # Skeptic pushes back  \n            skeptic_score = self.skeptic_evaluate(memory, compressed, ratio)\n            # Factors: redundancy with existing memories,\n            #          compression cost, storage budget\n            \n            if archivist_score > skeptic_score:\n                if ratio > FAST_CONSOLIDATION_THRESHOLD:  # ~100:1\n                    # Schema-congruent: fast-track to permanent store\n                    permanent_store.add(compressed)\n                    promoted.append(memory)\n                elif ratio < NOVEL_PATTERN_THRESHOLD:  # ~2:1\n                    # Can't compress well = NOVEL STRUCTURE\n                    # Flag for codebook expansion (wake-sleep learning)\n                    new_operators.append(memory)\n                else:\n                    # Medium compression: keep in hippocampal buffer\n                    # for more replay cycles\n                    pass\n            else:\n                forgotten.append(memory)\n        \n        return promoted, forgotten, new_operators"
+              }
+            ]
+          },
+          {
+            "type": "InteractiveDemo",
+            "props": {
+              "title": "🎮 Archivist-Skeptic Debate Simulator",
+              "id": "archivist-skeptic-demo",
+              "height": 450,
+              "code": "// Simulate Archivist-Skeptic debate rounds\nconst memories = [\n  { event: 'Colleague shared project update (MTRANS)', novelty: 0.2, emotional: 0.1, compression: 0.95, redundancy: 0.8 },\n  { event: 'Learned new cooking technique (MBUILD)', novelty: 0.8, emotional: 0.5, compression: 0.7, redundancy: 0.1 },\n  { event: 'Walked to the store (PTRANS)', novelty: 0.05, emotional: 0.02, compression: 0.99, redundancy: 0.95 },\n  { event: 'Witnessed car accident (PROPEL+CAUSE)', novelty: 0.9, emotional: 0.95, compression: 0.3, redundancy: 0.05 },\n  { event: 'Read about alien math notation (???)', novelty: 0.99, emotional: 0.6, compression: 0.05, redundancy: 0.01 },\n  { event: 'Had coffee at usual café (INGEST)', novelty: 0.1, emotional: 0.3, compression: 0.98, redundancy: 0.9 }\n];\nconst round = Math.floor(Date.now() / 5000) % memories.length;\nconst m = memories[round];\nconst archScore = (m.novelty * 0.3 + m.emotional * 0.3 + (1-m.redundancy) * 0.4).toFixed(2);\nconst skeptScore = (m.redundancy * 0.4 + (1-m.novelty) * 0.3 + (1-m.emotional) * 0.3).toFixed(2);\nconst winner = archScore > skeptScore ? 'ARCHIVIST' : 'SKEPTIC';\nconst decision = archScore > skeptScore \n  ? (m.compression > 0.8 ? '⚡ FAST CONSOLIDATE (schema match!)' : m.compression < 0.2 ? '🔧 FLAG FOR CODEBOOK EXPANSION' : '💾 KEEP IN HIPPOCAMPAL BUFFER')\n  : '🗑️ FORGET (not worth the storage)';\nlet out = '╔══════════════════════════════════════════════════╗\\n';\nout += '║  🌙 ARCHIVIST vs SKEPTIC — Sleep Debate          ║\\n';\nout += '╚══════════════════════════════════════════════════╝\\n\\n';\nout += `Memory under review:\\n  \"${m.event}\"\\n\\n`;\nout += '┌─── ARCHIVIST argues to KEEP ───────────────────┐\\n';\nout += `│ Novelty:      ${('█'.repeat(Math.round(m.novelty*10))).padEnd(10)} ${(m.novelty*100).toFixed(0)}%      │\\n`;\nout += `│ Emotional:    ${('█'.repeat(Math.round(m.emotional*10))).padEnd(10)} ${(m.emotional*100).toFixed(0)}%      │\\n`;\nout += `│ Uniqueness:   ${('█'.repeat(Math.round((1-m.redundancy)*10))).padEnd(10)} ${((1-m.redundancy)*100).toFixed(0)}%      │\\n`;\nout += `│ TOTAL SCORE:  ${archScore}                           │\\n`;\nout += '└────────────────────────────────────────────────┘\\n\\n';\nout += '┌─── SKEPTIC argues to FORGET ──────────────────┐\\n';\nout += `│ Redundancy:   ${('█'.repeat(Math.round(m.redundancy*10))).padEnd(10)} ${(m.redundancy*100).toFixed(0)}%      │\\n`;\nout += `│ Mundaneness:  ${('█'.repeat(Math.round((1-m.novelty)*10))).padEnd(10)} ${((1-m.novelty)*100).toFixed(0)}%      │\\n`;\nout += `│ Low emotion:  ${('█'.repeat(Math.round((1-m.emotional)*10))).padEnd(10)} ${((1-m.emotional)*100).toFixed(0)}%      │\\n`;\nout += `│ TOTAL SCORE:  ${skeptScore}                           │\\n`;\nout += '└────────────────────────────────────────────────┘\\n\\n';\nout += `Winner: ${winner}  →  Decision: ${decision}\\n`;\nout += `Compression ratio: ${(1/(1-m.compression+0.01)).toFixed(0)}:1\\n\\n`;\nout += '(cycles every 5s — watch different memories get debated)';\nreturn out;"
+            }
+          },
+          {
+            "type": "Callout",
+            "props": { "type": "warning" },
+            "children": "Notice the three outcomes: (1) High compression + Archivist wins → fast consolidation (schema-congruent, like Tse et al.'s 48-hour pathway). (2) Low compression + Archivist wins → flag for codebook expansion (truly novel structure needs new operators). (3) Skeptic wins → forget. This three-way split is the key computational mechanism."
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "5. Operator Library Size ↔ Consolidation Speed" },
+        "children": [
+          {
+            "type": "p",
+            "children": "This leads to a precise prediction: the larger and more refined your operator library, the faster you can consolidate new memories. Each operator is a codebook entry. More entries = more experiences can be schema-congruently compressed = more experiences get fast-tracked."
+          },
+          {
+            "type": "p",
+            "children": "But there's a catch. A codebook that's too large becomes inefficient — you spend more bits indexing into the codebook than you save on compression. This is the Minimum Description Length (MDL) tradeoff: codebook_cost + compressed_data_cost should be minimized jointly."
+          },
+          {
+            "type": "Example",
+            "props": {
+              "title": "The MDL Sweet Spot for Operator Libraries"
+            },
+            "children": [
+              {
+                "type": "code",
+                "props": { "language": "python" },
+                "children": "def total_description_length(codebook, experiences):\n    \"\"\"\n    MDL = cost_of_codebook + cost_of_data_given_codebook\n    \n    Sweet spot: enough operators to compress well,\n    not so many that the codebook itself is expensive.\n    \"\"\"\n    # Cost of storing the codebook itself\n    codebook_cost = sum(\n        operator.complexity  # bits to define each operator\n        for operator in codebook\n    )\n    \n    # Cost of encoding all experiences using the codebook\n    data_cost = sum(\n        codebook.compress(exp).bit_length\n        for exp in experiences\n    )\n    \n    return codebook_cost + data_cost\n\n# Schank's ~14 primitives: good starting codebook\n# Domain-specific extensions: better for specialized domains\n# One operator per experience: overfitting, huge codebook cost\n\n# The consolidation speed prediction:\n# speed ∝ 1 / (bits_to_consolidate)\n# bits_to_consolidate = compressed_size = raw_size / compression_ratio\n# So: speed ∝ compression_ratio ∝ codebook_quality"
+              }
+            ]
+          },
+          {
+            "type": "Analogy",
+            "left": {
+              "title": "Small Codebook (Infant Brain)",
+              "items": [
+                "Few operators: basic MOVE, INGEST, PERCEIVE",
+                "Most experiences are 'novel' — low compression",
+                "Slow consolidation; heavy hippocampal dependence",
+                "Everything requires many replay cycles",
+                "Like a compression algorithm with few dictionary entries"
+              ]
+            },
+            "right": {
+              "title": "Rich Codebook (Expert Brain)",
+              "items": [
+                "Hundreds of domain-specific operators",
+                "Most experiences compress well — high schema match",
+                "Fast consolidation; cortical traces form quickly",
+                "Experts dream less about routine domain events",
+                "Like a mature compression dictionary — everything compresses well"
+              ]
+            }
+          },
+          {
+            "type": "Callout",
+            "props": { "type": "key" },
+            "children": "This connects to a known finding in expertise research: experts show LESS hippocampal activation for domain-relevant memories than novices (Dudai, 2012). Our framework explains why — experts have richer codebooks, so domain experiences compress into a few slot-fillings and consolidate rapidly."
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "6. Wake-Sleep Library Learning: When Compression Fails, Build New Operators" },
+        "children": [
+          {
+            "type": "p",
+            "children": "What happens when the Archivist wins but compression is low? The experience is novel and important, but the codebook doesn't have a good entry for it. This is the trigger for wake-sleep library learning — a DreamCoder-style process that discovers new operators."
+          },
+          {
+            "type": "p",
+            "children": "DreamCoder (Ellis et al., 2021) alternates between a 'wake' phase (solving tasks using existing primitives) and a 'sleep' phase (abstracting common patterns into new library entries). Our system does the same, but with Schankian operators as the library and experiences as the tasks."
+          },
+          {
+            "type": "DeepDive",
+            "props": {
+              "title": "🔬 DreamCoder-Style Operator Discovery",
+              "id": "dreamcoder-operators"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "**Wake Phase:** Process incoming experiences using the current operator codebook. Track which experiences compress well and which don't. Experiences with low compression ratios are 'hard cases' — they signal gaps in the codebook."
+              },
+              {
+                "type": "p",
+                "children": "**Sleep Phase (Abstraction):** Examine the hard cases. Look for common structure across them. If 3 experiences all involve 'digital information being copied without depleting the source', that's a pattern not captured by ATRANS (which implies the source loses the object). Abstract it into a new operator: DTRANS (digital transfer)."
+              },
+              {
+                "type": "p",
+                "children": "**Sleep Phase (Dreaming):** Generate synthetic experiences that use the new operator, training the recognition network to detect DTRANS in future inputs. This is the 'dream' — imagined experiences that refine the new codebook entry."
+              },
+              {
+                "type": "p",
+                "children": "**Key Insight:** The sleep phase in DreamCoder corresponds to actual biological sleep! The brain discovers new schemas during sleep by replaying and abstracting across experiences. Our operator discovery IS schema formation."
+              }
+            ]
+          },
+          {
+            "type": "Example",
+            "props": {
+              "title": "Discovering a New Operator: DTRANS"
+            },
+            "children": [
+              {
+                "type": "code",
+                "props": { "language": "python" },
+                "children": "class WakeSleepLibraryLearning:\n    def wake_phase(self, experiences, codebook):\n        \"\"\"Process experiences, identify compression failures.\"\"\"\n        hard_cases = []\n        for exp in experiences:\n            compressed, ratio = codebook.compress(exp)\n            if ratio < NOVEL_THRESHOLD:\n                hard_cases.append(exp)\n        return hard_cases\n    \n    def sleep_abstraction(self, hard_cases, codebook):\n        \"\"\"Find common structure in hard cases → new operators.\"\"\"\n        # Anti-unification: find most specific generalization\n        clusters = self.cluster_by_structure(hard_cases)\n        \n        new_operators = []\n        for cluster in clusters:\n            if len(cluster) >= MIN_SUPPORT:  # enough examples\n                # Extract common structure\n                template = anti_unify(cluster)\n                # e.g., cluster of 'email sent', 'file shared', 'link posted'\n                # template: DTRANS(agent=?, content=?, dest=?)\n                #   where source retains content (unlike ATRANS)\n                \n                new_op = Operator(\n                    name=generate_name(template),\n                    slots=template.variables,\n                    constraints=template.invariants\n                )\n                new_operators.append(new_op)\n        \n        codebook.extend(new_operators)\n        return new_operators\n    \n    def sleep_dreaming(self, new_operators):\n        \"\"\"Generate synthetic examples for new operators.\"\"\"\n        dreams = []\n        for op in new_operators:\n            # Fill slots with random but valid entities\n            for _ in range(DREAM_COUNT):\n                dream = op.instantiate(random_entities())\n                dreams.append(dream)\n        return dreams  # Used to train recognition network"
+              }
+            ]
+          },
+          {
+            "type": "Callout",
+            "props": { "type": "info" },
+            "children": "The wake-sleep loop creates a virtuous cycle: more operators → better compression → faster consolidation → more capacity for new experiences → more data for discovering even more operators. This is why learning accelerates with expertise — the codebook grows, making future learning easier."
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "7. Connecting to the Lambda Knowledge Store" },
+        "children": [
+          {
+            "type": "p",
+            "children": "In our Lambda Knowledge Store architecture, operators aren't just compression primitives — they're typed lambda terms. ATRANS isn't just a label; it's a function with a precise type signature: ATRANS : Entity → Object → Location → Location → Event. This typing gives us compositionality for free."
+          },
+          {
+            "type": "p",
+            "children": "The consolidation process then becomes: can this experience be expressed as a well-typed application of existing lambda terms? If yes, consolidation is fast (just store the application). If no, we need to abstract a new lambda term from the experience — which is exactly lambda abstraction."
+          },
+          {
+            "type": "Example",
+            "props": {
+              "title": "Consolidation as Lambda Application vs Abstraction"
+            },
+            "children": [
+              {
+                "type": "code",
+                "props": { "language": "haskell" },
+                "children": "-- FAST CONSOLIDATION: apply existing operator\n-- \"John gave Mary the book\" \n-- Already have: ATRANS : Agent → Object → Source → Dest → Event\nconsolidated = ATRANS john book john_location mary_location\n-- Cost: 4 entity references + 1 operator index\n\n-- SLOW CONSOLIDATION: need new abstraction  \n-- \"The virus replicated across the network\"\n-- No operator for self-replicating-transfer!\n-- Must abstract from multiple examples:\nnew_op = \\agent -> \\medium -> \\pattern ->\n  CAUSE agent\n    (ITERATE (\\loc -> PTRANS (COPY pattern) loc (NEXT medium loc)))\n-- This IS operator discovery — lambda abstraction over experiences\n\n-- MODAL WORLDS CONNECTION:\n-- Each memory lives in a possible world\n-- Schema-congruent: fits the actual world's operator set\n-- Schema-incongruent: might need operators from a novel world\n-- The Archivist-Skeptic debate = accessibility relation check"
+              }
+            ]
+          },
+          {
+            "type": "DeepDive",
+            "props": {
+              "title": "🔗 The Full Architecture: From SWR to Lambda Store",
+              "id": "full-architecture"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "**1. Experience arrives** → encoded as raw event structure in hippocampal buffer."
+              },
+              {
+                "type": "p",
+                "children": "**2. Sharp-wave ripple** → hippocampus replays the experience to neocortex."
+              },
+              {
+                "type": "p",
+                "children": "**3. Compression attempt** → neocortex tries to express it as a typed lambda application using existing operator codebook."
+              },
+              {
+                "type": "p",
+                "children": "**4a. Success (high compression)** → Store the application in Lambda Knowledge Store. Mark hippocampal trace for weakening. Takes ~48 hours. This is Tse et al.'s fast pathway."
+              },
+              {
+                "type": "p",
+                "children": "**4b. Failure (low compression)** → Archivist-Skeptic debate. If Archivist wins: flag for wake-sleep abstraction. If Skeptic wins: allow hippocampal trace to decay."
+              },
+              {
+                "type": "p",
+                "children": "**5. Wake-sleep abstraction** → Extract new lambda terms (operators) from clusters of hard cases. Add to codebook. Re-attempt compression. This is the slow pathway — it's what takes weeks because operator discovery requires multiple sleep cycles."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "8. Predictions and Open Questions" },
+        "children": [
+          {
+            "type": "p",
+            "children": "This framework makes several testable predictions:"
+          },
+          {
+            "type": "DefinitionList",
+            "props": {
+              "items": [
+                {
+                  "term": "Prediction 1: SWR Count ∝ 1/Compression Ratio",
+                  "definition": "The number of sharp-wave ripple replays needed for consolidation should be inversely proportional to how well the experience compresses with existing schemas. Schema-congruent memories should need fewer SWRs."
+                },
+                {
+                  "term": "Prediction 2: Expert Dreaming is Different",
+                  "definition": "Experts should show more 'abstraction' dreams (combining elements across experiences to form new operators) and fewer 'replay' dreams for routine domain events. Their codebook handles routine compression without replay."
+                },
+                {
+                  "term": "Prediction 3: Codebook Growth Follows Power Law",
+                  "definition": "The rate of new operator discovery should follow a power law — many operators early (everything is novel), tapering off as the codebook matures. This mirrors the decreasing marginal returns of learning."
+                },
+                {
+                  "term": "Prediction 4: Sleep Deprivation Hurts Novel More Than Routine",
+                  "definition": "Blocking sleep should disproportionately impair consolidation of schema-incongruent memories (which need the sleep-phase abstraction step) compared to schema-congruent ones (which may partially consolidate even during waking rest)."
+                }
+              ]
+            }
+          },
+          {
+            "type": "Callout",
+            "props": { "type": "info" },
+            "children": "Prediction 4 is actually supported by existing evidence: Diekelmann & Born (2010) found that sleep-dependent consolidation benefits are largest for 'difficult' or 'weakly encoded' memories — exactly the ones that would have low compression ratios in our framework."
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "9. The Big Picture: Compression All the Way Down" },
+        "children": [
+          {
+            "type": "p",
+            "children": "This tutorial has connected three things that are usually studied separately: (1) Schankian primitives from AI, (2) memory consolidation from neuroscience, and (3) library learning from program synthesis. The unifying principle is compression."
+          },
+          {
+            "type": "p",
+            "children": "Operators are the compression codebook. Schemas are compression codebooks. Memory consolidation is compression-guided storage management. Sleep is the compression optimization phase. Wake-sleep learning is codebook expansion. And the Lambda Knowledge Store is the compressed representation format."
+          },
+          {
+            "type": "Analogy",
+            "left": {
+              "title": "Traditional View",
+              "items": [
+                "Schemas are 'knowledge structures'",
+                "Consolidation is 'memory transfer'",
+                "Sleep is 'offline processing'",
+                "Learning is 'acquiring knowledge'",
+                "Forgetting is 'memory failure'"
+              ]
+            },
+            "right": {
+              "title": "Compression View",
+              "items": [
+                "Schemas are codebook entries",
+                "Consolidation is compression-guided routing",
+                "Sleep is codebook optimization",
+                "Learning is codebook expansion",
+                "Forgetting is optimal lossy compression"
+              ]
+            }
+          },
+          {
+            "type": "Callout",
+            "props": { "type": "key" },
+            "children": "Forgetting isn't failure — it's the Skeptic doing its job. A memory that can't be compressed and isn't emotionally salient is genuinely not worth the storage cost. The Skeptic is implementing optimal lossy compression. The brain has limited capacity, and compression theory tells us that not everything should be kept."
+          }
+        ]
+      },
+      {
+        "type": "Quiz",
+        "props": {
+          "questions": [
+            {
+              "question": "In Tse et al. (2007), why did schema-congruent memories consolidate in 48 hours instead of weeks?",
+              "options": [
+                "The rats were given memory-enhancing drugs",
+                "Schema-congruent memories are emotionally stronger",
+                "Existing schemas provided 'slots' for rapid assimilation, requiring fewer hippocampal replay cycles",
+                "The hippocampus was surgically removed, forcing cortical storage"
+              ],
+              "correct": 2,
+              "explanation": "The rats had already built a spatial schema (flavor-place associations). New congruent information fit into existing slots, requiring minimal encoding — essentially high compression. This dramatically reduced the number of replay cycles needed for cortical consolidation."
+            },
+            {
+              "question": "In the Archivist-Skeptic system, what happens when the Archivist wins but compression is LOW?",
+              "options": [
+                "The memory is immediately discarded",
+                "The memory is fast-tracked to permanent storage",
+                "The memory is flagged for codebook expansion — the system needs to discover a new operator",
+                "The Skeptic gets a second chance to argue"
+              ],
+              "correct": 2,
+              "explanation": "Low compression + high importance (Archivist wins) means the memory contains genuinely novel structure that the current codebook can't handle. This triggers wake-sleep library learning — a DreamCoder-style process that abstracts common patterns from hard cases into new operators."
+            },
+            {
+              "question": "How does the compression framework explain why experts learn new domain-relevant information faster than novices?",
+              "options": [
+                "Experts have larger hippocampi",
+                "Experts have richer operator codebooks, giving higher compression ratios for domain experiences, leading to faster consolidation",
+                "Experts don't need sleep for consolidation",
+                "Experts use different brain regions entirely"
+              ],
+              "correct": 1,
+              "explanation": "Expert brains have developed extensive domain-specific operator libraries through years of wake-sleep learning. New domain experiences compress well against this rich codebook (high ratio), requiring fewer SWR replay cycles for consolidation. This is why expertise accelerates — the codebook grows, making future learning easier."
+            },
+            {
+              "question": "What is the relationship between DreamCoder's sleep phase and biological sleep in our framework?",
+              "options": [
+                "They are unrelated — 'sleep' is just a metaphor in DreamCoder",
+                "DreamCoder's abstraction phase corresponds to schema formation during biological sleep — both extract reusable patterns from hard cases and add them to the library/codebook",
+                "Biological sleep only replays memories, it never abstracts new patterns",
+                "DreamCoder replaces the need for biological sleep"
+              ],
+              "correct": 1,
+              "explanation": "Both systems use an offline phase to: (1) replay experiences, (2) identify common patterns across hard cases, (3) abstract those patterns into reusable library entries/operators, and (4) generate 'dreams' — synthetic examples that refine the new entries. The parallel isn't just metaphorical — both implement compression-driven library learning."
+            },
+            {
+              "question": "Why is forgetting described as 'optimal lossy compression' rather than 'memory failure'?",
+              "options": [
+                "Because all forgetting is intentional and controllable",
+                "Because the brain has unlimited capacity but chooses not to use it",
+                "Because under storage constraints, dropping low-compression, low-salience memories minimizes total description length while preserving the most informative memories",
+                "Because forgotten memories are secretly stored in the spinal cord"
+              ],
+              "correct": 2,
+              "explanation": "The Skeptic implements the MDL principle: total cost = codebook + compressed data. Memories that compress poorly (novel structure) AND lack emotional/novelty salience aren't worth the bits. Forgetting them reduces total description length while preserving the memories that either compress well (schema-congruent) or justify their cost (highly novel/emotional)."
+            }
+          ]
+        }
+      }
+    ]
+  }
+}
