@@ -1704,6 +1704,19 @@ const tutorials = [
     readTime: '15 min',
     difficulty: 1,
   },
+  {
+    id: 'dgoim-modal-knowledge-store',
+    title: 'Token-Guided AI Memory: From Lambda Calculus to Modal Knowledge Stores',
+    description: 'How a graph-rewriting abstract machine from proof theory gives AI systems structured, provenance-tracked memory with beliefs, fiction, and uncertainty.',
+    tags: ['lambda calculus', 'geometry of interaction', 'knowledge representation', 'AI memory', 'modal logic'],
+    icon: '🧠',
+    gradient: 'from-emerald-500 to-teal-600',
+    shadowColor: 'rgba(16, 185, 129, 0.3)',
+    glowColor: 'rgba(16, 185, 129, 0.15)',
+    readTime: '45 min',
+    difficulty: 3,
+    featured: true,
+  },
 ]
 
 // Semantic tag color system - filled backgrounds

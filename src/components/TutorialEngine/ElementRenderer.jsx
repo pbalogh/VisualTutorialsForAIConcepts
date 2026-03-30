@@ -23,6 +23,7 @@ import { TriangleRotationPuzzle, CoinFlipPuzzle, TwoCoinsPuzzle, GroupMultTable 
 import { MambaDeltaViz } from '../visualizations/MambaDeltaViz'
 import { MambaTokenStepViz } from '../visualizations/MambaTokenStepViz'
 import { VanillaMambaViz } from '../visualizations/VanillaMambaViz'
+import { LambdaReductionStepper, ModalWorldExplorer, FactPromotionSim } from '../visualizations/DGoIMViz'
 
 /**
  * Registry of components that can be rendered from JSON
@@ -47,6 +48,9 @@ const componentMap = {
   MambaDeltaViz,
   MambaTokenStepViz,
   VanillaMambaViz,
+  LambdaReductionStepper,
+  ModalWorldExplorer,
+  FactPromotionSim,
 
   // State bindings
   StateValue,

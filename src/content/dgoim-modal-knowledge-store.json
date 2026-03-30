@@ -1,0 +1,775 @@
+{
+  "id": "dgoim-modal-knowledge-store",
+  "title": "Token-Guided AI Memory: From Lambda Calculus to Modal Knowledge Stores",
+  "subtitle": "How a graph-rewriting abstract machine from proof theory gives AI systems structured, provenance-tracked memory with beliefs, fiction, and uncertainty",
+  "difficulty": 3,
+  "readTime": "45 min",
+  "tags": [
+    "lambda calculus",
+    "geometry of interaction",
+    "knowledge representation",
+    "AI memory",
+    "modal logic",
+    "graph rewriting"
+  ],
+  "state": {},
+  "content": {
+    "type": "Fragment",
+    "children": [
+      {
+        "type": "Section",
+        "props": {
+          "title": "Part I: The Problem with AI Memory"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "Current AI systems have a memory problem. Not a 'they forget things' problem \u2014 a structural one. When an AI stores information, everything goes into the same flat bucket: verified facts, unverified claims, fictional plot points, hypothetical scenarios, and personal opinions. There's no way to ask 'where did you learn this?' or 'how confident are you?' or 'is this real or from a novel?'"
+          },
+          {
+            "type": "DefinitionList",
+            "props": {
+              "items": [
+                {
+                  "term": "Dead Brain",
+                  "definition": "Total cessation of cognition between prompts. Every session starts from zero."
+                },
+                {
+                  "term": "Flat Memory",
+                  "definition": "Everything stored at the same level \u2014 no distinction between fact, fiction, hypothesis, or hearsay."
+                },
+                {
+                  "term": "No Source Attribution",
+                  "definition": "Can't distinguish 'I read this' from 'someone told me' from 'I inferred this' from 'this is from a novel.'"
+                }
+              ]
+            }
+          },
+          {
+            "type": "p",
+            "children": "This tutorial shows how an obscure abstract machine from proof theory \u2014 the Dynamic Geometry of Interaction Machine \u2014 provides a surprisingly elegant solution. We'll build up from lambda calculus basics to a full modal knowledge store, step by step."
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "Part II: Lambda Calculus in 5 Minutes"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "Lambda calculus is the simplest possible programming language. It has exactly three things:"
+          },
+          {
+            "type": "DefinitionList",
+            "props": {
+              "items": [
+                {
+                  "term": "Variables",
+                  "definition": "Names like x, y, z that stand for values. Written as: x"
+                },
+                {
+                  "term": "Abstraction (functions)",
+                  "definition": "A function that takes an input and produces an output. Written as: \u03bbx.body \u2014 'a function that takes x and returns body'"
+                },
+                {
+                  "term": "Application (calling functions)",
+                  "definition": "Applying a function to an argument. Written as: (f x) \u2014 'call f with argument x'"
+                }
+              ]
+            }
+          },
+          {
+            "type": "Callout",
+            "props": {
+              "type": "example"
+            },
+            "children": "The identity function: \u03bbx.x \u2014 takes any input and returns it unchanged. Apply it: (\u03bbx.x) hello \u2192 hello. The function 'eats' the \u03bbx, substitutes hello for x in the body, and returns hello."
+          },
+          {
+            "type": "p",
+            "children": "That substitution step \u2014 replacing the parameter with the argument \u2014 is called beta-reduction. It's the only computation rule in lambda calculus. Everything else is built from this."
+          },
+          {
+            "type": "Callout",
+            "props": {
+              "type": "example"
+            },
+            "children": "A more complex example: (\u03bbf.\u03bbx.f(f x)) (\u03bby.y+1) 3. This says 'apply f twice to x', where f is 'add 1' and x is 3. Step 1: substitute f \u2192 (\u03bby.y+1), giving \u03bbx.(\u03bby.y+1)((\u03bby.y+1) x). Step 2: substitute x \u2192 3, giving (\u03bby.y+1)((\u03bby.y+1) 3). Step 3: inner reduction gives (\u03bby.y+1)(4). Step 4: final reduction gives 5."
+          },
+          {
+            "type": "InteractiveCard",
+            "children": [
+              {
+                "type": "p",
+                "children": "Try stepping through these beta-reductions. Watch how each step substitutes the argument into the function body:"
+              },
+              {
+                "type": "LambdaReductionStepper"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "Part III: From Text to Graphs"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "Here's the key insight that makes everything else possible: lambda terms can be drawn as graphs. Instead of writing \u03bbx.x as text, we draw it as nodes and edges:"
+          },
+          {
+            "type": "DefinitionList",
+            "props": {
+              "items": [
+                {
+                  "term": "\u03bb-node (purple)",
+                  "definition": "Represents a function. Has one input (the parameter) and one output (the body)."
+                },
+                {
+                  "term": "@-node (cyan)",
+                  "definition": "Represents function application. Has two inputs (function and argument) and one output (the result)."
+                },
+                {
+                  "term": "Variable node (yellow)",
+                  "definition": "A leaf node representing a variable reference."
+                }
+              ]
+            }
+          },
+          {
+            "type": "p",
+            "children": "When we draw (\u03bbx.x) hello as a graph, the @-node sits at the top, with the \u03bb-node on its left (the function) and 'hello' on its right (the argument). The \u03bb-node's body points to x, which is the same variable bound by the \u03bb."
+          },
+          {
+            "type": "Callout",
+            "props": {
+              "type": "tip"
+            },
+            "children": "Why graphs instead of text? Because graphs make sharing explicit. If a variable x appears three times in a function body, the text version has three separate 'x' symbols. The graph version has three edges all pointing to the same node. This distinction \u2014 sharing vs. copying \u2014 turns out to be crucial for efficiency and for knowledge representation."
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "Part IV: The Token \u2014 A Tiny Traveler"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "Now we get to the Geometry of Interaction. Instead of rewriting the graph directly (erasing nodes, reconnecting edges), we send a tiny traveler \u2014 a token \u2014 through the graph. The token carries a small backpack of data and reacts to each node it visits."
+          },
+          {
+            "type": "DefinitionList",
+            "props": {
+              "items": [
+                {
+                  "term": "Direction (\u2191 or \u2193)",
+                  "definition": "Is the token going deeper into the graph (\u2191 descending) or coming back with a result (\u2193 returning)?"
+                },
+                {
+                  "term": "Rewrite flag (\u25a1, \u03bb, !)",
+                  "definition": "Should the token just observe (\u25a1 read-only), trigger a beta-reduction (\u03bb), or trigger a copy operation (!)?"
+                },
+                {
+                  "term": "Computation stack",
+                  "definition": "A stack of pending operations \u2014 'I'm looking up X because I need it for Y which feeds into Z.'"
+                },
+                {
+                  "term": "Box stack",
+                  "definition": "A stack tracking which boxes (sub-graphs) the token is currently inside. This is the crucial one for our purposes."
+                }
+              ]
+            }
+          },
+          {
+            "type": "p",
+            "children": "The token moves through the graph one node at a time. At each node, it checks its data, updates its stacks, and decides where to go next. This is called a pass transition \u2014 the token passes over a node without changing the graph."
+          },
+          {
+            "type": "Callout",
+            "props": {
+              "type": "tip"
+            },
+            "children": "Think of the token as a cursor in a text editor, but for graphs. It has a position (which node it's at), a direction (going in or coming out), and some memory (the stacks). The graph is the document; the token is the reader."
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "Part V: !-Boxes \u2014 Walls Around Sub-Graphs"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "Here's the construct that makes everything work: the !-box (pronounced 'bang-box'). A !-box is a dashed rectangle drawn around a portion of the graph, with special door nodes:"
+          },
+          {
+            "type": "DefinitionList",
+            "props": {
+              "items": [
+                {
+                  "term": "Principal door (!)",
+                  "definition": "The main entrance. The token enters the box through this door. There's exactly one per box."
+                },
+                {
+                  "term": "Auxiliary doors (?)",
+                  "definition": "Side exits that connect the box's contents to things outside the box. These are references \u2014 the box can 'see' outside entities through these doors."
+                },
+                {
+                  "term": "Contents",
+                  "definition": "The sub-graph inside the box. This is self-contained except for the auxiliary door connections."
+                }
+              ]
+            }
+          },
+          {
+            "type": "p",
+            "children": "The critical property: a !-box can be copied. When the machine needs to duplicate a sub-graph (because a function argument is used multiple times), it copies the entire !-box \u2014 contents, doors, and all. The copy is a perfect clone with its own identity."
+          },
+          {
+            "type": "Callout",
+            "props": {
+              "type": "key"
+            },
+            "children": "!-boxes are walls with doors. The contents inside are isolated from the outside except through the doors. You can copy the entire walled region. You can nest boxes inside boxes. And the token's box stack tracks exactly which boxes it's currently inside \u2014 like breadcrumbs through nested rooms."
+          },
+          {
+            "type": "p",
+            "children": "In the original DGoIM paper, !-boxes exist to manage duplication efficiently in lambda calculus evaluation. But we're about to repurpose them for something much more interesting."
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "Part VI: The Rewrite Rules"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "The token doesn't just observe \u2014 it can trigger three kinds of graph rewrites:"
+          },
+          {
+            "type": "DefinitionList",
+            "props": {
+              "items": [
+                {
+                  "term": "\u2192\u03b2 (Beta reduction)",
+                  "definition": "When the token finds a \u03bb-node paired with an @-node, it eliminates both and substitutes the argument into the body. This is the fundamental computation step \u2014 a function consuming its argument."
+                },
+                {
+                  "term": "\u2192\u03c3 (Sigma / Copy)",
+                  "definition": "When the token encounters a !-box that needs to be duplicated, it copies the entire box. The contraction node (C\u2099) that tracks how many copies exist gets its count incremented. This is how values get shared."
+                },
+                {
+                  "term": "\u2192\u03f5 (Epsilon / Eliminate)",
+                  "definition": "When a !-box is no longer needed, the token removes its walls (the ! and ? doors), leaving the contents exposed. This is cleanup."
+                }
+              ]
+            }
+          },
+          {
+            "type": "p",
+            "children": "The interplay between pass transitions (just moving) and rewrite transitions (changing the graph) is what makes the DGoIM powerful. The token guides the rewrites \u2014 it visits a redex, raises its rewrite flag, and triggers the change. No rewrite happens without the token's visit."
+          },
+          {
+            "type": "Callout",
+            "props": {
+              "type": "key"
+            },
+            "children": "The DGoIM has a proven efficiency result: the total cost of evaluation is O(|input| \u00d7 |beta-reductions|) \u2014 linear in both the size of the program and the number of computation steps. This means the token-guided approach doesn't introduce hidden inefficiencies. We'll inherit this guarantee in our knowledge store."
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "Part VII: The Big Idea \u2014 !-Boxes ARE Modal Worlds"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "Now for the leap. A !-box has: a boundary that isolates its contents, doors that connect to the outside, the ability to be copied, and the ability to be nested. A modal knowledge world needs exactly the same things."
+          },
+          {
+            "type": "p",
+            "children": "Consider what an AI needs to represent 'Tom told me the meeting is at 3pm.' This isn't a simple fact \u2014 it's a fact inside Tom's belief space, reported to the AI, with a specific confidence level. We need a container (Tom's beliefs), connections to shared entities (Tom, the meeting), and isolation (Tom's beliefs might be wrong)."
+          },
+          {
+            "type": "DefinitionList",
+            "props": {
+              "items": [
+                {
+                  "term": "Principal door (!) \u2192 World entry",
+                  "definition": "Entering Tom's belief space. The door is labeled with the modality: EPISTEMIC(Tom)."
+                },
+                {
+                  "term": "Sub-graph G \u2192 World's facts",
+                  "definition": "The facts inside Tom's belief space: (meeting, time, 3pm)."
+                },
+                {
+                  "term": "Auxiliary doors (?) \u2192 Entity references",
+                  "definition": "Tom's world references 'Tom' and 'meeting' from the parent world. These are shared entities \u2014 the same meeting that Mary also has beliefs about."
+                },
+                {
+                  "term": "C\u2099 contraction node \u2192 Shared entity",
+                  "definition": "The 'meeting' entity is referenced by both Tom's world and Mary's world. The contraction node tracks this: C\u2082(meeting) means 2 worlds share this entity."
+                },
+                {
+                  "term": "!-box nesting \u2192 Belief nesting",
+                  "definition": "Tom's belief about Mary's belief = a !-box inside a !-box. The token's box stack tracks the nesting depth."
+                }
+              ]
+            }
+          },
+          {
+            "type": "Callout",
+            "props": {
+              "type": "key"
+            },
+            "children": "This isn't a metaphor. It's a structural identity. The !-box mechanism provides isolation, sharing, copying, and nesting \u2014 exactly what modal worlds need. And because the DGoIM has proven properties about !-boxes (they can be copied correctly, the token always exits them properly, their size is bounded), we inherit those properties for free."
+          },
+          {
+            "type": "InteractiveCard",
+            "children": [
+              {
+                "type": "p",
+                "children": "Explore the modal world graph. Click a query to see which worlds contain matching facts. Enter/exit worlds to see the box stack update:"
+              },
+              {
+                "type": "ModalWorldExplorer"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "Part VIII: Ten Modalities \u2014 Ten Kinds of !-Box"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "Not all knowledge is the same kind. The AI memory architecture defines ten modalities, each corresponding to a differently-labeled !-box:"
+          },
+          {
+            "type": "DefinitionList",
+            "props": {
+              "items": [
+                {
+                  "term": "ACTUAL",
+                  "definition": "Verified facts in the root world W\u2080. 'Water freezes at 0\u00b0C.' High confidence, the ground truth."
+                },
+                {
+                  "term": "REPORTED(agent)",
+                  "definition": "'Tom told me the meeting is at 3pm.' Source-attributed. May be wrong. The agent is tracked."
+                },
+                {
+                  "term": "BELIEVED",
+                  "definition": "'I think the restaurant is on Main St.' The AI's own uncertain belief."
+                },
+                {
+                  "term": "FICTIONAL(source)",
+                  "definition": "'Ice-nine freezes water at room temperature.' From Cat's Cradle. Quarantined \u2014 structurally isolated from actual facts."
+                },
+                {
+                  "term": "HYPOTHETICAL(id)",
+                  "definition": "'What if we launched on Tuesday?' A temporary reasoning sandbox. Discarded after exploration."
+                },
+                {
+                  "term": "DEONTIC",
+                  "definition": "'We should respond within 24 hours.' An obligation, not a fact about the world."
+                },
+                {
+                  "term": "EPISTEMIC(agent)",
+                  "definition": "'Tom thinks Paris is in Germany.' A model of another agent's beliefs. May differ from reality."
+                },
+                {
+                  "term": "REMEMBERED",
+                  "definition": "'The old API endpoint was /v1/users.' Was true, might be stale. Staleness tracked."
+                },
+                {
+                  "term": "INFERRED(derivation)",
+                  "definition": "'If A\u2192B and A, then B.' Derived from other facts. The derivation chain is stored."
+                },
+                {
+                  "term": "CONVENTIONAL",
+                  "definition": "'Hello means greeting.' Social/linguistic convention, not empirical fact."
+                }
+              ]
+            }
+          },
+          {
+            "type": "Callout",
+            "props": {
+              "type": "tip"
+            },
+            "children": "The modality label goes on the !-box's principal door. When the token enters a FICTIONAL world, it knows \u2014 from the door label \u2014 that everything inside is quarantined. When it exits, it tags the results with that modality. The box stack records the full chain: 'I entered W\u2080 (ACTUAL), then W\u2083 (FICTIONAL/Cat's Cradle).' This is provenance tracking as a byproduct of traversal."
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "Part IX: Conviction \u2014 Not Just True or False"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "Every fact in the knowledge store carries a conviction record \u2014 a tuple of four values that quantify how much the system trusts this fact:"
+          },
+          {
+            "type": "DefinitionList",
+            "props": {
+              "items": [
+                {
+                  "term": "Confidence (0.0 \u2192 1.0)",
+                  "definition": "How sure are we? 0.0 = wild guess, 1.0 = mathematically certain. 'Water freezes at 0\u00b0C' might be 0.99. 'The meeting is at 3pm' might be 0.85."
+                },
+                {
+                  "term": "Source quality",
+                  "definition": "Where did this come from? Ranked: direct observation > trusted report > inference > hearsay. Seeing something yourself beats being told about it."
+                },
+                {
+                  "term": "Staleness",
+                  "definition": "How old is this fact? When was it last confirmed? A meeting time from yesterday is fresher than one from last month."
+                },
+                {
+                  "term": "Corroboration",
+                  "definition": "How many independent sources support this? A fact confirmed by three people is more trustworthy than one confirmed by one."
+                }
+              ]
+            }
+          },
+          {
+            "type": "p",
+            "children": "These four values combine into a composite confidence score. When the token traverses through nested worlds, conviction propagates: a fact with confidence 0.95 inside EPISTEMIC(Tom), where the system's trust in Tom is 0.85, yields effective confidence 0.95 \u00d7 0.85 = 0.81 when viewed from the parent world."
+          },
+          {
+            "type": "Callout",
+            "props": {
+              "type": "example"
+            },
+            "children": "Q: 'Why do you think the meeting is at 3pm?' A: 'Tom told me on March 28 (event #247, world W\u2081, modality REPORTED). Source: Tom (confidence in Tom for scheduling: 0.85). Corroboration: none. Staleness: 1 day. \u2192 Overall confidence: 0.72.' Every fact can answer 'why do I believe this?' with a concrete trace."
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "Part X: Query Resolution \u2014 The Token Searches for Answers"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "When you ask the knowledge store a question, the system translates it into a query pattern \u2014 a triple with some slots filled and some left as free variables. Then it sends a token into the graph to find matching facts."
+          },
+          {
+            "type": "Callout",
+            "props": {
+              "type": "example"
+            },
+            "children": "Query: 'When is the meeting?' becomes the pattern (meeting, time, ?). The subject is 'meeting', the predicate is 'time', and the object is a free variable \u2014 that's what we're looking for."
+          },
+          {
+            "type": "p",
+            "children": "The token enters W\u2080 (the root world) with direction \u2191 and the query pattern on its box stack. It searches W\u2080's local facts \u2014 no direct match. It reaches the contraction node C\u2082(meeting), which has branches into W\u2081 (Tom's beliefs) and W\u2082 (Mary's beliefs). The token forks: one copy enters each world."
+          },
+          {
+            "type": "p",
+            "children": "In W\u2081, the token finds (meeting, time, 3pm) with confidence 0.85. This is a beta-reduction: the free variable ? gets bound to '3pm'. The token records the result, tagged with its box stack [W\u2080, W\u2081], and exits. In W\u2082, it finds (meeting, time, 4pm) with confidence 0.80. Another beta-reduction, different binding."
+          },
+          {
+            "type": "p",
+            "children": "Back at W\u2080, the system has two results from different worlds. It detects a conflict \u2014 two bindings for the same variable \u2014 and reports both with full provenance:"
+          },
+          {
+            "type": "Blockquote",
+            "children": "meeting.time = 3pm [EPISTEMIC(Tom), confidence 0.85]\nmeeting.time = 4pm [EPISTEMIC(Mary), confidence 0.80]\n\u26a0 CONFLICT: 2 sources disagree. No fact in ACTUAL world."
+          },
+          {
+            "type": "Callout",
+            "props": {
+              "type": "key"
+            },
+            "children": "The conflict isn't an error \u2014 it's information. Two agents disagree, and the system faithfully represents that disagreement with conviction scores for each. The box stack trace tells you exactly how each result was reached."
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "Part XI: Clarification Dialogue \u2014 When Queries Are Too Vague"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "What happens when you ask something vague? The query (?, gave, ?, ?) has three free variables and might match thousands of facts. The system refuses to execute it \u2014 not because it can't, but because the result would be meaningless."
+          },
+          {
+            "type": "p",
+            "children": "Instead, the token bounces. It reaches a contraction node, sees too many matching branches (the fork count exceeds a threshold), and returns without entering any of them. This triggers a clarification dialogue."
+          },
+          {
+            "type": "Callout",
+            "props": {
+              "type": "example"
+            },
+            "children": "Query: \"Who gave what to whom?\" \u2192 (?, gave, ?, ?) \u2014 3 free variables, ~10K candidates. System asks: \"What was the thing?\" (highest information gain). User: \"The ball.\" Refined query: (?, gave, ball, ?) \u2014 3 candidates. Execute."
+          },
+          {
+            "type": "p",
+            "children": "The system picks which variable to ask about using entropy: it calculates how many distinct values each free variable has in the index, and asks about the one that splits the candidate set most evenly. Each answer strictly reduces the number of matches, so the dialogue always terminates."
+          },
+          {
+            "type": "Callout",
+            "props": {
+              "type": "key"
+            },
+            "children": "This maps directly to call-by-need evaluation in the DGoIM. In call-by-need, a function argument isn't evaluated until the function body actually uses it. Here, a query variable isn't bound until the system actually needs it to narrow the search. The token bounces at a contraction node the same way it bounces at an application node in call-by-need \u2014 \"I don't have enough information to proceed.\""
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "Part XII: Fact Promotion \u2014 Copying Between Worlds"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "During a conversation, every claim goes into a local conversation world. But some facts deserve to be permanent. \"Cat's Cradle is by Vonnegut\" should be globally accessible; \"Frank seemed excited\" probably shouldn't."
+          },
+          {
+            "type": "p",
+            "children": "Promotion uses the DGoIM's \u2192\u03c3 rewrite \u2014 the same operation that copies a !-box. The fact is duplicated from the conversation world into W\u2080, the contraction node's arity increases (C\u2081 becomes C\u2082), and a provenance record links the copy to its source."
+          },
+          {
+            "type": "DefinitionList",
+            "props": {
+              "items": [
+                {
+                  "term": "Permanence",
+                  "definition": "Will this still be true in a year? \"Vonnegut wrote Cat's Cradle\" \u2192 yes. \"The meeting is at 3pm\" \u2192 no."
+                },
+                {
+                  "term": "Scope",
+                  "definition": "Relevant outside this conversation? \"Ice-nine is from Cat's Cradle\" \u2192 yes. \"Frank seemed excited\" \u2192 no."
+                },
+                {
+                  "term": "Source quality",
+                  "definition": "Well-sourced enough for global assertion? Multiple sources \u2192 yes. One offhand claim \u2192 no."
+                },
+                {
+                  "term": "Info density",
+                  "definition": "Compressed, reusable nugget? \"Novel about fictional catastrophe\" \u2192 yes. \"Chapter 4 describes the lab\" \u2192 no."
+                }
+              ]
+            }
+          },
+          {
+            "type": "Callout",
+            "props": {
+              "type": "key"
+            },
+            "children": "The original fact stays in the conversation world \u2014 the !-box is copied, not moved. This preserves the conversation as a historical record. The promoted fact in W\u2080 points back to the conversation world via its provenance record. The sub-graph property guarantees this link is never broken."
+          },
+          {
+            "type": "InteractiveCard",
+            "children": [
+              {
+                "type": "p",
+                "children": "Adjust the promotion threshold and see which conversation facts qualify for promotion to W\u2080. Click \"promote\" to simulate the \u2192\u03c3 rewrite:"
+              },
+              {
+                "type": "FactPromotionSim"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "Part XIII: Search \u2014 Indexed Contraction Nodes"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "In the original DGoIM, the token's path through contraction nodes is predetermined by its stack. But for a knowledge store, we need content-based search: \"find all worlds containing facts about the meeting.\" The stack can't know this in advance."
+          },
+          {
+            "type": "p",
+            "children": "The solution: attach an inverted index to each contraction node. Instead of a bare C\u2082 that just tracks arity, we have an Indexed Contraction Node IC\u2082 that knows what's reachable through each branch:"
+          },
+          {
+            "type": "Blockquote",
+            "children": "IC\u2082(meeting):\n  branch_W1: {(meeting, time, 3pm)}\n  branch_W2: {(meeting, time, 4pm)}"
+          },
+          {
+            "type": "p",
+            "children": "Now when the token arrives with query (meeting, time, 3pm), it consults the index: branch W1 matches, branch W2 doesn't. The token enters only W1. For a knowledge base with thousands of worlds, this is the difference between O(n) traversals and O(matches)."
+          },
+          {
+            "type": "p",
+            "children": "When a query matches multiple branches, the token forks \u2014 one copy per match. The fork count also serves as the binding energy signal for clarification: too many forks means the query is too vague, triggering a bounce instead."
+          },
+          {
+            "type": "Callout",
+            "props": {
+              "type": "tip"
+            },
+            "children": "Index maintenance is cheap. When a fact is promoted (\u2192\u03c3), the new branch's signatures are added to the index. When a world is archived (\u2192\u03f5), the branch entry is deleted. The cost is bounded by the !-box size, which is bounded by the sub-graph property."
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "Part XIV: Neural Routing \u2014 When Exact Matching Isn't Enough"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "Indexed contraction nodes handle structured queries perfectly. But what about \"anything related to temperature?\" or \"that thing Tom mentioned about scheduling?\" No exact entity matches the index. We need semantic similarity."
+          },
+          {
+            "type": "p",
+            "children": "The solution is a three-tier hybrid. Tier 1: exact index lookup (O(1), deterministic). Tier 2: if no exact match, fall back to neural routing \u2014 compute a query embedding, score it against each branch's embedding via dot product, follow branches above a threshold. Tier 3: original DGoIM stack-based routing for internal operations."
+          },
+          {
+            "type": "Callout",
+            "props": {
+              "type": "example"
+            },
+            "children": "Query: \"What was that thing about temperature?\" No exact match. Neural routing scores each world: W0 (water, freezing) \u2192 0.71 \u2713. W1 (Tom, meeting) \u2192 0.05 \u2717. W3 (ice-nine, freezing, fiction) \u2192 0.88 \u2713. Token forks to W0 and W3. Results: water freezes at 0\u00b0C [ACTUAL] and ice-nine freezes at room temp [FICTIONAL]. Both returned, both properly tagged."
+          },
+          {
+            "type": "p",
+            "children": "For interpretability, branch embeddings can use Sparse Autoencoder (SAE) features \u2014 each feature corresponds to a recognizable concept like \"scheduling\" or \"chemistry.\" The routing score decomposes into per-feature contributions, so the system can explain why it chose a particular world: \"SAE feature #4721 (scheduling) activated in both your query and Tom's world.\""
+          },
+          {
+            "type": "Callout",
+            "props": {
+              "type": "key"
+            },
+            "children": "Neural routing selects which worlds to enter, but once inside, the !-box boundary is enforced by graph topology. A fictional fact cannot leak into ACTUAL regardless of routing scores. The formal safety properties are preserved even when the routing is learned."
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "Part XV: What We Get for Free \u2014 Six Guarantees"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "By building on the DGoIM formalism, the knowledge store inherits proven properties that would be extremely difficult to guarantee in an ad-hoc system:"
+          },
+          {
+            "type": "DefinitionList",
+            "props": {
+              "items": [
+                {
+                  "term": "1. Sub-graph property",
+                  "definition": "Every copied world traces back to its source. Promoted facts always have provenance. You can never create a fact from nothing."
+                },
+                {
+                  "term": "2. Pass continuity",
+                  "definition": "The token's path is continuous \u2014 no teleporting between worlds. Every fact access has a traceable traversal path through the world hierarchy."
+                },
+                {
+                  "term": "3. Efficiency",
+                  "definition": "Query cost is O(|KB| \u00d7 |reductions|) for exact queries. Predictable, bounded response time."
+                },
+                {
+                  "term": "4. Provenance completeness",
+                  "definition": "Every fact in the global store has a chain terminating at a direct assertion. No orphaned facts."
+                },
+                {
+                  "term": "5. Modal isolation",
+                  "definition": "Facts cannot cross modality boundaries without explicit promotion. Fiction stays quarantined. Beliefs stay attributed."
+                },
+                {
+                  "term": "6. Fork boundedness",
+                  "definition": "Token forking at any contraction node is bounded by the node's arity. No combinatorial explosion."
+                }
+              ]
+            }
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "Part XVI: The Full Picture"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "Let's zoom out and see how all the pieces fit together:"
+          },
+          {
+            "type": "DefinitionList",
+            "props": {
+              "items": [
+                {
+                  "term": "Lambda calculus",
+                  "definition": "Gives us the computation model: functions, application, substitution."
+                },
+                {
+                  "term": "Graph representation",
+                  "definition": "Makes sharing and structure explicit. Variables become edges, not repeated symbols."
+                },
+                {
+                  "term": "The token",
+                  "definition": "A tiny traveler that carries query state (direction, stacks) and triggers rewrites. It IS the query execution."
+                },
+                {
+                  "term": "!-Boxes",
+                  "definition": "Walled sub-graphs with doors. They become modal worlds: ACTUAL, FICTIONAL, EPISTEMIC, etc."
+                },
+                {
+                  "term": "Contraction nodes",
+                  "definition": "Track shared entities across worlds. Extended with indices for search and embeddings for semantic routing."
+                },
+                {
+                  "term": "Rewrite rules",
+                  "definition": "\u2192\u03b2 resolves queries. \u2192\u03c3 promotes facts between worlds. \u2192\u03f5 archives old worlds."
+                },
+                {
+                  "term": "Conviction records",
+                  "definition": "Every fact carries confidence, source quality, staleness, and corroboration."
+                },
+                {
+                  "term": "Clarification dialogue",
+                  "definition": "Vague queries bounce instead of exploding. The system asks the most informative question."
+                }
+              ]
+            }
+          },
+          {
+            "type": "Blockquote",
+            "children": "The deepest insight: meaning emerges through the dialogue of constraint. A query with too many free variables doesn't mean anything yet. It can't reduce. The system's pushback \u2014 \"what thing?\" \u2014 is it recognizing insufficient binding energy. This isn't optimization. It's how meaning works."
+          },
+          {
+            "type": "Callout",
+            "props": {
+              "type": "tip"
+            },
+            "children": "Further reading: Muroya & Ghica, \"The Dynamic Geometry of Interaction Machine\" (LMCS 2019). Online visualizer: https://koko-m.github.io/GoI-Visualiser/ \u2014 you can run the DGoIM on arbitrary lambda terms and watch the token traverse."
+          }
+        ]
+      }
+    ]
+  }
+}
