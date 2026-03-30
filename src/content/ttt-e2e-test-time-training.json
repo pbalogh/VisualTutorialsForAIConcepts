@@ -1,0 +1,497 @@
+{
+  "id": "ttt-e2e-test-time-training",
+  "title": "TTT-E2E: The Model That Keeps Learning After Deployment",
+  "subtitle": "How End-to-End Test-Time Training compresses context into weights instead of caching it — and why that changes everything for long sequences",
+  "readTime": "20 min",
+  "state": {},
+  "content": {
+    "type": "Fragment",
+    "children": [
+      {
+        "type": "Section",
+        "props": {
+          "title": "The Problem: Attention Doesn't Scale"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "Every Transformer has a dirty secret: the KV-cache. For every token it's ever seen, it stores a key and a value vector. When predicting the next token, it scans ALL of them. At 128K context, that's 128,000 vectors to compare against — for every single new token."
+          },
+          {
+            "type": "Code",
+            "props": {
+              "language": "text"
+            },
+            "children": "Full Attention Cost:\n\n  Context: 1K tokens   → scan 1,000 keys    → fast\n  Context: 8K tokens   → scan 8,000 keys    → okay\n  Context: 32K tokens  → scan 32,000 keys   → slow\n  Context: 128K tokens → scan 128,000 keys  → painful\n\n  Cost per new token = O(T)  where T = context length\n  Total cost to process T tokens = O(T²)\n\n  This is the wall. More context = quadratically more compute."
+          },
+          {
+            "type": "p",
+            "children": "RNNs (Mamba, GatedDeltaNet) avoid this — they have constant cost per token. But there's a catch: they get WORSE at using long context. Their fixed-size hidden state just can't hold enough information. You get speed but lose quality."
+          },
+          {
+            "type": "Callout",
+            "props": {
+              "type": "warning"
+            },
+            "children": "The fundamental tension: Full attention = perfect recall, terrible scaling. RNNs = perfect scaling, imperfect recall. Can we have both?"
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "The Key Insight: Compression, Not Storage"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "Think about how you remember a lecture. You don't store every word — that would be a KV-cache. You also don't just keep a fixed-size summary that gets overwritten — that's an RNN hidden state. Instead, you LEARN from the lecture. The information gets compressed into your understanding — your neural weights."
+          },
+          {
+            "type": "p",
+            "children": "TTT-E2E does exactly this. Instead of storing tokens in a cache (attention) or cramming them into a fixed state (RNN), it continues training the model on the context it reads. The context gets compressed into updated weights."
+          },
+          {
+            "type": "Code",
+            "props": {
+              "language": "text"
+            },
+            "children": "Three strategies for remembering context:\n\n  Full Attention (KV-Cache):       RNN (Hidden State):       TTT-E2E (Weight Update):\n  ┌─────────────────┐              ┌──────────┐              ┌──────────────────┐\n  │ k₁ v₁           │              │          │              │ W₀ (initial)     │\n  │ k₂ v₂           │              │  h_t     │              │   ↓ learn from x₁│\n  │ k₃ v₃           │              │ (fixed   │              │ W₁               │\n  │ k₄ v₄           │              │  size)   │              │   ↓ learn from x₂│\n  │ ...              │              │          │              │ W₂               │\n  │ k_T v_T          │              │          │              │   ↓ ...          │\n  └─────────────────┘              └──────────┘              │ W_T (final)      │\n                                                             └──────────────────┘\n  Memory: grows with T             Memory: constant           Memory: constant\n  Quality: perfect recall           Quality: degrades          Quality: scales!\n  Cost/token: O(T)                 Cost/token: O(1)           Cost/token: O(1)"
+          },
+          {
+            "type": "Callout",
+            "props": {
+              "type": "tip"
+            },
+            "children": "The mental model: KV-cache = filing cabinet (stores everything, grows forever). RNN = a Post-it note (fixed size, old info lost). TTT = a student (learns from what it reads, knowledge compressed into understanding)."
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "How TTT Works: Learning at Test Time"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "The architecture is shockingly simple: a standard Transformer with sliding-window attention (window size 8K). No exotic layers. No new primitives. The magic is in what happens at inference."
+          },
+          {
+            "type": "h3",
+            "children": "Step 1: The Inner Loop (Test Time)"
+          },
+          {
+            "type": "p",
+            "children": "Given a context of T tokens, the model processes them in mini-batches of size b (typically 1K). For each mini-batch, it does something remarkable: it treats the tokens as training data and takes a gradient step on the standard next-token prediction loss."
+          },
+          {
+            "type": "Code",
+            "props": {
+              "language": "python"
+            },
+            "children": "# Pseudocode for TTT inner loop at test time\nW = W_0  # Start with pre-trained weights\n\nfor i in range(T // b):  # Process context in mini-batches\n    batch = context[i*b : (i+1)*b]\n    \n    # Standard next-token prediction loss on this batch\n    loss = cross_entropy(model(batch[:-1], W), batch[1:])\n    \n    # Take a gradient step — the model LEARNS from context\n    W = W - lr * gradient(loss, W)\n\n# Now predict with updated weights\nnext_token = model(x_T, W)  # W has \"absorbed\" the context"
+          },
+          {
+            "type": "p",
+            "children": "That's it. The model literally trains itself on the context. Each gradient step compresses the information from that mini-batch into the weights. After processing all T tokens, the weights encode a compressed understanding of the entire context."
+          },
+          {
+            "type": "h3",
+            "children": "What Gets Updated?"
+          },
+          {
+            "type": "p",
+            "children": "Not everything. Only the MLP layers in the last 1/4 of the Transformer blocks. Attention layers, embeddings, and normalization layers are frozen during test-time training. This is crucial for stability — updating too many layers causes the meta-learning outer loop to explode."
+          },
+          {
+            "type": "Code",
+            "props": {
+              "language": "text"
+            },
+            "children": "A 3B parameter model with 32 blocks:\n\n  Blocks 1-24:  FROZEN during TTT (stable foundation)\n  Blocks 25-32: MLP layers UPDATED during TTT\n                Each has TWO MLPs:\n                  - Dynamic MLP: updated by TTT (absorbs context)\n                  - Static MLP:  frozen (preserves pre-trained knowledge)\n\n  Why two MLPs? Without the static one, TTT can catastrophically\n  forget what the model learned during pre-training.\n  The static MLP is a \"safety copy\" of the model's knowledge."
+          },
+          {
+            "type": "Callout",
+            "props": {
+              "type": "info"
+            },
+            "children": "The sliding window (8K) handles local context. TTT handles long-range context beyond the window. They complement each other: the window ensures you don't lose nearby tokens while TTT catches up in mini-batches."
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "The Secret Sauce: Meta-Learning (The Outer Loop)"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "Here's where it gets deep. A naive approach would just pre-train the model normally, then start doing TTT at inference. This is what dynamic evaluation (2013) did. It works... poorly."
+          },
+          {
+            "type": "p",
+            "children": "Why? Because the model was never trained to be GOOD at learning from context. It was trained to minimize loss with static weights — but at test time, its weights will change. There's a mismatch between training and inference."
+          },
+          {
+            "type": "Code",
+            "props": {
+              "language": "text"
+            },
+            "children": "TTT-Naive (Dynamic Evaluation):\n  Training objective:  minimize  L(W₀)  = avg loss with FIXED weights W₀\n  Test behavior:       update W₀ → W₁ → W₂ → ... via gradient steps\n  \n  Problem: W₀ was optimized to be good AS-IS.\n           Nobody told it to be a good STARTING POINT for learning.\n\nTTT-E2E (Meta-Learning):\n  Training objective:  minimize  L(W₀) = avg loss AFTER TTT updates\n                       i.e., loss at W₁, W₂, ..., not at W₀\n  Test behavior:       update W₀ → W₁ → W₂ → ... via gradient steps\n\n  Now there's perfect alignment between training and testing!\n  W₀ is optimized to be the best possible INITIALIZATION for learning."
+          },
+          {
+            "type": "p",
+            "children": "This is classic meta-learning (MAML-style). The outer loop optimizes the initial weights W₀ so that, after the inner loop applies gradient steps at test time, the resulting weights produce low loss. This requires computing gradients of gradients — backpropagating through the inner loop's gradient steps."
+          },
+          {
+            "type": "DeepDive",
+            "props": {
+              "title": "Gradients of Gradients: The Math"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "The inner loop update is: W₁ = W₀ - η∇ℓ(W₀). The outer loop needs ∇L(W₀) where L depends on W₁, which depends on ∇ℓ(W₀). So the outer gradient is a gradient OF a gradient. In practice, JAX's automatic differentiation handles this efficiently with minimal overhead."
+              },
+              {
+                "type": "Code",
+                "props": {
+                  "language": "python"
+                },
+                "children": "# Outer loop (training time)\ndef meta_loss(W_0, sequence):\n    W = W_0\n    total_loss = 0\n    for batch in chunk(sequence, b):\n        # Measure loss BEFORE updating (this is the test loss)\n        total_loss += cross_entropy(model(batch, W))\n        # Inner loop: take gradient step\n        inner_loss = cross_entropy(model(batch, W))\n        W = W - lr * grad(inner_loss, W)  # TTT update\n    return total_loss / len(sequence)\n\n# Outer loop gradient: grad(meta_loss, W_0)\n# This back-propagates THROUGH the inner gradient steps\n# Requires second-order gradients (gradients of gradients)\nouter_grad = grad(meta_loss)(W_0)\nW_0 = W_0 - outer_lr * outer_grad"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "A Toy Example: From Bigram to Long-Range"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "The paper builds intuition with a beautifully minimal example. Start with a Transformer that has NO self-attention — just MLPs. This model is literally a bigram: it can only see the previous token. Can TTT fix this?"
+          },
+          {
+            "type": "Code",
+            "props": {
+              "language": "text"
+            },
+            "children": "Toy model: Transformer with attention REMOVED (MLP only)\n\nWithout TTT (bigram):\n  Input:  x₁  x₂  x₃  x₄  x₅  ...  x₁₂₈\n  Sees:   x₀  x₁  x₂  x₃  x₄  ...  x₁₂₇\n  \n  Each prediction only depends on the PREVIOUS token.\n  No memory. No context. Just: what comes after this one token?\n  Loss stays flat — more context doesn't help.\n\nWith TTT-E2E (b=1, online):\n  Process x₁: loss ℓ₁ → update W₀ → W₁  (now W₁ \"knows\" about x₁)\n  Process x₂: loss ℓ₂ → update W₁ → W₂  (W₂ knows about x₁, x₂)\n  Process x₃: loss ℓ₃ → update W₂ → W₃  (W₃ knows about x₁, x₂, x₃)\n  ...\n  Predict x₁₂₉ using W₁₂₈ which has compressed ALL 128 tokens.\n\n  Result: Loss DECREASES with more context!\n  The model approaches full-attention performance.\n  A bigram + TTT ≈ full attention. That's remarkable."
+          },
+          {
+            "type": "Callout",
+            "props": {
+              "type": "tip"
+            },
+            "children": "The toy example reveals the core mechanism in isolation: TTT transforms a memoryless model into one that effectively has unlimited context. The sliding-window attention in the real model just makes this work better for local dependencies."
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "Mini-Batching: Making It Practical"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "Online TTT (b=1, one token at a time) has two problems: (1) each gradient step depends on just one token — very noisy, can explode, and (2) the steps are sequential — no parallelism. Mini-batching (b=1024) fixes both."
+          },
+          {
+            "type": "Code",
+            "props": {
+              "language": "text"
+            },
+            "children": "Online (b=1):                      Mini-batch (b=1024):\n\n  x₁ → grad → W₁                    x₁...x₁₀₂₄ → avg grad → W₁\n  x₂ → grad → W₂                    x₁₀₂₅...x₂₀₄₈ → avg grad → W₂\n  x₃ → grad → W₃                    ...\n  ...                                x₁₂₇K...x₁₂₈K → avg grad → W₁₂₈\n  x₁₂₈K → grad → W₁₂₈K\n\n  128,000 sequential steps            128 sequential steps\n  Very noisy gradients                Stable, averaged gradients\n  No parallelism                      1024-way parallelism per step"
+          },
+          {
+            "type": "p",
+            "children": "But there's a wrinkle: within each mini-batch, the weights are frozen. The model is temporarily a bigram again for those 1024 tokens! This is where the sliding window comes in."
+          },
+          {
+            "type": "Code",
+            "props": {
+              "language": "text"
+            },
+            "children": "Window size = 8K,  Mini-batch size = 1K\n\n  Mini-batch 1: tokens 1-1024\n    ├── Sliding window sees: tokens within 8K window ✓\n    ├── TTT weights: W₀ (initial, no context yet)\n    └── After: gradient step → W₁\n\n  Mini-batch 5: tokens 4097-5120\n    ├── Sliding window sees: tokens within 8K window ✓\n    ├── TTT weights: W₄ (compressed knowledge of tokens 1-4096)\n    └── After: gradient step → W₅\n\n  Key constraint: window ≥ batch size (8K ≥ 1K)\n  This ensures NO token falls through the cracks:\n  - Local context: handled by sliding window\n  - Long-range context: handled by TTT weight updates"
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "The Results: Best of Both Worlds"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "For 3B models trained on 164B tokens, here's how TTT-E2E compares:"
+          },
+          {
+            "type": "Code",
+            "props": {
+              "language": "text"
+            },
+            "children": "                         Loss vs Full Attention (lower = better)\n                         ────────────────────────────────────────\n  Context length:        8K      16K      32K      64K      128K\n  ───────────────────────────────────────────────────────────────\n  Full Attention:        0       0        0        0        0     (reference)\n  Sliding Window (8K):  +0.00   +0.02   +0.04   +0.06   +0.08   (degrades)\n  Mamba 2:              +0.01   +0.02   +0.04   +0.07   +0.09   (degrades)\n  Gated DeltaNet:       +0.01   +0.02   +0.04   +0.06   +0.09   (degrades)\n  TTT-E2E:              -0.01   -0.01   -0.01   -0.01   -0.01   (IMPROVES!)\n  ───────────────────────────────────────────────────────────────\n\n  TTT-E2E is the ONLY sub-quadratic method that matches or beats\n  full attention, and it does so consistently across all context lengths."
+          },
+          {
+            "type": "p",
+            "children": "And the latency story is equally compelling:"
+          },
+          {
+            "type": "Code",
+            "props": {
+              "language": "text"
+            },
+            "children": "Inference Latency (128K context, H100 GPU):\n\n  Full Attention:  ████████████████████████████████  2.7x\n  TTT-E2E:         ████████████                      1.0x\n  Mamba 2:         ████████████                      ~1.0x\n  Gated DeltaNet:  ████████████                      ~1.0x\n\n  TTT-E2E has constant latency regardless of context length,\n  just like RNNs. 2.7x faster than full attention at 128K."
+          },
+          {
+            "type": "Callout",
+            "props": {
+              "type": "warning"
+            },
+            "children": "The key chart from the paper: TTT-E2E turns the WORST baseline (sliding-window-only, green line) into the BEST method (blue line) at 128K. Every other approach gets worse with more context. TTT-E2E gets better."
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "Connection to RNNs and Linear Attention"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "Here's the deep connection the paper reveals. TTT-E2E can be viewed as an RNN where the hidden state IS the model's weights. The update rule is a gradient step. The output rule is a forward pass."
+          },
+          {
+            "type": "Code",
+            "props": {
+              "language": "text"
+            },
+            "children": "Traditional RNN:                    TTT-E2E as RNN:\n  h_t = f(h_{t-1}, x_t)              W_t = W_{t-1} - η∇ℓ_t(W_{t-1})\n  y_t = g(h_t)                        y_t = model(x_t; W_t)\n\n  Hidden state: vector h              Hidden state: weight matrix W\n  State size: fixed (e.g., 1024)      State size: all MLP params in last 1/4\n  Update: learned function             Update: gradient descent\n  Capacity: limited by h size          Capacity: millions of parameters!"
+          },
+          {
+            "type": "p",
+            "children": "The paper also shows an alternative derivation starting from TTT-KVB (Key-Value Binding), where each layer has its own little model that learns to predict values from keys — basically a learnable attention replacement. The key step from KVB → E2E is replacing layer-wise reconstruction losses with the single end-to-end next-token prediction loss. This seemingly simple change dramatically improves performance."
+          },
+          {
+            "type": "DeepDive",
+            "props": {
+              "title": "The TTT Family Tree"
+            },
+            "children": [
+              {
+                "type": "Code",
+                "props": {
+                  "language": "text"
+                },
+                "children": "Linear Attention (1992, Schmidhuber)\n  │\n  ├── DeltaNet (TTT-KVB with linear model)\n  │     └── Gated DeltaNet\n  │\n  ├── TTT-KVB (Sun et al., 2024)\n  │     ├── Layer-wise reconstruction loss\n  │     ├── Multi-head small MLPs\n  │     ├── Variants: MesaNet, Titans, Nested Learning\n  │     │\n  │     └── TTT-E2E (this paper, 2025)\n  │           ├── Single end-to-end NTP loss\n  │           ├── Full-size MLPs, last 1/4 blocks\n  │           ├── Meta-learned initialization\n  │           └── Matches full attention quality!\n  │\n  └── Dynamic Evaluation (2013, Mikolov)\n        ├── Same inner loop as TTT-E2E\n        ├── But NO meta-learning (naive init)\n        └── Much worse performance"
+              },
+              {
+                "type": "p",
+                "children": "When TTT-KVB uses a linear model, it literally reduces to DeltaNet. When it uses kernel estimation instead of gradient descent, it reduces to self-attention. The family is tighter than it looks."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "Why This Matters: A Paradigm Shift"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "TTT-E2E reframes long-context modeling as a continual learning problem rather than an architecture design problem. Instead of inventing new attention mechanisms, new state-space models, or new recurrence structures — just keep training. The insight is almost embarrassingly simple."
+          },
+          {
+            "type": "h3",
+            "children": "The Continual Learning Framing"
+          },
+          {
+            "type": "Code",
+            "props": {
+              "language": "text"
+            },
+            "children": "Traditional view:     \"How do we DESIGN an architecture that handles 128K tokens?\"\n                      → Custom attention patterns, sparse attention, linear attention,\n                        state-space models, hybrid architectures...\n\nTTT-E2E view:         \"How do we LEARN from 128K tokens at test time?\"\n                      → Standard Transformer + sliding window. Just keep training.\n                        The architecture doesn't need to handle long context —\n                        the LEARNING ALGORITHM does."
+          },
+          {
+            "type": "h3",
+            "children": "Implications"
+          },
+          {
+            "type": "p",
+            "children": "If this approach scales, it means:"
+          },
+          {
+            "type": "Example",
+            "props": {
+              "title": "What TTT-E2E Enables"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "1. UNLIMITED context: The model adapts its weights to whatever context it gets. There's no fixed cache to overflow.\n\n2. Personalization for free: Process a user's writing history? The model literally learns that user's patterns. Not through prompting — through weight updates.\n\n3. Book-length understanding: Read a novel and answer questions about it? The model compressed the novel into its weights. It 'learned' the book.\n\n4. Constant-cost inference: Whether context is 8K or 8M tokens, the cost per new token is the same. Only the upfront 'learning' phase scales."
+              }
+            ]
+          },
+          {
+            "type": "Callout",
+            "props": {
+              "type": "info"
+            },
+            "children": "The human analogy holds up: you don't re-read every book you've ever read each time you write a sentence. You learned from those books, and the knowledge is in your weights. TTT-E2E gives language models the same capability."
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "Open Questions and Limitations"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "TTT-E2E is compelling, but it's not a solved problem:"
+          },
+          {
+            "type": "h3",
+            "children": "Forgetting"
+          },
+          {
+            "type": "p",
+            "children": "The dual-MLP design (dynamic + static) is a band-aid for catastrophic forgetting. As context gets truly massive (millions of tokens), will the dynamic MLPs forget early context while learning from later context? The gradient steps are lossy compression, and compression always loses something."
+          },
+          {
+            "type": "h3",
+            "children": "Training Cost"
+          },
+          {
+            "type": "p",
+            "children": "Meta-learning with gradients-of-gradients is expensive. The outer loop must backpropagate through every inner loop step. For large models with long training sequences, this can be 2-4x the cost of standard pre-training."
+          },
+          {
+            "type": "h3",
+            "children": "Prefill Latency"
+          },
+          {
+            "type": "p",
+            "children": "While DECODE latency is constant (great for generation), the PREFILL phase still requires T/b sequential gradient steps. Each step involves a forward AND backward pass. For 128K context with b=1K, that's 128 sequential gradient steps — significantly slower than a single forward pass with full attention for prefill."
+          },
+          {
+            "type": "h3",
+            "children": "Retrieval vs. Compression"
+          },
+          {
+            "type": "p",
+            "children": "Full attention can retrieve exact details ('What was the 47th word?'). TTT-E2E compresses — it captures patterns and gist, but exact retrieval may be lossy. For tasks requiring precise recall of specific tokens, the sliding window must cover them or they may be distorted."
+          },
+          {
+            "type": "Analogy",
+            "props": {
+              "title": "The Library vs. The Expert"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "Full attention is a librarian with a perfect index — she can find any specific page instantly, but her index grows with every book. TTT-E2E is an expert who READ every book — she knows the field deeply and can synthesize across sources, but might misquote a specific passage. Different tasks need different capabilities."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "Connections: Grammar-Mamba and Beyond"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "TTT-E2E sits in an interesting position relative to other approaches for long-range structure:"
+          },
+          {
+            "type": "Code",
+            "props": {
+              "language": "text"
+            },
+            "children": "Approach             How it handles structure      Scales with context?\n─────────────────────────────────────────────────────────────────────\nFull Attention       Attends to everything          Yes (but O(T²) cost)\nMamba/SSM            Fixed recurrence               No (degrades)\nGrammar-Mamba*       Structure in the DATA           Yes (constant cost)\nTTT-E2E              Learns structure at test time   Yes (constant cost)\n─────────────────────────────────────────────────────────────────────\n\n* Grammar-Mamba: interleave grammar tags into training data so the\n  model learns structural protocols. No architecture changes.\n\nThe interesting parallel: both Grammar-Mamba and TTT-E2E reject the\n\"design a better architecture\" framing. Grammar-Mamba says \"change\nthe data.\" TTT-E2E says \"change the learning procedure.\" Both keep\nthe architecture simple."
+          },
+          {
+            "type": "Callout",
+            "props": {
+              "type": "tip"
+            },
+            "children": "A tantalizing hybrid: What if you combined Grammar-Mamba's structural training data with TTT-E2E's test-time learning? The model would learn structural patterns during pre-training (via grammar tags), then continue refining its structural understanding at test time (via TTT). Structure in the data AND in the learning algorithm."
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "Summary"
+        },
+        "children": [
+          {
+            "type": "Quiz",
+            "props": {
+              "questions": [
+                {
+                  "question": "What does TTT-E2E do differently at inference time compared to a standard Transformer?",
+                  "options": [
+                    "Uses a larger KV-cache",
+                    "Continues training (updating weights) on the input context via gradient steps",
+                    "Runs the input through the model multiple times with different random seeds",
+                    "Converts the input to a different representation before processing"
+                  ],
+                  "correctIndex": 1,
+                  "explanation": "TTT-E2E takes gradient steps on the next-token prediction loss at test time, compressing context into updated weights instead of storing it in a KV-cache."
+                },
+                {
+                  "question": "What makes TTT-E2E 'end-to-end' compared to dynamic evaluation (TTT-naive)?",
+                  "options": [
+                    "It processes the entire sequence at once instead of in chunks",
+                    "It uses the same loss function at both training and test time",
+                    "The pre-training optimizes W₀ to be a good initialization for test-time learning (meta-learning)",
+                    "It updates all layers instead of just some"
+                  ],
+                  "correctIndex": 2,
+                  "explanation": "The 'E2E' means the training loss accounts for the test-time gradient steps. W₀ is optimized not for its own loss, but for the loss AFTER TTT updates — this meta-learning alignment is what makes TTT-naive mediocre and TTT-E2E excellent."
+                },
+                {
+                  "question": "Why does TTT-E2E use sliding-window attention alongside test-time training?",
+                  "options": [
+                    "To handle tokens within each TTT mini-batch (since weights are frozen within a batch)",
+                    "To reduce the total number of parameters",
+                    "To make the model compatible with existing hardware",
+                    "To prevent the model from overfitting to the context"
+                  ],
+                  "correctIndex": 0,
+                  "explanation": "With mini-batch TTT (b=1024), weights only update between batches. Within a batch, the model is temporarily memoryless. The sliding window (8K ≥ 1K) ensures every token can see its local context even when TTT hasn't caught up yet."
+                },
+                {
+                  "question": "TTT-E2E can be viewed as an RNN. What serves as the 'hidden state'?",
+                  "options": [
+                    "The KV-cache",
+                    "The model's weight matrices (specifically the MLP layers in the last 1/4 of blocks)",
+                    "A fixed-size vector updated at each timestep",
+                    "The attention patterns"
+                  ],
+                  "correctIndex": 1,
+                  "explanation": "In the RNN interpretation, the hidden state is the entire set of MLP weights being updated by TTT. The update rule is gradient descent, and the output rule is a forward pass. This gives a much larger 'state' than traditional RNNs."
+                }
+              ]
+            }
+          }
+        ]
+      }
+    ]
+  }
+}
