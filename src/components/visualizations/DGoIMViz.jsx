@@ -381,4 +381,100 @@ export function ClarificationDialogueSim() {
   )
 }
 
-export default { LambdaReductionStepper, ModalWorldExplorer, FactPromotionSim, ClarificationDialogueSim }
+// ============================================================================
+// 5. NEURAL ROUTING SIMULATOR
+// ============================================================================
+
+const FEATURES = ['scheduling', 'chemistry', 'fiction', 'people', 'temperature', 'time']
+
+const WORLDS_NEURAL = [
+  { id: 'W₀', label: 'ACTUAL', color: '#10b981', features: { scheduling: 0.1, chemistry: 0.3, fiction: 0, people: 0.5, temperature: 0.6, time: 0.2 } },
+  { id: 'W₁', label: 'EPISTEMIC(Tom)', color: '#3b82f6', features: { scheduling: 0.8, chemistry: 0, fiction: 0, people: 0.9, temperature: 0, time: 0.9 } },
+  { id: 'W₂', label: 'EPISTEMIC(Mary)', color: '#8b5cf6', features: { scheduling: 0.7, chemistry: 0, fiction: 0, people: 0.8, temperature: 0, time: 0.85 } },
+  { id: 'W₃', label: 'FICTIONAL(Cat\'s Cradle)', color: '#f59e0b', features: { scheduling: 0, chemistry: 0.9, fiction: 0.95, people: 0.2, temperature: 0.85, time: 0 } },
+]
+
+const NEURAL_QUERIES = [
+  { label: 'anything about temperature?', features: { scheduling: 0, chemistry: 0.3, fiction: 0, people: 0, temperature: 0.95, time: 0 } },
+  { label: 'that scheduling thing Tom mentioned', features: { scheduling: 0.9, chemistry: 0, fiction: 0, people: 0.4, temperature: 0, time: 0.5 } },
+  { label: 'something from a novel', features: { scheduling: 0, chemistry: 0.2, fiction: 0.9, people: 0.1, temperature: 0.1, time: 0 } },
+]
+
+function dot(a, b) {
+  return FEATURES.reduce((sum, f) => sum + (a[f] || 0) * (b[f] || 0), 0)
+}
+
+function maxDot() {
+  return FEATURES.reduce((sum) => sum + 1, 0)
+}
+
+export function NeuralRoutingSim() {
+  const [qIdx, setQIdx] = useState(0)
+  const [threshold, setThreshold] = useState(0.35)
+  const q = NEURAL_QUERIES[qIdx]
+
+  const scores = WORLDS_NEURAL.map(w => ({ ...w, score: dot(q.features, w.features) / maxDot() }))
+  const maxScore = Math.max(...scores.map(s => s.score))
+
+  return (
+    <div className="bg-gray-900 rounded-xl p-5 text-sm">
+      <div className="flex gap-2 mb-3 flex-wrap">
+        {NEURAL_QUERIES.map((nq, i) => (
+          <button key={i} onClick={() => setQIdx(i)}
+            className={`px-3 py-1 rounded text-xs ${i === qIdx ? 'bg-teal-600 text-white' : 'bg-gray-700 text-gray-300 hover:bg-gray-600'}`}>
+            {nq.label}
+          </button>
+        ))}
+      </div>
+      <div className="flex items-center gap-3 mb-4">
+        <label className="text-xs text-gray-400">Threshold θ:</label>
+        <input type="range" min="0" max="0.8" step="0.05" value={threshold}
+          onChange={e => setThreshold(parseFloat(e.target.value))} className="w-28" />
+        <span className="text-xs text-teal-400 font-mono">{threshold.toFixed(2)}</span>
+      </div>
+      <div className="mb-4">
+        <div className="text-xs text-gray-500 mb-1">Query SAE features:</div>
+        <div className="flex gap-1 flex-wrap">
+          {FEATURES.map(f => q.features[f] > 0 && (
+            <span key={f} className="text-xs px-1.5 py-0.5 rounded bg-teal-900/50 text-teal-300" style={{ opacity: 0.3 + q.features[f] * 0.7 }}>
+              {f}: {q.features[f].toFixed(1)}
+            </span>
+          ))}
+        </div>
+      </div>
+      <div className="space-y-2">
+        {scores.map((w, i) => {
+          const routed = w.score >= threshold
+          const topFeatures = FEATURES
+            .map(f => ({ f, contrib: (q.features[f] || 0) * (w.features[f] || 0) }))
+            .filter(x => x.contrib > 0)
+            .sort((a, b) => b.contrib - a.contrib)
+            .slice(0, 3)
+          return (
+            <div key={i} className={`rounded-lg p-3 border transition-all ${routed ? 'border-teal-400 bg-teal-900/20' : 'border-gray-700 bg-gray-800/50'}`}>
+              <div className="flex items-center justify-between mb-1">
+                <div className="flex items-center gap-2">
+                  <span className="text-xs font-bold px-2 py-0.5 rounded" style={{ backgroundColor: w.color + '33', color: w.color }}>{w.id}</span>
+                  <span className="text-xs text-gray-400">{w.label}</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="w-20 h-2 bg-gray-700 rounded-full overflow-hidden">
+                    <div className="h-full rounded-full transition-all" style={{ width: `${(w.score / Math.max(maxScore, 0.01)) * 100}%`, backgroundColor: routed ? '#14b8a6' : '#6b7280' }} />
+                  </div>
+                  <span className={`text-xs font-mono ${routed ? 'text-teal-300' : 'text-gray-500'}`}>{w.score.toFixed(2)} {routed ? '✓' : '✗'}</span>
+                </div>
+              </div>
+              {routed && topFeatures.length > 0 && (
+                <div className="text-xs text-gray-500">
+                  why: {topFeatures.map(x => `${x.f} (${x.contrib.toFixed(2)})`).join(', ')}
+                </div>
+              )}
+            </div>
+          )
+        })}
+      </div>
+    </div>
+  )
+}
+
+export default { LambdaReductionStepper, ModalWorldExplorer, FactPromotionSim, ClarificationDialogueSim, NeuralRoutingSim }
