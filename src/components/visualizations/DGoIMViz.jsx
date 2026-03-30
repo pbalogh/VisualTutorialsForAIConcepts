@@ -276,4 +276,109 @@ export function FactPromotionSim() {
   )
 }
 
-export default { LambdaReductionStepper, ModalWorldExplorer, FactPromotionSim }
+// ============================================================================
+// 4. CLARIFICATION DIALOGUE SIMULATOR
+// ============================================================================
+
+const KB_FACTS = [
+  { s: 'Tom', p: 'gave', o: 'ball', r: 'Mary' },
+  { s: 'Tom', p: 'gave', o: 'book', r: 'Sue' },
+  { s: 'Mary', p: 'gave', o: 'ball', r: 'Tom' },
+  { s: 'Sue', p: 'gave', o: 'pen', r: 'Tom' },
+  { s: 'Tom', p: 'gave', o: 'pen', r: 'Mary' },
+  { s: 'Mary', p: 'gave', o: 'book', r: 'Sue' },
+]
+
+const SLOTS = ['s', 'o', 'r']
+const SLOT_LABELS = { s: 'giver', o: 'object', r: 'receiver' }
+
+function entropy(values) {
+  const counts = {}
+  values.forEach(v => { counts[v] = (counts[v] || 0) + 1 })
+  const total = values.length
+  return -Object.values(counts).reduce((sum, c) => {
+    const p = c / total
+    return sum + p * Math.log2(p)
+  }, 0)
+}
+
+export function ClarificationDialogueSim() {
+  const [bound, setBound] = useState({})
+  const [history, setHistory] = useState([])
+
+  const matches = KB_FACTS.filter(f =>
+    (!bound.s || f.s === bound.s) && (!bound.o || f.o === bound.o) && (!bound.r || f.r === bound.r)
+  )
+
+  const freeSlots = SLOTS.filter(k => !bound[k])
+  const slotEntropies = freeSlots.map(k => ({
+    slot: k, entropy: entropy(matches.map(f => f[k]))
+  })).sort((a, b) => b.entropy - a.entropy)
+
+  const bestSlot = slotEntropies[0]
+  const distinctVals = bestSlot ? [...new Set(matches.map(f => f[bestSlot.slot]))] : []
+
+  const bindSlot = (slot, val) => {
+    setBound(prev => ({ ...prev, [slot]: val }))
+    setHistory(prev => [...prev, { q: `What ${SLOT_LABELS[slot]}?`, a: val }])
+  }
+
+  const reset = () => { setBound({}); setHistory([]) }
+
+  const resolved = matches.length <= 2 || freeSlots.length === 0
+
+  return (
+    <div className="bg-gray-900 rounded-xl p-5 text-sm">
+      <div className="flex justify-between items-center mb-3">
+        <span className="text-xs text-gray-400">Query: (?, gave, ?, ?) · {matches.length} matches · {freeSlots.length} free vars</span>
+        <button onClick={reset} className="text-xs px-2 py-0.5 rounded bg-gray-700 text-gray-300 hover:bg-gray-600">Reset</button>
+      </div>
+
+      {history.length > 0 && (
+        <div className="mb-3 space-y-1">
+          {history.map((h, i) => (
+            <div key={i} className="text-xs"><span className="text-purple-400">System: </span><span className="text-gray-300">{h.q}</span> <span className="text-yellow-300">→ {h.a}</span></div>
+          ))}
+        </div>
+      )}
+
+      {!resolved && bestSlot && (
+        <div className="mb-3 p-3 rounded-lg border border-purple-500/40 bg-purple-900/20">
+          <div className="text-xs text-purple-300 mb-2">
+            🤖 Too many matches ({matches.length}). Highest entropy slot: <span className="font-bold">{SLOT_LABELS[bestSlot.slot]}</span> ({bestSlot.entropy.toFixed(2)} bits)
+          </div>
+          <div className="flex gap-2 flex-wrap">
+            {distinctVals.map(v => (
+              <button key={v} onClick={() => bindSlot(bestSlot.slot, v)}
+                className="px-2 py-1 rounded text-xs bg-purple-700 text-white hover:bg-purple-600">{v}</button>
+            ))}
+          </div>
+          {slotEntropies.length > 1 && (
+            <div className="mt-2 text-xs text-gray-500">
+              Other slots: {slotEntropies.slice(1).map(s => `${SLOT_LABELS[s.slot]} (${s.entropy.toFixed(2)} bits)`).join(', ')}
+            </div>
+          )}
+        </div>
+      )}
+
+      {resolved && (
+        <div className="mb-3 p-2 rounded bg-green-900/30 border border-green-500/40 text-xs text-green-300">
+          ✓ Binding energy sufficient. {matches.length} result{matches.length !== 1 ? 's' : ''}.
+        </div>
+      )}
+
+      <div className="grid gap-1">
+        {KB_FACTS.map((f, i) => {
+          const isMatch = matches.includes(f)
+          return (
+            <div key={i} className={`text-xs font-mono px-2 py-1 rounded transition-all ${isMatch ? 'bg-gray-800 text-gray-300' : 'bg-gray-800/30 text-gray-600 line-through'}`}>
+              ({f.s}, gave, {f.o}, {f.r})
+            </div>
+          )
+        })}
+      </div>
+    </div>
+  )
+}
+
+export default { LambdaReductionStepper, ModalWorldExplorer, FactPromotionSim, ClarificationDialogueSim }
