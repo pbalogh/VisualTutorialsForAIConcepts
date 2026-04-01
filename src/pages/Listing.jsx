@@ -1319,6 +1319,18 @@ const tutorials = [
     difficulty: 2,
   },
   {
+    id: 'brainstorm-99-kolmogorov-event-cognition',
+    title: 'The Kolmogorov Complexity of Event Cognition',
+    description: 'Why compression rediscovers Schank\'s primitives — MDL, wake-sleep discovery, and what data-driven operators reveal that hand-crafted ones missed',
+    tags: ['kolmogorov-complexity', 'MDL', 'compression', 'operators', 'wake-sleep', 'event-cognition'],
+    icon: '📦',
+    gradient: 'from-amber-500 to-orange-600',
+    shadowColor: 'shadow-amber-500/25',
+    glowColor: 'amber',
+    readTime: '18 min',
+    difficulty: 2,
+  },
+  {
     id: 'brainstorm-100-operator-params-distributions',
     title: 'Operator Parameters as Evolved Distributions',
     description: 'Unifying symbolic regression, probabilistic programming, and evolutionary algorithms — the three-layer language of thought',
