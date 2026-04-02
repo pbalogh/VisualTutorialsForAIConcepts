@@ -1,0 +1,403 @@
+{
+  "id": "brainstorm-42b-negative-knowledge-binding-energy",
+  "title": "Negative Knowledge as Binding Energy",
+  "subtitle": "What You Don't Know Has a Shape — And That Shape Tells You What to Ask",
+  "readTime": "20 min",
+  "state": "published",
+  "content": {
+    "type": "Fragment",
+    "children": [
+      {
+        "type": "Callout",
+        "props": {
+          "type": "info"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": [
+              {
+                "type": "strong",
+                "children": "Every Schankian primitive with unfilled slots is a lambda term with free variables."
+              },
+              " The number of free variables is the 'binding energy' — the minimum information needed to make the knowledge actionable. This tutorial shows how Schank's 1977 gap-filling mechanism is formally identical to lambda calculus variable binding, and why that matters for building AI memory systems that know what they don't know."
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "1. The Epistemic Vacuum"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "Imagine you're told: 'Someone gave something to someone.' You understand the structure — a transfer happened — but you can't DO anything with this knowledge. You can't verify it, reason about consequences, or connect it to other facts. The knowledge has holes."
+          },
+          {
+            "type": "p",
+            "children": "Now imagine you're told: 'Alice gave the book to Bob.' Same structure, but now every slot is filled. You can check if Alice had the book, infer that Bob now has it, wonder why she gave it away."
+          },
+          {
+            "type": "Analogy",
+            "props": {
+              "concept": "Negative Knowledge",
+              "analogy": "A jigsaw puzzle with missing pieces",
+              "explanation": "The empty spaces ARE information — they tell you the shape of what's missing. A 3-piece gap in the corner tells you more than 'some pieces are missing.' Negative knowledge isn't absence of knowledge; it's knowledge about the shape of what you don't know."
+            }
+          },
+          {
+            "type": "p",
+            "children": "This is what we call an 'epistemic vacuum' — a structured gap in knowledge that tells you exactly what questions to ask to fill it."
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "2. Schankian Primitives Have Typed Slots"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "Roger Schank's Conceptual Dependency theory (1972) decomposes all human actions into a small set of primitives, each with typed slots:"
+          },
+          {
+            "type": "DefinitionList",
+            "children": [
+              {
+                "term": "ATRANS(actor, object, from, to)",
+                "definition": "Abstract transfer of possession. 'Alice gave the book to Bob' = ATRANS(Alice, book, Alice, Bob). Four slots: who acted, what moved, where from, where to."
+              },
+              {
+                "term": "PTRANS(actor, object, from, to)",
+                "definition": "Physical transfer of location. 'The cat walked to the kitchen' = PTRANS(cat, cat, ?, kitchen). Note: 'from' is unfilled — we don't know where the cat was before."
+              },
+              {
+                "term": "MTRANS(actor, information, from, to)",
+                "definition": "Mental transfer of information. 'The teacher told the students about gravity' = MTRANS(teacher, gravity, teacher, students)."
+              },
+              {
+                "term": "INGEST(actor, object, from, to)",
+                "definition": "Taking something into the body. 'She drank the coffee' = INGEST(she, coffee, cup, she). The 'from' (cup) is inferred, not stated."
+              }
+            ]
+          },
+          {
+            "type": "Callout",
+            "props": {
+              "type": "key"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "The key insight: each slot has a TYPE. ATRANS's 'actor' must be an agent. Its 'object' must be a possessable thing. Its 'from' and 'to' must be possessors. These types constrain what can fill the gap — not just any information, but information of the right kind."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "3. The Lambda Calculus Connection"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "Here's where it gets beautiful. A Schankian primitive with unfilled slots IS a lambda term with free variables:"
+          },
+          {
+            "type": "Example",
+            "props": {
+              "title": "From Schank to Lambda"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "Fully specified:"
+              },
+              {
+                "type": "code",
+                "props": { "language": "text" },
+                "children": "ATRANS(Alice, book, Alice, Bob)\n→ A ground term. No free variables. Binding energy = 0."
+              },
+              {
+                "type": "p",
+                "children": "One slot missing:"
+              },
+              {
+                "type": "code",
+                "props": { "language": "text" },
+                "children": "ATRANS(?, book, Alice, Bob)\n→ λactor. ATRANS(actor, book, Alice, Bob)\n→ One free variable. Binding energy = 1.\n→ Question to ask: \"Who gave the book?\""
+              },
+              {
+                "type": "p",
+                "children": "Two slots missing:"
+              },
+              {
+                "type": "code",
+                "props": { "language": "text" },
+                "children": "ATRANS(?, ?, Alice, Bob)\n→ λactor. λobject. ATRANS(actor, object, Alice, Bob)\n→ Two free variables. Binding energy = 2.\n→ Questions: \"Who gave what?\" or \"What was given by whom?\""
+              },
+              {
+                "type": "p",
+                "children": "Completely unspecified:"
+              },
+              {
+                "type": "code",
+                "props": { "language": "text" },
+                "children": "ATRANS(?, ?, ?, ?)\n→ λa. λo. λf. λt. ATRANS(a, o, f, t)\n→ Four free variables. Binding energy = 4.\n→ \"We know a transfer happened. That's it.\""
+              }
+            ]
+          },
+          {
+            "type": "DeepDive",
+            "title": "Why Lambda Calculus and Not Just 'Fill in the Blanks'?",
+            "content": "Lambda calculus gives us three things that simple slot-filling doesn't:\n\n1. **Partial application**: You can bind variables ONE AT A TIME, in any order. Learning that the actor is Alice gives you λo.λf.λt.ATRANS(Alice, o, f, t) — still a function, but with lower binding energy. Each answer gets you closer.\n\n2. **Composition**: Two partially-specified events can be COMPOSED. If you know 'Someone gave a book to Bob' and 'Charlie received a book from Alice', the lambda terms can unify: the 'someone' in the first binds to 'Alice' from the second.\n\n3. **Type checking**: Lambda calculus is naturally typed. ATRANS's actor slot has type Agent — you can't fill it with 'the color blue'. The type system tells you not just THAT information is missing, but WHAT KIND of information would satisfy the gap."
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "4. Binding Energy: An Information-Theoretic View"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "Binding energy isn't just a count of free variables — it's an information-theoretic quantity. Some free variables are more uncertain than others:"
+          },
+          {
+            "type": "Example",
+            "props": {
+              "title": "Not All Gaps Are Equal"
+            },
+            "children": [
+              {
+                "type": "code",
+                "props": { "language": "text" },
+                "children": "ATRANS(?, book, library, Bob)\n\nThe 'actor' slot has LOW entropy:\n  - Must be an agent (type constraint)\n  - Must have access to library books (world knowledge)\n  - Probably a librarian (prior)\n  → Maybe 3-4 bits of uncertainty\n\nATRANS(Alice, ?, Alice, Bob)\n\nThe 'object' slot has HIGH entropy:\n  - Could be anything Alice possesses\n  - No contextual narrowing\n  → Maybe 10-15 bits of uncertainty"
+              }
+            ]
+          },
+          {
+            "type": "p",
+            "children": "This is exactly the 'binding energy' concept from the Query as Dialogue framework: the minimum specificity needed before a query becomes answerable. A smart retrieval system should ask about the HIGH-entropy variables first — they provide more information gain per question."
+          },
+          {
+            "type": "InteractiveDemo",
+            "props": {
+              "title": "🎯 Binding Energy Calculator",
+              "description": "Try different Schankian primitives and see how filling slots changes the binding energy and entropy.",
+              "demoType": "binding-energy"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "Consider this event: PTRANS(?, ?, home, ?). Three free variables."
+              },
+              {
+                "type": "p",
+                "children": "Which question reduces entropy most? (a) 'Who moved?' (b) 'What was moved?' (c) 'Where did it go?'"
+              },
+              {
+                "type": "p",
+                "children": "Answer: It depends on context! If you know you're in a moving-day story, 'what was moved' has low entropy (furniture). If you know nothing, 'who moved' might be most informative because agents constrain everything else."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "5. Schank's SAM Was Already Doing This (Sort Of)"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "In 1977, Schank and Abelson built SAM (Script Applier Mechanism) — a system that understood stories by matching them to 'scripts' (stereotyped event sequences like going to a restaurant). When the story left something out, SAM would fill in the gap from the script."
+          },
+          {
+            "type": "Example",
+            "props": {
+              "title": "SAM in Action"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "Story: 'John went to a restaurant. He ordered lobster. He left a big tip.'"
+              },
+              {
+                "type": "p",
+                "children": "What SAM inferred (from the RESTAURANT script):"
+              },
+              {
+                "type": "code",
+                "props": { "language": "text" },
+                "children": "PTRANS(John, John, ?, restaurant)     → John walked in\nATTENS(John, menu, ?, ?)               → John read the menu\nMTRANS(John, lobster, John, waiter)    → John told the waiter\nINGEST(John, lobster, plate, John)     → John ate the lobster\nATRANS(John, money, John, waiter)      → John paid\nATRANS(John, tip, John, waiter)        → John tipped\nPTRANS(John, John, restaurant, ?)      → John left"
+              },
+              {
+                "type": "p",
+                "children": "The story only mentioned 3 events. SAM inferred 7. Each inference was a SLOT-FILLING operation — exactly lambda variable binding."
+              }
+            ]
+          },
+          {
+            "type": "DeepDive",
+            "title": "What SAM Got Right (And What It Missed)",
+            "content": "SAM got the mechanism right: understanding = filling typed slots in stereotyped event sequences. But it had three limitations that lambda calculus resolves:\n\n1. **Rigid scripts**: SAM's scripts were hand-coded. Lambda calculus lets you COMPOSE operators dynamically — you don't need a pre-written 'restaurant script' if you can compose PTRANS + MTRANS + INGEST + ATRANS on the fly.\n\n2. **No uncertainty**: SAM either filled a slot or didn't. Lambda calculus + information theory gives you DEGREES of uncertainty — some slots are more unknown than others.\n\n3. **No modal scoping**: SAM couldn't distinguish 'John went to a restaurant' (actual) from 'John imagined going to a restaurant' (fictional). Modal lambda calculus can — different worlds have different bindings for the same free variables."
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "6. Building It: Negative Knowledge in a Lambda Store"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "We're currently building a Lambda Knowledge Store that implements these ideas as a real system. Here's how negative knowledge works in practice:"
+          },
+          {
+            "type": "Example",
+            "props": {
+              "title": "Operators for Negative Knowledge"
+            },
+            "children": [
+              {
+                "type": "code",
+                "props": { "language": "python" },
+                "children": "# Positive knowledge — all slots bound\nstore.assert_fact(\n    operator='LEARNED',\n    bindings={'agent': 'Peter', 'topic': 'val_loss',\n              'content': 'measures generalization'},\n    conviction=0.95\n)\n\n# Negative knowledge — a structured gap\nstore.assert_fact(\n    operator='QUESTION_OPEN',\n    bindings={'asker': 'Peter',\n              'question': 'How do conference submissions work?',\n              'context': 'never submitted before'},\n    conviction=1.0  # We're CERTAIN about what we don't know\n)\n\n# The gap has typed slots:\n#   venue=?     (type: Conference)\n#   deadline=?  (type: Date)\n#   process=?   (type: Procedure)\n#   format=?    (type: DocumentSpec)\n# Each ? is a free variable. Binding energy = 4."
+              }
+            ]
+          },
+          {
+            "type": "Callout",
+            "props": {
+              "type": "key"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "Notice: the conviction for negative knowledge is 1.0 — we are MAXIMALLY CERTAIN about what we don't know. This is the opposite of how most systems treat missing information (as low confidence). Negative knowledge is high-confidence metadata about the boundaries of your knowledge."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "7. Retrieval as Dialogue"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "The deepest implication: retrieval from a knowledge base isn't search — it's DIALOGUE. A vague query is a lambda term with too many free variables. Each clarifying question binds one variable, reducing binding energy until the query is specific enough to return results."
+          },
+          {
+            "type": "Example",
+            "props": {
+              "title": "A Query Is a Conversation"
+            },
+            "children": [
+              {
+                "type": "code",
+                "props": { "language": "text" },
+                "children": "Query: \"What happened?\"\n→ λe. EVENT(e)                    — Binding energy: maximum\n→ \"Can you be more specific?\"\n\nQuery: \"What happened to Alice?\"\n→ λe. EVENT(e, patient=Alice)     — Binding energy: reduced\n→ \"When? What kind of event?\"\n\nQuery: \"What did someone give Alice?\"\n→ λactor.λobj. ATRANS(actor, obj, ?, Alice)  — Binding energy: 2\n→ \"Who gave it? What was it?\"\n\nQuery: \"What did Bob give Alice yesterday?\"\n→ ATRANS(Bob, ?, Bob, Alice, time=yesterday)  — Binding energy: 1\n→ Now we can search: just find the object.\n→ Result: \"Bob gave Alice the book.\""
+              }
+            ]
+          },
+          {
+            "type": "p",
+            "children": "Each step in this 'dialogue' is a partial application of the query lambda term. The knowledge base doesn't just answer questions — it tells you which questions to ask, based on which free variables have the highest entropy."
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "8. The Bigger Picture"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "This connects three seemingly separate research threads into one formalism:"
+          },
+          {
+            "type": "DefinitionList",
+            "children": [
+              {
+                "term": "Operator Discovery (Wake-Sleep)",
+                "definition": "Discovered primitives have typed slots. The slots ARE lambda parameters. Unfilled slots in a discovered operator define what information that operator needs to produce a prediction."
+              },
+              {
+                "term": "Lambda Knowledge Store",
+                "definition": "Event-sourced facts with modal worlds. QUESTION_OPEN and NEEDS_INFO are the negative knowledge operators. Each open question is a lambda term with free variables waiting to be bound."
+              },
+              {
+                "term": "Query as Dialogue",
+                "definition": "Retrieval = progressive variable binding. Binding energy = minimum specificity for meaningful retrieval. The store doesn't just hold knowledge — it holds the SHAPE of what's missing."
+              }
+            ]
+          },
+          {
+            "type": "Callout",
+            "props": {
+              "type": "warning"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "Schank got the structure right in 1977. Lambda calculus got the formalism right in the 1930s. Information theory got the uncertainty right in 1948. It took until now to put them together — because we needed a concrete use case (AI agent memory) where the combination actually matters."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "Quiz: Test Your Understanding"
+        },
+        "children": [
+          {
+            "type": "Quiz",
+            "props": {
+              "questions": [
+                {
+                  "question": "What is the 'binding energy' of PTRANS(cat, cat, ?, ?)?",
+                  "options": ["0 — fully specified", "1 — one free variable", "2 — two free variables", "4 — all slots free"],
+                  "correct": 2,
+                  "explanation": "Two slots (from and to) are unfilled. The actor and object are both 'cat'. Binding energy = 2 — you need to learn where the cat came from and where it went."
+                },
+                {
+                  "question": "If you can only ask ONE question about ATRANS(?, book, library, ?), which reduces entropy most?",
+                  "options": ["'Who took the book?' (the actor)", "'Where did the book go?' (the destination)"],
+                  "correct": 1,
+                  "explanation": "The destination has higher entropy — the book could go anywhere (home, office, another library, a friend's house). The actor is constrained by context: they must be at the library and have library access, narrowing the possibilities."
+                },
+                {
+                  "question": "Why does the lambda store assign conviction=1.0 to QUESTION_OPEN facts?",
+                  "options": ["Because all facts default to maximum conviction", "Because we are certain about WHAT we don't know, even though the answer is unknown", "Because open questions are more important than answered ones", "It's arbitrary"],
+                  "correct": 1,
+                  "explanation": "Negative knowledge is high-confidence metadata. 'I don't know how conference submissions work' is a CERTAIN fact about the boundary of my knowledge — even though the content of the answer is unknown. The gap itself is well-defined."
+                },
+                {
+                  "question": "How does modal scoping change negative knowledge?",
+                  "options": ["It doesn't — gaps are the same in all worlds", "Different worlds can have different bindings for the same free variables", "Modal scoping only applies to positive knowledge", "It eliminates negative knowledge entirely"],
+                  "correct": 1,
+                  "explanation": "In the actual world, ATRANS(?, book, library, Bob) might have actor=Alice. In Peter's belief world, it might have actor=Charlie. The SAME structural gap can have DIFFERENT answers in different modal worlds — which is exactly why modal scoping matters for knowledge stores."
+                }
+              ]
+            }
+          }
+        ]
+      }
+    ]
+  }
+}

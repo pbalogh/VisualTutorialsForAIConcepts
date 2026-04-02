@@ -1062,6 +1062,18 @@ const tutorials = [
     difficulty: 3,
   },
   {
+    id: 'brainstorm-42b-negative-knowledge-binding-energy',
+    title: 'Negative Knowledge as Binding Energy',
+    description: 'What you don\'t know has a shape. Schankian primitives with unfilled slots ARE lambda terms with free variables. Binding energy = number of free slots = minimum questions to ask. Connects Schank\'s 1977 gap-filling to lambda calculus and information theory.',
+    tags: ['Schankian', 'lambda-calculus', 'knowledge-representation', 'information-theory', 'negative-knowledge'],
+    icon: '∅',
+    gradient: 'from-amber-500 to-orange-700',
+    shadowColor: 'shadow-amber-500/30',
+    glowColor: 'rgba(245, 158, 11, 0.4)',
+    readTime: '20 min',
+    difficulty: 3,
+  },
+  {
     id: 'brainstorm-42-lambda-calculus-bridge',
     title: 'Lambda Calculus as the Bridge Between Operator Discovery and SAE Features',
     description: 'GPT-2 implements a lambda calculus over entity-state transformations. Operators are tensors in orthogonal SAE subspaces (14.4× separation). Partial application produces rank decrease (12/12). Future arguments = zero change. Mentalese has its own grammar with canonical argument order and case features.',
