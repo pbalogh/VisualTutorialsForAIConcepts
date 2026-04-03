@@ -358,6 +358,18 @@ const tutorials = [
     difficulty: 3,
   },
   {
+    id: 'brainstorm-84-manifold-local-operators',
+    title: 'Schankian Primitives as Manifold-Local Operators',
+    description: 'What if ATRANS means something different in every register? Exploring Schankian primitives as sections of a fiber bundle over the speech manifold — varying across registers, sociolects, and modalities.',
+    tags: ['operators', 'manifold', 'fiber bundle', 'register', 'geometry'],
+    icon: '🌍',
+    gradient: 'from-emerald-500 to-teal-600',
+    shadowColor: 'shadow-emerald-500/30',
+    glowColor: 'rgba(16, 185, 129, 0.4)',
+    readTime: '25 min',
+    difficulty: 3,
+  },
+  {
     id: 'brainstorm-88-boolean-circuit-extraction',
     title: 'Boolean Circuit Extraction as Primitive Discovery',
     description: 'How MLP neurons compose into Boolean lookup tables, and how recurring circuit motifs reveal learned Schankian primitives with inspectable truth tables.',
