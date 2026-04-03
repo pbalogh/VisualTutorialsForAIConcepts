@@ -35,6 +35,71 @@
       },
       {
         "type": "Section",
+        "title": "April 3, 2026 — Hallucination as Wrong Question & Structured Forgetting",
+        "children": [
+          {
+            "type": "Fragment",
+            "children": [
+              {
+                "type": "text",
+                "content": "Two papers with connections to our memory architecture and manifold origami work. A quiet day for Schankian operators directly, but both papers touch on themes we've been developing."
+              }
+            ]
+          },
+          {
+            "type": "DeepDive",
+            "props": {
+              "title": "🟡 Trace Inversion: Hallucination = Answering the Wrong Question",
+              "subtitle": "arXiv:2604.02230 — Gourabathina et al."
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "A clever reframing: hallucinations aren't wrong answers to the right question — they're correct answers to the WRONG question. The method generates a reasoning trace, then reconstructs what query the model was actually responding to. If the reconstructed query diverges from the original, the model should abstain. Beats baselines in 33/36 settings."
+              },
+              {
+                "type": "Callout",
+                "props": {
+                  "type": "connection"
+                },
+                "children": [
+                  {
+                    "type": "p",
+                    "children": "🔗 Connection to our work: This parallels our manifold origami framing of hallucination — we say hallucination is 'correct manifold selection but wrong content' (the model picks the right geometry but populates it with fabricated entities). Their 'wrong question' ≈ our 'wrong fiber.' And in the Hydra architecture, explicit parsing heads would make it possible to detect when the model has jumped to the wrong manifold — the heads would disagree, like garden-path fiber collisions. Trace Inversion is essentially trying to detect manifold misidentification after the fact; Hydra would prevent it structurally."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "DeepDive",
+            "props": {
+              "title": "🟡 Adaptive Forgetting for Agent Memory",
+              "subtitle": "arXiv:2604.02280 — Fofadiya & Tiwari"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "Addresses unbounded memory growth in long-horizon agents via 'adaptive budgeted forgetting' — scoring memories by recency, frequency, and semantic alignment, then pruning under a budget constraint. Reduces false memory rate from 6.8% while maintaining F1 above 0.583 baselines."
+              },
+              {
+                "type": "Callout",
+                "props": {
+                  "type": "connection"
+                },
+                "children": [
+                  {
+                    "type": "p",
+                    "children": "🔗 Connection to our work: We literally built a shadow memory system today (Lambda Bridge) and are wrestling with exactly this problem. Their recency+frequency+semantic scoring maps to our conviction levels and staleness tracking in the AI Memory Architecture design. Key difference: they treat forgetting as pruning; our event-sourced lambda store never truly forgets — it retracts facts (marking them inactive) while preserving the full history. Their approach optimizes context window usage; ours optimizes knowledge integrity. Both are valid for different substrates. Their LOCOMO/LOCCO benchmarks could be useful for evaluating our lambda store's recall performance."
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
         "title": "April 2, 2026 \u2014 Decisions Before Deliberation & Lifelong Agent Memory",
         "children": [
           {
