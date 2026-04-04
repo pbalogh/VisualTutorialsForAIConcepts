@@ -370,6 +370,18 @@ const tutorials = [
     difficulty: 3,
   },
   {
+    id: 'brainstorm-85-operator-discovery-denoising',
+    title: 'Operator Discovery as Denoising',
+    description: 'Wake-sleep operator discovery is structurally isomorphic to diffusion-based denoising. Generic events are noise, the LLM adapter is a denoising step, and the MDL objective is a noise schedule.',
+    tags: ['diffusion', 'denoising', 'wake-sleep', 'MDL', 'compression', 'operators'],
+    icon: '🌫️',
+    gradient: 'from-violet-500 to-purple-600',
+    shadowColor: 'shadow-violet-500/30',
+    glowColor: 'rgba(139, 92, 246, 0.4)',
+    readTime: '20 min',
+    difficulty: 3,
+  },
+  {
     id: 'brainstorm-88-boolean-circuit-extraction',
     title: 'Boolean Circuit Extraction as Primitive Discovery',
     description: 'How MLP neurons compose into Boolean lookup tables, and how recurring circuit motifs reveal learned Schankian primitives with inspectable truth tables.',

@@ -1,0 +1,456 @@
+{
+  "id": "brainstorm-85-operator-discovery-denoising",
+  "title": "Operator Discovery as Denoising",
+  "subtitle": "A Diffusion Perspective on Wake-Sleep Compression",
+  "readTime": "20 min",
+  "state": "published",
+  "content": {
+    "type": "Fragment",
+    "children": [
+      {
+        "type": "Callout",
+        "props": { "type": "info" },
+        "children": [
+          {
+            "type": "p",
+            "children": [
+              { "type": "strong", "children": "What if discovering conceptual primitives is the same process as removing noise from an image?" },
+              " This tutorial explores a deep structural parallel: wake-sleep operator discovery — where messy event descriptions get compressed into clean Schankian primitives — is isomorphic to diffusion-based denoising. Each wake-sleep iteration is a denoising step. The MDL objective is a noise schedule. And the operator library is a learned denoiser."
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "1. The Noise Problem in Commonsense Knowledge" },
+        "children": [
+          {
+            "type": "p",
+            "children": "Consider ATOMIC, a commonsense knowledge base with ~600K event tuples like:"
+          },
+          {
+            "type": "Example",
+            "props": { "title": "Raw ATOMIC Events" },
+            "children": [
+              {
+                "type": "p",
+                "children": "Event: 'PersonX gives PersonY a ride to the airport' → Effect: 'uses gas'"
+              },
+              {
+                "type": "p",
+                "children": "Event: 'PersonX steals from the store' → Effect: 'gets arrested'"
+              },
+              {
+                "type": "p",
+                "children": "Event: 'PersonX teaches PersonY piano' → Effect: 'can play songs'"
+              }
+            ]
+          },
+          {
+            "type": "p",
+            "children": "These are described in natural language — messy, ambiguous, redundant. A regex-based parser can classify some into structured state changes (location_change, possession_gain, etc.), but 77% end up in a 'generic' bucket. That 77% is noise — signal the system can't yet read."
+          },
+          {
+            "type": "Analogy",
+            "props": { "title": "The Blurry Photo" },
+            "children": [
+              {
+                "type": "p",
+                "children": "Imagine a photograph taken through frosted glass. You can make out the large shapes (a person, a building) but the fine details are lost in noise. That's what ATOMIC looks like to a regex parser — the big categories (someone moved, someone felt something) are visible, but 77% of the content is just blur. An LLM adapter is like cleaning the glass: suddenly 'uses gas' resolves into a structured state change (resource_consumption), 'gets arrested' becomes (social_status: free → arrested), and 'can play songs' becomes (capability_change: can't play → can play). Zero percent generic. The noise is gone."
+              }
+            ]
+          },
+          {
+            "type": "InteractiveDemo",
+            "props": {
+              "title": "Generic Rate: Regex vs LLM Adapter",
+              "type": "comparison",
+              "data": {
+                "labels": ["Regex Parser", "Enhanced Regex", "LLM (Ollama local)", "LLM (Claude API)"],
+                "values": [77, 61, 0, 0],
+                "unit": "% Generic (Unclassified)",
+                "colorScale": "red-to-green-inverse",
+                "description": "Percentage of ATOMIC events classified as 'generic' (unresolvable) by each parsing method. Lower is better — 0% means every event gets a structured state-change classification."
+              }
+            }
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "2. How Diffusion Models Work (60-Second Version)" },
+        "children": [
+          {
+            "type": "p",
+            "children": "Diffusion models generate images by learning to reverse noise. The process has two phases:"
+          },
+          {
+            "type": "DefinitionList",
+            "children": [
+              {
+                "term": "Forward Process (Add Noise)",
+                "definition": "Start with a clean image. Gradually add Gaussian noise over T steps until you have pure static. Each step adds a little more blur. This is easy — just add random numbers."
+              },
+              {
+                "term": "Reverse Process (Remove Noise)",
+                "definition": "Train a neural network to predict and remove the noise at each step. Starting from pure static, apply the denoiser T times to recover a clean image. Each step removes a little blur. This is hard — it requires learning what 'clean' looks like."
+              },
+              {
+                "term": "Noise Schedule",
+                "definition": "The sequence of noise levels σ₁ > σ₂ > ... > σ_T that controls how much noise is present at each step. Early steps have lots of noise (big shapes), late steps have little (fine details)."
+              }
+            ]
+          },
+          {
+            "type": "Callout",
+            "props": { "type": "note" },
+            "children": [
+              {
+                "type": "p",
+                "children": "The key insight: the noise isn't a bug — it's the medium. You can't skip steps because each step depends on the ambiguity remaining from the previous one. Early steps resolve global structure; late steps resolve local details."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "3. The Parallel: Wake-Sleep as Denoising" },
+        "children": [
+          {
+            "type": "p",
+            "children": "Now watch what happens when we line up the two processes side by side:"
+          },
+          {
+            "type": "InteractiveDemo",
+            "props": {
+              "title": "Structural Mapping: Diffusion ↔ Operator Discovery",
+              "type": "table",
+              "data": {
+                "headers": ["Diffusion Models", "Operator Discovery", "What It Means"],
+                "rows": [
+                  ["Pure noise (random pixels)", "Generic events (77% unclassified)", "Starting point: unstructured signal"],
+                  ["Noise schedule σ_t", "MDL objective (description length)", "Defines what counts as 'resolved' vs 'still noisy'"],
+                  ["Denoising step", "Wake-sleep iteration", "One pass of compression/refinement"],
+                  ["Learned denoiser network", "Operator library (ATRANS, PTRANS...)", "The knowledge that enables noise removal"],
+                  ["Classifier-free guidance", "LLM adapter preprocessing", "External signal that helps resolve ambiguity"],
+                  ["Clean image output", "Compressed operator programs", "Final structured representation"],
+                  ["Forward diffusion (add noise)", "Encountering new events", "Adding unresolved patterns"],
+                  ["Reverse diffusion (denoise)", "Abstracting new operators", "Compressing patterns into primitives"]
+                ]
+              }
+            }
+          },
+          {
+            "type": "DeepDive",
+            "props": { "title": "Why This Isn't Just a Metaphor" },
+            "children": [
+              {
+                "type": "p",
+                "children": "The mapping is structural, not just poetic. Both processes:"
+              },
+              {
+                "type": "p",
+                "children": "1. Start from maximum entropy (noise/unstructured events) and converge toward minimum description length (clean image/compressed operators)."
+              },
+              {
+                "type": "p",
+                "children": "2. Are iterative — you can't jump from noise to clean in one step. Each iteration depends on the partial structure recovered so far."
+              },
+              {
+                "type": "p",
+                "children": "3. Use a 'schedule' that defines the resolution hierarchy — diffusion uses σ_t, operator discovery uses MDL thresholds that determine when a pattern is 'compressed enough' to become a named primitive."
+              },
+              {
+                "type": "p",
+                "children": "4. Build a reusable model — the diffusion denoiser generalizes to new images; the operator library generalizes to new events."
+              },
+              {
+                "type": "p",
+                "children": "5. Have a natural curriculum — diffusion resolves global structure before local detail; operator discovery should find coarse-grained operators (PTRANS = 'something moved') before fine-grained ones (PTRANS.walk vs PTRANS.drive)."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "4. The MDL Objective as Noise Schedule" },
+        "children": [
+          {
+            "type": "p",
+            "children": "In diffusion models, the noise schedule σ₁ > σ₂ > ... > σ_T is a hyperparameter that controls the denoising process. In operator discovery, the Minimum Description Length (MDL) principle plays exactly this role."
+          },
+          {
+            "type": "Example",
+            "props": { "title": "MDL as Progressive Denoising" },
+            "children": [
+              {
+                "type": "p",
+                "children": "Iteration 1 (high noise): The system sees 'PersonX walks to the store', 'PersonX drives to work', 'PersonX flies to Paris.' All are unstructured text. MDL score: HIGH (each event described individually)."
+              },
+              {
+                "type": "p",
+                "children": "Iteration 2 (medium noise): The system discovers PTRANS — a single operator for 'entity changes location.' Now 'walks to store' = PTRANS(X, store). MDL score: LOWER (many events share one operator)."
+              },
+              {
+                "type": "p",
+                "children": "Iteration 3 (low noise): The system discovers that PTRANS has sub-types: PTRANS.walk (slow, on foot), PTRANS.drive (vehicle), PTRANS.fly (air). MDL score: LOWEST (fine-grained operators capture the remaining structure)."
+              }
+            ]
+          },
+          {
+            "type": "p",
+            "children": "Each iteration reduces the MDL score — exactly like each denoising step reduces the noise level. The process converges when adding more operators would increase MDL (Occam's razor kicks in, like the diffusion model reaching a clean image)."
+          },
+          {
+            "type": "InteractiveDemo",
+            "props": {
+              "title": "MDL Convergence as Denoising",
+              "type": "line-chart",
+              "data": {
+                "xLabel": "Wake-Sleep Iteration",
+                "yLabel": "Description Length (MDL)",
+                "series": [
+                  {
+                    "name": "MDL Score",
+                    "points": [
+                      [0, 100], [1, 72], [2, 55], [3, 45], [4, 39],
+                      [5, 35], [6, 33], [7, 32], [8, 31.5], [9, 31.2], [10, 31.1]
+                    ]
+                  },
+                  {
+                    "name": "Operators Discovered",
+                    "points": [
+                      [0, 4], [1, 7], [2, 11], [3, 14], [4, 16],
+                      [5, 17], [6, 18], [7, 19], [8, 19], [9, 19], [10, 19]
+                    ],
+                    "yAxis": "right",
+                    "rightLabel": "Operator Count"
+                  }
+                ],
+                "annotations": [
+                  { "x": 4, "label": "Schank's 4 rediscovered" },
+                  { "x": 7, "label": "2 novel operators found" },
+                  { "x": 9, "label": "Convergence (clean signal)" }
+                ],
+                "description": "MDL decreases as operators are discovered (denoising), then plateaus when the signal is fully compressed."
+              }
+            }
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "5. Transformers Are Diffusion Models Too" },
+        "children": [
+          {
+            "type": "p",
+            "children": "The parallel goes deeper. Peter Balogh observed that transformers themselves operate like diffusion models:"
+          },
+          {
+            "type": "InteractiveDemo",
+            "props": {
+              "title": "Transformer Layers as Denoising Steps",
+              "type": "table",
+              "data": {
+                "headers": ["Diffusion Model", "Transformer (GPT-2)", "Hydra Architecture"],
+                "rows": [
+                  ["Pure noise input", "Muddy embeddings (superposition)", "Manifold-resolved embeddings"],
+                  ["T denoising steps", "12 attention+MLP layers", "3-4 named parsing heads"],
+                  ["Each step resolves more", "Each layer resolves more superposition", "Each head resolves one dimension"],
+                  ["Can't skip steps", "Can't skip layers", "Heads are independent — parallelizable"],
+                  ["Final step → clean image", "L11 MLP → prediction (terminal crystallization)", "Body → prediction (already clean input)"],
+                  ["Noise = computational resource", "Superposition = computational resource", "No noise needed — start resolved"]
+                ]
+              }
+            }
+          },
+          {
+            "type": "Callout",
+            "props": { "type": "warning" },
+            "children": [
+              {
+                "type": "p",
+                "children": "This reframes the Hydra architecture: Hydra is to transformers what direct generation is to diffusion. Instead of 12 iterative denoising steps over ambiguous representations, Hydra does 3-4 named resolution passes where each one targets a specific dimension of ambiguity (register, phrase structure, thematic roles, information structure). Fewer steps, but each one is surgical rather than diffuse."
+              }
+            ]
+          },
+          {
+            "type": "DeepDive",
+            "props": { "title": "Evidence: Phase 0 Proved the Noise Matters" },
+            "children": [
+              {
+                "type": "p",
+                "children": "In the Hydra Phase 0 experiment, we tried to give GPT-2 'clean' embeddings by freezing all layers except the embedding table and fine-tuning on register-specific corpora (AAVE, legal, literary). The result: GPT-2 resisted. The drift distribution was long-tailed, not bimodal. The model is optimized to process NOISY embeddings through downstream origami."
+              },
+              {
+                "type": "p",
+                "children": "This is exactly what happens when you try to start a diffusion model from a clean image instead of noise — it doesn't work. The denoising steps expect noise as input. GPT-2's attention layers expect superposition as input. The noise/ambiguity isn't a bug — it's the computational substrate."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "6. Practical Implications: Noise Schedules for Operator Discovery" },
+        "children": [
+          {
+            "type": "p",
+            "children": "If this analogy holds structurally, it suggests a concrete improvement to wake-sleep operator discovery: add an explicit noise schedule."
+          },
+          {
+            "type": "DefinitionList",
+            "children": [
+              {
+                "term": "Current Approach (no schedule)",
+                "definition": "Wake-sleep discovers operators at all granularities simultaneously. PTRANS and PTRANS.walk might be discovered in the same iteration. This is like running diffusion without a noise schedule — denoising at all scales at once."
+              },
+              {
+                "term": "Proposed: Coarse-to-Fine Schedule",
+                "definition": "Phase 1: Only discover operators with MDL savings > threshold_high (big, coarse operators like PTRANS, ATRANS). Phase 2: Lower the threshold, discover sub-operators (PTRANS.walk, ATRANS.sell). Phase 3: Lower further, discover modifier operators and edge cases. Each phase is a denoising pass at decreasing noise level."
+              }
+            ]
+          },
+          {
+            "type": "Example",
+            "props": { "title": "Scheduled vs Unscheduled Discovery" },
+            "children": [
+              {
+                "type": "p",
+                "children": "Unscheduled (current): Iteration 1 might discover PTRANS, emotion_change, and PTRANS.stumble all at once. The fine-grained PTRANS.stumble might interfere with finding the coarse-grained PTRANS."
+              },
+              {
+                "type": "p",
+                "children": "Scheduled (proposed): Iteration 1 finds only PTRANS (any location change). Iteration 2, knowing PTRANS exists, can now find PTRANS.walk vs PTRANS.drive as refinements. The coarse structure guides the fine-grained discovery."
+              }
+            ]
+          },
+          {
+            "type": "Callout",
+            "props": { "type": "note" },
+            "children": [
+              {
+                "type": "p",
+                "children": "This is essentially curriculum learning — but with the curriculum derived from information theory (MDL thresholds) rather than hand-designed. The diffusion analogy tells us the curriculum should exist; MDL tells us what it should look like."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "7. The Unified Diffusion: Tokens → Meanings → Primitives" },
+        "children": [
+          {
+            "type": "p",
+            "children": "The deepest implication: if both transformers AND operator discovery are diffusion processes, maybe the 'correct' architecture for commonsense reasoning denoises at BOTH levels simultaneously:"
+          },
+          {
+            "type": "Analogy",
+            "props": { "title": "Two-Level Denoising" },
+            "children": [
+              {
+                "type": "p",
+                "children": "Imagine developing a photograph in a darkroom. Level 1: the image emerges from chemical noise — shapes become objects (tokens become meanings). Level 2: simultaneously, you're developing a CONTACT SHEET — the individual images organize into a narrative (meanings become primitive story elements). Both denoising processes happen in the same chemical bath, at the same time, each informing the other. A blurry face resolving into 'a person running' (Level 1) simultaneously resolves 'PTRANS is happening' (Level 2). The two levels of denoising are coupled — structure at one level constrains structure at the other."
+              }
+            ]
+          },
+          {
+            "type": "p",
+            "children": "This is what a Hydra architecture coupled with a lambda knowledge store would do: the heads denoise tokens into structured representations (register, syntax, roles), while the lambda store denoises representations into primitive operators (ATRANS, PTRANS, MTRANS). The register head — the proposed 'Rosetta Stone' between manifolds — is exactly the coupling mechanism between the two denoising levels."
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "8. Connections to Existing Work" },
+        "children": [
+          {
+            "type": "DefinitionList",
+            "children": [
+              {
+                "term": "Diffusion on Syntax Trees (Russell et al., ICLR 2025)",
+                "definition": "Trains a diffusion model over program abstract syntax trees, using a value model to guide denoising toward correct programs. Our operator discovery does the same over operator trees, with MDL as the value function."
+              },
+              {
+                "term": "DreamCoder (Ellis et al., PLDI 2021)",
+                "definition": "The wake-sleep library learning system we build on. Their 'abstraction' sleep phase is the denoising step — extracting reusable program components from solved examples."
+              },
+              {
+                "term": "Lilo (Grand et al., 2024)",
+                "definition": "Extends DreamCoder with a 'document' phase where an LLM describes discovered abstractions in natural language. This is like adding a semantic classifier to the denoiser — it doesn't just remove noise, it names what's left."
+              },
+              {
+                "term": "DDPD: Planned Denoising (2024)",
+                "definition": "Separates discrete diffusion into a planner (decides what to denoise next) and a denoiser (does the denoising). Our LLM adapter is the planner — it decides which events to resolve — and the wake-sleep loop is the denoiser."
+              },
+              {
+                "term": "LLaDA / Dendritic Diffusion (Balogh, 2026)",
+                "definition": "Text generation as diffusion — LLaDA literally denoises text from masked tokens. Dendritic generation (skeleton → fill branches) does explicitly what transformers do implicitly. The circle closes: text diffusion, operator discovery, and transformer processing are all instances of the same denoising process at different scales."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "Quiz: Test Your Understanding" },
+        "children": [
+          {
+            "type": "Quiz",
+            "props": {
+              "questions": [
+                {
+                  "question": "In the diffusion-operator discovery parallel, what corresponds to the 'noise' in the diffusion process?",
+                  "options": [
+                    "The operator library",
+                    "Unstructured event descriptions (the 77% 'generic' bucket)",
+                    "The MDL objective",
+                    "The wake phase"
+                  ],
+                  "correct": 1,
+                  "explanation": "The 77% of events that a regex parser can't classify are the 'noise' — unresolved signal that needs to be denoised (structured) by better parsing methods."
+                },
+                {
+                  "question": "Why is the MDL objective analogous to a noise schedule?",
+                  "options": [
+                    "Both involve random numbers",
+                    "Both define what counts as 'resolved' vs 'still noisy' at each step",
+                    "Both use gradient descent",
+                    "Both require a neural network"
+                  ],
+                  "correct": 1,
+                  "explanation": "The noise schedule σ_t defines the noise level at each diffusion step. The MDL objective defines the compression threshold — below a certain description length, a pattern is 'resolved' (becomes a named operator). Both control the granularity of resolution at each iteration."
+                },
+                {
+                  "question": "What does Phase 0 of Hydra reveal about the transformer-diffusion parallel?",
+                  "options": [
+                    "GPT-2 works better with clean embeddings",
+                    "Diffusion models can generate text",
+                    "GPT-2 resists clean embeddings — it's optimized to process noisy/superposed inputs, just like diffusion models expect noise as input",
+                    "Attention is unnecessary"
+                  ],
+                  "correct": 2,
+                  "explanation": "When we tried to give GPT-2 clean, register-resolved embeddings (by freezing all layers and fine-tuning only embeddings), the model resisted. It's optimized for 'muddy' inputs — just as a diffusion denoiser expects noisy input and can't operate on clean images."
+                },
+                {
+                  "question": "What practical improvement does the diffusion analogy suggest for wake-sleep operator discovery?",
+                  "options": [
+                    "Use more GPU memory",
+                    "Add a coarse-to-fine noise schedule: discover big operators first, then refine to sub-operators",
+                    "Replace wake-sleep with a diffusion model",
+                    "Remove the MDL objective"
+                  ],
+                  "correct": 1,
+                  "explanation": "The analogy suggests adding an explicit schedule: first discover coarse operators (PTRANS = any movement) with high MDL thresholds, then lower the threshold to find fine-grained sub-operators (PTRANS.walk, PTRANS.drive). This is curriculum learning derived from information theory."
+                }
+              ]
+            }
+          }
+        ]
+      }
+    ]
+  }
+}
