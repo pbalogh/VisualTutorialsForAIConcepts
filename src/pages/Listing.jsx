@@ -1765,6 +1765,18 @@ const tutorials = [
     difficulty: 3,
     featured: true,
   },
+  {
+    id: 'brainstorm-102-epistemic-regress',
+    title: 'The Epistemic Regress of Operator Discovery',
+    description: 'How epistemology\'s oldest problem — the infinite justification chain — maps onto Schankian operator discovery. Russell\'s acquaintance/description distinction provides foundations that stop the regress.',
+    tags: ['epistemology', 'foundationalism', 'Russell', 'symbol grounding', 'Gettier', 'operators'],
+    icon: '🏛️',
+    gradient: 'from-amber-500 to-orange-600',
+    shadowColor: 'shadow-amber-500/30',
+    glowColor: 'rgba(245, 158, 11, 0.4)',
+    readTime: '22 min',
+    difficulty: 3,
+  },
 ]
 
 // Semantic tag color system - filled backgrounds
