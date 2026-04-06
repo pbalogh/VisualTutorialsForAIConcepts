@@ -1,0 +1,402 @@
+{
+  "id": "brainstorm-87-routing-primitive-selectors",
+  "title": "Routing Programs as Primitive Selectors",
+  "subtitle": "Is the MLP Exception Handler a Schankian Dispatcher?",
+  "difficulty": 3,
+  "readTime": "15 min",
+  "tags": ["mechanistic interpretability", "Schankian primitives", "MLP routing", "transformers"],
+  "state": {},
+  "content": {
+    "type": "Fragment",
+    "children": [
+      {
+        "type": "Section",
+        "props": { "title": "The Big Idea" },
+        "children": [
+          {
+            "type": "Callout",
+            "props": { "type": "info" },
+            "children": "What if the routing program inside a transformer's MLP layer is literally selecting which Schankian primitive operation applies to the current token? This tutorial explores the connection between mechanistic interpretability (what neurons do) and conceptual primitives (what operations the model is performing)."
+          },
+          {
+            "type": "p",
+            "children": "We've found two things independently: (1) GPT-2's final MLP contains a legible 27-neuron routing program that decides how to process each token (Darkness Visible), and (2) wake-sleep compression on event data recovers Schank's conceptual primitives — ATRANS, PTRANS, MTRANS, INGEST (Operator Discovery). What if these are the SAME phenomenon seen from different angles?"
+          },
+          {
+            "type": "Analogy",
+            "props": { "title": "The Airport Analogy" },
+            "children": [
+              {
+                "type": "p",
+                "children": "Imagine an airport terminal. The routing program is like the departure board — it tells each passenger (token) which gate (processing path) to go to. Schankian primitives are like the flight categories — domestic, international, cargo, charter. The departure board doesn't just send people randomly; it's dispatching them based on what KIND of journey they're taking. The MLP's consensus neurons are reading the ticket (context) and the exception handler fires when the journey type is unusual or ambiguous."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "Background: The Routing Program" },
+        "children": [
+          {
+            "type": "p",
+            "children": "In GPT-2 Small's final MLP (Layer 11), we found 27 neurons that form a readable routing program. Here's the architecture:"
+          },
+          {
+            "type": "DeepDive",
+            "props": { "title": "The Three-Tier Exception Handler" },
+            "children": [
+              {
+                "type": "CodeBlock",
+                "props": { "language": "text" },
+                "children": "ROUTING PROGRAM: L11 MLP (27 named neurons)\n───────────────────────────────────────────\nconsensus = count(N2, N2361, N2460, N2928,\n                  N1831, N1245, N2600)\nexception = N2123.fires    // 11.3% of tokens\n\nif exception:\n  CORE (5 neurons):  reset vocab → {the, in, and, a, ,}\n  DIFF (10 neurons): suppress wrong candidates\n  SPEC (5 neurons):  detect boundaries\nelse:\n  // consensus ≥ 5/7: MLP intervention is\n  // actually counterproductive!\n\nRESIDUAL (~3,040 neurons):\n  amplify/suppress attention-derived signal"
+              },
+              {
+                "type": "p",
+                "children": "The key insight: 7 consensus neurons each monitor a distinct linguistic dimension. When they all agree (high consensus), the model 'knows what's happening' and the MLP's intervention actually hurts. When consensus is low, the exception handler kicks in to correct the prediction."
+              }
+            ]
+          },
+          {
+            "type": "DefinitionList",
+            "children": [
+              {
+                "type": "dt",
+                "children": "Consensus Neurons (7)"
+              },
+              {
+                "type": "dd",
+                "children": "Fire on 79–91% of tokens. Each monitors a different linguistic property: clausal continuation, syntactic elaboration, relational embedding, sequential structure, discourse coherence, argument structure, and concrete reference."
+              },
+              {
+                "type": "dt",
+                "children": "Exception Neuron (N2123)"
+              },
+              {
+                "type": "dd",
+                "children": "A diagnostic readout — it reliably indicates which processing path is active (fires at high magnitude on 11.3% of tokens) but isn't causally necessary."
+              },
+              {
+                "type": "dt",
+                "children": "Core (5 neurons)"
+              },
+              {
+                "type": "dd",
+                "children": "Vocabulary reset — push toward function words {the, in, and, a, ,}. A DC offset that establishes a safe prior."
+              },
+              {
+                "type": "dt",
+                "children": "Differentiators (10 neurons)"
+              },
+              {
+                "type": "dd",
+                "children": "Suppress wrong candidates. These do the real discriminative work — they kill off incorrect predictions."
+              },
+              {
+                "type": "dt",
+                "children": "Specialists (5 neurons)"
+              },
+              {
+                "type": "dd",
+                "children": "Detect structural boundaries (paragraph breaks, clause boundaries). Fire rarely but precisely."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "Background: Schankian Primitives" },
+        "children": [
+          {
+            "type": "p",
+            "children": "Roger Schank proposed in the 1970s that all human actions can be decomposed into a small set of conceptual primitives. Our wake-sleep compression experiments independently rediscovered four of these, plus two novel ones:"
+          },
+          {
+            "type": "ComparisonTable",
+            "props": {
+              "headers": ["Primitive", "Meaning", "Example", "Rediscovered?"],
+              "rows": [
+                ["ATRANS", "Transfer of possession/control", "\"give\", \"buy\", \"steal\"", "✅ Yes"],
+                ["PTRANS", "Physical transfer of location", "\"go\", \"move\", \"fly\"", "✅ Yes"],
+                ["MTRANS", "Transfer of mental information", "\"tell\", \"read\", \"learn\"", "✅ Yes"],
+                ["INGEST", "Taking something into the body", "\"eat\", \"drink\", \"breathe\"", "✅ Yes"],
+                ["EMOTION", "Change of emotional state", "\"anger\", \"delight\", \"grieve\"", "🆕 Novel"],
+                ["STATUS", "Change of social/relational status", "\"promote\", \"marry\", \"fire\"", "🆕 Novel"]
+              ]
+            }
+          },
+          {
+            "type": "p",
+            "children": "The key result: compound operators compose naturally. 'Mail' = ATRANS∘PTRANS (transfer possession by physically moving something). 'Trade' = ATRANS∘ATRANS (two transfers of possession). The discovered library was within 4% of Schank's minimum description length."
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "The Connection: Routing = Dispatching Primitives" },
+        "children": [
+          {
+            "type": "Callout",
+            "props": { "type": "warning" },
+            "children": "This is the core hypothesis: each consensus neuron dimension corresponds to a feature that helps identify which Schankian primitive is active in the current context."
+          },
+          {
+            "type": "DeepDive",
+            "props": { "title": "Mapping Consensus Neurons to Primitive Features" },
+            "children": [
+              {
+                "type": "p",
+                "children": "Consider what each consensus neuron detects and how it relates to primitive selection:"
+              },
+              {
+                "type": "ComparisonTable",
+                "props": {
+                  "headers": ["Consensus Neuron", "Linguistic Dimension", "Primitive Connection"],
+                  "rows": [
+                    ["N2 (Clausal continuation)", "Fires on 'and', 'but', 'also' mid-clause", "CONT — continuation of an ongoing process. When this fires, the current primitive is continuing, not switching."],
+                    ["N2460 (Relational embedding)", "Fires on prepositions: 'into', 'per', 'from'", "ATRANS/PTRANS — prepositional phrases encode transfers of possession or location."],
+                    ["N2928 (Sequential structure)", "Fires on ordinals, lists, parallel structure", "Script sequencing — which step of the Schankian script are we in?"],
+                    ["N1831 (Discourse coherence)", "Fires on topic-continuing phrases", "Same-script detection — are we still within the same Schankian frame?"],
+                    ["N1245 (Argument structure)", "Fires on semantic roles", "Thematic slots — the WHO and WHAT of the primitive (agent, patient, instrument)."],
+                    ["N2600 (Concrete reference)", "Fires on currencies, dates, names", "Entity grounding — you need concrete entities to instantiate any primitive."]
+                  ]
+                }
+              },
+              {
+                "type": "p",
+                "children": "When ALL consensus neurons fire (7/7), the primitive is obvious from context — the model doesn't need the exception handler. The tokens are predictable BECAUSE the primitive and its arguments are fully specified. When consensus drops, the primitive is ambiguous or novel — the exception handler resolves which primitive applies."
+              }
+            ]
+          },
+          {
+            "type": "Example",
+            "props": { "title": "Worked Example: 'John gave Mary the book'" },
+            "children": [
+              {
+                "type": "p",
+                "children": "Let's trace through the sentence 'John gave Mary the book' and predict consensus levels:"
+              },
+              {
+                "type": "CodeBlock",
+                "props": { "language": "text" },
+                "children": "Token     Predicted Consensus    Why\n─────────────────────────────────────────────────\n'John'    Medium (4-5/7)        Entity present (N2600 ✓)\n                                but verb unknown → primitive unknown\n\n'gave'    High (6-7/7)          ATRANS identified!\n                                Argument structure clear (N1245 ✓)\n                                Relational embedding expected (N2460 ✓)\n                                Sequential structure ✓, discourse ✓\n\n'Mary'    High (6-7/7)          ATRANS recipient slot being filled\n                                All dimensions predictable\n\n'the'     Very high (7/7)       Determiner before known object slot\n                                Fully predictable → MLP counterproductive\n\n'book'    High (6-7/7)          ATRANS object slot filled\n                                Script nearly complete"
+              },
+              {
+                "type": "p",
+                "children": "Notice: consensus is LOWEST at the start (before the primitive is identified) and HIGHEST once the primitive and its argument slots are clear. The exception handler fires early (at 'John') when the primitive is ambiguous, and goes quiet once ATRANS is established by 'gave'."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "The Three-Paper Triangle" },
+        "children": [
+          {
+            "type": "p",
+            "children": "This hypothesis connects three independent research threads into a unified picture:"
+          },
+          {
+            "type": "DeepDive",
+            "props": { "title": "How the Papers Connect" },
+            "children": [
+              {
+                "type": "CodeBlock",
+                "props": { "language": "text" },
+                "children": "    DARKNESS VISIBLE              OPERATOR DISCOVERY\n    (routing program)            (primitive vocabulary)\n         │                              │\n         │  \"The router dispatches       │\n         │   through a vocabulary of     │\n         │   operations that wake-sleep  │\n         │   discovers as Schankian\"     │\n         │                              │\n         └──────────┬───────────────────┘\n                    │\n                 HYDRA\n            (multi-head preprocessing)\n                    │\n         ┌──────────┴───────────┐\n         │                      │\n    Phrase Structure      Thematic Roles\n    Head (constituency)   Head (SRL/PropBank)\n         │                      │\n    Identifies WHICH      Identifies the\n    primitive's syntax    primitive's ARGUMENTS\n    applies               (agent, patient, etc.)"
+              },
+              {
+                "type": "p",
+                "children": "Darkness Visible found the dispatcher. Operator Discovery found the operation vocabulary. Hydra is building an architecture that makes the dispatching explicit — each head annotates a different dimension that the routing program already implicitly uses."
+              }
+            ]
+          },
+          {
+            "type": "Callout",
+            "props": { "type": "success" },
+            "children": "The deep insight: the MLP doesn't just 'route' — it routes THROUGH a vocabulary of operations. The routing decision IS the primitive selection. Understanding this unifies mechanistic interpretability (what neurons do) with cognitive science (what operations the mind performs)."
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "Testing the Hypothesis" },
+        "children": [
+          {
+            "type": "p",
+            "children": "This isn't just a theoretical connection — it makes specific, testable predictions:"
+          },
+          {
+            "type": "DeepDive",
+            "props": { "title": "Experiment 1: Consensus-Primitive Correlation" },
+            "children": [
+              {
+                "type": "Steps",
+                "children": [
+                  { "type": "Step", "children": "Annotate the 204,800 token WikiText-103 evaluation set with Schankian primitives (using an LLM or manual annotation for a subset)" },
+                  { "type": "Step", "children": "For each token, record: (a) the consensus level (0-7), (b) the active primitive, (c) whether the token is at a primitive boundary (switching from one to another)" },
+                  { "type": "Step", "children": "Test prediction: tokens within a well-known script (restaurant → ORDER → ATRANS) should have HIGH consensus" },
+                  { "type": "Step", "children": "Test prediction: tokens at primitive boundaries should have LOWER consensus" },
+                  { "type": "Step", "children": "Compute mutual information between consensus level and primitive type — if routing IS dispatching, MI should be significantly above chance" }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "DeepDive",
+            "props": { "title": "Experiment 2: Differentiator-Primitive Contingency" },
+            "children": [
+              {
+                "type": "p",
+                "children": "The 10 Differentiator neurons suppress wrong candidates. If routing is primitive selection, different Differentiators should fire for different primitive types:"
+              },
+              {
+                "type": "CodeBlock",
+                "props": { "language": "text" },
+                "children": "Contingency Table (predicted pattern):\n\n              ATRANS  PTRANS  MTRANS  INGEST  Other\n  N2462       HIGH    HIGH    HIGH    HIGH    HIGH   (general suppressor)\n  N2173       HIGH    low     HIGH    low     low    (abstract transfer)\n  N1602       low     HIGH    low     low     low    (spatial)\n  N737        HIGH    HIGH    HIGH    HIGH    HIGH   (boundary detector)\n  ...\n\nIf Differentiators are primitive-specific suppressors,\nthe contingency table should show structure (not uniform).\nTest with chi-squared or Fisher's exact."
+              }
+            ]
+          },
+          {
+            "type": "DeepDive",
+            "props": { "title": "Experiment 3: Hydra Head Alignment" },
+            "children": [
+              {
+                "type": "p",
+                "children": "Hydra's thematic role head explicitly annotates PropBank-style semantic roles (Agent, Patient, Theme). These are exactly the argument slots of Schankian primitives. If Hydra's head annotations and the routing program's consensus levels are measuring the same thing:"
+              },
+              {
+                "type": "Steps",
+                "children": [
+                  { "type": "Step", "children": "Run Hydra's thematic head on the same WikiText evaluation set" },
+                  { "type": "Step", "children": "For each token, compare: Hydra's predicted thematic role vs. GPT-2's consensus neuron pattern" },
+                  { "type": "Step", "children": "Prediction: tokens where Hydra assigns a clear thematic role should have HIGH consensus in GPT-2" },
+                  { "type": "Step", "children": "Prediction: tokens where Hydra's thematic head is uncertain should have LOW consensus — the uncertainty in both systems should be correlated" }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "Interactive: Map the Primitives" },
+        "children": [
+          {
+            "type": "InteractiveDemo",
+            "props": {
+              "title": "Predict the Consensus Level",
+              "description": "For each sentence, predict whether the highlighted token would have HIGH consensus (6-7/7, primitive is clear) or LOW consensus (0-3/7, primitive is ambiguous). Think about: Is the current Schankian primitive obvious? Are the argument slots filled?"
+            },
+            "children": [
+              {
+                "type": "Steps",
+                "children": [
+                  { "type": "Step", "children": "'The chef [PREPARED] the meal carefully.' → HIGH consensus. INGEST-related script, clear verb, clear patient. All dimensions fire." },
+                  { "type": "Step", "children": "'She [BANK] on the river was muddy.' → LOW consensus. 'Bank' is ambiguous — ATRANS (financial) or PTRANS (riverbank)? The primitive is unresolved." },
+                  { "type": "Step", "children": "'After years of silence, he finally [...] her.' → LOW consensus. The primitive slot is open — could be MTRANS (told), ATRANS (forgave), PTRANS (visited), or EMOTION (missed). Maximum ambiguity." },
+                  { "type": "Step", "children": "'The water [BOILED] in the pot.' → HIGH consensus. Physical process, clear entity, predictable script. No primitive ambiguity." },
+                  { "type": "Step", "children": "'The committee [VOTED] to approve the measure.' → HIGH consensus. MTRANS (information-bearing decision) in a clear institutional script. Arguments well-specified." }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "Quiz" },
+        "children": [
+          {
+            "type": "Quiz",
+            "props": {
+              "question": "In the routing-as-dispatcher hypothesis, when should the exception handler fire MOST strongly?",
+              "options": [
+                "When the token is a common function word like 'the'",
+                "When the Schankian primitive is ambiguous or switching",
+                "When the sentence is grammatically incorrect",
+                "At the end of every sentence"
+              ],
+              "correct": 1,
+              "explanation": "The exception handler fires when consensus is low — meaning the model doesn't yet know 'what's happening.' In the primitive-dispatcher interpretation, this corresponds to moments where the active primitive is ambiguous (multiple possibilities) or switching (moving from one primitive to another). Common function words typically have HIGH consensus and DON'T trigger the exception handler."
+            }
+          },
+          {
+            "type": "Quiz",
+            "props": {
+              "question": "Why is the Hydra architecture relevant to this hypothesis?",
+              "options": [
+                "Hydra uses the same GPU as GPT-2",
+                "Hydra's thematic role head explicitly annotates the argument slots that Schankian primitives need",
+                "Hydra was trained on the same dataset as the routing program",
+                "Hydra has 27 neurons just like the routing program"
+              ],
+              "correct": 1,
+              "explanation": "Hydra's thematic role head annotates PropBank-style semantic roles (Agent, Patient, Theme, etc.) — these are exactly the argument slots of Schankian primitives. ATRANS needs an agent (who gives), a patient (what's given), and a recipient (who receives). If the routing program is dispatching primitives, and Hydra is labeling their argument slots, they should show correlated uncertainty patterns."
+            }
+          },
+          {
+            "type": "Quiz",
+            "props": {
+              "question": "The wake-sleep compression discovered compound operators like 'mail' = ATRANS∘PTRANS. How might this appear in the routing program?",
+              "options": [
+                "A single neuron fires for 'mail' specifically",
+                "The exception handler fires twice in sequence — once for each sub-primitive",
+                "The routing program has a special 'compound' tier",
+                "Compound operators would be invisible to the routing program"
+              ],
+              "correct": 1,
+              "explanation": "If routing IS primitive dispatching, then compound operators should produce sequential routing decisions — first dispatching ATRANS (the transfer of possession), then PTRANS (the physical movement). This predicts that compound-operator tokens would show fluctuating consensus levels as the model resolves each sub-primitive in sequence. The exception handler might fire at the boundary between sub-primitives."
+            }
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "Why This Matters" },
+        "children": [
+          {
+            "type": "p",
+            "children": "If the routing program IS a primitive dispatcher, it means:"
+          },
+          {
+            "type": "DefinitionList",
+            "children": [
+              {
+                "type": "dt",
+                "children": "Mechanistic interpretability and cognitive science are studying the same thing"
+              },
+              {
+                "type": "dd",
+                "children": "The neurons aren't just 'features' — they're implementing conceptual operations that Schank theorized in the 1970s. The MLP has independently evolved a dispatcher for a vocabulary of operations that humans use to understand events."
+              },
+              {
+                "type": "dt",
+                "children": "The routing program becomes predictable"
+              },
+              {
+                "type": "dd",
+                "children": "If we know which primitive is active (from the text), we can predict which neurons will fire. This converts the routing program from a 'discovered structure' into a 'theory with predictions.'"
+              },
+              {
+                "type": "dt",
+                "children": "Hydra becomes a design principle, not just an architecture"
+              },
+              {
+                "type": "dd",
+                "children": "If GPT-2 already does primitive dispatching implicitly (in 27 neurons), Hydra makes it explicit (in dedicated heads). This suggests Hydra's multi-head design isn't arbitrary — it's building what transformers already want to compute."
+              }
+            ]
+          },
+          {
+            "type": "Callout",
+            "props": { "type": "success" },
+            "children": "The deepest version of this claim: language models don't just predict the next token. They maintain a running model of 'what kind of thing is happening right now' — and that model is organized around something very close to Schankian conceptual primitives. The routing program is the readout of that model."
+          }
+        ]
+      }
+    ]
+  }
+}

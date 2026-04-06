@@ -1777,6 +1777,18 @@ const tutorials = [
     readTime: '22 min',
     difficulty: 3,
   },
+  {
+    id: 'brainstorm-87-routing-primitive-selectors',
+    title: 'Routing Programs as Primitive Selectors',
+    description: 'Is the MLP exception handler a Schankian dispatcher? The 27-neuron routing program in GPT-2 may literally select which conceptual primitive applies to each token — connecting mech interp to cognitive science.',
+    tags: ['mechanistic interpretability', 'Schankian primitives', 'MLP routing', 'transformers', 'Hydra'],
+    icon: '🔀',
+    gradient: 'from-rose-500 to-red-600',
+    shadowColor: 'shadow-rose-500/30',
+    glowColor: 'rgba(244, 63, 94, 0.4)',
+    readTime: '15 min',
+    difficulty: 3,
+  },
 ]
 
 // Semantic tag color system - filled backgrounds
