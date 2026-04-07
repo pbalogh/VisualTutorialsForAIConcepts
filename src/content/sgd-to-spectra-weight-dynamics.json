@@ -1,0 +1,482 @@
+{
+  "id": "sgd-to-spectra-weight-dynamics",
+  "title": "From SGD to Spectra",
+  "subtitle": "How Training Sculpts the Shape of a Weight Matrix",
+  "readTime": "35 min",
+  "difficulty": 2,
+  "state": "published",
+  "content": {
+    "type": "Fragment",
+    "children": [
+      {
+        "type": "Callout",
+        "props": { "type": "info" },
+        "children": [
+          {
+            "type": "p",
+            "children": [
+              { "type": "strong", "children": "You know a weight matrix is a fuzzy hashmap. But what SHAPE is the hashmap?" },
+              " This tutorial starts from the intuition that matrix multiplication is weighted fuzzy-matching, and builds up to understanding how training sculpts the 'shape' of weight matrices — their spectrum of singular values — and why that shape predicts whether the network will generalize. Based on Fatehmanesh et al. (2025), 'From SGD to Spectra: A Theory of Neural Network Weight Dynamics' (arXiv:2507.12709)."
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "1. Recap: The Matrix as Fuzzy Hashmap" },
+        "children": [
+          {
+            "type": "p",
+            "children": "You already know this, but let's anchor it. A traditional hashmap takes a key and returns a value — exact match, all-or-nothing. A weight matrix does the same thing, but fuzzy: multiply your input vector by the matrix, and you get a weighted blend of stored 'values,' where the weights depend on how well your input 'matches' each stored 'key.'"
+          },
+          {
+            "type": "Analogy",
+            "props": {
+              "from": "A hashmap lookup",
+              "to": "Matrix-vector multiplication"
+            },
+            "children": "Hashmap: key → exact match → one value. Matrix: input vector → fuzzy match against all rows → weighted sum of all values. The 'fuzziness' is what makes neural networks powerful — they generalize instead of memorizing."
+          },
+          {
+            "type": "p",
+            "children": "But here's a question you might not have asked: when you have a 768×768 weight matrix with 589,824 numbers in it, are all those numbers equally important? Or do some matter enormously while others are basically noise?"
+          },
+          {
+            "type": "p",
+            "children": "That's the question that eigenvalues and singular values answer."
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "2. What a Matrix DOES to Space" },
+        "children": [
+          {
+            "type": "p",
+            "children": "Forget numbers for a moment. Think geometrically. When you multiply a vector by a matrix, the matrix TRANSFORMS the vector — it stretches, rotates, and possibly squishes the space the vector lives in."
+          },
+          {
+            "type": "p",
+            "children": "Imagine throwing a ball of clay (a sphere of input vectors) at a weight matrix. What comes out the other side is NOT a sphere — it's an ellipsoid. The matrix stretched some directions and squished others."
+          },
+          {
+            "type": "InteractiveDemo",
+            "props": {
+              "id": "sphere-to-ellipsoid",
+              "title": "The Sphere-to-Ellipsoid Transformation",
+              "description": "A matrix transforms a sphere of inputs into an ellipsoid of outputs. The singular values are the lengths of the ellipsoid's axes.",
+              "initialState": { "matrixType": "balanced" },
+              "controls": [
+                {
+                  "type": "buttonGroup",
+                  "key": "matrixType",
+                  "label": "Matrix Type",
+                  "options": [
+                    { "value": "balanced", "label": "🟢 Balanced" },
+                    { "value": "one_dominant", "label": "🔴 One Dominant" },
+                    { "value": "low_rank", "label": "🟡 Low Rank" },
+                    { "value": "random", "label": "⚪ Random Init" }
+                  ]
+                }
+              ],
+              "display": {
+                "type": "card",
+                "content": {
+                  "balanced": "**Balanced Matrix** (σ₁ ≈ σ₂ ≈ σ₃)\n\nSphere in → slightly ellipsoidal out. All directions treated roughly equally.\n\n🔵→🔵 The matrix stretches all directions about the same amount.\n\nSingular values: [3.1, 2.8, 2.5]\n\nThis matrix doesn't 'prefer' any direction. It's a mediocre hashmap — it matches everything a little, nothing a lot.",
+                  "one_dominant": "**One Dominant Direction** (σ₁ >> σ₂, σ₃)\n\nSphere in → long thin cigar out. ONE direction is massively amplified.\n\n🔵→🥒 The matrix crushes most directions and stretches one enormously.\n\nSingular values: [15.0, 0.8, 0.3]\n\nThis matrix has learned ONE strong pattern. Almost all inputs get projected onto a single direction. It's a hashmap with one very loud entry.",
+                  "low_rank": "**Low Rank** (σ₁, σ₂ big; σ₃ ≈ 0)\n\nSphere in → flat pancake out. The output lives in 2D, not 3D.\n\n🔵→🥞 The matrix collapses one dimension entirely.\n\nSingular values: [8.0, 5.0, 0.01]\n\nThis matrix has learned exactly TWO important patterns. Everything else is noise. It's a hashmap with two useful entries — the third row might as well not exist.",
+                  "random": "**Random Initialization** (Marchenko-Pastur distributed)\n\nSphere in → slightly lumpy blob out. No strong preferences yet.\n\n🔵→🫧 A gentle, structureless deformation.\n\nSingular values: [1.8, 1.4, 1.1]\n\nBefore training, the matrix is random. The singular values follow a known mathematical pattern (Marchenko-Pastur law). No structure has been learned yet — the hashmap is full of random entries."
+                }
+              }
+            }
+          },
+          {
+            "type": "Callout",
+            "props": { "type": "key-idea" },
+            "children": [
+              {
+                "type": "p",
+                "children": [
+                  { "type": "strong", "children": "Singular values are the stretch factors." },
+                  " Each singular value tells you how much the matrix stretches space along one particular direction. Big singular value = the matrix amplifies inputs in that direction. Small singular value = the matrix ignores or crushes inputs in that direction. Zero singular value = that dimension is completely destroyed."
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "3. The Spectrum: A Portrait of What the Matrix Knows" },
+        "children": [
+          {
+            "type": "p",
+            "children": "If you line up ALL the singular values of a matrix from largest to smallest, you get its 'spectrum.' The spectrum is a portrait of the matrix — it tells you what the matrix has learned to care about."
+          },
+          {
+            "type": "DefinitionList",
+            "children": [
+              {
+                "term": "Spectrum (of a matrix)",
+                "definition": "The sorted list of singular values, from largest to smallest. Visualized as a histogram or a curve. Tells you the 'shape' of what the matrix does to space."
+              },
+              {
+                "term": "Spectral density",
+                "definition": "A histogram: for each possible singular value size, how many singular values have approximately that size? Shows whether the matrix's 'knowledge' is concentrated in a few directions or spread across many."
+              }
+            ]
+          },
+          {
+            "type": "InteractiveDemo",
+            "props": {
+              "id": "spectral-profiles",
+              "title": "Reading a Spectral Profile",
+              "description": "Different spectral shapes tell you different things about what the matrix has learned.",
+              "initialState": { "spectrum": "untrained" },
+              "controls": [
+                {
+                  "type": "buttonGroup",
+                  "key": "spectrum",
+                  "label": "Training Stage",
+                  "options": [
+                    { "value": "untrained", "label": "🟦 Before Training" },
+                    { "value": "early", "label": "🟧 Early Training" },
+                    { "value": "trained", "label": "🟩 Well Trained" },
+                    { "value": "overtrained", "label": "🟥 Overtrained" }
+                  ]
+                }
+              ],
+              "display": {
+                "type": "card",
+                "content": {
+                  "untrained": "**Before Training: The Marchenko-Pastur Distribution**\n\n📊 Spectrum shape: A smooth bell-like curve\n\nAll singular values clustered together, no outliers.\n\n```\n  ██\n ████\n██████\n████████\n──────────→ singular value size\n```\n\nThe matrix is random. It hasn't learned anything yet. All directions are roughly equal. This is the 'baseline' spectrum predicted by Random Matrix Theory — and it's remarkably universal. Almost ANY random matrix, regardless of how you initialize it, produces this same shape.",
+                  "early": "**Early Training: A Few Directions Start to Emerge**\n\n📊 Spectrum shape: Bell curve + a few values pulling to the right\n\n```\n  ██\n ████         *\n██████      *\n████████  *\n──────────────→ singular value size\n```\n\nA few singular values have started to grow — the matrix is discovering its first important patterns. The bulk is still random-looking, but outliers are appearing. These outliers are the first 'entries' being written into the fuzzy hashmap.",
+                  "trained": "**Well Trained: Bulk + Tail Structure**\n\n📊 Spectrum shape: Dense bulk on the left + a power-law tail stretching right\n\n```\n ██\n████\n██████  *  *     *        *\n████████  *   *     *           *\n────────────────────────────────→ singular value size\n```\n\nTHIS is the key structure the Fatehmanesh paper explains. The BULK (left hump) is background — dimensions the matrix uses for general-purpose processing. The TAIL (scattered large values to the right) is learned knowledge — the specific patterns that matter.\n\n🎯 The ratio of tail to bulk tells you how much real knowledge the matrix carries vs. how much is overhead. More tail = more learned structure. This is what correlates with generalization.",
+                  "overtrained": "**Overtrained: Too Many Big Singular Values**\n\n📊 Spectrum shape: Heavy tail, depleted bulk\n\n```\n█\n██   *  * * *  * *  *  * *  *  * *\n████  * * *  * * *  * *  * *  * * *\n────────────────────────────────→ singular value size\n```\n\nToo many singular values have grown large — the matrix is memorizing training examples rather than generalizing. Each training example gets its own 'direction' in the matrix. The bulk has been depleted. This is overfitting, visible in the spectrum."
+                }
+              }
+            }
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "4. Eigenvalue Repulsion: Why Singular Values Can't Share" },
+        "children": [
+          {
+            "type": "p",
+            "children": "Here's where the Fatehmanesh paper makes its most beautiful contribution. They show that during training, singular values behave like CHARGED PARTICLES that repel each other."
+          },
+          {
+            "type": "Analogy",
+            "props": {
+              "from": "Electrons in a wire",
+              "to": "Singular values during training"
+            },
+            "children": "Electrons repel each other — you can't stack two in the same location. If you push one electron, all the others shift to maintain distance. Singular values do the same thing during SGD training: if one grows, the others are pushed away. They physically CAN'T clump together. This is called 'eigenvalue repulsion' and it comes from the same mathematics that governs charged particles (Dyson Brownian motion)."
+          },
+          {
+            "type": "p",
+            "children": "Why does this happen? Look at the key term in Fatehmanesh's equation for how a singular value σₖ evolves:"
+          },
+          {
+            "type": "Example",
+            "props": { "title": "The Repulsion Term" },
+            "children": [
+              {
+                "type": "p",
+                "children": "dσₖ = ... + Σⱼ≠ₖ σₖ/(σₖ² - σⱼ²) dt + noise"
+              },
+              {
+                "type": "p",
+                "children": "That fraction σₖ/(σₖ² - σⱼ²) BLOWS UP when σₖ gets close to σⱼ. Two singular values approaching the same size creates an enormous force pushing them apart. They literally cannot coalesce."
+              },
+              {
+                "type": "p",
+                "children": "This is exactly the Coulomb repulsion between charged particles, transplanted into matrix space. Dyson discovered this in the 1960s for random matrices in nuclear physics. Fatehmanesh shows it governs neural network training too."
+              }
+            ]
+          },
+          {
+            "type": "DeepDive",
+            "props": { "title": "Why repulsion matters for learning" },
+            "children": [
+              {
+                "type": "p",
+                "children": "Repulsion means the network CAN'T learn redundant features. If two singular values tried to encode the same pattern (meaning they'd have the same size), the repulsion term forces them apart — one grows larger (becoming 'the' feature for that pattern) and the other shrinks or finds a different pattern. This is an implicit form of regularization: SGD's noise naturally prevents the network from wasting capacity on duplicate representations. It's not something the optimizer was designed to do — it emerges from the mathematics of how matrices evolve under stochastic updates."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "5. SGD as a Spectral Sculptor" },
+        "children": [
+          {
+            "type": "p",
+            "children": "The paper's central metaphor: SGD is a 'spectral sculptor.' Mini-batch noise isn't just an annoyance we tolerate — it's the chisel that carves the spectrum into the shape it needs."
+          },
+          {
+            "type": "InteractiveDemo",
+            "props": {
+              "id": "sgd-sculptor",
+              "title": "The Three Forces Shaping the Spectrum",
+              "description": "Three forces compete during training. Their balance determines the final spectral shape.",
+              "initialState": { "force": "gradient" },
+              "controls": [
+                {
+                  "type": "buttonGroup",
+                  "key": "force",
+                  "label": "Force",
+                  "options": [
+                    { "value": "gradient", "label": "📉 Gradient Pull" },
+                    { "value": "noise", "label": "🌊 SGD Noise" },
+                    { "value": "repulsion", "label": "⚡ Repulsion" }
+                  ]
+                }
+              ],
+              "display": {
+                "type": "card",
+                "content": {
+                  "gradient": "**Force 1: Gradient Pull**\n\nThe loss gradient pulls singular values toward specific targets — the values that minimize the loss function. This is the 'learning signal.' It's what makes specific singular values grow large (creating the tail).\n\nAnalogy: Gravity pulling planets into orbits. Each singular value is attracted to a specific size that's useful for the task.\n\nIn the equation: the term -η uₖᵀ(∇ℒ)vₖ\n\nThis force creates STRUCTURE — it's why the trained spectrum looks different from the random one.",
+                  "noise": "**Force 2: SGD Noise (Diffusion)**\n\nMini-batch randomness shakes every singular value randomly on every step. Small singular values get shaken more (proportionally) than large ones.\n\nAnalogy: Thermal vibrations. Everything jitters. Small particles jitter more than large ones.\n\nIn the equation: the term √(2ηD) dβₖ(t)\n\nThis force creates the BULK — the many small singular values that form the left hump of the spectrum. They're not noise in the sense of 'useless' — they're the substrate that keeps the network flexible.",
+                  "repulsion": "**Force 3: Eigenvalue Repulsion**\n\nSingular values push each other apart, like charged particles. Values can't clump together.\n\nAnalogy: Electrons in a crystal lattice. They settle into a regular structure because of mutual repulsion.\n\nIn the equation: the term Σⱼ≠ₖ σₖ/(σₖ² - σⱼ²)\n\nThis force creates SEPARATION between the bulk and the tail. Without repulsion, you'd get a continuous smear. With repulsion, the few large values (tail) and the many small values (bulk) are forced apart into distinct populations."
+                }
+              }
+            }
+          },
+          {
+            "type": "Callout",
+            "props": { "type": "key-idea" },
+            "children": [
+              {
+                "type": "p",
+                "children": [
+                  { "type": "strong", "children": "The beautiful result:" },
+                  " When these three forces reach equilibrium, the stationary distribution is a gamma-type density with power-law tails. This is the 'bulk+tail' structure that every trained neural network exhibits, and this paper is the first to explain it from first principles. The shape is not an accident of any particular architecture or dataset — it's a mathematical consequence of how matrices evolve under stochastic gradient updates."
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "6. What This Means for Your Fuzzy Hashmap" },
+        "children": [
+          {
+            "type": "p",
+            "children": "Let's translate back to your intuition. A weight matrix is a fuzzy hashmap. Training writes entries into it. The spectrum tells you the QUALITY of the hashmap:"
+          },
+          {
+            "type": "DefinitionList",
+            "children": [
+              {
+                "term": "Tail singular values",
+                "definition": "The 'important entries' in the hashmap — the patterns the network has actually learned. A large singular value means: 'When an input matches this direction, amplify the signal loudly.' These are the knowledge."
+              },
+              {
+                "term": "Bulk singular values",
+                "definition": "The 'background' of the hashmap — small, numerous, not individually important, but collectively they keep the network flexible and enable generalization. They're the hashmap's ability to handle inputs it hasn't seen before."
+              },
+              {
+                "term": "The bulk/tail ratio",
+                "definition": "How much of the matrix's capacity is spent on learned knowledge (tail) vs. general-purpose flexibility (bulk). Too much tail = overfitting. Too little tail = undertrained. The right balance = generalization."
+              }
+            ]
+          },
+          {
+            "type": "DeepDive",
+            "props": { "title": "Connection to Darkness Visible" },
+            "children": [
+              {
+                "type": "p",
+                "children": "The routing program in GPT-2's L11 MLP — the 7 consensus neurons, the Differentiators, the Specialists — these live in the TAIL of the L11 weight matrix spectrum. They're the large singular values: the directions the matrix has learned to amplify strongly. The bulk of L11's spectrum is the flexible substrate that handles the majority of tokens that don't need special routing. The 'exception handler' fires precisely when a token's representation aligns with a tail direction rather than a bulk direction."
+              }
+            ]
+          },
+          {
+            "type": "DeepDive",
+            "props": { "title": "Connection to Hydra" },
+            "children": [
+              {
+                "type": "p",
+                "children": "Here's the prediction that ties everything together: Hydra, with its explicit structural heads, should have a DIFFERENT spectral profile than a standard transformer trained on the same data. Specifically: (1) Hydra's parsing heads should have most of their singular value mass in the tail, because they're explicitly doing one job (phrase structure, thematic roles, etc.) — almost no 'bulk' overhead needed. (2) Hydra's Mamba body should have a SMALLER tail than GPT-2's layers, because the body doesn't need to do manifold origami — the heads already did the geometric work. (3) The total 'tail mass' across all of Hydra should be similar to GPT-2's total tail mass (same information learned), but distributed more efficiently (concentrated in the right heads rather than smeared across all layers)."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "7. The Key Equations (Intuitively)" },
+        "children": [
+          {
+            "type": "p",
+            "children": "You don't need to derive these, but understanding what each piece MEANS will let you read the paper with confidence:"
+          },
+          {
+            "type": "Example",
+            "props": { "title": "The Master Equation" },
+            "children": [
+              {
+                "type": "p",
+                "children": "dσₖ = [gradient pull + repulsion] dt + noise dβₖ"
+              },
+              {
+                "type": "p",
+                "children": "In words: 'The change in singular value k = (what the loss function wants) + (being pushed away from other singular values) + (random jitter from mini-batches).'"
+              },
+              {
+                "type": "p",
+                "children": "That's it. Everything in the paper follows from this one equation. The bulk+tail structure, the power-law tails, the Marchenko-Pastur bulk — all of it is just this equation reaching equilibrium."
+              }
+            ]
+          },
+          {
+            "type": "DefinitionList",
+            "children": [
+              {
+                "term": "Marchenko-Pastur law",
+                "definition": "The spectrum of a RANDOM matrix. Before training, singular values follow this known distribution. It's the 'null hypothesis' — what the spectrum looks like when the matrix knows nothing."
+              },
+              {
+                "term": "Dyson Brownian motion",
+                "definition": "The mathematical model for how eigenvalues evolve when pushed by noise + repulsion. Originally from nuclear physics (describing energy levels of heavy atoms). Turns out, the same math describes singular values during SGD."
+              },
+              {
+                "term": "Power-law tail",
+                "definition": "The few very large singular values follow a power law: P(σ > x) ~ x^(-α). This means there's no 'cap' on how large they can get — a few can be enormous. These are the most important learned features."
+              },
+              {
+                "term": "Gamma-type density",
+                "definition": "The overall shape of the trained spectrum. Combines a dense bulk (exponential decay for small values) with a power-law tail (slow decay for large values). This is the 'universal shape' of trained neural network weight matrices."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "8. Why This Paper Matters" },
+        "children": [
+          {
+            "type": "p",
+            "children": "Three reasons this is important, in increasing order of ambition:"
+          },
+          {
+            "type": "DefinitionList",
+            "children": [
+              {
+                "term": "1. Practical: Predicting training quality",
+                "definition": "You can look at a weight matrix's spectrum mid-training and predict whether the network will generalize — without running evaluation. Healthy bulk+tail = good. Depleted bulk = overfitting. No tail = undertrained. This is a diagnostic tool."
+              },
+              {
+                "term": "2. Theoretical: Why deep learning works",
+                "definition": "The bulk+tail structure isn't designed — it EMERGES from the mathematics of SGD on matrices. This means deep learning's success isn't fragile or accidental; it's a mathematical consequence of training large matrices with stochastic noise. The same physics that organizes electron energy levels organizes neural network knowledge."
+              },
+              {
+                "term": "3. Architectural: Guiding design",
+                "definition": "If we understand what spectral shapes are desirable, we can design architectures that produce them more efficiently. Hydra's explicit structure might produce the 'right' spectrum with fewer parameters — because it doesn't need to waste bulk singular values on manifold origami that the heads handle explicitly."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "9. Quiz" },
+        "children": [
+          {
+            "type": "Quiz",
+            "children": [
+              {
+                "question": "What do singular values of a matrix geometrically represent?",
+                "options": [
+                  "The number of rows and columns",
+                  "How much the matrix stretches space along each principal direction",
+                  "The average value of each row",
+                  "The matrix's position in parameter space"
+                ],
+                "correctIndex": 1,
+                "explanation": "When you multiply a sphere of input vectors by a matrix, you get an ellipsoid. The singular values are the lengths of that ellipsoid's axes — they tell you how much the matrix stretches (or squishes) space along each principal direction."
+              },
+              {
+                "question": "What is eigenvalue repulsion?",
+                "options": [
+                  "Large eigenvalues attract small ones",
+                  "Eigenvalues are randomly distributed and sometimes collide",
+                  "Eigenvalues push each other apart like charged particles — they can't have the same value",
+                  "Eigenvalues decrease during training"
+                ],
+                "correctIndex": 2,
+                "explanation": "The repulsion term σₖ/(σₖ² - σⱼ²) blows up as two singular values approach the same size, creating an enormous force pushing them apart. This is mathematically identical to Coulomb repulsion between charged particles."
+              },
+              {
+                "question": "In a well-trained network, what does the 'tail' of the spectrum represent?",
+                "options": [
+                  "Random noise from initialization",
+                  "Errors in the training process",
+                  "The specific patterns and knowledge the network has learned",
+                  "Unused capacity in the weight matrix"
+                ],
+                "correctIndex": 2,
+                "explanation": "The tail singular values are the 'important entries in the fuzzy hashmap' — the directions the matrix has learned to amplify strongly. They encode the specific patterns, features, and knowledge that matter for the task."
+              },
+              {
+                "question": "What is the Marchenko-Pastur distribution?",
+                "options": [
+                  "The optimal spectrum for a trained network",
+                  "The spectrum of a RANDOM matrix before any training",
+                  "A measure of overfitting",
+                  "The distribution of gradients during backpropagation"
+                ],
+                "correctIndex": 1,
+                "explanation": "Marchenko-Pastur is the 'null hypothesis' — it describes what the spectrum looks like when the matrix is purely random and has learned nothing. Deviations from Marchenko-Pastur are how you measure learning."
+              },
+              {
+                "question": "Why do the authors call SGD a 'spectral sculptor'?",
+                "options": [
+                  "SGD removes unnecessary weights from the network",
+                  "The stochastic noise from mini-batches, combined with gradient pull and repulsion, carves the spectrum into a specific shape that enables generalization",
+                  "SGD compresses the spectrum to save memory",
+                  "The sculptor metaphor refers to weight pruning"
+                ],
+                "correctIndex": 1,
+                "explanation": "Three forces — gradient pull (learning signal), SGD noise (diffusion), and eigenvalue repulsion — compete to shape the spectrum. Their equilibrium produces the universal bulk+tail structure. The noise isn't a bug — it's the chisel."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "10. Further Reading" },
+        "children": [
+          {
+            "type": "DefinitionList",
+            "children": [
+              {
+                "term": "Fatehmanesh et al. (2025)",
+                "definition": "From SGD to Spectra: A Theory of Neural Network Weight Dynamics. arXiv:2507.12709. The paper this tutorial is based on. Derives the SDE framework connecting SGD to spectral evolution."
+              },
+              {
+                "term": "Martin & Mahoney (2021)",
+                "definition": "Implicit Self-Regularization in Deep Neural Networks. Identified the 5+1 phases of spectral evolution and showed that bulk+tail structure correlates with generalization. The empirical foundation that Fatehmanesh et al. explain theoretically."
+              },
+              {
+                "term": "Marchenko & Pastur (1967)",
+                "definition": "Distribution of eigenvalues for some sets of random matrices. The foundational result on spectra of random matrices — the 'before training' baseline."
+              },
+              {
+                "term": "Dyson (1962)",
+                "definition": "A Brownian-motion model for the eigenvalues of a random matrix. Originally from nuclear physics — energy levels of heavy atoms repel each other. The same math governs singular values during training."
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}

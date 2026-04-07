@@ -1801,6 +1801,18 @@ const tutorials = [
     readTime: '30 min',
     difficulty: 3,
   },
+  {
+    id: 'sgd-to-spectra-weight-dynamics',
+    title: 'From SGD to Spectra: Weight Matrix Dynamics',
+    description: 'A weight matrix is a fuzzy hashmap — but what SHAPE is the hashmap? How training sculpts the spectrum of singular values, why eigenvalues repel like charged particles, and what the bulk+tail structure tells you about learning. Based on Fatehmanesh et al. (2025).',
+    tags: ['linear algebra', 'training dynamics', 'random matrix theory', 'transformers'],
+    icon: '📊',
+    gradient: 'from-violet-500 to-purple-600',
+    shadowColor: 'shadow-violet-500/30',
+    glowColor: 'rgba(139, 92, 246, 0.4)',
+    readTime: '35 min',
+    difficulty: 2,
+  },
 ]
 
 // Semantic tag color system - filled backgrounds
