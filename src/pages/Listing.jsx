@@ -1789,6 +1789,18 @@ const tutorials = [
     readTime: '15 min',
     difficulty: 3,
   },
+  {
+    id: 'brainstorm-88-operator-remapping-place-cells',
+    title: 'Operator Remapping: Primitives as Place Cells',
+    description: 'Hippocampal place cells remap when context changes — what if Schankian primitives do the same? ATRANS in a courtroom has different argument structure, temporal profile, and inference chain than ATRANS on a playground. Same topological role, different geometry.',
+    tags: ['neuroscience', 'Schankian primitives', 'manifold theory', 'Hydra', 'cognitive maps'],
+    icon: '🧠',
+    gradient: 'from-emerald-500 to-teal-600',
+    shadowColor: 'shadow-emerald-500/30',
+    glowColor: 'rgba(16, 185, 129, 0.4)',
+    readTime: '30 min',
+    difficulty: 3,
+  },
 ]
 
 // Semantic tag color system - filled backgrounds
