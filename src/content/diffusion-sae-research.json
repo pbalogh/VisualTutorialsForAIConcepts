@@ -7114,6 +7114,77 @@
             ]
           }
         ]
+      },
+      {
+        "type": "Section",
+        "title": "📡 Apr 7, 2026: Dependency-Guided Parallel Decoding",
+        "children": [
+          {
+            "type": "p",
+            "children": "One new paper this sweep. The dependency-aware decoding trend continues to accelerate."
+          },
+          {
+            "type": "DeepDive",
+            "title": "[Apr 7] DEMASK: Dependency-Guided Parallel Unmasking for dLLMs (Apr 2, 2026)",
+            "children": [
+              {
+                "type": "p",
+                "children": [
+                  {
+                    "type": "strong",
+                    "children": [
+                      "Paper:"
+                    ]
+                  },
+                  " Ringel et al., 'Dependency-Guided Parallel Decoding in Discrete Diffusion Language Models' (arXiv:2604.02560, Apr 2, 2026)"
+                ]
+              },
+              {
+                "type": "p",
+                "children": [
+                  {
+                    "type": "strong",
+                    "children": [
+                      "Key insight:"
+                    ]
+                  },
+                  " Parallel decoding in dLLMs approximates the joint conditional with a fully factorized product of per-token marginals — degrading quality when selected tokens are strongly dependent. DEMASK adds a lightweight dependency predictor to the final hidden states that estimates pairwise conditional influences between masked positions in a single forward pass. A greedy selection algorithm identifies positions with bounded cumulative dependency for simultaneous unmasking. Proves total variation distance bound between parallel sampling and the model's joint under sub-additivity assumption."
+                ]
+              },
+              {
+                "type": "p",
+                "children": [
+                  {
+                    "type": "strong",
+                    "children": [
+                      "Results:"
+                    ]
+                  },
+                  " 1.7-2.2× speedup on Dream-7B while matching or improving accuracy compared to confidence-based and KL-based baselines."
+                ]
+              },
+              {
+                "type": "p",
+                "children": [
+                  {
+                    "type": "strong",
+                    "children": [
+                      "Relevance:"
+                    ]
+                  },
+                  " ⭐⭐ SUPPORTS IDEAS 2 & 3. Continues the DOS/CoDD trend of dependency-aware decoding — now with a formal TV distance bound. For SAE-guided diffusion, the pairwise dependency predictor could be replaced or augmented with SAE feature dependencies: tokens sharing SAE features are semantically coupled and should be unmasked together or sequentially. The greedy bounded-dependency selection is complementary to our dendritic crystallization — DEMASK bounds statistical dependency, we bound structural dependency. The formal guarantee (TV distance bound) provides a theoretical framework for analyzing SAE-guided parallel unmasking."
+                ]
+              }
+            ]
+          },
+          {
+            "type": "Callout",
+            "props": {
+              "type": "info"
+            },
+            "children": "Running total: ~91 tracked papers. The dependency-aware decoding cluster (DOS, CoDD, DEMASK, LogicDiff) is now 4 papers strong — all showing that the ORDER and GROUPING of unmasking matters enormously. SAE features could unify these approaches by providing a single semantic dependency signal."
+          }
+        ]
       }
     ]
   }
