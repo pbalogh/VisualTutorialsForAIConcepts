@@ -450,11 +450,57 @@
               },
               {
                 "type": "p",
-                "children": "In words: 'The change in singular value k = (what the loss function wants) + (being pushed away from other singular values) + (random jitter from mini-batches).'"
+                "children": [
+                  "In words: 'The change in singular value k = (what the loss function wants) + (being pushed away from other singular values)",
+                  {
+                    "type": "FootnoteRef",
+                    "props": {
+                      "id": "source-ann-1775681889139-m5g9dz",
+                      "targetId": "ann-1775681889139-m5g9dz",
+                      "type": "ask"
+                    }
+                  },
+                  " + (random jitter from mini-batches).'"
+                ]
               },
               {
                 "type": "p",
                 "children": "That's it. Everything in the paper follows from this one equation. The bulk+tail structure, the power-law tails, the Marchenko-Pastur bulk — all of it is just this equation reaching equilibrium."
+              }
+            ]
+          },
+          {
+            "type": "Sidebar",
+            "props": {
+              "type": "note",
+              "title": "Q: Does this have to do with the fact that eigenvectors are orthogonal to each other, and that the values have to end up forming unit vectors?",
+              "expanded": true,
+              "id": "ann-1775681889139-m5g9dz",
+              "sourceId": "source-ann-1775681889139-m5g9dz"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "Yes, you are exactly on the right track. The repulsion between singular values is directly connected to the orthogonality constraint you are thinking of. The left and right singular vectors of a weight matrix must form orthonormal bases, meaning they are unit vectors that are perpendicular to each other. This is not optional — it is a hard mathematical constraint of the singular value decomposition. So when gradient descent tries to move one singular value, it cannot do so freely, because the associated singular vectors must remain orthogonal to all the others."
+              },
+              {
+                "type": "p",
+                "children": "Think of it like this: imagine you have several people standing on the surface of a sphere, and each person must stay as far from the others as possible while remaining on the surface. If one person moves, everyone else has to adjust. Similarly, when the loss gradient pushes one singular direction to grow, the orthogonality constraint forces the other singular vectors to \"get out of the way,\" and this reshuffling manifests as an effective repulsion between the singular values themselves. Mathematically, this repulsion scales as 1/(sigma_i squared minus sigma_j squared), so the closer two singular values are to each other, the stronger they push apart — which is why singular values in trained networks tend not to cluster at the same value."
+              },
+              {
+                "type": "p",
+                "children": "This is the same phenomenon you see in random matrix theory, where eigenvalues of symmetric random matrices exhibit \"level repulsion.\" The Wigner surmise describes exactly this: eigenvalues behave like charged particles on a line, repelling each other. In the context of SGD training, this means the spectrum of your weight matrices is shaped not only by what the loss function wants each component to do, but also by this geometric constraint forcing the singular values apart. So the structure of trained weight matrices reflects both task-driven learning and this intrinsic pressure from orthogonality."
+              },
+              {
+                "type": "p",
+                "children": "To directly answer your question about unit vectors: yes, the requirement that singular vectors be unit length and mutually orthogonal is exactly what creates this coupling between singular values. If the vectors could be arbitrary, each singular value could move independently. The fact that they must live on the Stiefel manifold — the space of orthonormal frames — is what ties their fates together and produces the repulsion term in the equation you are reading."
+              },
+              {
+                "type": "p",
+                "props": {
+                  "className": "text-xs text-gray-400 mt-2"
+                },
+                "children": "Asked about \"(being pushed away from other ...\" — 4/8/2026, 4:57:50 PM"
               }
             ]
           },
