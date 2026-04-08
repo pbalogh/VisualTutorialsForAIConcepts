@@ -1802,6 +1802,18 @@ const tutorials = [
     difficulty: 3,
   },
   {
+    id: 'brainstorm-89-consensus-typed-failure',
+    title: 'Consensus as Typed Expectation Failure',
+    description: 'The 7 consensus neurons in GPT-2 decompose scalar surprisal into a 7-bit typed failure fingerprint — structurally implementing Schank\'s failure-driven memory. Different dropout patterns identify different KINDS of expectation failure, predicting different Schankian repair primitives.',
+    tags: ['mechanistic interpretability', 'Schankian primitives', 'event segmentation', 'consensus neurons'],
+    icon: '🔔',
+    gradient: 'from-amber-500 to-orange-600',
+    shadowColor: 'shadow-amber-500/30',
+    glowColor: 'rgba(245, 158, 11, 0.4)',
+    readTime: '18 min',
+    difficulty: 3,
+  },
+  {
     id: 'sgd-to-spectra-weight-dynamics',
     title: 'From SGD to Spectra: Weight Matrix Dynamics',
     description: 'A weight matrix is a fuzzy hashmap — but what SHAPE is the hashmap? How training sculpts the spectrum of singular values, why eigenvalues repel like charged particles, and what the bulk+tail structure tells you about learning. Based on Fatehmanesh et al. (2025).',

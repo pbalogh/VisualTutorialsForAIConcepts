@@ -1,0 +1,473 @@
+{
+  "id": "brainstorm-89-consensus-typed-failure",
+  "title": "Consensus as Typed Expectation Failure",
+  "subtitle": "Schank's Dynamic Memory in 7 Bits",
+  "difficulty": 3,
+  "readTime": "18 min",
+  "tags": [
+    "mechanistic interpretability",
+    "Schankian primitives",
+    "event segmentation",
+    "consensus neurons",
+    "failure-driven memory"
+  ],
+  "state": {},
+  "content": {
+    "type": "Fragment",
+    "children": [
+      {
+        "type": "Section",
+        "props": {
+          "title": "The Big Idea"
+        },
+        "children": [
+          {
+            "type": "Callout",
+            "props": {
+              "type": "info"
+            },
+            "children": "What if a language model's 7 consensus neurons aren't just a binary 'normal vs. abnormal' switch \u2014 but a 7-bit fingerprint that tells you WHAT KIND of expectation failure just happened? This tutorial connects GPT-2's routing architecture to Schank's failure-driven memory and modern event segmentation research."
+          },
+          {
+            "type": "p",
+            "children": "Roger Schank argued in Dynamic Memory (1982) that human memory is failure-driven: you don't remember the 100 routine restaurant visits, you remember the one where the waiter dropped your soup. Memory formation is triggered by expectation failures \u2014 moments when your running script is violated."
+          },
+          {
+            "type": "p",
+            "children": "In GPT-2 Small's final MLP, we found 7 consensus neurons that each monitor a different dimension of linguistic 'normality.' When all 7 agree (high consensus), the model is in familiar territory. When consensus breaks down, the exception handler fires. But here's the key insight: because we have 7 independent monitors, we don't just know THAT an expectation failed \u2014 we know WHICH KIND of expectation failed."
+          },
+          {
+            "type": "Analogy",
+            "props": {
+              "title": "The Fire Alarm Panel"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "Imagine a building's fire alarm panel with 7 zone indicators: Lobby, Kitchen, Office, Server Room, Garage, Rooftop, Basement. When all 7 are green, everything's fine. A single scalar 'fire alarm' just tells you 'there's a problem somewhere.' But 7 independent zone monitors tell you WHERE the problem is. A Kitchen alarm triggers the sprinkler system. A Server Room alarm triggers halon gas. Different failure types demand different responses. The consensus neurons work the same way: each monitors a different linguistic zone, and the dropout pattern tells you what kind of failure occurred."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "The Seven Monitors"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "Each consensus neuron monitors a specific linguistic dimension. They fire on 79-91% of tokens (they're 'on' by default \u2014 monitoring normality), and each has a distinct specialization:"
+          },
+          {
+            "type": "DefinitionList",
+            "children": [
+              {
+                "term": "N2 \u2014 Clausal Continuation (88.4%)",
+                "definition": "Fires mid-clause on connectives like 'and', 'but', 'also'. Silent at clause boundaries. Monitors: Is the sentence continuing as expected?"
+              },
+              {
+                "term": "N2361 \u2014 Syntactic Elaboration (84.1%)",
+                "definition": "Fires on subordinators like 'that', 'while', 'neither'. Depleted on sentence-initial positions. Monitors: Is the grammar getting more complex in a predictable way?"
+              },
+              {
+                "term": "N2460 \u2014 Relational Embedding (86.0%)",
+                "definition": "Fires on prepositions and relational words: 'an', 'into', 'per'. Monitors: Are entities being related to each other normally?"
+              },
+              {
+                "term": "N2928 \u2014 Sequential Structure (91.4%)",
+                "definition": "Fires on ordinals, lists, parallel structure. Highest mean activation. Monitors: Is the discourse organized in a predictable sequence?"
+              },
+              {
+                "term": "N1831 \u2014 Discourse Coherence (81.0%)",
+                "definition": "Fires on topic-continuing phrases. 77K 'disagreement' tokens. Monitors: Is the topic staying consistent?"
+              },
+              {
+                "term": "N1245 \u2014 Argument Structure (85.5%)",
+                "definition": "Fires on words marking semantic roles: 'leadership', 'validity', 'one of the'. Monitors: Are the thematic roles (agent, patient, instrument) in order?"
+              },
+              {
+                "term": "N2600 \u2014 Concrete Reference (79.2%)",
+                "definition": "Fires on currencies, dates, proper names. Depleted on abstract adjectives like 'natural', 'social'. Monitors: Are we talking about something concrete and specific?"
+              }
+            ]
+          },
+          {
+            "type": "Callout",
+            "props": {
+              "type": "insight"
+            },
+            "children": "Six neurons (N2\u2013N1245) form a 'linguistic structure axis' with cosine similarities 0.52\u20130.73. N2600 is nearly orthogonal (cos \u2248 0.0) \u2014 it forms a separate 'referential concreteness axis.' Full consensus requires BOTH structural predictability AND referential concreteness."
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "From Scalar Surprise to Typed Failure"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "Kumar et al. (2023) showed that GPT-2's surprisal (how 'surprised' the model is at each token) predicts where humans perceive event boundaries in stories. High surprisal = event boundary. But surprisal is a single number \u2014 it tells you HOW MUCH surprise, not WHAT KIND."
+          },
+          {
+            "type": "p",
+            "children": "Our 7 consensus neurons decompose that scalar into 7 independent channels. When surprisal spikes, we can ask: which monitors dropped out?"
+          },
+          {
+            "type": "DeepDive",
+            "props": {
+              "title": "Failure Fingerprints: Worked Examples"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "Consider three different high-surprisal tokens and their hypothesized consensus patterns:"
+              },
+              {
+                "type": "Example",
+                "props": {
+                  "title": "Referential Failure"
+                },
+                "children": [
+                  {
+                    "type": "p",
+                    "children": "Text: 'The committee discussed the implications of the $47.3 million...'\nToken: '$47.3' \u2192 Concrete, specific, but syntactically unusual mid-clause."
+                  },
+                  {
+                    "type": "p",
+                    "children": "Expected pattern: N2600 (concrete reference) stays ON. N2 (clausal continuation) might DROP. Fingerprint: structural failure, not referential. The sentence structure is disrupted by an embedded quantity, but the referent is maximally concrete."
+                  }
+                ]
+              },
+              {
+                "type": "Example",
+                "props": {
+                  "title": "Structural Failure"
+                },
+                "children": [
+                  {
+                    "type": "p",
+                    "children": "Text: 'She walked, and walked, and walked, and then \u2014'\nToken: '\u2014' at a disruption of the parallel structure."
+                  },
+                  {
+                    "type": "p",
+                    "children": "Expected pattern: N2928 (sequential structure) DROPS \u2014 the parallel pattern is broken. N1831 (discourse coherence) DROPS \u2014 topic is shifting. But N2600 (concrete reference) was already low (no specific referents). Fingerprint: structural + discourse failure."
+                  }
+                ]
+              },
+              {
+                "type": "Example",
+                "props": {
+                  "title": "Full Expectation Collapse"
+                },
+                "children": [
+                  {
+                    "type": "p",
+                    "children": "Text: 'The meeting adjourned at 3pm. \u00a7\u00a7 CLASSIFIED \u00a7\u00a7'\nToken: '\u00a7\u00a7' \u2192 All seven monitors drop simultaneously."
+                  },
+                  {
+                    "type": "p",
+                    "children": "This is a complete script violation \u2014 nothing about the token is linguistically predictable. The exception handler fires at maximum intensity. In Schank's terms, this isn't a script modification; it's a script abandonment requiring a completely new frame."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "InteractiveDemo",
+            "props": {
+              "title": "Consensus Dropout Simulator",
+              "description": "Toggle each consensus neuron on/off to see how the failure fingerprint changes. Watch how different dropout patterns map to different types of linguistic expectation failure.",
+              "initialCode": "// Consensus Dropout Explorer\nconst neurons = [\n  { id: 'N2', name: 'Clausal Continuation', rate: 0.884, on: true },\n  { id: 'N2361', name: 'Syntactic Elaboration', rate: 0.841, on: true },\n  { id: 'N2460', name: 'Relational Embedding', rate: 0.860, on: true },\n  { id: 'N2928', name: 'Sequential Structure', rate: 0.914, on: true },\n  { id: 'N1831', name: 'Discourse Coherence', rate: 0.810, on: true },\n  { id: 'N1245', name: 'Argument Structure', rate: 0.855, on: true },\n  { id: 'N2600', name: 'Concrete Reference', rate: 0.792, on: false }\n];\n\nconst consensus = neurons.filter(n => n.on).length;\nconst structural = neurons.slice(0, 6).filter(n => n.on).length;\nconst referential = neurons[6].on ? 1 : 0;\n\nlet diagnosis = '';\nif (consensus === 7) diagnosis = 'FULL CONSENSUS: Script running normally. MLP intervention counterproductive (\u0394P = -0.020).';\nelse if (consensus >= 5) diagnosis = `HIGH CONSENSUS (${consensus}/7): Mild deviation. MLP marginally ${consensus === 5 ? 'harmful' : 'helpful'}.`;\nelse if (consensus >= 3) diagnosis = `MODERATE (${consensus}/7): Exception handler active. MLP provides +0.03 \u0394P.`;\nelse diagnosis = `LOW CONSENSUS (${consensus}/7): Full exception mode. MLP critical (+0.094 to +0.187 \u0394P).`;\n\nlet failureType = '';\nif (!neurons[6].on && structural === 6) failureType = 'REFERENTIAL FAILURE: Structure intact, but lost concrete grounding. Possible Schankian trigger: MTRANS (information transfer without physical anchor).';\nelse if (neurons[6].on && structural < 4) failureType = 'STRUCTURAL FAILURE: Concrete referent present but grammar disrupted. Possible trigger: PTRANS (physical event disrupting discourse flow).';\nelse if (structural < 4 && !neurons[6].on) failureType = 'COMPOUND FAILURE: Both structure and reference lost. Script abandonment \u2014 requires new frame selection.';\nelse if (consensus < 5) failureType = 'MIXED FAILURE: Partial dropout across dimensions. Operator selection depends on specific pattern.';\nelse failureType = 'NO SIGNIFICANT FAILURE: Within normal processing range.';\n\nreturn `Consensus: ${consensus}/7 (Structural: ${structural}/6, Referential: ${referential}/1)\\n\\n${diagnosis}\\n\\n${failureType}`;"
+            },
+            "children": []
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "Schank's Dynamic Memory: A 60-Second Primer"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "Roger Schank's Dynamic Memory (1982, revised 1999) proposed three key ideas that connect directly to our consensus architecture:"
+          },
+          {
+            "type": "DefinitionList",
+            "children": [
+              {
+                "term": "1. Failure-Driven Memory",
+                "definition": "You remember events that violate expectations. The restaurant where everything went normally? Forgotten. The one where the waiter insulted you? Seared into memory. Memory formation is triggered by prediction error."
+              },
+              {
+                "term": "2. MOPs (Memory Organization Packets)",
+                "definition": "Expectations are organized hierarchically. A 'restaurant MOP' contains sub-scripts (enter, sit, order, eat, pay, leave). Failure at any level triggers different responses \u2014 a wrong dish triggers a sub-script fix, but a fire triggers MOP abandonment."
+              },
+              {
+                "term": "3. Explanation-Based Generalization",
+                "definition": "After a failure, you build an explanation and generalize it. 'This restaurant is bad' generalizes differently from 'all restaurants on this street are bad.' The TYPE of failure determines the scope of generalization."
+              }
+            ]
+          },
+          {
+            "type": "Callout",
+            "props": {
+              "type": "connection"
+            },
+            "children": "The direct mapping: Consensus neurons = MOP monitors. Each tracks whether a sub-script is running normally. 7/7 consensus = all sub-scripts nominal. Dropout of N2928 (sequential structure) = the 'ordering' sub-script was violated. Dropout of N2600 (concrete reference) = we've shifted from concrete to abstract discourse, like moving from ordering food to discussing philosophy. Different failures, different repair primitives."
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "Event Segmentation: Where Psychology Meets Neurons"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "Zacks and Tversky's Event Segmentation Theory (2001) showed that humans automatically divide continuous experience into discrete events. Event boundaries occur at prediction error spikes \u2014 moments when what happens next is different from what you expected."
+          },
+          {
+            "type": "p",
+            "children": "Kumar et al. (2023) demonstrated that GPT-2's token-level surprisal predicts where humans perceive event boundaries in stories. Bayesian surprise (KL divergence between the model's posterior and prior) was a better predictor than raw surprisal \u2014 it captures not just 'how surprising' but 'how much the model's beliefs changed.'"
+          },
+          {
+            "type": "DeepDive",
+            "props": {
+              "title": "From Scalar to Vector Surprise"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "Here's the conceptual leap: Kumar et al. used a single scalar (surprisal or Bayesian surprise) to predict event boundaries. But our consensus decomposition turns that scalar into a 7-dimensional vector. Each dimension is an independent expectation channel."
+              },
+              {
+                "type": "p",
+                "children": "This predicts that human event segmentation should be richer than 'boundary vs. non-boundary.' There should be TYPES of boundaries:"
+              },
+              {
+                "type": "p",
+                "children": "\u2022 Referential shift (N2600 drops): 'John left the room. Meanwhile, in Tokyo...' \u2014 the concrete referent changes\n\u2022 Structural break (N2928 drops): 'First, second, third \u2014 wait, actually...' \u2014 the sequential pattern is disrupted\n\u2022 Discourse pivot (N1831 drops): 'The economy grew. But what about the climate?' \u2014 topic coherence breaks\n\u2022 Argument reframe (N1245 drops): 'The CEO praised the intern' vs 'The intern praised the CEO' \u2014 role assignment shifts"
+              },
+              {
+                "type": "p",
+                "children": "If this is right, different boundary types should correlate with different Schankian primitives at the boundary: PTRANS events lose spatial/sequential neurons, MTRANS events lose information-flow neurons, ATRANS events lose argument-structure neurons."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "The 7-Bit Failure Fingerprint"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "With 7 binary monitors, there are 2\u2077 = 128 possible consensus patterns. In practice, most tokens cluster at high consensus (7/7 = 38% of tokens, 6/7 = 34%). But the low-consensus patterns \u2014 the failure fingerprints \u2014 are where the interesting structure lives."
+          },
+          {
+            "type": "InteractiveDemo",
+            "props": {
+              "title": "Failure Fingerprint Distribution",
+              "description": "Explore the distribution of consensus levels and what happens at each level. The MLP goes from helpful to harmful as consensus increases \u2014 the crossover is statistically sharp between 4/7 and 5/7.",
+              "initialCode": "// Consensus level distribution and MLP effect\nconst levels = [\n  { level: '0/7', tokens: 206, deltaP: +0.187, ci: '[+0.145, +0.231]', effect: '\u25b2\u25b2\u25b2 MLP CRITICAL' },\n  { level: '1/7', tokens: 913, deltaP: +0.094, ci: '[+0.079, +0.109]', effect: '\u25b2\u25b2 MLP very helpful' },\n  { level: '2/7', tokens: 3051, deltaP: +0.045, ci: '[+0.039, +0.051]', effect: '\u25b2 MLP helpful' },\n  { level: '3/7', tokens: 6283, deltaP: +0.030, ci: '[+0.026, +0.033]', effect: '\u25b2 MLP helpful' },\n  { level: '4/7', tokens: 12617, deltaP: +0.014, ci: '[+0.011, +0.016]', effect: '\u25b3 MLP marginally helpful' },\n  { level: '5/7', tokens: 34155, deltaP: -0.004, ci: '[-0.006, -0.003]', effect: '\u25bd MLP marginally harmful' },\n  { level: '6/7', tokens: 69625, deltaP: -0.014, ci: '[-0.015, -0.014]', effect: '\u25bc MLP harmful' },\n  { level: '7/7', tokens: 77950, deltaP: -0.020, ci: '[-0.021, -0.019]', effect: '\u25bc\u25bc MLP counterproductive' }\n];\n\nconst total = 204800;\nlet output = 'CONSENSUS LEVEL | TOKENS | % | \u0394P | EFFECT\\n';\noutput += '\u2500'.repeat(70) + '\\n';\n\nfor (const l of levels) {\n  const pct = (l.tokens / total * 100).toFixed(1);\n  const bar = l.deltaP > 0 ? '+'.repeat(Math.round(l.deltaP * 100)) : '-'.repeat(Math.round(-l.deltaP * 100));\n  output += `${l.level.padEnd(5)} | ${String(l.tokens).padStart(6)} | ${pct.padStart(5)}% | ${l.deltaP > 0 ? '+' : ''}${l.deltaP.toFixed(3)} ${l.ci} | ${l.effect}\\n`;\n}\n\noutput += '\\n\u2500'.repeat(70);\noutput += '\\nCROSSOVER between 4/7 and 5/7: all bootstrap 95% CIs exclude zero.';\noutput += '\\nAt 7/7: MLP promotes 7,674 tokens to top-1 but loses 3,530 \u2014 net accuracy gain but net probability LOSS.';\noutput += '\\n\\nMoloch\\'s Compulsion: The MLP intervenes on EVERY token, even when counterproductive.';\noutput += '\\nThe architecture has no bypass mechanism. 38% of tokens pay full computational cost for negative benefit.';\n\nreturn output;"
+            },
+            "children": []
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "Connecting the Dots: Typed Failure \u2192 Primitive Selection"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "The key prediction: different consensus dropout patterns should trigger different Schankian repair primitives. This gives us a testable framework:"
+          },
+          {
+            "type": "Example",
+            "props": {
+              "title": "Predicted Failure-Primitive Mappings"
+            },
+            "children": [
+              {
+                "type": "CodeBlock",
+                "props": {
+                  "language": "text"
+                },
+                "children": "FAILURE FINGERPRINT           \u2192 PREDICTED PRIMITIVE\n\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\n\nN2600 drops, others hold       \u2192 MTRANS (information transfer)\n  \"The theory implies that...\"    Lost concrete grounding,\n                                   shifting to abstract info flow\n\nN2928 drops, others hold       \u2192 PTRANS (physical transfer)\n  \"He walked into the room\"      Sequential structure disrupted\n                                   by physical movement event\n\nN1245 drops, others hold       \u2192 ATRANS (possession transfer)\n  \"She gave him the book\"         Argument structure shifts\n                                   (new agent-patient relation)\n\nN1831 + N2 drop, others hold   \u2192 Script boundary (MOP switch)\n  \"Anyway, let me tell you about\" Discourse coherence breaks,\n                                   clause continuation disrupted\n\nAll 7 drop simultaneously      \u2192 Script abandonment\n  Rare tokens, subwords,          Complete expectation collapse;\n  paragraph breaks                 requires full re-contextualization"
+              }
+            ]
+          },
+          {
+            "type": "Callout",
+            "props": {
+              "type": "warning"
+            },
+            "children": "These mappings are HYPOTHESIZED, not yet tested. The experimental design is straightforward: annotate WikiText-103 tokens with Schankian primitives (using the operator classifier from our wake-sleep work), record consensus patterns, and compute contingency tables. If the correlation is significant, the consensus architecture IS a typed primitive dispatcher."
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "Why This Matters for Hydra"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "The Hydra architecture has multiple heads, each monitoring a different linguistic dimension \u2014 phrase structure, thematic fit, information structure, plus a blank discovery head. This is the consensus decomposition made EXPLICIT and LEARNABLE."
+          },
+          {
+            "type": "p",
+            "children": "In GPT-2, the 7 consensus neurons emerged implicitly from training. They weren't designed to monitor specific dimensions \u2014 they converged on those roles because monitoring multiple independent channels of 'normality' is the optimal strategy for the terminal MLP's routing problem."
+          },
+          {
+            "type": "p",
+            "children": "Hydra takes this implicit emergence and makes it architectural: each head is an explicit expectation monitor with a known specialization. When the thematic head detects a failure, the system knows it needs a thematic repair (not a structural one). This should produce sharper, more efficient routing than GPT-2's implicit version."
+          },
+          {
+            "type": "DeepDive",
+            "props": {
+              "title": "The Blank Discovery Head"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "Hydra's fourth head has no labels \u2014 it learns its own dimension during training. The consensus decomposition suggests what it might discover: the gap between our 7 known dimensions and the full space of expectation types."
+              },
+              {
+                "type": "p",
+                "children": "N2600 (concrete reference) is already qualitatively different from the other 6 (orthogonal output direction). The blank head might discover another orthogonal dimension \u2014 perhaps temporal structure, emotional valence, or register/formality. Whatever it finds, it becomes a new channel in the typed failure fingerprint, increasing the resolution of the primitive dispatch table."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "Quiz: Test Your Understanding"
+        },
+        "children": [
+          {
+            "type": "Quiz",
+            "props": {
+              "question": "In Schank's Dynamic Memory, what triggers memory formation?",
+              "options": [
+                "Repetition of familiar patterns",
+                "Expectation failures (script violations)",
+                "Emotional intensity of the event",
+                "Conscious effort to memorize"
+              ],
+              "correctIndex": 1,
+              "explanation": "Schank's core claim is that memory is failure-driven: you remember events that violate your expectations (scripts), not routine ones. This maps directly to low-consensus tokens in our framework \u2014 moments when the model's expectation monitors disagree."
+            },
+            "children": []
+          },
+          {
+            "type": "Quiz",
+            "props": {
+              "question": "At what consensus level does the MLP crossover from helpful to harmful?",
+              "options": [
+                "Between 2/7 and 3/7",
+                "Between 3/7 and 4/7",
+                "Between 4/7 and 5/7",
+                "Between 6/7 and 7/7"
+              ],
+              "correctIndex": 2,
+              "explanation": "The crossover is statistically sharp between 4/7 (MLP helps, \u0394P = +0.014) and 5/7 (MLP harms, \u0394P = -0.004). All bootstrap 95% CIs exclude zero at both levels. Below the crossover, the exception handler is doing useful work; above it, the model would be better off skipping the MLP entirely."
+            },
+            "children": []
+          },
+          {
+            "type": "Quiz",
+            "props": {
+              "question": "What makes N2600 different from the other 6 consensus neurons?",
+              "options": [
+                "It has a much lower fire rate",
+                "It monitors concrete reference (currencies, dates, names) and is orthogonal to the others",
+                "It is causally necessary for the routing program",
+                "It only fires during exception-path processing"
+              ],
+              "correctIndex": 1,
+              "explanation": "N2600 has cosine similarity \u2248 0.0 with all other consensus neurons, forming a separate 'referential concreteness axis.' The other 6 have pairwise cosine similarities of 0.52\u20130.73 (aligned but not redundant). Full consensus requires BOTH structural predictability AND referential concreteness \u2014 two independent conditions."
+            },
+            "children": []
+          },
+          {
+            "type": "Quiz",
+            "props": {
+              "question": "Kumar et al. (2023) used GPT-2 surprisal to predict human event boundaries. How does the consensus decomposition extend their finding?",
+              "options": [
+                "It replaces surprisal with a more accurate scalar measure",
+                "It decomposes scalar surprisal into 7 independent channels, enabling typed event boundaries",
+                "It shows that GPT-2 doesn't actually predict event boundaries",
+                "It proves that human event segmentation uses exactly 7 dimensions"
+              ],
+              "correctIndex": 1,
+              "explanation": "Surprisal tells you HOW MUCH surprise; the 7-bit consensus fingerprint tells you WHAT KIND. Different dropout patterns correspond to different types of expectation failure (referential, structural, discourse, etc.), predicting that event boundaries should have types, not just magnitudes."
+            },
+            "children": []
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "The Experimental Roadmap"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "This idea is directly testable with existing infrastructure. Here's the experiment design:"
+          },
+          {
+            "type": "Example",
+            "props": {
+              "title": "Experiment: Consensus-Primitive Contingency"
+            },
+            "children": [
+              {
+                "type": "CodeBlock",
+                "props": {
+                  "language": "python"
+                },
+                "children": "# Pseudocode for the key experiment\n\n# 1. Annotate WikiText-103 tokens with Schankian primitives\n#    (use the operator classifier from wake-sleep work)\nfor sentence in wikitext_103:\n    events = extract_events(sentence)  # SRL or event detector\n    for event in events:\n        primitive = classify_primitive(event)  # ATRANS/PTRANS/MTRANS/...\n        for token in event.tokens:\n            token.primitive = primitive\n\n# 2. Record consensus patterns at each token\nfor token in all_tokens:\n    consensus_pattern = [n.fires(token) for n in consensus_neurons]  # 7-bit vector\n    token.consensus = sum(consensus_pattern)\n    token.fingerprint = tuple(consensus_pattern)\n\n# 3. Compute contingency tables\nimport scipy.stats as stats\ncontingency = build_contingency_table(\n    rows=unique_fingerprints,     # 128 possible patterns\n    cols=unique_primitives,        # ATRANS, PTRANS, MTRANS, MBUILD, ...\n    values=token_counts\n)\nchi2, p, dof, expected = stats.chi2_contingency(contingency)\nprint(f'Chi-squared: {chi2:.1f}, p={p:.2e}, dof={dof}')\n\n# 4. If significant: which neurons predict which primitives?\nfor neuron in consensus_neurons:\n    for primitive in primitives:\n        enrichment = compute_enrichment(neuron.dropout_tokens, primitive_tokens)\n        print(f'{neuron.id} dropout -> {primitive}: {enrichment:.1f}x enrichment')"
+              }
+            ]
+          },
+          {
+            "type": "Callout",
+            "props": {
+              "type": "success"
+            },
+            "children": "If the chi-squared test is significant and specific neurons predict specific primitives, we have strong evidence that the consensus architecture IS a typed primitive dispatcher \u2014 connecting mechanistic interpretability (Darkness Visible) to cognitive science (Schank's Dynamic Memory) to computational neuroscience (Event Segmentation Theory)."
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "Summary"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "The 7 consensus neurons in GPT-2's final MLP don't just signal 'normal vs. abnormal' \u2014 they provide a typed expectation failure fingerprint that structurally implements Schank's failure-driven memory. Different dropout patterns identify different KINDS of failures, which should predict different Schankian repair primitives. This decomposes scalar surprisal into 7 independent channels, extending Kumar et al.'s event segmentation work from 'where are the boundaries?' to 'what TYPE of boundary is this?' The experiment is straightforward and uses existing infrastructure from both the Darkness Visible and Operator Discovery projects."
+          }
+        ]
+      }
+    ]
+  }
+}
