@@ -7185,6 +7185,107 @@
             "children": "Running total: ~91 tracked papers. The dependency-aware decoding cluster (DOS, CoDD, DEMASK, LogicDiff) is now 4 papers strong — all showing that the ORDER and GROUPING of unmasking matters enormously. SAE features could unify these approaches by providing a single semantic dependency signal."
           }
         ]
+      },
+      {
+        "type": "Section",
+        "title": "📡 Apr 8, 2026: Tree-Structured Vocabulary + Model Scheduling",
+        "children": [
+          {
+            "type": "p",
+            "children": "Two new papers this sweep targeting dLLM efficiency from complementary angles — vocabulary structure and per-step model allocation."
+          },
+          {
+            "type": "DeepDive",
+            "title": "[Apr 8] Tree-Structured Diffusion Language Model (Apr 4, 2026)",
+            "children": [
+              {
+                "type": "p",
+                "children": [
+                  {
+                    "type": "strong",
+                    "children": [
+                      "Paper:"
+                    ]
+                  },
+                  " Wu et al., 'Rethinking Token Prediction: Tree-Structured Diffusion Language Model' (arXiv:2604.03537, Apr 4, 2026)"
+                ]
+              },
+              {
+                "type": "p",
+                "children": [
+                  {
+                    "type": "strong",
+                    "children": [
+                      "Key insight:"
+                    ]
+                  },
+                  " Full-vocabulary prediction heads consume >20% of dLLM parameters and dominate GPU memory. This paper replaces them with a tree-structured factorization: the diffusion process has intermediate latent states corresponding to ancestor nodes in a pre-constructed vocabulary tree. This exponentially reduces classification dimensionality, making the prediction head negligible, and frees parameters for deeper attention blocks. Halves peak GPU memory while matching SOTA perplexity."
+                ]
+              },
+              {
+                "type": "p",
+                "children": [
+                  {
+                    "type": "strong",
+                    "children": [
+                      "Relevance:"
+                    ]
+                  },
+                  " ⭐⭐ SUPPORTS IDEA 3 (hierarchical noise schedules). The vocabulary tree creates an explicit semantic hierarchy for the diffusion process — tokens are predicted coarse-to-fine through tree levels. This is structurally similar to HDLM's vocabulary hierarchy but applied to the prediction head rather than the noise schedule. For SAE-guided diffusion: the tree factorization could be aligned with SAE feature hierarchy — tree levels corresponding to SAE feature abstraction levels. Also practical: halving memory makes SAE-augmented dLLM experimentation more feasible on limited hardware."
+                ]
+              }
+            ]
+          },
+          {
+            "type": "DeepDive",
+            "title": "[Apr 8] Not All Denoising Steps Are Equal: Model Scheduling for MDLMs (2604.02340)",
+            "children": [
+              {
+                "type": "p",
+                "children": [
+                  {
+                    "type": "strong",
+                    "children": [
+                      "Paper:"
+                    ]
+                  },
+                  " Sedykh et al., 'Not All Denoising Steps Are Equal: Model Scheduling for Faster Masked Diffusion Language Models' (arXiv:2604.02340)"
+                ]
+              },
+              {
+                "type": "p",
+                "children": [
+                  {
+                    "type": "strong",
+                    "children": [
+                      "Key insight:"
+                    ]
+                  },
+                  " Exploits the flexibility of the diffusion framework to replace the full model with a smaller MDLM at a subset of denoising steps. Key finding: early and late steps are substantially MORE ROBUST to model replacement than middle steps. Step-importance analysis via loss and KL divergence between small/large models identifies the middle of the diffusion trajectory as most sensitive. Achieves 17% FLOP reduction with modest perplexity degradation on OpenWebText."
+                ]
+              },
+              {
+                "type": "p",
+                "children": [
+                  {
+                    "type": "strong",
+                    "children": [
+                      "Relevance:"
+                    ]
+                  },
+                  " ⭐⭐ SUPPORTS IDEA 3 (semantic noise schedules) + PRACTICAL INFRASTRUCTURE. The 'middle steps most sensitive' finding has direct implications for SAE-guided denoising: SAE feature guidance should be concentrated at middle steps where the model is most sensitive to perturbation — this is where semantic structure is being decided. Early steps (initial noise removal) and late steps (surface-level refinement) can use lighter SAE guidance or smaller models. Combined with TIDE's finding that SAE features vary across timesteps, this suggests a three-phase SAE guidance strategy: light guidance early, heavy guidance mid, light guidance late."
+                ]
+              }
+            ]
+          },
+          {
+            "type": "Callout",
+            "props": {
+              "type": "info"
+            },
+            "children": "Running total: ~93 tracked papers. Both papers reinforce the emerging understanding that dLLM denoising is NOT uniform — different stages have different computational and semantic importance. Our SAE-guided approach should exploit this non-uniformity."
+          }
+        ]
       }
     ]
   }
