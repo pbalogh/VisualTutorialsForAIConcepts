@@ -10,12 +10,17 @@
     "children": [
       {
         "type": "Callout",
-        "props": { "type": "info" },
+        "props": {
+          "type": "info"
+        },
         "children": [
           {
             "type": "p",
             "children": [
-              { "type": "strong", "children": "You know a weight matrix is a fuzzy hashmap. But what SHAPE is the hashmap?" },
+              {
+                "type": "strong",
+                "children": "You know a weight matrix is a fuzzy hashmap. But what SHAPE is the hashmap?"
+              },
               " This tutorial starts from the intuition that matrix multiplication is weighted fuzzy-matching, and builds up to understanding how training sculpts the 'shape' of weight matrices — their spectrum of singular values — and why that shape predicts whether the network will generalize. Based on Fatehmanesh et al. (2025), 'From SGD to Spectra: A Theory of Neural Network Weight Dynamics' (arXiv:2507.12709)."
             ]
           }
@@ -23,7 +28,9 @@
       },
       {
         "type": "Section",
-        "props": { "title": "1. Recap: The Matrix as Fuzzy Hashmap" },
+        "props": {
+          "title": "1. Recap: The Matrix as Fuzzy Hashmap"
+        },
         "children": [
           {
             "type": "p",
@@ -49,7 +56,9 @@
       },
       {
         "type": "Section",
-        "props": { "title": "2. What a Matrix DOES to Space" },
+        "props": {
+          "title": "2. What a Matrix DOES to Space"
+        },
         "children": [
           {
             "type": "p",
@@ -65,17 +74,31 @@
               "id": "sphere-to-ellipsoid",
               "title": "The Sphere-to-Ellipsoid Transformation",
               "description": "A matrix transforms a sphere of inputs into an ellipsoid of outputs. The singular values are the lengths of the ellipsoid's axes.",
-              "initialState": { "matrixType": "balanced" },
+              "initialState": {
+                "matrixType": "balanced"
+              },
               "controls": [
                 {
                   "type": "buttonGroup",
                   "key": "matrixType",
                   "label": "Matrix Type",
                   "options": [
-                    { "value": "balanced", "label": "🟢 Balanced" },
-                    { "value": "one_dominant", "label": "🔴 One Dominant" },
-                    { "value": "low_rank", "label": "🟡 Low Rank" },
-                    { "value": "random", "label": "⚪ Random Init" }
+                    {
+                      "value": "balanced",
+                      "label": "🟢 Balanced"
+                    },
+                    {
+                      "value": "one_dominant",
+                      "label": "🔴 One Dominant"
+                    },
+                    {
+                      "value": "low_rank",
+                      "label": "🟡 Low Rank"
+                    },
+                    {
+                      "value": "random",
+                      "label": "⚪ Random Init"
+                    }
                   ]
                 }
               ],
@@ -92,12 +115,17 @@
           },
           {
             "type": "Callout",
-            "props": { "type": "key-idea" },
+            "props": {
+              "type": "key-idea"
+            },
             "children": [
               {
                 "type": "p",
                 "children": [
-                  { "type": "strong", "children": "Singular values are the stretch factors." },
+                  {
+                    "type": "strong",
+                    "children": "Singular values are the stretch factors."
+                  },
                   " Each singular value tells you how much the matrix stretches space along one particular direction. Big singular value = the matrix amplifies inputs in that direction. Small singular value = the matrix ignores or crushes inputs in that direction. Zero singular value = that dimension is completely destroyed."
                 ]
               }
@@ -107,7 +135,9 @@
       },
       {
         "type": "Section",
-        "props": { "title": "3. The Spectrum: A Portrait of What the Matrix Knows" },
+        "props": {
+          "title": "3. The Spectrum: A Portrait of What the Matrix Knows"
+        },
         "children": [
           {
             "type": "p",
@@ -132,17 +162,31 @@
               "id": "spectral-profiles",
               "title": "Reading a Spectral Profile",
               "description": "Different spectral shapes tell you different things about what the matrix has learned.",
-              "initialState": { "spectrum": "untrained" },
+              "initialState": {
+                "spectrum": "untrained"
+              },
               "controls": [
                 {
                   "type": "buttonGroup",
                   "key": "spectrum",
                   "label": "Training Stage",
                   "options": [
-                    { "value": "untrained", "label": "🟦 Before Training" },
-                    { "value": "early", "label": "🟧 Early Training" },
-                    { "value": "trained", "label": "🟩 Well Trained" },
-                    { "value": "overtrained", "label": "🟥 Overtrained" }
+                    {
+                      "value": "untrained",
+                      "label": "🟦 Before Training"
+                    },
+                    {
+                      "value": "early",
+                      "label": "🟧 Early Training"
+                    },
+                    {
+                      "value": "trained",
+                      "label": "🟩 Well Trained"
+                    },
+                    {
+                      "value": "overtrained",
+                      "label": "🟥 Overtrained"
+                    }
                   ]
                 }
               ],
@@ -161,7 +205,9 @@
       },
       {
         "type": "Section",
-        "props": { "title": "4. Eigenvalue Repulsion: Why Singular Values Can't Share" },
+        "props": {
+          "title": "4. Eigenvalue Repulsion: Why Singular Values Can't Share"
+        },
         "children": [
           {
             "type": "p",
@@ -181,7 +227,9 @@
           },
           {
             "type": "Example",
-            "props": { "title": "The Repulsion Term" },
+            "props": {
+              "title": "The Repulsion Term"
+            },
             "children": [
               {
                 "type": "p",
@@ -199,11 +247,59 @@
           },
           {
             "type": "DeepDive",
-            "props": { "title": "Why repulsion matters for learning" },
+            "props": {
+              "title": "Why repulsion matters for learning"
+            },
             "children": [
               {
                 "type": "p",
-                "children": "Repulsion means the network CAN'T learn redundant features. If two singular values tried to encode the same pattern (meaning they'd have the same size), the repulsion term forces them apart — one grows larger (becoming 'the' feature for that pattern) and the other shrinks or finds a different pattern. This is an implicit form of regularization: SGD's noise naturally prevents the network from wasting capacity on duplicate representations. It's not something the optimizer was designed to do — it emerges from the mathematics of how matrices evolve under stochastic updates."
+                "children": [
+                  "Repulsion means the network CAN'T learn redundant features. If two singular values tried to encode the same pattern (meaning they'd have the same size), the repulsion term forces them apart — one grows larger (becoming 'the' feature for that pattern) and the other shrinks or finds a different pattern. This is an implicit form of regularization: SGD's noise naturally prevents the network from wasting capacity on duplicate representations.",
+                  {
+                    "type": "FootnoteRef",
+                    "props": {
+                      "id": "source-ann-1775681076303-cnlo5a",
+                      "targetId": "ann-1775681076303-cnlo5a",
+                      "type": "ask"
+                    }
+                  },
+                  " It's not something the optimizer was designed to do — it emerges from the mathematics of how matrices evolve under stochastic updates."
+                ]
+              }
+            ]
+          },
+          {
+            "type": "Sidebar",
+            "props": {
+              "type": "note",
+              "title": "Q: I've always wondered nervously why attention heads don't redundantly encode the same information. Is this related to that?",
+              "expanded": true,
+              "id": "ann-1775681076303-cnlo5a",
+              "sourceId": "source-ann-1775681076303-cnlo5a"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "Yes, this is directly related, and you can stop being nervous about it. The spectral repulsion you're reading about here is one of the key mechanisms that pushes attention heads toward learning distinct roles rather than all converging on the same pattern."
+              },
+              {
+                "type": "p",
+                "children": "Think about it concretely. Each attention head's weight matrix has its own set of singular values. During training, SGD injects noise into the gradients, and as this tutorial explains, that noise creates a repulsive force between singular values. But this doesn't just operate within a single head — it operates across the entire loss landscape. If two heads started encoding the same information, they'd be contributing redundantly to the loss, which means the gradient signal for that duplicated feature gets split between them. Neither head gets the full learning signal for that pattern, while unexploited patterns in the data are sitting there offering strong, uncontested gradients. The noisy optimization process naturally nudges one head to \"own\" that pattern while the other drifts toward something the network hasn't yet captured. One head ends up tracking syntactic dependencies, another tracks coreference, another handles positional patterns — not because anyone designed that division of labor, but because the spectral dynamics of SGD make redundancy an unstable equilibrium."
+              },
+              {
+                "type": "p",
+                "children": "That said, spectral repulsion isn't the whole story. Attention heads do sometimes show partial redundancy, which is exactly why pruning research can remove 30-40% of heads with minimal performance loss. The repulsion is a pressure, not an absolute law. Heads that are close in the architecture (same layer, similar initialization) may settle into overlapping roles because the repulsion force wasn't strong enough relative to the structure of the data pulling them toward similar features. So the real picture is a tension: the data says \"these patterns matter\" and pulls heads toward them, while SGD noise says \"don't duplicate effort\" and pushes heads apart. The equilibrium between those forces is why you get mostly specialized heads with some residual overlap."
+              },
+              {
+                "type": "p",
+                "children": "The deeper insight here is that this connects to the tutorial's broader point about implicit regularization. Nobody adds a \"head diversity\" penalty to the transformer loss function. The diversity emerges from the same spectral repulsion mechanism you're learning about right now — it's SGD's noise acting as a silent architect, organizing the network's capacity allocation without being explicitly told to do so."
+              },
+              {
+                "type": "p",
+                "props": {
+                  "className": "text-xs text-gray-400 mt-2"
+                },
+                "children": "Asked about \"SGD's noise naturally prevents...\" — 4/8/2026, 4:44:13 PM"
               }
             ]
           }
@@ -211,7 +307,9 @@
       },
       {
         "type": "Section",
-        "props": { "title": "5. SGD as a Spectral Sculptor" },
+        "props": {
+          "title": "5. SGD as a Spectral Sculptor"
+        },
         "children": [
           {
             "type": "p",
@@ -223,16 +321,27 @@
               "id": "sgd-sculptor",
               "title": "The Three Forces Shaping the Spectrum",
               "description": "Three forces compete during training. Their balance determines the final spectral shape.",
-              "initialState": { "force": "gradient" },
+              "initialState": {
+                "force": "gradient"
+              },
               "controls": [
                 {
                   "type": "buttonGroup",
                   "key": "force",
                   "label": "Force",
                   "options": [
-                    { "value": "gradient", "label": "📉 Gradient Pull" },
-                    { "value": "noise", "label": "🌊 SGD Noise" },
-                    { "value": "repulsion", "label": "⚡ Repulsion" }
+                    {
+                      "value": "gradient",
+                      "label": "📉 Gradient Pull"
+                    },
+                    {
+                      "value": "noise",
+                      "label": "🌊 SGD Noise"
+                    },
+                    {
+                      "value": "repulsion",
+                      "label": "⚡ Repulsion"
+                    }
                   ]
                 }
               ],
@@ -248,12 +357,17 @@
           },
           {
             "type": "Callout",
-            "props": { "type": "key-idea" },
+            "props": {
+              "type": "key-idea"
+            },
             "children": [
               {
                 "type": "p",
                 "children": [
-                  { "type": "strong", "children": "The beautiful result:" },
+                  {
+                    "type": "strong",
+                    "children": "The beautiful result:"
+                  },
                   " When these three forces reach equilibrium, the stationary distribution is a gamma-type density with power-law tails. This is the 'bulk+tail' structure that every trained neural network exhibits, and this paper is the first to explain it from first principles. The shape is not an accident of any particular architecture or dataset — it's a mathematical consequence of how matrices evolve under stochastic gradient updates."
                 ]
               }
@@ -263,7 +377,9 @@
       },
       {
         "type": "Section",
-        "props": { "title": "6. What This Means for Your Fuzzy Hashmap" },
+        "props": {
+          "title": "6. What This Means for Your Fuzzy Hashmap"
+        },
         "children": [
           {
             "type": "p",
@@ -288,7 +404,9 @@
           },
           {
             "type": "DeepDive",
-            "props": { "title": "Connection to Darkness Visible" },
+            "props": {
+              "title": "Connection to Darkness Visible"
+            },
             "children": [
               {
                 "type": "p",
@@ -298,7 +416,9 @@
           },
           {
             "type": "DeepDive",
-            "props": { "title": "Connection to Hydra" },
+            "props": {
+              "title": "Connection to Hydra"
+            },
             "children": [
               {
                 "type": "p",
@@ -310,7 +430,9 @@
       },
       {
         "type": "Section",
-        "props": { "title": "7. The Key Equations (Intuitively)" },
+        "props": {
+          "title": "7. The Key Equations (Intuitively)"
+        },
         "children": [
           {
             "type": "p",
@@ -318,7 +440,9 @@
           },
           {
             "type": "Example",
-            "props": { "title": "The Master Equation" },
+            "props": {
+              "title": "The Master Equation"
+            },
             "children": [
               {
                 "type": "p",
@@ -359,7 +483,9 @@
       },
       {
         "type": "Section",
-        "props": { "title": "8. Why This Paper Matters" },
+        "props": {
+          "title": "8. Why This Paper Matters"
+        },
         "children": [
           {
             "type": "p",
@@ -386,7 +512,9 @@
       },
       {
         "type": "Section",
-        "props": { "title": "9. Quiz" },
+        "props": {
+          "title": "9. Quiz"
+        },
         "children": [
           {
             "type": "Quiz",
@@ -452,7 +580,9 @@
       },
       {
         "type": "Section",
-        "props": { "title": "10. Further Reading" },
+        "props": {
+          "title": "10. Further Reading"
+        },
         "children": [
           {
             "type": "DefinitionList",
