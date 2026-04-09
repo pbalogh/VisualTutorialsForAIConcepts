@@ -1814,6 +1814,18 @@ const tutorials = [
     difficulty: 3,
   },
   {
+    id: 'brainstorm-90-trajectory-dissociation-operator-freezing',
+    title: 'Trajectory Dissociation as Operator Freezing',
+    description: 'Why does AI text feel "correct but lifeless"? Because the model is FROZEN on the meaning manifold — it can generate fluent words but never switches between Schankian operators. Connects fiber bundle geometry, event segmentation, and the dual-mechanism theory of event boundaries.',
+    tags: ['Schankian primitives', 'event segmentation', 'fiber bundles', 'trajectory analysis'],
+    icon: '🧊',
+    gradient: 'from-cyan-500 to-blue-600',
+    shadowColor: 'shadow-cyan-500/30',
+    glowColor: 'rgba(6, 182, 212, 0.4)',
+    readTime: '20 min',
+    difficulty: 3,
+  },
+  {
     id: 'sgd-to-spectra-weight-dynamics',
     title: 'From SGD to Spectra: Weight Matrix Dynamics',
     description: 'A weight matrix is a fuzzy hashmap — but what SHAPE is the hashmap? How training sculpts the spectrum of singular values, why eigenvalues repel like charged particles, and what the bulk+tail structure tells you about learning. Based on Fatehmanesh et al. (2025).',
