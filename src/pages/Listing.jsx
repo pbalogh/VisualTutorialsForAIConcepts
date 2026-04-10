@@ -1074,6 +1074,18 @@ const tutorials = [
     difficulty: 4,
   },
   {
+    id: 'brainstorm-91b-type-erasure-abstraction',
+    title: 'Type Erasure as Neural Abstraction',
+    description: 'Parametric polymorphism meets SAE features: how PTRANS<Emergence, Biological<Human>> erases to PTRANS at coarser dictionary sizes. Multi-parameter generics factor operator space into orthogonal dimensions — feature conjunctions = full operator types.',
+    tags: ['Schankian', 'type-erasure', 'SAE', 'generics', 'abstraction', 'matryoshka', 'hierarchy'],
+    icon: '🪆',
+    gradient: 'from-violet-500 to-purple-600',
+    shadowColor: 'shadow-violet-500/30',
+    glowColor: 'rgba(139, 92, 246, 0.4)',
+    readTime: '18 min',
+    difficulty: 4,
+  },
+  {
     id: 'brainstorm-41-attention-motifs',
     title: 'Operators as Attention Motifs',
     description: 'Schankian primitives may already exist inside transformers as characteristic multi-head attention patterns. Cluster attention motifs on event sentences to discover operators — connected to the N2123 vote counter finding.',

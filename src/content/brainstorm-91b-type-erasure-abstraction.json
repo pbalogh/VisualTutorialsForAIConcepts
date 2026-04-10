@@ -1,0 +1,320 @@
+{
+  "id": "brainstorm-91b-type-erasure-abstraction",
+  "title": "Type Erasure as Neural Abstraction",
+  "subtitle": "How parametric polymorphism in operator hierarchies maps to multi-resolution SAE features",
+  "readTime": "18 min",
+  "state": {},
+  "content": {
+    "type": "Fragment",
+    "children": [
+      {
+        "type": "Callout",
+        "props": {
+          "type": "info"
+        },
+        "children": "This tutorial explores a deep connection between type erasure in programming languages and how neural networks represent concepts at multiple levels of abstraction. The core insight: Schankian operators like PTRANS<Emergence, Biological<Human>> erase to PTRANS at coarser levels — and SAE features at different dictionary sizes may discover exactly this hierarchy."
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "1. Type Erasure in 60 Seconds"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "In Java, you write List<String> in your code. But at runtime, the JVM only sees List — the type parameter is erased. This isn't a bug. The JVM doesn't NEED to know it's a list of strings to iterate over it, check its length, or pass it around. The type parameter provides compile-time safety without runtime overhead."
+          },
+          {
+            "type": "Analogy",
+            "props": {
+              "concept": "Type erasure",
+              "analogy": "A shipping company processes 'packages.' At the warehouse level, it doesn't matter if a package contains books, electronics, or clothes — it has a weight, dimensions, and a destination. That's the erased type: PACKAGE. The detailed type PACKAGE<Electronics, Fragile> matters to the handler at the destination, but NOT to every conveyor belt along the way. Each level of the system operates at the abstraction level it needs."
+            }
+          },
+          {
+            "type": "Example",
+            "props": {
+              "title": "Operator Type Erasure"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "Consider the Schankian operator for 'Napoleon was born in Corsica':"
+              },
+              {
+                "type": "p",
+                "children": "**Full type:** PTRANS<Emergence, Biological<Human>>(theme=Napoleon, destination=Corsica, date=1769)"
+              },
+              {
+                "type": "p",
+                "children": "**Erased to level 2:** PTRANS<Emergence, Biological>(theme=Napoleon, destination=Corsica)"
+              },
+              {
+                "type": "p",
+                "children": "**Erased to level 1:** PTRANS<Emergence>(theme=Napoleon, destination=Corsica)"
+              },
+              {
+                "type": "p",
+                "children": "**Fully erased:** PTRANS(theme=Napoleon, destination=Corsica)"
+              },
+              {
+                "type": "p",
+                "children": "Each level is correct and useful. A model predicting 'something moved somewhere' needs PTRANS. A model predicting 'something came into being' needs PTRANS<Emergence>. A model predicting 'a human was born' needs the full type. The hierarchy isn't a luxury — it's how abstraction works."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "2. Multi-Parameter Generics: Two Dimensions, Not One"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "The key insight from our operator hierarchy v2: operators aren't specialized along a single axis. They have TWO orthogonal type parameters: transfer type (WHAT kind of transfer) and domain (WHERE it happens)."
+          },
+          {
+            "type": "DefinitionList",
+            "props": {
+              "definitions": [
+                {
+                  "term": "Transfer Type (parameter 1)",
+                  "definition": "The nature of the transfer: Emergence (coming into being), Bond (relationship formation), Creation (making something), Authority (power transfer), Movement (physical motion), etc."
+                },
+                {
+                  "term": "Domain (parameter 2)",
+                  "definition": "The context where it happens: Biological, Political, Literary, Musical, Athletic, Corporate, etc."
+                },
+                {
+                  "term": "Why two dimensions?",
+                  "definition": "'Napoleon was born in Corsica' = PTRANS<Emergence, Biological>. 'The company was founded in London' = PTRANS<Emergence, Corporate>. Same transfer type (Emergence), different domain. 'The athlete moved to Barcelona' = PTRANS<Movement, Athletic>. Different transfer type, different domain. The two axes are independent."
+                }
+              ]
+            }
+          },
+          {
+            "type": "InteractiveDemo",
+            "props": {
+              "id": "operator-factorization-matrix",
+              "title": "The Operator Factorization Matrix",
+              "description": "Explore how 16 transfer types × 11 domains create a sparse matrix — only 24 of 176 possible cells are populated (86% sparsity). Click any cell to see examples.",
+              "initialState": {
+                "selectedCell": null,
+                "showSparsity": true
+              },
+              "steps": [
+                "The matrix has 16 rows (transfer types) and 11 columns (domains)",
+                "Only 24 cells are filled — most combinations don't exist in natural language",
+                "This 86% sparsity means the factorization COMPRESSES: storing 24 pairs is cheaper than storing 176",
+                "MDL (Minimum Description Length) validates: factored representation uses fewer bits than flat",
+                "The empty cells aren't wasted — they're predictions: 'these combinations shouldn't appear'"
+              ]
+            }
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "3. SAE Features as Discovered Type Parameters"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "Here's the core claim: if you train Sparse Autoencoders at different dictionary sizes, the features they discover correspond to different type erasure levels."
+          },
+          {
+            "type": "Callout",
+            "props": {
+              "type": "key-insight"
+            },
+            "children": "A coarse SAE (small dictionary) discovers features like 'PTRANS' — the erased primitive. A fine SAE (large dictionary) discovers features like 'Emergence' and 'Biological' — the individual type parameters. The hierarchy isn't imposed; it's discovered by varying the resolution."
+          },
+          {
+            "type": "Example",
+            "props": {
+              "title": "Matryoshka SAEs: Resolution as Abstraction"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "Matryoshka SAEs (arXiv:2503.17547) train features at multiple scales simultaneously — like nested Russian dolls. The outer (coarsest) features capture broad categories. The inner (finest) features capture specific distinctions."
+              },
+              {
+                "type": "p",
+                "children": "**Dictionary size 64:** Feature 12 fires for 'things that change location' → PTRANS (erased)"
+              },
+              {
+                "type": "p",
+                "children": "**Dictionary size 256:** Feature 89 fires for 'emergence events' → transfer type parameter"
+              },
+              {
+                "type": "p",
+                "children": "**Dictionary size 1024:** Feature 517 fires for 'biological emergence' → domain parameter"
+              },
+              {
+                "type": "p",
+                "children": "**Dictionary size 4096:** Feature 3201 fires for 'human births specifically' → full type PTRANS<Emergence, Biological<Human>>"
+              },
+              {
+                "type": "p",
+                "children": "The operator IS the conjunction of features: Feature 12 ∧ Feature 89 ∧ Feature 517 = PTRANS<Emergence, Biological>."
+              }
+            ]
+          },
+          {
+            "type": "DeepDive",
+            "props": {
+              "title": "Feature Conjunction = Full Operator Type",
+              "id": "feature-conjunction"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "This is the key prediction: individual SAE features don't correspond to whole operator types. They correspond to individual TYPE PARAMETERS. A feature for 'Emergence' fires regardless of domain. A feature for 'Biological' fires regardless of transfer type. The full operator PTRANS<Emergence, Biological> is the conjunction of independently discovered features."
+              },
+              {
+                "type": "p",
+                "children": "This makes a very specific, testable prediction: in a correlation matrix between SAE features and operator labels, features should correlate with individual parameters (transfer type OR domain), not with specific operator instances. Feature 4217 correlates with ttype:Membership. Feature 8903 correlates with domain:Political. The combination (Membership × Political = 'citizenship') emerges from co-activation, not from a single dedicated feature."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "4. The Geometry of Type Erasure"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "The Geometry of Concepts paper (Park et al., Entropy 2025) showed that SAE features have geometric structure: hierarchically related concepts are orthogonal, categorical concepts form polytopes. Type erasure predicts a specific geometry:"
+          },
+          {
+            "type": "InteractiveDemo",
+            "props": {
+              "id": "type-erasure-geometry",
+              "title": "Geometry of Type Parameters in Feature Space",
+              "description": "Visualize how type parameters create orthogonal subspaces in SAE feature space. Transfer type and domain are independent axes — their intersection defines a specific operator.",
+              "initialState": {
+                "selectedLevel": "full",
+                "showOrthogonality": false
+              },
+              "steps": [
+                "The transfer type dimension spans one axis: Emergence, Bond, Creation, Authority...",
+                "The domain dimension spans an orthogonal axis: Biological, Political, Literary...",
+                "At the erased level, PTRANS is a hyperplane containing ALL transfer types and domains",
+                "Adding a type parameter is PROJECTION onto a subspace: PTRANS<Emergence> is a lower-dimensional slice",
+                "The full type PTRANS<Emergence, Biological> is the intersection of two projections — a point in the factored space"
+              ]
+            }
+          },
+          {
+            "type": "Analogy",
+            "props": {
+              "concept": "Type erasure as projection",
+              "analogy": "Think of a building with floors and rooms. The erased type says 'you're in the building' (PTRANS). Adding the transfer type says 'you're on the 3rd floor' (PTRANS<Emergence>). Adding the domain says 'you're in room 3B' (PTRANS<Emergence, Biological>). Each type parameter is a dimension that narrows your location. Erasure means going UP a level: from a specific room, to a floor, to just 'in the building.'"
+            }
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "5. Why This Matters: Living Hierarchies"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "Traditional ontologies are frozen: you define categories once and everything must fit. Type erasure with wake-sleep learning creates a LIVING hierarchy:"
+          },
+          {
+            "type": "DefinitionList",
+            "props": {
+              "definitions": [
+                {
+                  "term": "Wake phase (reading)",
+                  "definition": "Model processes text. SAE features fire. The pattern of feature activations implies a type signature. If no existing type matches, the system proposes a new specialization: 'I see Emergence + a new domain I haven't seen before → propose Emergence<Digital> for software releases.'"
+                },
+                {
+                  "term": "Sleep phase (consolidation)",
+                  "definition": "Compare proposed types. If two specializations have overlapping feature distributions, MERGE them. If one has too few examples, PRUNE it. The hierarchy evolves based on data, not fiat."
+                },
+                {
+                  "term": "Type erasure as graceful degradation",
+                  "definition": "A new domain that the model hasn't seen before doesn't break anything. It falls back to the erased type: 'I don't know what kind of Emergence this is, but I know it's Emergence.' Like a shipping company: even if it's never shipped a live elephant before, it can still handle it as a PACKAGE with weight and dimensions."
+                }
+              ]
+            }
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "6. The Connection to Manifold Origami"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "This connects directly to the manifold origami framework (Brainstorm #84). If Hydra's heads are atlas charts on a meaning manifold, then:"
+          },
+          {
+            "type": "Callout",
+            "props": {
+              "type": "key-insight"
+            },
+            "children": "Type parameters ARE manifold coordinates. The erased type selects the CHART (which manifold region). The first type parameter selects the FIBER (which local direction). The second type parameter selects the POINT (which specific location in the fiber). Type erasure is moving UP the fiber bundle: from a point, to a fiber, to the base manifold."
+          },
+          {
+            "type": "p",
+            "children": "This gives us a beautiful unification: Brainstorm #101 showed that 1 TRANSFER + metric tensors can reproduce all 5 Schankian primitives with 0.28× the parameters at 1.00× the loss. The metric tensor IS the type parameter: different metrics on the same base manifold = different domains. Type erasure = forgetting the metric and keeping only the topology."
+          }
+        ]
+      },
+      {
+        "type": "Quiz",
+        "props": {
+          "questions": [
+            {
+              "question": "What does 'type erasure' mean in the context of operator hierarchies?",
+              "options": [
+                "Deleting operators that aren't useful",
+                "Removing type parameters to operate at a coarser abstraction level",
+                "Converting typed operators into untyped text",
+                "Erasing the model's memory of operator types"
+              ],
+              "correct": 1,
+              "explanation": "Type erasure means stripping type parameters to work at a higher level of abstraction. PTRANS<Emergence, Biological<Human>> → PTRANS<Emergence> → PTRANS. Each level is valid and useful."
+            },
+            {
+              "question": "Why do multi-parameter generics matter for SAE alignment?",
+              "options": [
+                "They make the code more readable",
+                "Individual SAE features should align with individual type parameters, not whole operator types",
+                "They reduce the number of SAE features needed",
+                "They make training faster"
+              ],
+              "correct": 1,
+              "explanation": "The key prediction: SAE features correspond to individual type parameters (like 'Emergence' or 'Biological'), not to specific operator instances. The full operator emerges from the conjunction of independently discovered features."
+            },
+            {
+              "question": "What does 86% sparsity in the transfer type × domain matrix tell us?",
+              "options": [
+                "Most of the data is missing",
+                "The factorization captures real structure — most combinations don't occur in nature",
+                "We need more training data",
+                "The hierarchy is too complex"
+              ],
+              "correct": 1,
+              "explanation": "Only 24 of 176 possible (transfer type × domain) combinations actually appear. This means the two-dimensional factorization compresses the operator space efficiently — it captures genuine structure in how events combine transfer types with domains."
+            }
+          ]
+        }
+      }
+    ]
+  }
+}
