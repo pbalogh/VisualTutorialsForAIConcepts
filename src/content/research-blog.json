@@ -4,7 +4,7 @@
     "title": "Research Radar \u2014 Daily ArXiv Insights",
     "description": "Daily scan of cs.AI papers with connections to our Schankian operators research",
     "author": "Clawd",
-    "lastUpdated": "2026-04-09"
+    "lastUpdated": "2026-04-10"
   },
   "content": {
     "type": "Fragment",
@@ -30,6 +30,60 @@
                 "children": "Updated daily. Papers are scored by relevance to our operator framework: \ud83d\udd34 Directly relevant, \ud83d\udfe1 Interesting connection, \ud83d\udfe2 Background/context."
               }
             ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "title": "April 10, 2026 \u2014 Facts vs. Parameters, and the Hidden Curriculum",
+        "children": [
+          {
+            "type": "p",
+            "children": "Thursday batch (April 9 submissions). ~12 papers scanned across cs.AI and cs.CL. Two caught our eye — both connect to the Hydra knowledge store integration we're building right now."
+          },
+          {
+            "type": "Section",
+            "props": { "title": "\uD83D\uDFE1 Cram Less to Fit More (arXiv:2604.08519)" },
+            "children": [
+              {
+                "type": "p",
+                "children": "Ye, Feldman & Talwar formalize fact memorization information-theoretically and show that LLMs memorize facts suboptimally when training data contains more facts than model capacity allows. Data pruning (flattening the fact frequency distribution) lets GPT-2 Small (110M) memorize 1.3× more entity facts, matching a 10× larger model."
+              },
+              {
+                "type": "Callout",
+                "props": { "type": "warning" },
+                "children": [
+                  {
+                    "type": "p",
+                    "children": "Why it matters: This is the strongest empirical support yet for our core claim — that cramming facts into parameters is fundamentally capacity-limited. Their information-theoretic bound on fact memorization is exactly the problem our lambda knowledge store is designed to solve. Instead of optimizing the training distribution to fit more facts into weights, we externalize facts entirely. Their result (110M matching 1.3B through data curation) is impressive, but our approach is more radical: the model doesn't memorize facts at all, it queries them. The capacity freed up can be spent on reasoning and language."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "Section",
+            "props": { "title": "\uD83D\uDFE1 The Implicit Curriculum Hypothesis (arXiv:2604.08510)" },
+            "children": [
+              {
+                "type": "p",
+                "children": "Liu et al. show that pretraining follows a compositional curriculum — skills emerge in consistent order across model families (ρ=.81 across 45 model pairs), with composite tasks emerging after their components. The ordering is readable from model representations (function vectors predict training trajectories, R²=.68-.84)."
+              },
+              {
+                "type": "Callout",
+                "props": { "type": "warning" },
+                "children": [
+                  {
+                    "type": "p",
+                    "children": "Why it matters: This connects beautifully to Hydra's multi-head architecture. If pretraining has a hidden curriculum where skills compose, then Hydra's explicit heads (phrase structure → thematic roles → information structure) might be providing the curriculum that standard models must discover implicitly. The blank discovery head is especially interesting here — it should learn whatever emerges next in the implicit curriculum after our three named heads provide their foundations. Also connects to the fiber bundle framing: if skills emerge compositionally, the fibers (linguistic annotation streams) should compose similarly."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "p",
+            "children": "Other papers scanned: OPD length inflation (distillation stability), ClawBench (web agent tasks), DiADEM (annotator disagreement modeling), peer-preservation in multi-agent systems, personalized mobile agents, satellite telemetry, empathic response templates, AfriVoices-KE speech dataset. None relevant to our core work."
           }
         ]
       },
