@@ -7286,6 +7286,149 @@
             "children": "Running total: ~93 tracked papers. Both papers reinforce the emerging understanding that dLLM denoising is NOT uniform — different stages have different computational and semantic importance. Our SAE-guided approach should exploit this non-uniformity."
           }
         ]
+      },
+      {
+        "type": "Section",
+        "title": "April 10, 2026 — Sweep #N",
+        "children": [
+          {
+            "type": "p",
+            "children": "Three new papers this sweep: a unified post-training framework for dLLMs, a block-diffusion VLM, and a diffusion-based prompt pruning method."
+          },
+          {
+            "type": "DeepDive",
+            "title": "[Apr 10] DARE: dLLM Alignment and Reinforcement Executor (Apr 5, 2026)",
+            "children": [
+              {
+                "type": "p",
+                "children": [
+                  {
+                    "type": "strong",
+                    "children": [
+                      "Paper:"
+                    ]
+                  },
+                  " Yang et al., 'DARE: Diffusion Large Language Models Alignment and Reinforcement Executor' (arXiv:2604.04215, Apr 5, 2026)"
+                ]
+              },
+              {
+                "type": "p",
+                "children": [
+                  {
+                    "type": "strong",
+                    "children": [
+                      "Key insight:"
+                    ]
+                  },
+                  " Open framework unifying SFT, PEFT, preference optimization, and dLLM-specific RL under one execution stack. Supports both masked (LLaDA, Dream) and block (SDAR, LLaDA2.x) diffusion LMs. Built on verl + OpenCompass for reproducible evaluation. Addresses ecosystem fragmentation where each paper ships its own training pipeline."
+                ]
+              },
+              {
+                "type": "p",
+                "children": [
+                  {
+                    "type": "strong",
+                    "children": [
+                      "Relevance:"
+                    ]
+                  },
+                  " ⭐⭐ INFRASTRUCTURE. A reusable post-training substrate for dLLMs dramatically lowers the barrier to SAE-guided experiments. If SAE feature objectives can be formulated as reward signals, DARE's RL pipeline could train dLLMs to maximize SAE-defined feature targets during generation. Also useful as baseline: any SAE-guided denoising should be compared against DARE's standard RL-aligned dLLMs."
+                ]
+              }
+            ]
+          },
+          {
+            "type": "DeepDive",
+            "title": "[Apr 10] Fast-dVLM: Block-Diffusion VLM from AR VLM (Apr 8, 2026)",
+            "children": [
+              {
+                "type": "p",
+                "children": [
+                  {
+                    "type": "strong",
+                    "children": [
+                      "Paper:"
+                    ]
+                  },
+                  " Wu et al., 'Fast-dVLM: Efficient Block-Diffusion VLM via Direct Conversion from Autoregressive VLM' (arXiv:2604.06832, Apr 8, 2026)"
+                ]
+              },
+              {
+                "type": "p",
+                "children": [
+                  {
+                    "type": "strong",
+                    "children": [
+                      "Key insight:"
+                    ]
+                  },
+                  " Converts pretrained AR VLMs into block-diffusion VLMs for parallel decoding. Compares two-stage (text-only diffusion adaptation → multimodal) vs direct (full AR VLM conversion in one stage). Direct conversion is substantially more efficient under comparable training budgets. Enables KV-cache-compatible parallel decoding and speculative block decoding. Targets edge deployment (robotics, autonomous driving) where AR is memory-bandwidth-bound."
+                ]
+              },
+              {
+                "type": "p",
+                "children": [
+                  {
+                    "type": "strong",
+                    "children": [
+                      "Relevance:"
+                    ]
+                  },
+                  " ⭐ BACKGROUND. Extends diffusion LM paradigm to vision-language, validating that AR→diffusion conversion is practical for multimodal models. The direct conversion finding suggests pretrained AR representations transfer well to diffusion — relevant if SAE features trained on AR models could bootstrap feature analysis of converted diffusion models."
+                ]
+              }
+            ]
+          },
+          {
+            "type": "DeepDive",
+            "title": "[Apr 10] DiffuMask: Diffusion LM for Prompt Pruning (Apr 8, 2026)",
+            "children": [
+              {
+                "type": "p",
+                "children": [
+                  {
+                    "type": "strong",
+                    "children": [
+                      "Paper:"
+                    ]
+                  },
+                  " Zheng et al., 'DiffuMask: Diffusion Language Model for Token-level Prompt Pruning' (arXiv:2604.06627, Apr 8, 2026)"
+                ]
+              },
+              {
+                "type": "p",
+                "children": [
+                  {
+                    "type": "strong",
+                    "children": [
+                      "Key insight:"
+                    ]
+                  },
+                  " Uses diffusion-style iterative mask prediction for prompt compression. Frames token pruning as denoising — predicting which tokens to KEEP vs MASK in parallel across denoising steps. Hierarchical shot-level + token-level pruning. Up to 80% prompt reduction while maintaining accuracy across in-domain, out-of-domain, and cross-model settings."
+                ]
+              },
+              {
+                "type": "p",
+                "children": [
+                  {
+                    "type": "strong",
+                    "children": [
+                      "Relevance:"
+                    ]
+                  },
+                  " ⭐ TANGENTIAL but conceptually interesting. Inverts our usual framing: instead of diffusion generating tokens from masks, DiffuMask uses diffusion to decide which existing tokens to mask away. The parallel mask-prediction approach could inform SAE-guided token selection — which tokens need SAE feature guidance vs which are already well-determined."
+                ]
+              }
+            ]
+          },
+          {
+            "type": "Callout",
+            "props": {
+              "type": "info"
+            },
+            "children": "Running total: ~96 tracked papers. DARE is the most impactful find — a shared training infrastructure for dLLMs will accelerate the entire field and provide a clean substrate for SAE-guided experiments."
+          }
+        ]
       }
     ]
   }
