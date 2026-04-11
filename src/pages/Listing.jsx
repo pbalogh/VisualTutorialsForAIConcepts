@@ -1014,6 +1014,18 @@ const tutorials = [
     difficulty: 3,
   },
   {
+    id: 'brainstorm-53-rhetoric-primitives',
+    title: 'Rhetoric Primitives: The Schank of Persuasion',
+    description: 'If events decompose into ATRANS/PTRANS/MTRANS, what do rhetorical moves decompose into? Wake-sleep compression on 41K discourse relations from the GUM corpus discovers the primitives of persuasion.',
+    tags: ['schankian', 'rhetoric', 'discourse', 'RST', 'wake-sleep', 'L-systems'],
+    icon: '🎭',
+    gradient: 'from-rose-500 to-orange-600',
+    shadowColor: 'shadow-rose-500/30',
+    glowColor: 'rgba(244, 63, 94, 0.4)',
+    readTime: '25 min',
+    difficulty: 2,
+  },
+  {
     id: 'brainstorm-59-modal-operators-tom',
     title: 'Differentiable Modal Operators & Theory of Mind',
     description: 'How Schank\'s mental primitives (MBUILD, MTRANS) are modal operators in disguise — Kripke semantics, BDI architecture, and learnable belief tracking',

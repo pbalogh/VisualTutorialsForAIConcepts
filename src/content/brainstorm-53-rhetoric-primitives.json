@@ -1,0 +1,316 @@
+{
+  "id": "brainstorm-53-rhetoric-primitives",
+  "title": "Rhetoric Primitives: The Schank of Persuasion",
+  "subtitle": "What if discourse has primitives like events do? Wake-sleep compression meets RST.",
+  "readTime": "25 min",
+  "state": {},
+  "content": {
+    "type": "Fragment",
+    "children": [
+      {
+        "type": "Callout",
+        "props": { "type": "info" },
+        "children": "Schank showed that all events decompose into ~11 primitives (ATRANS, PTRANS, MTRANS...). This tutorial asks: do rhetorical moves decompose the same way? Can we discover the primitives of persuasion, explanation, and argument using the same wake-sleep compression that found event primitives?"
+      },
+      {
+        "type": "Section",
+        "props": { "title": "1. The Parallel: Events Have Primitives. Does Rhetoric?" },
+        "children": [
+          {
+            "type": "p",
+            "children": "Schank's key insight was that 'buy', 'steal', 'give', and 'inherit' are all the same primitive operation (ATRANS — transfer of ownership) with different role fillers. Hundreds of surface verbs collapsed into ~11 primitives."
+          },
+          {
+            "type": "p",
+            "children": "Now look at rhetoric. When a writer provides evidence for a claim, gives background context, acknowledges a counterargument, or motivates you to act — are these all different? Or are some of them the same primitive operation on YOUR MENTAL STATE, with different fillers?"
+          },
+          {
+            "type": "Analogy",
+            "props": { "title": "Events vs. Rhetoric" },
+            "children": [
+              {
+                "type": "p",
+                "children": "Event primitives operate on the WORLD: ATRANS moves ownership, PTRANS moves objects, MTRANS moves information. Rhetoric primitives operate on the READER'S MIND: Evidence moves belief, Motivation moves desire, Background moves comprehension. Same architecture, different substrate."
+              }
+            ]
+          },
+          {
+            "type": "DefinitionList",
+            "props": {
+              "items": [
+                { "term": "ATRANS (events)", "definition": "Transfer of abstract possession (give, take, buy, steal)" },
+                { "term": "TRANSFER_BELIEF (rhetoric?)", "definition": "Transfer of conviction (evidence, proof, testimony, data)" },
+                { "term": "PTRANS (events)", "definition": "Physical transfer of location (go, move, carry)" },
+                { "term": "TRANSFER_ATTENTION (rhetoric?)", "definition": "Redirect reader's focus (contrast, antithesis, comparison)" },
+                { "term": "MTRANS (events)", "definition": "Mental transfer of information (tell, teach, learn)" },
+                { "term": "TRANSFER_COMPREHENSION (rhetoric?)", "definition": "Enable understanding (background, context, example)" }
+              ]
+            }
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "2. RST: The Grammar of Discourse" },
+        "children": [
+          {
+            "type": "p",
+            "children": "Rhetorical Structure Theory (Mann & Thompson, 1988) says discourse has TREE STRUCTURE, just like sentences. Every text can be decomposed into a tree where nodes are connected by relations like 'evidence', 'concession', 'elaboration', and 'motivation'."
+          },
+          {
+            "type": "Example",
+            "props": { "title": "An RST Tree in the Wild" },
+            "children": [
+              {
+                "type": "p",
+                "children": "Consider this paragraph:"
+              },
+              {
+                "type": "code",
+                "props": { "language": "text" },
+                "children": "You should exercise regularly.        ← NUCLEUS (the main claim)\nStudies show it reduces heart disease   ← EVIDENCE (increases belief)\nby up to 40%.                           \nEven if you hate the gym,              ← CONCESSION (manages stance)\nyou can walk for 20 minutes a day.     ← ENABLEMENT (increases ability)\nYour future self will thank you.       ← MOTIVATION (increases desire)"
+              },
+              {
+                "type": "p",
+                "children": "Each satellite performs a DIFFERENT OPERATION on your mental state relative to the nucleus. Evidence doesn't just add information — it specifically increases your belief. Motivation doesn't explain anything — it increases your desire to act."
+              }
+            ]
+          },
+          {
+            "type": "DeepDive",
+            "props": { "title": "The 32 RST Relations" },
+            "children": [
+              {
+                "type": "p",
+                "children": "RST defines ~32 relations in two categories:"
+              },
+              {
+                "type": "p",
+                "children": "PRESENTATIONAL (change the reader's mental state): Evidence, Motivation, Enablement, Concession, Antithesis, Background, Justify, Preparation."
+              },
+              {
+                "type": "p",
+                "children": "SUBJECT MATTER (help reader recognize relationships): Elaboration, Cause, Result, Condition, Circumstance, Manner, Means, Purpose, Evaluation, Interpretation."
+              },
+              {
+                "type": "p",
+                "children": "The presentational relations are especially interesting because they're EXPLICITLY DEFINED as operators on mental state. Mann & Thompson wrote definitions like: 'R's belief of N is increased' (Evidence) and 'R's desire to perform action in N is increased' (Motivation). These are operator specifications!"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "3. The Experiment: Wake-Sleep on 41,000 Rhetorical Facts" },
+        "children": [
+          {
+            "type": "p",
+            "children": "We extracted 41,409 rhetorical relation facts from the GUM corpus (Georgetown University Multilayer corpus) — 301 documents across 24 genres, each annotated with RST discourse trees. For each nucleus-satellite pair, we recorded: the relation type, the text of both spans, the genre, and the discourse signals (connective words like 'because', 'however', 'therefore')."
+          },
+          {
+            "type": "Callout",
+            "props": { "type": "tip" },
+            "children": "Think of this like what we did for event primitives: instead of feeding Wikidata triples (Napoleon, born_in, Corsica) into wake-sleep, we're feeding discourse triples (satellite_text, evidence, nucleus_text). The question is the same: do the 32 surface relations compress into fewer primitives?"
+          },
+          {
+            "type": "InteractiveDemo",
+            "props": {
+              "title": "Genre Signatures: How Different Genres Use Rhetoric Differently",
+              "description": "Each genre has a distinctive 'fingerprint' of which rhetorical operations it uses most. Academic writing is evidence-heavy. How-to guides are motivation-heavy. Fiction is background-heavy. These signatures suggest that different genres are running different 'programs' from the same primitive set.",
+              "type": "table",
+              "headers": ["Genre", "Top Rhetorical Operation", "% of Relations", "What It Means"],
+              "rows": [
+                ["Academic", "STRENGTHEN_BELIEF (evidence)", "25%", "Persuade through proof"],
+                ["How-to", "MOTIVATE_ACTION", "3.4%", "Get reader to DO something"],
+                ["Fiction", "ENABLE_COMPREHENSION (background)", "10.2%", "Build the world"],
+                ["Reddit/Conversation", "MANAGE_STANCE (concession/eval)", "12%", "Social negotiation"],
+                ["Speech", "MOTIVATE_ACTION", "14%", "Rally the audience"],
+                ["Court proceedings", "TRANSFER_AUTHORITY (justify)", "4%", "Establish right to speak"],
+                ["Threat", "MOTIVATE_ACTION + MANAGE_STANCE", "50%+50%", "Coercion via desire + stance"]
+              ]
+            }
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "4. Asymmetry Profiles: The Direction of Rhetoric" },
+        "children": [
+          {
+            "type": "p",
+            "children": "The most revealing discovery wasn't about WHICH relations appear, but about the ASYMMETRY between nucleus and satellite. Each relation has a measurable 'direction' — the satellite brings specific kinds of content that the nucleus lacks."
+          },
+          {
+            "type": "InteractiveDemo",
+            "props": {
+              "title": "Asymmetry Signatures: What the Satellite Brings",
+              "description": "For each RST relation, we computed the average feature difference (satellite minus nucleus). Positive values mean the satellite has MORE of that feature. These signatures are genuine functional fingerprints.",
+              "type": "table",
+              "headers": ["Relation", "Satellite Brings...", "Nucleus Expects...", "Key Asymmetry"],
+              "rows": [
+                ["Evidence", "Numbers, data, citations", "Claims, proper nouns", "+10% number rate in satellite"],
+                ["Motivation", "Reasons, explanations", "Commands, actions", "Nucleus has imperative starts (-5%)"],
+                ["Concession", "Negations ('not perfect...')", "Contrast markers ('but...')", "+0.9% negation in satellite"],
+                ["Cause", "Long explanations", "Short claims", "Satellite +0.22 log-length"],
+                ["Result", "Short triggers", "Long consequences", "Nucleus +0.09 log-length (opposite!)"],
+                ["Background", "Proper nouns, context", "Forward references", "+2% proper noun rate in satellite"]
+              ]
+            }
+          },
+          {
+            "type": "Callout",
+            "props": { "type": "warning" },
+            "children": "Notice how Cause and Result have OPPOSITE length asymmetries! When you explain a cause, the explanation is long. When you state a result, the consequence is the meaty part. This is a genuine functional distinction that bag-of-words features can't see but asymmetry analysis reveals."
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "5. The L-System Connection: Rhetoric as a Second Grammar" },
+        "children": [
+          {
+            "type": "p",
+            "children": "Here's the deep insight: a sentence parse tree IS a stochastic L-system. The tree 'grows' as the parser processes each word — each token triggers local rewriting that propagates structure. But DISCOURSE is a SECOND L-system operating at a higher level."
+          },
+          {
+            "type": "Example",
+            "props": { "title": "Two L-Systems Running Simultaneously" },
+            "children": [
+              {
+                "type": "code",
+                "props": { "language": "text" },
+                "children": "RHETORIC L-SYSTEM (above):\n  PERSUADE → CLAIM + EVIDENCE + CONCESSION + CONCLUSION\n  EVIDENCE → CITE + DATA + INTERPRET\n  CONCESSION → ACKNOWLEDGE + COUNTER + REFRAME\n\nSYNTAX L-SYSTEM (below):\n  S → NP VP\n  NP → Det N\n  VP → V NP PP\n\nThe rhetoric level CONSTRAINS the syntax level:\n  'EVIDENCE' demands sentences with numbers, citations, hedging.\n  'MOTIVATION' demands imperatives, action verbs, benefits.\n  'CONCESSION' demands contrast markers, negation, qualification."
+              }
+            ]
+          },
+          {
+            "type": "Analogy",
+            "props": { "title": "The Painter's Algorithm" },
+            "children": [
+              {
+                "type": "p",
+                "children": "A painter works close to the canvas (ground-level brushstrokes = syntax) then steps back to see the whole composition (abstract structure = rhetoric). Each brushstroke is both: executing the current plan AND providing evidence about whether the plan is working. The painting emerges from the oscillation between levels, not from either alone. The speaker does the same thing: each word is simultaneously a syntactic commitment and a data point about whether the rhetorical strategy is landing."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "6. LLM Templates: Evidence That Rhetoric HAS Structure" },
+        "children": [
+          {
+            "type": "p",
+            "children": "Recent work (Gueorguieva et al., 2026) found that LLMs follow a FIXED TEMPLATE for empathic responses — a sequence of 10 'tactics' (validate feelings, paraphrase, offer perspective...) that matches 83-90% of all LLM empathy responses. Human responses are far more diverse."
+          },
+          {
+            "type": "p",
+            "children": "This is evidence that rhetoric HAS discoverable structure — LLMs have converged on a single 'empathy production rule' while humans use a richer stochastic grammar. Our wake-sleep approach should discover whether those 10 tactics compress to fewer primitives, and what the human-diverse grammar actually looks like."
+          },
+          {
+            "type": "DeepDive",
+            "props": { "title": "Why LLMs Are Rhetorical Savants but Syntactic Natives" },
+            "children": [
+              {
+                "type": "p",
+                "children": "LLMs learned syntax from billions of examples and deploy it with human-like diversity. But they learned rhetoric from a narrower signal (RLHF preference data) and deploy it with template-like rigidity. The implication: rhetoric is a HIGHER-LEVEL skill that requires more diverse training signal, not just more data. Understanding the primitives of rhetoric could help us train more rhetorically diverse AI systems."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "7. The Socratic Connection: Forcing the Learner's L-System" },
+        "children": [
+          {
+            "type": "p",
+            "children": "The Socratic method isn't just 'ask questions.' It's forcing the learner to run their OWN hop-up/drop-down cycle instead of passively receiving the teacher's. Socrates forces commitment: 'What is justice?' Now YOU have to launch a structure. And then the next question makes you parse your own output."
+          },
+          {
+            "type": "p",
+            "children": "The garden-path is the pedagogical mechanism. Socrates DELIBERATELY lets you build the wrong structure, then introduces the token that breaks it. The revision that follows is where actual learning happens — you learn WHY your structure failed."
+          },
+          {
+            "type": "InteractiveDemo",
+            "props": {
+              "title": "The Socratic Sequence as Operator Chain",
+              "description": "Each Socratic move is a rhetoric operator applied to the student's mental state. The sequence forms a program: probe → commit → reveal → reconcile.",
+              "type": "table",
+              "headers": ["Move", "Rhetoric Operator", "Student's State Change"],
+              "rows": [
+                ["'What is justice?'", "PROBE (elicit)", "Student commits to a definition"],
+                ["'But what about X?'", "SHIFT_ATTENTION (contrast)", "Student notices boundary of their definition"],
+                ["'So your definition fails for X?'", "TRANSFER_BELIEF (evidence)", "Student's conviction in old def drops"],
+                ["'What if instead...'", "ENABLE_COMPREHENSION (background)", "Student receives new framework"],
+                ["'Does that handle X?'", "PROBE again", "Student tests new framework themselves"]
+              ]
+            }
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "8. Next Steps: Discovering the Real Primitives" },
+        "children": [
+          {
+            "type": "p",
+            "children": "Our current pipeline has 41K RST facts and initial clustering. The next steps are:"
+          },
+          {
+            "type": "DefinitionList",
+            "props": {
+              "items": [
+                { "term": "1. Better merge detection", "definition": "Use LLM-based function classification instead of bag-of-words features. Our llama3.1:8b classifier found 8 categories, but ENABLE_COMPREHENSION is an attractor (66%) that needs splitting." },
+                { "term": "2. Full wake-sleep cycle", "definition": "Run the operator discovery wake-sleep loop on RST facts with genre-conditional specialization. Do 'evidence-in-academic' and 'evidence-in-court' compress to the same primitive?" },
+                { "term": "3. Validate against Mann & Thompson", "definition": "RST's ~32 relations were hand-coded. If wake-sleep discovers ~5-7 primitives that subsume them, that's a computational validation of Mann & Thompson's intuitions." },
+                { "term": "4. Educational discourse application", "definition": "If we understand the primitives of effective explanation, we can build better tutorials. The Socratic sequence is a specific 'program' in the rhetoric primitive set." }
+              ]
+            }
+          }
+        ]
+      },
+      {
+        "type": "Quiz",
+        "props": {
+          "questions": [
+            {
+              "question": "What's the key parallel between Schank's event primitives and proposed rhetoric primitives?",
+              "options": [
+                "Both use tree structures",
+                "Both operate on mental representations — events change world state, rhetoric changes reader state",
+                "Both were discovered by compression algorithms",
+                "Both have exactly 11 primitives"
+              ],
+              "correct": 1,
+              "explanation": "Event primitives (ATRANS, PTRANS, MTRANS) are operators on the world. Rhetoric primitives (TRANSFER_BELIEF, TRANSFER_ATTENTION, etc.) are operators on the reader's mental state. Same architecture, different substrate."
+            },
+            {
+              "question": "Why do Cause and Result relations have OPPOSITE length asymmetries?",
+              "options": [
+                "It's a statistical artifact",
+                "Cause satellites explain WHY (long), Result nuclei describe WHAT HAPPENED (long)",
+                "They're actually the same primitive",
+                "It depends on the genre"
+              ],
+              "correct": 1,
+              "explanation": "When explaining a cause, the explanation needs space (long satellite, short nucleus claim). When stating a result, the consequence is the important part (short satellite trigger, long nucleus outcome). The asymmetry reveals genuinely different functions."
+            },
+            {
+              "question": "What does the LLM empathy template finding (83-90% match) tell us about rhetoric?",
+              "options": [
+                "LLMs are bad at empathy",
+                "Rhetoric has discoverable structure, but LLMs have converged on too rigid a grammar",
+                "Human empathy is also templatic",
+                "RLHF training is unnecessary"
+              ],
+              "correct": 1,
+              "explanation": "The template finding shows that rhetoric HAS structure (it can be templated) but also that humans use a RICHER stochastic grammar. LLMs found one production rule; humans have many. Understanding the primitive set could help build more diverse AI rhetoric."
+            }
+          ]
+        }
+      }
+    ]
+  }
+}
