@@ -1146,6 +1146,18 @@ const tutorials = [
     difficulty: 3,
   },
   {
+    id: 'brainstorm-92b-primitive-granularity-gradient',
+    title: 'The Primitive Granularity Gradient',
+    description: 'SAE features at different layers encode Schankian primitives at different resolutions — sharp individual detectors at middle layers, family-level megafeatures at late layers. The network discovers meta-primitives that Schank never named.',
+    tags: ['Schankian', 'SAE', 'mech-interp', 'Hydra', 'granularity', 'empirical'],
+    icon: '🔬',
+    gradient: 'from-violet-500 to-purple-700',
+    shadowColor: 'shadow-violet-500/30',
+    glowColor: 'rgba(139, 92, 246, 0.4)',
+    readTime: '20 min',
+    difficulty: 3,
+  },
+  {
     id: 'brainstorm-96-inference-time-orchestration',
     title: 'Operators as Inference-Time Orchestration Programs',
     description: 'What if Schankian operators aren\'t inside the model? Inspired by dendritic diffusion\'s model-agnostic orchestration layer, this tutorial reframes operators as inference-time steering protocols — external programs that configure model behavior via activation steering, not internal representations to be discovered.',

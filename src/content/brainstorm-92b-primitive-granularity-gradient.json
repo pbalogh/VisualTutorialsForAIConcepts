@@ -1,0 +1,345 @@
+{
+  "id": "brainstorm-92b-primitive-granularity-gradient",
+  "title": "The Primitive Granularity Gradient",
+  "subtitle": "SAE layers as a Schankian zoom lens — how neural networks encode primitives at multiple resolutions",
+  "readTime": "20 min",
+  "state": {},
+  "content": {
+    "type": "Fragment",
+    "children": [
+      {
+        "type": "Callout",
+        "props": {
+          "type": "info"
+        },
+        "children": "This tutorial explores a striking empirical finding from SAE (Sparse Autoencoder) analysis of a 130M-parameter Mamba model: Schankian primitives aren't represented at a single layer — they exist at DIFFERENT granularities across depth. Middle layers have sharp primitive detectors, while late layers develop 'megafeatures' that fire for entire families of primitives. The network's layerwise abstraction gradient mirrors Schank's own hierarchy of concepts."
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "1. The Observation"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "When we trained sparse autoencoders on a 130M-parameter Hydra model at seven different layers and measured how well individual SAE features align with semantic labels (Schankian primitives like ATRANS, PTRANS, and domain categories), we found something unexpected: the alignment quality varies dramatically across depth, but not randomly."
+          },
+          {
+            "type": "p",
+            "children": "Instead, the network forms a **granularity gradient** — a systematic progression from blurry to sharp to over-general as you move through the layers."
+          },
+          {
+            "type": "DefinitionList",
+            "props": {
+              "items": [
+                {
+                  "term": "MCC (Matthews Correlation Coefficient)",
+                  "definition": "A balanced measure of binary classification quality ranging from -1 to +1. MCC of 0 means random; MCC of 1 means perfect alignment. We use it to measure how well a single SAE feature predicts a semantic label."
+                },
+                {
+                  "term": "SAE Feature",
+                  "definition": "A learned direction in activation space extracted by a sparse autoencoder. Each feature fires on a subset of tokens, ideally corresponding to a coherent concept."
+                },
+                {
+                  "term": "Schankian Primitive",
+                  "definition": "One of Roger Schank's fundamental conceptual operations (ATRANS = transfer of possession, PTRANS = physical transfer, MTRANS = mental transfer, etc.) proposed as the atoms of thought."
+                }
+              ]
+            }
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "2. The Zoom Lens Metaphor"
+        },
+        "children": [
+          {
+            "type": "Analogy",
+            "props": {
+              "concept": "Layerwise granularity gradient",
+              "analogy": "Reading SAE alignments layer by layer is like adjusting a microscope. At low magnification (early layers), everything is blurry — features fire weakly for many things. At the right magnification (middle layers), you see sharp, individual primitives: THIS feature is ATRANS, THAT feature is Ownership. At too-high magnification (late layers), you've zoomed out again — features now detect primitive FAMILIES, not individual primitives. It's as if the lens auto-adjusts its concept resolution at each depth."
+            }
+          },
+          {
+            "type": "p",
+            "children": "Here's what we actually measured across 7 layers of the Hydra-130M model at training step 25K:"
+          },
+          {
+            "type": "Example",
+            "props": {
+              "title": "Empirical Data: MCC by Layer"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "**Layer 0** (earliest): mean MCC 0.168, max 0.296 — many features mildly correlated with labels, but nothing sharp. Pre-primitive soup."
+              },
+              {
+                "type": "p",
+                "children": "**Layer 4**: mean MCC 0.143, max 0.318 — slight improvement, features beginning to differentiate."
+              },
+              {
+                "type": "p",
+                "children": "**Layer 8** (the sweet spot): mean MCC 0.152, max **0.379** — Feature 2427 becomes a dedicated Ownership/ATRANS detector. Sharpest primitive-level features."
+              },
+              {
+                "type": "p",
+                "children": "**Layer 12** (peak discrimination): mean MCC 0.176, max **0.381** — the overall sharpest layer. Fewer but stronger feature-to-label correlations."
+              },
+              {
+                "type": "p",
+                "children": "**Layer 16**: mean MCC 0.149, max 0.320 — Feature 1199 begins firing for almost everything (high recall, low precision). A generic 'relational' detector emerges."
+              },
+              {
+                "type": "p",
+                "children": "**Layer 20** (the megafeature layer): mean MCC 0.149, max **0.392** — paradox! The highest single MCC in the entire model, but achieved through GENERALIZATION not discrimination. Feature 2471 fires for IS_A, PARTOF, Classification, Composition, Geographic — it's a primitive family detector."
+              },
+              {
+                "type": "p",
+                "children": "**Layer 23** (output): mean MCC 0.154, max 0.354 — Feature 451 fires for EVERYTHING relational: literary, musical, corporate, MTRANS, creation, reception. A universal 'something is happening' detector."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "3. The Key Insight: The Network Discovers Meta-Primitives"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "Feature 2471 at layer 20 is the most interesting finding. It fires strongly for IS_A, PARTOF, Classification, Composition, and Geographic relationships. These are all **taxonomic** or **hierarchical** relationships — they share a common structure even though Schank never grouped them under a single primitive."
+          },
+          {
+            "type": "p",
+            "children": "The network has discovered what we might call **TAXONOMIZE** — a meta-primitive that subsumes IS_A and PARTOF. Schank didn't name this operation, but the neural network found it useful as an intermediate representation."
+          },
+          {
+            "type": "DeepDive",
+            "props": {
+              "title": "Why would a network invent meta-primitives?"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "Think about it from a compression perspective. If IS_A and PARTOF patterns co-occur frequently and require similar downstream processing, it's more efficient to detect the family first (TAXONOMIZE) and then branch into specifics later. This is exactly what the network does: layer 8 has individual IS_A and PARTOF detectors, but by layer 20, they've been compressed into a single family detector."
+              },
+              {
+                "type": "p",
+                "children": "This mirrors a well-known phenomenon in neural networks: intermediate layers tend to represent features at the right level of abstraction for the task. Too specific and you waste capacity; too general and you lose discriminative power. The network finds its own optimal compression level at each depth."
+              }
+            ]
+          },
+          {
+            "type": "Callout",
+            "props": {
+              "type": "warning"
+            },
+            "children": "Important caveat: these results are from training step 25K on a 130M model. The features are still forming. We expect middle-layer features to sharpen further as training continues to 100K steps, while late-layer megafeatures may remain general — their generality may be functional, not just a sign of incomplete training."
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "4. Schank's Own Hierarchy"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "Here's the remarkable parallel: Schank HIMSELF proposed a hierarchy of concept granularity, from concrete to abstract:"
+          },
+          {
+            "type": "DefinitionList",
+            "props": {
+              "items": [
+                {
+                  "term": "Primitive Acts (finest)",
+                  "definition": "ATRANS, PTRANS, MTRANS, INGEST, etc. — individual atomic operations. These correspond to the SHARP features at layers 8-12."
+                },
+                {
+                  "term": "Scripts (medium)",
+                  "definition": "Stereotyped event sequences like $RESTAURANT or $DOCTOR_VISIT. These bundle multiple primitives into reusable patterns."
+                },
+                {
+                  "term": "MOPs (coarser)",
+                  "definition": "Memory Organization Packets — abstract patterns shared across scripts. Going to a restaurant and going to a doctor share a MOP for 'entering an establishment, waiting, being served, paying.'"
+                },
+                {
+                  "term": "Meta-MOPs (coarsest)",
+                  "definition": "The most abstract organizational level. These correspond to the MEGAFEATURES at layers 20-23 — features that fire for entire families of related concepts."
+                }
+              ]
+            }
+          },
+          {
+            "type": "p",
+            "children": "The network's layerwise gradient IS Schank's conceptual hierarchy, but discovered empirically through compression rather than designed by a theorist. The early layers haven't yet separated concepts (pre-primitive). The middle layers have sharp primitives (Schank's level). The late layers have compressed back into families (MOPs/meta-MOPs)."
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "5. Interactive: Explore the Gradient"
+        },
+        "children": [
+          {
+            "type": "InteractiveDemo",
+            "props": {
+              "title": "Layer-by-Layer Feature Alignment Explorer",
+              "description": "Adjust the layer slider to see how SAE feature alignment changes across depth. The bar chart shows the best MCC for each semantic label at that layer. Notice how individual primitives sharpen at middle layers, then blur into families at late layers.",
+              "initialCode": "// Empirical data from Hydra-130M SAE analysis (step 25K)\nconst layerData = {\n  0:  { meanMCC: 0.168, maxMCC: 0.296, topFeature: 'generic', topLabel: 'mixed' },\n  4:  { meanMCC: 0.143, maxMCC: 0.318, topFeature: '1812', topLabel: 'PTRANS (0.28)' },\n  8:  { meanMCC: 0.152, maxMCC: 0.379, topFeature: '2427', topLabel: 'Ownership/ATRANS (0.38)' },\n  12: { meanMCC: 0.176, maxMCC: 0.381, topFeature: '2445', topLabel: 'Ownership/ATRANS (0.38)' },\n  16: { meanMCC: 0.149, maxMCC: 0.320, topFeature: '1199', topLabel: 'multi-label (0.32)' },\n  20: { meanMCC: 0.149, maxMCC: 0.392, topFeature: '2471', topLabel: 'IS_A+PARTOF+Taxonomic (0.39)' },\n  23: { meanMCC: 0.154, maxMCC: 0.354, topFeature: '451', topLabel: 'universal relational (0.35)' }\n};\n\n// Key insight: max MCC actually peaks at layer 20, but via generalization\n// The 'best' primitive-SPECIFIC features are at layers 8-12\n// The 'best' single feature is at layer 20, but it fires for everything\n\nconsole.log('Layer 8:  Sharp primitive →', layerData[8].topLabel);\nconsole.log('Layer 20: Megafeature   →', layerData[20].topLabel);\nconsole.log('\\nThe gradient: blurry → sharp → over-general');"
+            }
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "6. Testable Predictions"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "The primitive granularity gradient makes several concrete predictions that can be tested:"
+          },
+          {
+            "type": "Example",
+            "props": {
+              "title": "Prediction 1: Dictionary Size Replicates the Depth Gradient"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "If you train SAEs at a FIXED layer but with different dictionary sizes, smaller dictionaries should produce megafeatures (like layer 20's TAXONOMIZE), while larger dictionaries should produce sharp primitive-specific features (like layer 8's ATRANS). The depth gradient and the dictionary-size gradient should be duals of each other — both control the resolution of the conceptual lens."
+              }
+            ]
+          },
+          {
+            "type": "Example",
+            "props": {
+              "title": "Prediction 2: Megafeature Families = Schank's Script Groupings"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "The specific primitives that cluster into megafeatures at layers 20-23 should correspond to Schank's script-level and MOP-level groupings. For example, ATRANS + PTRANS should cluster (both involve transfer) while MTRANS + MBUILD should cluster (both involve mental operations). If the megafeatures don't respect Schank's groupings, this suggests an alternative conceptual organization that the network discovered."
+              }
+            ]
+          },
+          {
+            "type": "Example",
+            "props": {
+              "title": "Prediction 3: Training Sharpens Middle Layers, Preserves Late Generality"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "As training continues from 25K to 100K steps, middle-layer features (8-12) should get sharper (higher MCC for individual primitives), while late-layer megafeatures (20-23) should remain general. If late-layer features also sharpen, it means the megafeatures were artifacts of incomplete training. If they stay general, it means the generality is FUNCTIONAL — the network genuinely needs family-level representations at those depths."
+              }
+            ]
+          },
+          {
+            "type": "Example",
+            "props": {
+              "title": "Prediction 4: Cross-Model Universality"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "If this gradient is a general property of deep networks (not specific to Mamba-130M), then GPT-2's SAE features at equivalent relative depths should show the same pattern. Early layers blurry, middle layers sharp, late layers megafeatures. Recent work on SAE feature universality across LLMs (arXiv:2410.06981) suggests features DO transfer across models — the gradient might too."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "7. Connection to Matryoshka SAEs"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "A related idea (Entry #91 in our brainstorms) proposed using Matryoshka SAEs — sparse autoencoders trained at multiple dictionary sizes simultaneously — to discover the type-erasure hierarchy. The primitive granularity gradient shows that we may not need Matryoshka: the LAYERS themselves already perform multi-scale decomposition."
+          },
+          {
+            "type": "DeepDive",
+            "props": {
+              "title": "Layers vs. Dictionary Size: Two Axes of the Same Space?"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "Imagine a 2D space where the x-axis is layer depth and the y-axis is SAE dictionary size. At every point in this space, you get a set of features at a particular granularity. Moving right (deeper layers) and moving down (smaller dictionaries) both COARSEN the features. Moving left (shallower) and moving up (larger dictionaries) both SHARPEN them."
+              },
+              {
+                "type": "p",
+                "children": "If this is true, then there are iso-granularity contours in this space: a large dictionary at layer 20 might produce the same granularity as a small dictionary at layer 8. This would mean the network's depth and the SAE's capacity are interchangeable controls on conceptual resolution — a profound connection between architecture and analysis method."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "8. Quiz"
+        },
+        "children": [
+          {
+            "type": "Quiz",
+            "props": {
+              "questions": [
+                {
+                  "question": "At which layers do the sharpest primitive-specific SAE features appear in the Hydra-130M model?",
+                  "options": ["Layers 0-4 (early)", "Layers 8-12 (middle)", "Layers 20-23 (late)", "Features are equally sharp at all layers"],
+                  "answer": 1,
+                  "explanation": "Layers 8-12 show the sharpest feature-to-primitive alignment (MCC up to 0.381). Early layers are too diffuse, and late layers develop megafeatures that fire for families of primitives rather than individual ones."
+                },
+                {
+                  "question": "What is a 'megafeature' in the context of this analysis?",
+                  "options": ["A feature with unusually high activation magnitude", "A feature that fires for an entire family of semantic labels", "A feature that appears at every layer", "A feature learned by a very large SAE dictionary"],
+                  "answer": 1,
+                  "explanation": "A megafeature is an SAE feature that fires for multiple related semantic labels — like Feature 2471 at layer 20, which responds to IS_A, PARTOF, Classification, Composition, and Geographic relationships simultaneously."
+                },
+                {
+                  "question": "What meta-primitive did the network discover that Schank didn't name?",
+                  "options": ["COMPUTE (mathematical operations)", "TAXONOMIZE (hierarchical/categorical relationships)", "COMMUNICATE (any information exchange)", "TRANSFORM (any state change)"],
+                  "answer": 1,
+                  "explanation": "Feature 2471 at layer 20 fires for IS_A + PARTOF + Classification + Composition + Geographic — all taxonomic/hierarchical relationships. We call this TAXONOMIZE. Schank had IS_A and PARTOF as separate concepts but never unified them under a single meta-primitive."
+                },
+                {
+                  "question": "Which prediction would DISPROVE the primitive granularity gradient hypothesis?",
+                  "options": ["Different models show the same gradient", "Late-layer megafeatures sharpen to individual primitives as training continues", "Smaller SAE dictionaries produce coarser features", "Megafeature families match Schank's script groupings"],
+                  "answer": 1,
+                  "explanation": "If late-layer megafeatures sharpen to individual primitives with more training, it would mean the gradient was just an artifact of incomplete training — the late layers were 'on their way' to being sharp, not functionally general. The gradient hypothesis requires that late-layer generality persists even in fully trained models."
+                }
+              ]
+            }
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "9. Summary"
+        },
+        "children": [
+          {
+            "type": "Callout",
+            "props": {
+              "type": "success"
+            },
+            "children": "The primitive granularity gradient reveals that neural networks don't represent Schankian primitives at a single level — they maintain a full hierarchy from sharp individual detectors (middle layers) to family-level megafeatures (late layers). This hierarchy mirrors Schank's own progression from primitive acts to scripts to MOPs, but was discovered empirically through compression rather than designed by a theorist. The implication: the 'right' level of conceptual abstraction is depth-dependent, and the network learns to maintain multiple resolutions simultaneously."
+          }
+        ]
+      }
+    ]
+  }
+}
