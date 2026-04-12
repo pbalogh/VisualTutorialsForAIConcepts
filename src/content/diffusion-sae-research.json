@@ -7429,6 +7429,103 @@
             "children": "Running total: ~96 tracked papers. DARE is the most impactful find — a shared training infrastructure for dLLMs will accelerate the entire field and provide a clean substrate for SAE-guided experiments."
           }
         ]
+      },
+      {
+        "type": "Section",
+        "title": "📡 Apr 12, 2026: Aggressive Parallel Decoding + Spatio-Temporal Stability",
+        "children": [
+          {
+            "type": "DeepDive",
+            "title": "[Apr 12] DMax: Aggressive Parallel Decoding for dLLMs (Apr 10, 2026)",
+            "children": [
+              {
+                "type": "p",
+                "children": [
+                  {
+                    "type": "strong",
+                    "children": [
+                      "Paper:"
+                    ]
+                  },
+                  " Chen et al., 'DMax: Aggressive Parallel Decoding for dLLMs' (arXiv:2604.08302, Apr 10, 2026)"
+                ]
+              },
+              {
+                "type": "p",
+                "children": [
+                  {
+                    "type": "strong",
+                    "children": [
+                      "Key insight:"
+                    ]
+                  },
+                  " Introduces On-Policy Uniform Training to unify masked diffusion LMs (MDLMs) and uniform diffusion LMs (UDLMs) — the model learns to recover clean tokens from BOTH masked inputs AND its own erroneous predictions. This enables intrinsic self-revision during decoding. Soft Parallel Decoding represents intermediate states as interpolations between predicted token embeddings and mask embeddings, enabling iterative refinement in continuous embedding space. Achieves 6.0 tokens-per-forward on math/reasoning and 6.6 on code while preserving accuracy."
+                ]
+              },
+              {
+                "type": "p",
+                "children": [
+                  {
+                    "type": "strong",
+                    "children": [
+                      "Relevance:"
+                    ]
+                  },
+                  " ⭐⭐ for Ideas 1 & 3. The soft parallel decoding using embedding interpolation creates continuous intermediate states during discrete diffusion — exactly the kind of hybrid continuous-discrete space where SAE features could provide interpretable guidance. The self-revision capability (MDLM→UDLM) means the model can correct errors without full remasking, creating natural intervention points for SAE-guided steering. The on-policy training also addresses the train-inference mismatch that MetaState and MemDLM tackle from different angles."
+                ]
+              }
+            ]
+          },
+          {
+            "type": "DeepDive",
+            "title": "[Apr 12] STDec: Spatio-Temporal Stability Guided Decoding (Apr 7, 2026)",
+            "children": [
+              {
+                "type": "p",
+                "children": [
+                  {
+                    "type": "strong",
+                    "children": [
+                      "Paper:"
+                    ]
+                  },
+                  " Chen et al., 'STDec: Spatio-Temporal Stability Guided Decoding for dLLMs' (arXiv:2604.06330, Apr 7, 2026)"
+                ]
+              },
+              {
+                "type": "p",
+                "children": [
+                  {
+                    "type": "strong",
+                    "children": [
+                      "Key insight:"
+                    ]
+                  },
+                  " Observes strong spatio-temporal stability in dLLM decoding: newly decoded tokens tend to lie near already-decoded neighbors (spatial), and predicted token IDs often remain consistent across several denoising steps (temporal). Spatial-aware decoding generates token-adaptive thresholds from neighboring decoded states; temporal-aware decoding relaxes thresholds for temporally consistent predictions. Training-free, compatible with KV-cache acceleration. Up to 14.17x speedup on MBPP with LLaDA while maintaining accuracy."
+                ]
+              },
+              {
+                "type": "p",
+                "children": [
+                  {
+                    "type": "strong",
+                    "children": [
+                      "Relevance:"
+                    ]
+                  },
+                  " ⭐ INFRASTRUCTURE. The spatio-temporal stability observation is consistent with our crystallization findings — tokens don't decode randomly but form coherent spatial clusters that stabilize temporally. Their adaptive thresholding could complement SAE-guided decoding: use SAE features for semantic guidance and STDec-style stability signals for efficiency. The 14x speedup frees compute budget for SAE feature computation during generation."
+                ]
+              }
+            ]
+          },
+          {
+            "type": "Callout",
+            "props": {
+              "type": "info"
+            },
+            "children": "Running total: ~98 tracked papers. DMax's soft parallel decoding (embedding interpolation for self-revision) is the most architecturally interesting find — creates continuous intermediate representations during discrete diffusion that are natural targets for SAE feature analysis and steering."
+          }
+        ]
       }
     ]
   }
