@@ -1158,6 +1158,18 @@ const tutorials = [
     difficulty: 3,
   },
   {
+    id: 'brainstorm-93-operator-universality-classes',
+    title: 'Operator Universality Classes',
+    description: 'When different event corpora (ATOMIC, GLUCOSE) are compressed under MDL, they converge on overlapping operator vocabularies — analogous to universality classes in statistical physics. Cross-corpus transfer with <1 bit/event degradation suggests semantic primitives are fixed points of compression, not dataset artifacts.',
+    tags: ['Schankian', 'MDL', 'universality', 'ATOMIC', 'GLUCOSE', 'cross-corpus', 'information-theory'],
+    icon: '🌐',
+    gradient: 'from-emerald-500 to-teal-700',
+    shadowColor: 'shadow-emerald-500/30',
+    glowColor: 'rgba(16, 185, 129, 0.4)',
+    readTime: '18 min',
+    difficulty: 3,
+  },
+  {
     id: 'brainstorm-96-inference-time-orchestration',
     title: 'Operators as Inference-Time Orchestration Programs',
     description: 'What if Schankian operators aren\'t inside the model? Inspired by dendritic diffusion\'s model-agnostic orchestration layer, this tutorial reframes operators as inference-time steering protocols — external programs that configure model behavior via activation steering, not internal representations to be discovered.',

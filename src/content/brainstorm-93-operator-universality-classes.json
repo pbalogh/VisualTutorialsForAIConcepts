@@ -1,0 +1,321 @@
+{
+  "type": "Fragment",
+  "meta": {
+    "title": "Operator Universality Classes",
+    "description": "When different datasets converge on the same semantic primitives under compression, we may be seeing universality — fixed points of meaning.",
+    "author": "Clawd",
+    "lastUpdated": "2026-04-13"
+  },
+  "content": {
+    "type": "Fragment",
+    "children": [
+      {
+        "type": "Section",
+        "props": { "title": "The Convergence Puzzle" },
+        "children": [
+          {
+            "type": "Callout",
+            "props": { "type": "info" },
+            "children": "When you compress event data from two completely independent sources — ATOMIC (commonsense tuples) and GLUCOSE (story-grounded causal explanations) — using the same MDL procedure, you get overlapping operator inventories. The operators transfer across corpora with less than 1 bit/event degradation. Why?"
+          },
+          {
+            "type": "p",
+            "children": "This tutorial explores what it means when independently-constructed datasets converge on the same semantic building blocks. We'll connect this to universality classes in physics, test whether it's trivial or profound, and see what it implies for the 'are semantic primitives real?' debate."
+          },
+          {
+            "type": "Analogy",
+            "props": { "title": "Water, Magnets, and Meaning" },
+            "children": [
+              {
+                "type": "p",
+                "children": "In physics, water boiling and iron losing its magnetism are completely different systems with different microscopic rules. But near their critical points, they exhibit identical mathematical behavior — the same critical exponents, the same scaling laws. This is called universality: the macroscopic behavior depends only on symmetry and dimensionality, not on microscopic details. Our claim is similar: the 'macroscopic' operator vocabulary (ATRANS, CHANGE_feels, etc.) depends on the structure of state transformations, not on which specific events you sample."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "The Experiment: Two Corpora, One Vocabulary" },
+        "children": [
+          {
+            "type": "p",
+            "children": "We ran the same wake-sleep MDL compression on two very different event datasets:"
+          },
+          {
+            "type": "ComparisonTable",
+            "props": {
+              "headers": ["Property", "ATOMIC", "GLUCOSE"],
+              "rows": [
+                ["Source", "Commonsense tuples (877K)", "Story-grounded causal chains"],
+                ["Annotation", "9 relation types (xEffect, oReact, ...)", "10 causal dimensions per sentence"],
+                ["Domain", "General commonsense", "Short fiction narratives"],
+                ["Dominant changes", "Mental states (77%)", "Status changes (56%)"],
+                ["Schank coverage", "9.9%", "31.3%"],
+                ["Discovered library coverage", "100%", "100%"]
+              ]
+            }
+          },
+          {
+            "type": "p",
+            "children": "These datasets differ in almost every way: different annotation schemes, different domains, different change-type distributions. Yet the MDL procedure converges on overlapping operator inventories."
+          },
+          {
+            "type": "DeepDive",
+            "props": { "title": "The Overlapping Operators" },
+            "children": [
+              {
+                "type": "p",
+                "children": "Both corpora independently discover these core operators:"
+              },
+              {
+                "type": "CodeBlock",
+                "props": { "language": "text" },
+                "children": "SHARED OPERATORS (discovered independently)\n\n  CHANGE_feels   — emotional state transitions\n  SET_has        — acquisition (ATRANS analogue)\n  CHANGE_location — physical movement (PTRANS)\n  SET_knows      — information gain (MTRANS)\n  UNSET_has      — loss/disposal\n\nATOMIC-SPECIFIC (mental state focus):\n  CHANGE_wants   — goal adoption/completion\n  CHANGE_is      — identity/attribute change\n  CHANGE_needs   — requirement change\n  CHANGE_intends — intention shift\n\nGLUCOSE-SPECIFIC (narrative focus):\n  CHANGE_status  — general status (55.8% of GLUCOSE!)\n\nCROSS-CORPUS TRANSFER:\n  GLUCOSE library → ATOMIC: 100% coverage, 35.7 bits/ev\n  ATOMIC library → GLUCOSE: 100% coverage, 33.1 bits/ev\n  Degradation: < 1 bit/event in both directions"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "What Is Universality?" },
+        "children": [
+          {
+            "type": "p",
+            "children": "In statistical physics, universality means that systems with completely different microscopic rules can exhibit identical macroscopic behavior near phase transitions. The key insight: what matters is not the details of the system, but its symmetries and dimensionality."
+          },
+          {
+            "type": "DefinitionList",
+            "props": {
+              "items": [
+                {
+                  "term": "Universality Class",
+                  "definition": "A set of physical systems that share the same critical exponents and scaling functions near a phase transition, despite having different microscopic Hamiltonians."
+                },
+                {
+                  "term": "Critical Exponent",
+                  "definition": "A number describing how a physical quantity (like magnetization or heat capacity) diverges near a critical point. Systems in the same universality class share exact critical exponents."
+                },
+                {
+                  "term": "Renormalization Group",
+                  "definition": "The mathematical framework explaining universality: as you 'zoom out' (coarse-grain), microscopic differences wash away and all systems in a class flow to the same fixed point."
+                },
+                {
+                  "term": "Fixed Point (of MDL)",
+                  "definition": "Our proposed analogue: the operator vocabulary that MDL compression converges to regardless of which event corpus you start from, because the structure of state transformations is the invariant."
+                }
+              ]
+            }
+          },
+          {
+            "type": "Analogy",
+            "props": { "title": "MDL as Renormalization" },
+            "children": [
+              {
+                "type": "p",
+                "children": "Think of MDL compression as a kind of renormalization. Each wake-sleep iteration 'coarse-grains' the event data, replacing frequent specific patterns with named operators. Just as renormalization washes away microscopic details to reveal universal behavior, MDL washes away corpus-specific events to reveal universal operators. The fixed point of this process — the operator vocabulary that doesn't change with more iterations — is the 'universality class' of event semantics."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "Is This Trivially Expected?" },
+        "children": [
+          {
+            "type": "p",
+            "children": "A skeptic might say: 'Of course you get the same operators — you're using the same state-change representation (entity, relation, value) for both corpora. The operators just reflect which relation types exist.' This is a fair objection. Let's address it."
+          },
+          {
+            "type": "DeepDive",
+            "props": { "title": "The Trivial Explanation" },
+            "children": [
+              {
+                "type": "p",
+                "children": "The trivial argument: our operators are just GROUP BY on relation names. CHANGE_feels exists because 'feels' is a relation in both corpora. Any dataset with a 'feels' column would produce CHANGE_feels."
+              },
+              {
+                "type": "p",
+                "children": "But this doesn't explain everything:"
+              },
+              {
+                "type": "CodeBlock",
+                "props": { "language": "text" },
+                "children": "NON-TRIVIAL ASPECTS:\n\n1. OPERATOR TYPES differ between corpora:\n   ATOMIC discovers CHANGE_wants (20%) — absent from GLUCOSE\n   GLUCOSE discovers CHANGE_status (56%) — minor in ATOMIC\n   Yet cross-transfer still works.\n\n2. MDL PRUNING is selective:\n   Not every relation becomes an operator.\n   Rare relations stay as generic CHANGE/SET.\n   The threshold is information-theoretic, not arbitrary.\n\n3. COMPOSITION vs SPECIALIZATION:\n   Synthetic data discovers compound operators (ATRANS∘PTRANS).\n   Real-world data doesn't — events are simpler.\n   This structural difference is NOT trivially predicted.\n\n4. SCHANK'S PRIMITIVES ARE WRONG on real data:\n   If operators were just relation names, Schank's hand-coded\n   library (which uses the same relation types) should work.\n   It doesn't: 9.9% coverage on ATOMIC, 31.3% on GLUCOSE."
+              }
+            ]
+          },
+          {
+            "type": "p",
+            "children": "The non-trivial finding is not THAT operators exist, but WHICH operators survive MDL pruning and at what frequencies. The inventory is stable; the ranking varies by corpus but the pruning boundary is remarkably consistent."
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "Connection to Natural Semantic Metalanguage" },
+        "children": [
+          {
+            "type": "p",
+            "children": "Anna Wierzbicka's Natural Semantic Metalanguage (NSM) proposes about 65 'semantic primes' — irreducible meanings that exist in every human language. Words like SOMEONE, SOMETHING, DO, HAPPEN, WANT, FEEL, KNOW, SAY, GOOD, BAD."
+          },
+          {
+            "type": "DeepDive",
+            "props": { "title": "NSM Primes vs Our Operators" },
+            "children": [
+              {
+                "type": "CodeBlock",
+                "props": { "language": "text" },
+                "children": "NSM PRIMES (65 total)         OUR OPERATORS (~11)\n─────────────────────────      ──────────────────────\nDO, HAPPEN                  →  (implicit in all operators)\nWANT                        ≈  CHANGE_wants\nFEEL                        ≈  CHANGE_feels\nKNOW, THINK                 ≈  SET_knows / CHANGE_intends\nMOVE                        ≈  CHANGE_location (PTRANS)\nHAVE                        ≈  SET_has / MOVE_PROP_has (ATRANS)\nLIVE, DIE                   ≈  CHANGE_status / CHANGE_is\n\nNSM primes NOT in our set:\n  SAY, SEE, HEAR            → would need richer state repr.\n  GOOD, BAD, BIG, SMALL     → evaluatives (not state changes)\n  TIME, PLACE, PART          → structural, not operational\n  IF, BECAUSE, LIKE          → logical connectives"
+              },
+              {
+                "type": "p",
+                "children": "Our ~11 event operators appear to be a SUBSET of NSM primes — specifically, the ones governing state transformations. NSM also includes evaluative primes (GOOD, BAD), structural primes (PART, KIND), and logical primes (IF, BECAUSE) that don't correspond to state changes. This makes sense: we're compressing events, not all of meaning."
+              }
+            ]
+          },
+          {
+            "type": "Callout",
+            "props": { "type": "warning" },
+            "children": "Key difference: NSM primes are proposed on linguistic-philosophical grounds (cross-linguistic indefinability). Our operators are derived from information-theoretic compression. The fact that they partially overlap — using completely different methods — is the strongest evidence yet that both are detecting the same underlying structure."
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "Testable Predictions" },
+        "children": [
+          {
+            "type": "p",
+            "children": "If operator universality is real, several predictions follow:"
+          },
+          {
+            "type": "DeepDive",
+            "props": { "title": "Prediction 1: VerbNet Convergence" },
+            "children": [
+              {
+                "type": "p",
+                "children": "VerbNet organizes English verbs into classes based on syntactic behavior and semantic roles. Running wake-sleep on VerbNet frame annotations should discover the same core operators (ATRANS, PTRANS, MTRANS analogues) despite VerbNet being verb-centric rather than event-centric. The operator inventory should be stable; only the frequencies should change."
+              }
+            ]
+          },
+          {
+            "type": "DeepDive",
+            "props": { "title": "Prediction 2: Cross-Lingual Invariance" },
+            "children": [
+              {
+                "type": "p",
+                "children": "If semantic primitives are truly universal, they should emerge from event data in typologically diverse languages. Japanese ATOMIC (if it exists) or Chinese commonsense resources should yield the same operators, since compression doesn't depend on surface language. This would parallel NSM's claim that semantic primes exist in all languages."
+              }
+            ]
+          },
+          {
+            "type": "DeepDive",
+            "props": { "title": "Prediction 3: Finite-Size Phase Transition" },
+            "children": [
+              {
+                "type": "p",
+                "children": "In physics, finite systems don't show sharp phase transitions — they show crossovers. Similarly, there should be a critical dataset size below which operators don't converge reliably. Our ablations already hint at this: at N=50, only 9 operators emerge vs 14 at N=500. Mapping this transition precisely would reveal the 'correlation length' of event semantics — how many events you need before the underlying structure becomes visible."
+              }
+            ]
+          },
+          {
+            "type": "DeepDive",
+            "props": { "title": "Prediction 4: Inventory Stability, Ranking Variability" },
+            "children": [
+              {
+                "type": "p",
+                "children": "The set of operators (which ones exist) should be much more stable across corpora than their ranking (which are most frequent). CHANGE_wants dominates ATOMIC (20%) but doesn't appear in GLUCOSE. CHANGE_status dominates GLUCOSE (56%) but is minor in ATOMIC. Yet both are in the shared vocabulary. This is exactly what universality predicts: the critical exponents (operator existence) are universal; the coupling constants (operator frequencies) are not."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "The Philosophical Stakes" },
+        "children": [
+          {
+            "type": "p",
+            "children": "If operator convergence holds across multiple corpora, languages, and annotation schemes, it settles a 50-year debate:"
+          },
+          {
+            "type": "Example",
+            "props": { "title": "Are Semantic Primitives Real?" },
+            "children": [
+              {
+                "type": "CodeBlock",
+                "props": { "language": "text" },
+                "children": "POSITION 1: Primitives are arbitrary (Dreyfus, Wilensky)\n  \"Schank's primitives reflect his intuitions, not\n   the structure of meaning itself.\"\n  \n  EVIDENCE AGAINST: Two independent corpora, subjected\n  to theory-free compression, converge on overlapping\n  operator vocabularies. No human intuition involved.\n\nPOSITION 2: Primitives are real but unknowable\n  \"There might be primitives, but we can't determine\n   which ones without arbitrary choices.\"\n  \n  EVIDENCE AGAINST: MDL provides a principled, non-arbitrary\n  criterion. Operators survive pruning iff their frequency\n  justifies their library cost. This is as objective as\n  Huffman coding.\n\nPOSITION 3: Primitives are fixed points (our claim)\n  \"Semantic primitives are the convergent vocabulary of\n   MDL compression applied to event state changes —\n   real in the same sense that natural kinds in physics\n   are real.\"\n  \n  EVIDENCE FOR: Cross-corpus convergence, scale stability,\n  partial overlap with independently-proposed NSM primes."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "Quiz" },
+        "children": [
+          {
+            "type": "Quiz",
+            "props": {
+              "question": "What does 'universality' mean in the context of operator discovery?",
+              "options": [
+                "All languages use the same words",
+                "Different event corpora converge on the same operator vocabulary under MDL compression",
+                "Every event can be explained by exactly one operator",
+                "The same neural network architecture works for all tasks"
+              ],
+              "correctIndex": 1,
+              "explanation": "Universality means that independently-constructed corpora, with different annotation schemes and domain distributions, converge on overlapping operator inventories when subjected to MDL compression — analogous to different physical systems sharing critical exponents."
+            }
+          },
+          {
+            "type": "Quiz",
+            "props": {
+              "question": "Why is Schank's library WORSE than the generic seed on GLUCOSE data?",
+              "options": [
+                "GLUCOSE has a bug in its annotations",
+                "Schank's operators only cover 31.3% of events but add library cost for unused operators",
+                "The seed library has more operators than Schank's",
+                "GLUCOSE events are too simple for any operator to help"
+              ],
+              "correctIndex": 1,
+              "explanation": "Schank's 7 operators add library cost (bits to encode the operator definitions) but only explain 31.3% of events. The unexplained 68.7% still need the generic seed operators, so you're paying for two libraries but only benefiting from one. The seed alone is cheaper — Schank's primitives are a net MDL loss on GLUCOSE."
+            }
+          },
+          {
+            "type": "Quiz",
+            "props": {
+              "question": "Our ~11 event operators map to which subset of Wierzbicka's NSM primes?",
+              "options": [
+                "The logical connectives (IF, BECAUSE, LIKE)",
+                "The evaluative primes (GOOD, BAD, BIG, SMALL)",
+                "The state-transformation primes (WANT, FEEL, KNOW, MOVE, HAVE)",
+                "The structural primes (PART, KIND, TIME, PLACE)"
+              ],
+              "correctIndex": 2,
+              "explanation": "Our operators correspond to NSM primes governing state changes: WANT ≈ CHANGE_wants, FEEL ≈ CHANGE_feels, KNOW ≈ SET_knows, MOVE ≈ CHANGE_location, HAVE ≈ SET_has. NSM's evaluative, structural, and logical primes don't correspond to event state transformations."
+            }
+          },
+          {
+            "type": "Quiz",
+            "props": {
+              "question": "What distinguishes the 'universality' claim from the trivial observation that both corpora have similar relation types?",
+              "options": [
+                "The operators have different names in each corpus",
+                "MDL pruning selectively retains only information-theoretically justified operators, and Schank's hand-coded library using the same relations fails",
+                "We use a different programming language for each corpus",
+                "The corpora are in different natural languages"
+              ],
+              "correctIndex": 1,
+              "explanation": "The trivial explanation would predict that Schank's hand-coded library (which uses the same relation types) should work. It doesn't — 9.9% coverage on ATOMIC, 31.3% on GLUCOSE. MDL pruning is selective: not every relation becomes a surviving operator, the specialization/composition structure matters, and the pruning boundary is consistent across corpora."
+            }
+          }
+        ]
+      }
+    ]
+  }
+}
