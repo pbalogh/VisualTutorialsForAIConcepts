@@ -7583,6 +7583,117 @@
             "children": "Running total: ~99 tracked papers. Quiet week — field consolidating around decoding acceleration (AHD, DMax, STDec all from last 2 weeks). The SAE+diffusion intersection remains wide open for new contributions."
           }
         ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "📡 Apr 14, 2026: Continuous Diffusion Closes the Gap + RL Policy Optimization for dLLMs"
+        },
+        "children": [
+          {
+            "type": "DeepDive",
+            "title": "[Apr 14] 🔥 LangFlow: Continuous Diffusion Rivals Discrete in Language Modeling (Apr 13, 2026)",
+            "children": [
+              {
+                "type": "p",
+                "children": [
+                  {
+                    "type": "strong",
+                    "children": [
+                      "Paper:"
+                    ]
+                  },
+                  " Chen et al., 'LangFlow: Continuous Diffusion Rivals Discrete in Language Modeling' (arXiv:2604.11748, Apr 13, 2026)"
+                ]
+              },
+              {
+                "type": "p",
+                "children": [
+                  {
+                    "type": "strong",
+                    "children": [
+                      "Key insight:"
+                    ]
+                  },
+                  " First continuous diffusion LM to match top discrete DLMs. Connects embedding-space DLMs to Flow Matching via Bregman divergence. Three innovations: (1) ODE-based NLL bound for principled evaluation of continuous flow-based LMs, (2) information-uniform noise scheduling with a learnable Gumbel-based scheduler, (3) improved training with self-conditioning. PPL 30.0 on LM1B, 24.6 on OpenWebText. Surpasses AR baselines in zero-shot transfer. Code released."
+                ]
+              },
+              {
+                "type": "p",
+                "children": [
+                  {
+                    "type": "strong",
+                    "children": [
+                      "Relevance:"
+                    ]
+                  },
+                  " ⭐⭐⭐ MAJOR MILESTONE FOR IDEA 1. LangFlow proves continuous diffusion is competitive for text — removing the last argument for discrete-only approaches. SAE features are inherently continuous-valued, making continuous flow-based diffusion (LangFlow, FLM, CoDAR) the most natural home for SAE-guided generation. The information-uniform noise scheduling principle is relevant to Idea 3: their Gumbel scheduler adapts noise to information content, conceptually aligned with our SAE-feature-aware scheduling. Combined with FLM (one-step continuous), CoDAR (contextual rounding), and CRoCoDiL (continuous-then-discrete), LangFlow is the 5th strong paper showing continuous text diffusion works — the paradigm is now definitively viable."
+                ]
+              },
+              {
+                "type": "p",
+                "children": [
+                  {
+                    "type": "strong",
+                    "children": [
+                      "New question:"
+                    ]
+                  },
+                  " LangFlow's Bregman-divergence connection to Flow Matching could provide a principled loss function for training diffusion in SAE feature space. Can we replace their token-embedding space with SAE feature space and retain the theoretical guarantees?"
+                ]
+              }
+            ]
+          },
+          {
+            "type": "DeepDive",
+            "title": "[Apr 14] dTRPO: Efficient RL for dLLMs via Trajectory Reduction (Mar 24, 2026)",
+            "children": [
+              {
+                "type": "p",
+                "children": [
+                  {
+                    "type": "strong",
+                    "children": [
+                      "Paper:"
+                    ]
+                  },
+                  " Zhang et al. (Meta), 'dTRPO: Trajectory Reduction in Policy Optimization of Diffusion Large Language Models' (arXiv:2603.18806, Mar 24, updated Apr 13, 2026)"
+                ]
+              },
+              {
+                "type": "p",
+                "children": [
+                  {
+                    "type": "strong",
+                    "children": [
+                      "Key insight:"
+                    ]
+                  },
+                  " Makes RL for dLLMs practical by proving two trajectory reduction results: (1) under reference policy regularization, the probability ratio of newly unmasked tokens is an unbiased estimate of intermediate diffusion state ratios, (2) full trajectory probability can be estimated with a SINGLE forward pass of a re-masked final state. Enables scaled-up offline policy training. Up to 9.6% gains on instruction-following and reasoning benchmarks with 7B dLLMs."
+                ]
+              },
+              {
+                "type": "p",
+                "children": [
+                  {
+                    "type": "strong",
+                    "children": [
+                      "Relevance:"
+                    ]
+                  },
+                  " ⭐⭐ FOR IDEAS 2 & 4. Complements DARE (open RL framework) with more efficient policy optimization. The trajectory reduction insight — that you don't need full trajectory probability for good RL — could transfer to SAE-guided generation: SAE feature matching rewards could be computed on re-masked states rather than full trajectories, making SAE-guided RL training tractable. Combined with GRPO for MDM unmasking and entropy-aware step selection (2603.12554), the RL-for-dLLMs toolkit is maturing rapidly."
+                ]
+              }
+            ]
+          },
+          {
+            "type": "Callout",
+            "props": {
+              "type": "info"
+            },
+            "children": "Running total: ~101 tracked papers. LangFlow is the headline — continuous text diffusion is now definitively competitive, strengthening the case for SAE features (continuous-valued) as the natural latent space for diffusion-based text generation. The continuous vs discrete debate is effectively settled: both work, and hybrids (CADD, CRoCoDiL, CoDAR) may be best."
+          }
+        ]
       }
     ]
   }
