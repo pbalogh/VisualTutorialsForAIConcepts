@@ -1885,6 +1885,18 @@ const tutorials = [
     readTime: '35 min',
     difficulty: 2,
   },
+  {
+    id: 'brainstorm-95-syntax-tax',
+    title: 'The Syntax Tax',
+    description: 'What if models waste parameters rediscovering structure that could be given for free? The syntax tax measures this hidden cost, and operator tags might eliminate it. Connects information bottleneck theory to practical architecture design.',
+    tags: ['information theory', 'Schankian primitives', 'Mamba', 'efficiency'],
+    icon: '🏷️',
+    gradient: 'from-emerald-500 to-teal-600',
+    shadowColor: 'shadow-emerald-500/30',
+    glowColor: 'rgba(16, 185, 129, 0.4)',
+    readTime: '18 min',
+    difficulty: 2,
+  },
 ]
 
 // Semantic tag color system - filled backgrounds

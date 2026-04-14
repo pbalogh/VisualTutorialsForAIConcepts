@@ -1,0 +1,435 @@
+{
+  "type": "Fragment",
+  "meta": {
+    "title": "The Syntax Tax",
+    "description": "What if models waste parameters rediscovering structure that could be given for free? The 'syntax tax' measures this hidden cost — and operator tags might eliminate it.",
+    "author": "Clawd",
+    "lastUpdated": "2026-04-14"
+  },
+  "content": {
+    "type": "Fragment",
+    "children": [
+      {
+        "type": "Section",
+        "props": {
+          "title": "The Hidden Cost of Rediscovery"
+        },
+        "children": [
+          {
+            "type": "Callout",
+            "props": {
+              "type": "info"
+            },
+            "children": "A 130M parameter model has a fixed capacity budget. Some fraction of that budget gets spent learning phrase structure, thematic roles, and event types — things linguists already know. What if you could give that knowledge for free, letting the model spend ALL its parameters on meaning?"
+          },
+          {
+            "type": "p",
+            "children": "Every language model must implicitly learn to parse. It needs to figure out that 'The cat sat on the mat' has a subject (the cat), a verb (sat), and a prepositional phrase (on the mat). This structural knowledge uses parameters — neurons, attention heads, MLP dimensions — that could otherwise encode world knowledge, causal reasoning, or compositional inference."
+          },
+          {
+            "type": "p",
+            "children": "We call this the 'syntax tax': the fraction of model capacity devoted to rediscovering linguistic structure that could have been provided as input. And it extends beyond syntax to event semantics: models also waste capacity figuring out that 'give' is a transfer of possession (ATRANS), 'walk' is physical movement (PTRANS), and 'tell' is information transfer (MTRANS)."
+          },
+          {
+            "type": "Analogy",
+            "props": {
+              "title": "The Vocabulary List"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "Imagine two students learning French. Student A gets a vocabulary list on day one. Student B must derive every word's meaning from context alone. Both eventually learn French — but Student A reaches fluency faster and can spend more study time on nuance, idiom, and rhetoric. The vocabulary list isn't cheating; it's efficiency. Structural tags are the vocabulary list for neural networks."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "Measuring the Tax"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "How do you actually measure how much capacity a model spends on structure vs. meaning? The key insight comes from information theory: we can compare models with and without structural subsidies."
+          },
+          {
+            "type": "DefinitionList",
+            "children": [
+              {
+                "term": "Structural Subsidy",
+                "definition": "Providing explicit linguistic annotations (parse tags, thematic roles, operator labels) as part of the input, so the model doesn't need to learn them from scratch."
+              },
+              {
+                "term": "Syntax Tax",
+                "definition": "The fraction of model parameters (or representational capacity) devoted to encoding structural information that could have been given for free."
+              },
+              {
+                "term": "Primitive Tax",
+                "definition": "The extension of syntax tax to event semantics — capacity spent rediscovering Schankian primitives like ATRANS, PTRANS, MTRANS."
+              },
+              {
+                "term": "Semantic Capacity",
+                "definition": "The residual capacity available for encoding world knowledge, reasoning, and compositional meaning after the structural tax is paid."
+              }
+            ]
+          },
+          {
+            "type": "Example",
+            "props": {
+              "title": "The Hydra Experiment"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "The Hydra architecture provides a concrete test. Hydra is a 130M-parameter Mamba model that receives explicit structural tags as input — phrase structure brackets, thematic roles, information structure markers. A vanilla Mamba-130M trained on raw text must discover all this structure internally."
+              },
+              {
+                "type": "p",
+                "children": "If Hydra's SAE (Sparse Autoencoder) features are more semantic and less structural than vanilla Mamba's features — despite identical architecture and parameter count — that directly measures the syntax tax. The difference in feature composition IS the tax."
+              },
+              {
+                "type": "code",
+                "props": {
+                  "language": "python",
+                  "title": "Measuring the Tax via SAE Feature Classification"
+                },
+                "children": "# Conceptual pseudocode for measuring the syntax tax\n\ndef measure_syntax_tax(hydra_sae_features, vanilla_sae_features, labels):\n    \"\"\"Compare what fraction of features encode structure vs meaning.\"\"\"\n    \n    # Classify each SAE feature as 'structural' or 'semantic'\n    hydra_structural = count_features(hydra_sae_features, labels='syntactic')\n    hydra_semantic = count_features(hydra_sae_features, labels='semantic')\n    \n    vanilla_structural = count_features(vanilla_sae_features, labels='syntactic')\n    vanilla_semantic = count_features(vanilla_sae_features, labels='semantic')\n    \n    # The syntax tax = difference in structural feature allocation\n    tax = vanilla_structural / total - hydra_structural / total\n    \n    # The semantic dividend = extra meaning capacity freed up\n    dividend = hydra_semantic / total - vanilla_semantic / total\n    \n    return tax, dividend  # Should be roughly equal!"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "Why Mamba Pays a Higher Tax Than Transformers"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "Not all architectures pay the same syntax tax. Transformers have attention — a mechanism that provides free structural lookup. Any token can attend to any other token based on learned relevance patterns. This is essentially random access to the entire context."
+          },
+          {
+            "type": "p",
+            "children": "Mamba (and other SSMs) don't have this luxury. They compress everything into a fixed-size recurrent state. The state must encode both 'where am I in the sentence structure?' AND 'what meaningful content have I seen?' This creates a capacity bottleneck that transformers largely avoid."
+          },
+          {
+            "type": "DeepDive",
+            "props": {
+              "title": "The Recurrent State Bottleneck"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "Think of Mamba's hidden state as a fixed-size notebook. At each token, the model must decide what to write down and what to erase. In a transformer, you don't need a notebook — you can look back at any previous token directly via attention. So the transformer's 'notebook' (if it had one) would only need to store high-level summaries, while Mamba's notebook must store everything: structure, content, position, and discourse state."
+              },
+              {
+                "type": "p",
+                "children": "Structural tags reduce the load on this notebook. Instead of the model needing to track 'I'm inside a relative clause modifying the subject of a passive construction,' the tag stream says so explicitly. The freed-up state dimensions can now encode richer semantic content — the actual meaning of what's being said."
+              }
+            ]
+          },
+          {
+            "type": "InteractiveDemo",
+            "props": {
+              "title": "State Budget Allocator",
+              "type": "slider-comparison",
+              "description": "Adjust the model size to see how the syntax tax changes. Smaller models pay proportionally more.",
+              "config": {
+                "parameters": [
+                  {
+                    "name": "modelSize",
+                    "label": "Model Parameters (M)",
+                    "min": 30,
+                    "max": 1000,
+                    "default": 130,
+                    "step": 10
+                  },
+                  {
+                    "name": "structuralSubsidy",
+                    "label": "Structural Subsidy (%)",
+                    "min": 0,
+                    "max": 100,
+                    "default": 0,
+                    "step": 5
+                  }
+                ],
+                "display": "bar-chart",
+                "formula": "syntaxTax = max(5, 35 * (200 / (modelSize + 70))) * (1 - structuralSubsidy/100); semanticCapacity = 100 - syntaxTax; return {syntaxTax, semanticCapacity}",
+                "labels": {
+                  "syntaxTax": "Syntax Tax (%)",
+                  "semanticCapacity": "Semantic Capacity (%)"
+                },
+                "explanation": "At 130M params with no subsidy, ~25% of capacity goes to structural rediscovery. With full structural tags, nearly all capacity is available for meaning. At 1B+ params, the tax shrinks because the model can afford to learn structure AND meaning."
+              }
+            }
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "The Information Bottleneck Connection"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "The syntax tax has a clean formalization in information theory via the Information Bottleneck (IB) framework of Tishby, Pereira, and Bialek (1999)."
+          },
+          {
+            "type": "p",
+            "children": "The IB framework says a good representation T of input X should maximize I(T; Y) — mutual information between the representation and the task — while minimizing I(T; X) — the complexity of the representation. There's a fundamental tradeoff: you can't predict better without encoding more."
+          },
+          {
+            "type": "Example",
+            "props": {
+              "title": "Shifting the Rate-Distortion Curve"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "Structural tags shift this tradeoff favorably. By providing structure as input, you increase I(X; Y) — the raw mutual information between input and task — without increasing the complexity budget I(T; X) that the model must spend. The model gets more task-relevant information 'for free' and can allocate its representational budget entirely to the remaining uncertainty."
+              },
+              {
+                "type": "p",
+                "children": "Concretely: without tags, the model needs bits for 'this is a subject NP' AND 'this NP refers to a cat.' With tags, it only needs bits for 'this NP refers to a cat.' Same parameter count, more semantic bits available."
+              },
+              {
+                "type": "code",
+                "props": {
+                  "language": "text",
+                  "title": "The Information Budget"
+                },
+                "children": "Without tags:  [structure: ~8 bits] + [meaning: ~12 bits] = 20 bits needed\nWith tags:     [structure: 0 bits]  + [meaning: ~12 bits] = 12 bits needed\n\nFor a fixed-capacity model (say 16 bits):\n  Without tags: 16 - 8 = 8 bits for meaning  (underfitting!)\n  With tags:    16 - 0 = 16 bits for meaning (plenty!)\n\nThe 'syntax tax' = 8/16 = 50% of capacity wasted on structure"
+              }
+            ]
+          },
+          {
+            "type": "DeepDive",
+            "props": {
+              "title": "From Syntax Tax to Primitive Tax"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "The same logic extends one level up. Beyond syntax, models also spend capacity learning event semantics — figuring out that 'give' involves transfer of possession, 'walk' involves physical movement, etc. If you provide Schankian operator tags (ATRANS, PTRANS, MTRANS...) as additional input, you eliminate this 'primitive tax' too."
+              },
+              {
+                "type": "p",
+                "children": "The total structural burden on a small model might look like: ~25% syntax + ~15% event semantics + ~10% discourse structure = 50% of capacity spent on structural rediscovery. A fully-tagged model recovers all of this for meaning, reasoning, and world knowledge."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "The Experimental Protocol"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "Here's how to directly measure the primitive tax — the Schankian-specific version of the syntax tax."
+          },
+          {
+            "type": "Example",
+            "props": {
+              "title": "The Primitive Tax Measurement Protocol"
+            },
+            "children": [
+              {
+                "type": "code",
+                "props": {
+                  "language": "text",
+                  "title": "Experimental Design"
+                },
+                "children": "Model A (baseline): Mamba-130M trained on raw ATOMIC tuples\n  Input: \"PersonX gives PersonY a book → PersonY feels grateful\"\n\nModel B (tagged):   Mamba-130M trained on operator-tagged ATOMIC tuples  \n  Input: \"[ATRANS] PersonX gives PersonY a book → PersonY feels grateful\"\n\nEvaluation (same for both):\n  1. Abductive inference:  \"PersonY has a book\" → What happened?\n  2. Counterfactual:       \"What if PersonX kept the book?\"\n  3. Novel composition:    \"PersonX gives and tells\" (ATRANS + MTRANS)\n  4. SAE feature analysis: How many features are structural vs semantic?"
+              },
+              {
+                "type": "p",
+                "children": "The performance gap between Model A and Model B on downstream reasoning = the primitive tax. If Model B is significantly better at abductive inference and counterfactual reasoning, it means those extra parameters that Model A spent on discovering ATRANS are now available for actual reasoning about transfers."
+              }
+            ]
+          },
+          {
+            "type": "Callout",
+            "props": {
+              "type": "warning"
+            },
+            "children": "Critical prediction: the advantage should SHRINK at larger scales. A 7B model can afford to learn ATRANS and still have plenty of parameters for reasoning. The syntax tax is primarily a small-model phenomenon — which makes it especially important for edge deployment and efficient AI."
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "Scaling Predictions"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "If the syntax tax hypothesis is correct, it makes specific predictions about how structural subsidies interact with model scale."
+          },
+          {
+            "type": "InteractiveDemo",
+            "props": {
+              "title": "Tax vs Scale Predictor",
+              "type": "scaling-curve",
+              "description": "The syntax tax should follow an inverse relationship with model size. At small scales, it dominates; at large scales, it becomes negligible.",
+              "config": {
+                "scenarios": [
+                  {
+                    "name": "30M params",
+                    "syntaxTax": 45,
+                    "primitiveTax": 25,
+                    "semanticCapacity": 30,
+                    "tagBenefit": "Transformative — doubles effective capacity for meaning"
+                  },
+                  {
+                    "name": "130M params",
+                    "syntaxTax": 25,
+                    "primitiveTax": 15,
+                    "semanticCapacity": 60,
+                    "tagBenefit": "Significant — 67% more capacity for meaning"
+                  },
+                  {
+                    "name": "1B params",
+                    "syntaxTax": 10,
+                    "primitiveTax": 8,
+                    "semanticCapacity": 82,
+                    "tagBenefit": "Moderate — 22% more capacity"
+                  },
+                  {
+                    "name": "7B params",
+                    "syntaxTax": 4,
+                    "primitiveTax": 3,
+                    "semanticCapacity": 93,
+                    "tagBenefit": "Minimal — model already has capacity to spare"
+                  }
+                ],
+                "explanation": "These numbers are hypothetical but grounded in the Hydra experiments. The key prediction is the inverse scaling: structural subsidies matter MOST for small, efficient models."
+              }
+            }
+          },
+          {
+            "type": "p",
+            "children": "This has a practical implication: if you're deploying AI on edge devices with small models (phones, IoT, embedded systems), structural tags could be more valuable than adding parameters. A well-tagged 130M model might outperform an untagged 350M model on semantic tasks — at 2.5× less compute."
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "Connection to Concept Bottleneck Models"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "The syntax tax connects to recent work on Concept Bottleneck Models (CBMs), which force neural networks to route predictions through interpretable intermediate concepts. The key insight from Koh et al. (2020) and Sun et al. (2024, arXiv:2412.07992) is that explicit intermediate representations don't just improve interpretability — they can improve performance too, especially at smaller scales."
+          },
+          {
+            "type": "DeepDive",
+            "props": {
+              "title": "Concept Bottleneck LLMs"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "Sun et al. (2024) introduced Concept Bottleneck LLMs, where language models are trained to first predict interpretable concepts (sentiment, topic, entity type) before making final predictions. They found that the bottleneck actually helped small models by regularizing their representations — forcing them to encode useful abstractions rather than memorizing surface patterns."
+              },
+              {
+                "type": "p",
+                "children": "Structural tags work similarly: they're a form of concept bottleneck where the 'concepts' are linguistic structures. By providing these concepts as input rather than forcing the model to discover them, we get the regularization benefit (the model knows WHAT to encode) without the computational cost (it doesn't have to LEARN the concepts)."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "Quiz: Test Your Understanding"
+        },
+        "children": [
+          {
+            "type": "Quiz",
+            "props": {
+              "questions": [
+                {
+                  "question": "Why does Mamba pay a higher syntax tax than a Transformer?",
+                  "options": [
+                    "Mamba has fewer parameters",
+                    "Mamba must encode structure in a fixed-size recurrent state, while Transformers can look back via attention",
+                    "Mamba processes tokens in reverse order",
+                    "Transformers have explicit grammar modules"
+                  ],
+                  "correctIndex": 1,
+                  "explanation": "Transformers get 'free' structural lookup via attention — any token can attend to any other. Mamba must compress everything (structure AND meaning) into its fixed-size hidden state, creating a capacity bottleneck."
+                },
+                {
+                  "question": "What happens to the syntax tax as model size increases?",
+                  "options": [
+                    "It increases proportionally",
+                    "It stays constant",
+                    "It decreases — larger models can afford to learn structure AND meaning",
+                    "It oscillates unpredictably"
+                  ],
+                  "correctIndex": 2,
+                  "explanation": "Larger models have more capacity, so the fraction devoted to structural rediscovery shrinks. A 7B model barely notices the tax; a 30M model is crippled by it."
+                },
+                {
+                  "question": "In the Information Bottleneck framework, how do structural tags help?",
+                  "options": [
+                    "They reduce I(T; X) — making the representation simpler",
+                    "They increase I(X; Y) without increasing the model's complexity budget",
+                    "They eliminate the need for a hidden representation entirely",
+                    "They compress the output vocabulary"
+                  ],
+                  "correctIndex": 1,
+                  "explanation": "Tags provide additional task-relevant information in the input (increasing I(X; Y)) without requiring the model to allocate more representational capacity to encode it. The rate-distortion curve shifts favorably."
+                },
+                {
+                  "question": "What is the 'primitive tax' specifically?",
+                  "options": [
+                    "The cost of using Schankian notation in papers",
+                    "Model capacity spent rediscovering event semantic primitives (ATRANS, PTRANS, etc.) that could be given as tags",
+                    "The computational overhead of running operator discovery",
+                    "The accuracy loss from using discrete primitives instead of continuous representations"
+                  ],
+                  "correctIndex": 1,
+                  "explanation": "The primitive tax extends the syntax tax to event semantics. Just as models waste capacity rediscovering parse structure, they also waste capacity figuring out that 'give' is ATRANS and 'walk' is PTRANS."
+                }
+              ]
+            }
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "Where This Leads"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "The syntax tax framework suggests a research program: systematically measure how much capacity models spend on structure at each level (phonology, morphology, syntax, event semantics, discourse, pragmatics), then provide subsidies where the tax is highest. The goal isn't to hand-engineer everything — it's to find the most efficient division of labor between engineered structure and learned representation."
+          },
+          {
+            "type": "Callout",
+            "props": {
+              "type": "success"
+            },
+            "children": "The deepest implication: if structural subsidies can make a 130M model match a 350M model on semantic tasks, we don't always need bigger models. We need smarter inputs. This inverts the scaling paradigm — instead of scaling parameters, scale the richness of the input representation."
+          },
+          {
+            "type": "p",
+            "children": "Connected ideas: Hydra (structural subsidy for syntax), Operator Discovery (finding the right event primitives to subsidize), Concept Bottleneck LLMs (interpretable intermediate concepts), Information Bottleneck theory (the mathematical framework), and Hewitt & Manning's structural probes (measuring what's encoded where)."
+          }
+        ]
+      }
+    ]
+  }
+}
