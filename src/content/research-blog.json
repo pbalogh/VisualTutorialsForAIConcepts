@@ -35,6 +35,60 @@
       },
       {
         "type": "Section",
+        "title": "April 15, 2026 \u2014 Memory Encoding and Retrieval as Dialogue",
+        "children": [
+          {
+            "type": "p",
+            "children": "Wednesday batch (papers from Apr 14). Scanned 14 cs.AI papers. 2 \ud83d\udfe1 interesting connections."
+          },
+          {
+            "type": "DeepDive",
+            "props": {
+              "title": "\ud83d\udfe1 \"Drawing on Memory: Dual-Trace Encoding Improves Cross-Session Recall in LLM Agents\" (Stern & Nadel, arXiv:2604.12948)"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "Pairs each stored fact with a 'scene trace' \u2014 a narrative reconstruction of the moment and context in which the information was learned. Inspired by the drawing effect from cognitive psychology. On LongMemEval-S (4,575 sessions), dual-trace achieves 73.7% vs 53.5% for fact-only encoding (+20.2pp). Gains concentrate in exactly the hard cases: temporal reasoning (+40pp), knowledge-update tracking (+25pp), and cross-session aggregation (+30pp). No benefit for single-session retrieval."
+              },
+              {
+                "type": "Callout",
+                "props": { "type": "warning" },
+                "children": [
+                  {
+                    "type": "p",
+                    "children": "Why this matters: Their 'scene trace' is essentially source attribution + temporal context \u2014 the same problem our Lambda Bridge and AI Memory Architecture address structurally. Our lambda store encodes provenance via event-sourced world histories; their narrative traces achieve similar distinctiveness through natural language. Key insight: the +40pp temporal reasoning gain validates that flat factual storage (what most LLM memory systems do) fundamentally loses temporal structure. Our modal worlds (actual/remembered/epistemic) encode this structurally rather than narratively. The complementary approaches suggest a hybrid: lambda-structured storage with narrative traces as an additional retrieval cue. Their zero-additional-token-cost finding is also notable \u2014 the trace replaces, not supplements, the factual record."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "DeepDive",
+            "props": {
+              "title": "\ud83d\udfe1 \"Cycle-Consistent Search: Question Reconstructability as a Proxy Reward\" (An et al., arXiv:2604.12967)"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "Proposes that an optimal search trajectory is a lossless encoding of the question's intent. If you can reconstruct the original question from the search trajectory alone, the trajectory must have captured all the relevant information. Uses this as a reward signal for RL training of search agents, with information bottlenecks (NER masking, response exclusion) to prevent leakage."
+              },
+              {
+                "type": "Callout",
+                "props": { "type": "info" },
+                "children": [
+                  {
+                    "type": "p",
+                    "children": "Connection to Query-as-Dialogue: Their 'search trajectory encodes question intent' rhymes with our thesis that retrieval is dialogue where each clarifying question binds a free variable. In our lambda calculus framing, a vague query has many free variables; the optimal retrieval trajectory is the one that binds all of them with maximum information gain. Their cycle-consistency criterion (can you reconstruct the query from the trajectory?) is equivalent to asking: did the trajectory bind all the free variables? Their NER masking forces structural reliance over lexical shortcuts \u2014 analogous to our 'binding energy' threshold that prevents premature grounding."
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
         "title": "April 14, 2026 \u2014 Epistemic Infrastructure Meets Lambda Stores",
         "children": [
           {
