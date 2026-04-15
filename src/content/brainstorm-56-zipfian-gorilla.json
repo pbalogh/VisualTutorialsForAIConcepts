@@ -1,0 +1,312 @@
+{
+  "id": "brainstorm-56-zipfian-gorilla",
+  "title": "The Zipfian Gorilla",
+  "subtitle": "Why Dominant Signals Colonize Shared Resources — Frequency Bias in Primitive Discovery",
+  "readTime": "12 min",
+  "state": "published",
+  "content": {
+    "type": "Fragment",
+    "children": [
+      {
+        "type": "Callout",
+        "props": { "type": "idea" },
+        "children": [
+          {
+            "type": "p",
+            "children": "Imagine an 800-pound gorilla walks into your gym. Where does it work out? Anywhere it wants — and suddenly every machine, every free weight, every corner belongs to the gorilla. This is exactly what happens in wake-sleep compression: high-frequency events like ATRANS (transfers) dominate the learned codebook, crowding out rare but crucial primitives like MBUILD (mental construction). Welcome to the Zipfian Gorilla problem."
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "1. The Gorilla Problem: When Dominance Blocks Discovery" },
+        "children": [
+          {
+            "type": "p",
+            "children": "The gorilla problem isn't just about gyms — it's a fundamental issue in any shared resource system. In neural networks, it manifests as frequency bias: the model allocates capacity proportional to how often it sees each pattern, not how important that pattern is for understanding the world."
+          },
+          {
+            "type": "Analogy",
+            "props": {
+              "from": "800-pound gorilla in a shared gym",
+              "to": "High-frequency events in operator discovery"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "You arrive at your local gym and find it completely occupied by an 800-pound gorilla. It's using the squat rack, the bench press, the cable machine, and the dumbbells — all at once. It's not being malicious. It's just so big that its presence fills the space. Other gym-goers can't get near the equipment. Over time, they stop coming. The gym effectively becomes 'gorilla-only.'\n\nIn operator discovery, ATRANS events (give, take, sell, buy, pay, trade...) are the gorilla. They're everywhere in text: every transaction, every transfer, every change of possession. When MDL compression tries to build a codebook, it sees ATRANS patterns constantly and dedicates more and more bits to modeling their variations. Meanwhile, MBUILD events (think, realize, understand, figure out...) are like quiet gym members who get squeezed out."
+              }
+            ]
+          },
+          {
+            "type": "Example",
+            "props": { "title": "The Hydra Echo Chamber" },
+            "children": [
+              {
+                "type": "p",
+                "children": "This problem appeared concretely in the Hydra architecture. When we trained on mixed syntactic-semantic data, high-frequency function words ('the', 'of', 'in') colonized the shared hidden state. The model became incredibly good at predicting syntax but terrible at rare semantic patterns. We called it the 'echo chamber effect' — the model's internal conversation got stuck on the loudest voices.\n\nThe solution was architectural: give syntax its own dedicated pathway (the syntactic backbone) so it couldn't drown out the semantic signal. But this raises the question: what's the equivalent solution for operator discovery? How do we prevent ATRANS from becoming the only voice in the room?"
+              }
+            ]
+          },
+          {
+            "type": "p",
+            "children": "The deeper issue is that frequency and importance are orthogonal. The most common events aren't necessarily the most informative for understanding event structure. A rare MBUILD event ('Alice finally grasped the concept') might be more diagnostic of cognitive primitives than a thousand ATRANSes ('Bob paid for coffee')."
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "2. Zipf's Law in Event Types: The Mathematics of Imbalance" },
+        "children": [
+          {
+            "type": "p",
+            "children": "Event types in natural language follow a power law distribution — Zipf's law. A few event types appear constantly while most appear rarely. This isn't a quirk of language; it's a fundamental property of human communication and cognition."
+          },
+          {
+            "type": "DefinitionList",
+            "props": {
+              "items": [
+                {
+                  "term": "Zipf's Law",
+                  "definition": "The frequency of the nth most common item is proportional to 1/n. If 'give' appears 10,000 times, 'take' appears ~5,000 times, 'sell' appears ~3,333 times, etc."
+                },
+                {
+                  "term": "Power Law Distribution",
+                  "definition": "A distribution where P(x) ∝ x^(-α). Most probability mass concentrates on a few high-frequency items; the tail is long and thin."
+                },
+                {
+                  "term": "80-20 Rule",
+                  "definition": "Roughly 80% of events come from 20% of event types. In our context: most operator instances are ATRANS/PTRANS/PROPEL, while MBUILD/MBUILD/PLAN are rare."
+                }
+              ]
+            }
+          },
+          {
+            "type": "InteractiveDemo",
+            "props": {
+              "title": "Zipf Distribution of Schankian Event Types",
+              "type": "zipf-distribution"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "Adjust the Zipf exponent (α) to see how it affects the distribution of Schankian operator frequencies. At α=1.0 (classic Zipf), ATRANS dominates completely. At α=0.5, the distribution is more balanced but still skewed. At α=0.0, all operators are equally frequent (uniform distribution)."
+              }
+            ]
+          },
+          {
+            "type": "p",
+            "children": "Real corpus analysis bears this out. In a typical news corpus:\n\n• ATRANS events (transfers): ~35% of all events\n• PTRANS events (movements): ~25%\n• PROPEL events (physical actions): ~15%\n• MTRANS events (communication): ~12%\n• ATTEND events (perception): ~8%\n• MBUILD events (mental construction): ~3%\n• PLAN events (goal setting): ~2%\n\nMBUILD events are 10× rarer than ATRANS, but are they 10× less important for understanding human cognition? Almost certainly not."
+          },
+          {
+            "type": "Callout",
+            "props": { "type": "warning" },
+            "children": [
+              {
+                "type": "p",
+                "children": "⚠️ Domain Matters Enormously: These frequencies are for news text, which overrepresents transactions and underrepresents introspection. In therapy transcripts, MBUILD might dominate. In sports commentary, PROPEL takes over. The Zipfian Gorilla changes identity depending on the corpus."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "3. MDL Compression Under Frequency Bias: The Codebook Catastrophe" },
+        "children": [
+          {
+            "type": "p",
+            "children": "Minimum Description Length (MDL) finds the codebook that minimizes the total bits needed to encode your data. But there's a trap: MDL naturally allocates more bits to frequent patterns. This is optimal for compression but disastrous for discovery."
+          },
+          {
+            "type": "Example",
+            "props": { "title": "Worked Example: The Biased Codebook" },
+            "children": [
+              {
+                "type": "p",
+                "children": "Imagine you have 100 events to compress:\n• 80 ATRANS events (transfers)\n• 15 PROPEL events (physical actions)\n• 5 MBUILD events (mental construction)\n\nOptimal MDL coding:\n• ATRANS gets 1 bit (code: '0')\n• PROPEL gets 2 bits (code: '10')\n• MBUILD gets 2 bits (code: '11')\n\nTotal cost: 80×1 + 15×2 + 5×2 = 120 bits\n\nBUT LOOK WHAT HAPPENED: ATRANS got the shortest code because it's most frequent. The codebook is now biased toward ATRANS variations. When the model tries to express a complex MBUILD event, it has to use a long, expensive code. The compression pressure actively discourages complex mental events.\n\nWorse yet: if MBUILD events are rare enough, MDL might not allocate them a separate code at all. It might encode 'Alice realized the truth' as ATRANS + error correction, losing the mental primitive entirely."
+              }
+            ]
+          },
+          {
+            "type": "DeepDive",
+            "props": { "title": "Why Shannon Entropy Amplifies Bias" },
+            "children": [
+              {
+                "type": "p",
+                "children": "The math behind this is Shannon's source coding theorem. The optimal code length for an event with probability p is -log₂(p) bits. This seems fair — frequent events get short codes. But it creates a compounding effect:\n\n1. Frequent events get over-represented in training\n2. MDL gives them shorter codes\n3. Short codes make the model more sensitive to their variations\n4. Higher sensitivity leads to more complex models for frequent patterns\n5. Complex models consume the parameter budget\n6. Rare patterns get starved of capacity\n\nIt's a rich-get-richer dynamic: the frequency bias in the data becomes a capacity bias in the model, which becomes a discovery bias in the learned operators. The gorilla doesn't just occupy the gym — it gets the gym rebuilt around its needs."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "4. The Balanced Sampling Fix: Training on Equal Footing" },
+        "children": [
+          {
+            "type": "p",
+            "children": "The solution is counterintuitive: ignore the natural frequency distribution and train on artificially balanced data. Sample equally from each operator type, forcing the model to learn all primitives with equal fidelity."
+          },
+          {
+            "type": "InteractiveDemo",
+            "props": {
+              "title": "Raw vs Balanced Training: Side-by-Side Codebook Comparison",
+              "type": "codebook-comparison"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "This demo shows two learned codebooks side by side:\n\nLeft panel: Raw frequency training\n• ATRANS variations get 60% of codebook entries\n• MBUILD gets 2 sparse, low-resolution entries\n• Fine-grained ATRANS distinctions (give vs donate vs sell)\n• MBUILD events all collapse to 'generic thinking'\n\nRight panel: Balanced frequency training\n• Each operator type gets equal codebook space\n• MBUILD develops rich internal structure (realize vs understand vs figure-out)\n• ATRANS loses some fine detail but retains core distinctions\n• Discovery of rare operators like PLAN that were invisible in raw training"
+              }
+            ]
+          },
+          {
+            "type": "p",
+            "children": "Balanced sampling is like reserving lanes at the gym: 'This squat rack is for gorillas. This one is for everyone else.' It prevents the gorilla from monopolizing the entire space, giving smaller gym members a fair chance to work out."
+          },
+          {
+            "type": "Callout",
+            "props": { "type": "tip" },
+            "children": [
+              {
+                "type": "p",
+                "children": "💡 Implementation Detail: You can't just downsample ATRANS — you'd lose too much data. Instead, use stratified sampling: subsample frequent types, oversample rare types, weight the loss function inversely to frequency. The model sees a balanced diet even if the world isn't balanced."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "5. \"Salience Isn't Importance\": The General Principle" },
+        "children": [
+          {
+            "type": "p",
+            "children": "The Zipfian Gorilla problem extends far beyond operator discovery. Whenever you optimize for what's frequent rather than what's important, you get systematic blind spots. This pattern appears throughout modern AI."
+          },
+          {
+            "type": "DeepDive",
+            "props": { "title": "The Gorilla Across AI Systems" },
+            "children": [
+              {
+                "type": "p",
+                "children": "**RLHF and the Agreeableness Gorilla**\nHuman feedback training optimizes for responses that humans rate highly. But humans have biases: we prefer agreeable, confident answers over uncertain but honest ones. RLHF amplifies this, creating models that are pleasant but overconfident. The 'agreeableness gorilla' takes over the model's output distribution.\n\n**Image Generation and the Photorealism Gorilla**\nMost training images are photographs, so diffusion models get incredible at photorealistic rendering. But they struggle with artistic styles, abstract concepts, or unusual perspectives. The 'photorealism gorilla' crowds out creative visual modes.\n\n**SSM State Allocation and the Lexical Prediction Gorilla**\nState-space models allocate hidden state dimensions to patterns that help reduce perplexity. Lexical prediction (next-word probabilities) has huge gradients, so it claims most of the state space. Higher-level reasoning gets starved. The 'lexical gorilla' makes models fluent but shallow.\n\n**Knowledge Distillation and the Easy Example Gorilla**\nWhen distilling large models into smaller ones, the easy examples (where teacher confidence is high) dominate the loss function. Hard examples where the teacher is uncertain get ignored. The 'easy example gorilla' makes distilled models confident on simple cases but fragile on edge cases."
+              }
+            ]
+          },
+          {
+            "type": "p",
+            "children": "The meta-principle: **Salience isn't importance**. What grabs your attention (high frequency, high confidence, high gradient) isn't necessarily what matters for the deeper goals (understanding, reasoning, robustness). Systems optimized for salience develop systematic blind spots."
+          },
+          {
+            "type": "Callout",
+            "props": { "type": "insight" },
+            "children": [
+              {
+                "type": "p",
+                "children": "🔍 Design Insight: Every AI system needs a 'reserved capacity' mechanism — some way to prevent the dominant signal from monopolizing all resources. Balanced sampling, regularization, architectural constraints, adversarial training, or explicit diversity objectives. The gorilla will always try to take over. You have to design the gym to stop it."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "6. Quiz: Understanding the Zipfian Gorilla" },
+        "children": [
+          {
+            "type": "Quiz",
+            "props": {
+              "question": "Why does MDL compression naturally create a biased codebook toward frequent events?",
+              "options": [
+                "MDL is fundamentally flawed as a compression algorithm",
+                "Shannon's theorem assigns shorter codes to frequent events, and short codes consume less parameter budget",
+                "Frequent events are inherently more important than rare events",
+                "The algorithm has a bug that prioritizes the wrong patterns"
+              ],
+              "answer": 1,
+              "explanation": "MDL follows Shannon's optimal coding: frequent events get codes of length -log₂(p), so high-probability events get short codes. Short codes are cheaper to represent and process, so the model naturally allocates more capacity to patterns with short codes. This is optimal for compression but creates discovery bias."
+            }
+          },
+          {
+            "type": "Quiz",
+            "props": {
+              "question": "In the worked example with 80 ATRANS, 15 PROPEL, and 5 MBUILD events, what would happen if we used uniform sampling instead of natural frequencies?",
+              "options": [
+                "The model would become much slower to train",
+                "Each operator type would get equal representation, allowing MBUILD to develop richer internal structure",
+                "The total compression would become much worse",
+                "ATRANS would disappear entirely from the learned codebook"
+              ],
+              "answer": 1,
+              "explanation": "Balanced sampling gives each operator equal training exposure, preventing ATRANS from dominating the codebook. This allows rare patterns like MBUILD to develop detailed internal representations instead of being collapsed into generic categories. Total compression might be slightly worse, but discovery would be much better."
+            }
+          },
+          {
+            "type": "Quiz",
+            "props": {
+              "question": "The 'agreeableness gorilla' in RLHF refers to:",
+              "options": [
+                "Models that are too polite to disagree with users",
+                "The tendency for human raters to prefer confident, agreeable responses, causing RLHF to optimize for agreeableness over accuracy",
+                "A specific type of bias against gorilla-related content",
+                "The problem that models become too large and consume too many resources"
+              ],
+              "answer": 1,
+              "explanation": "Human raters have systematic biases toward responses that sound confident and agreeable, even when uncertainty would be more honest. RLHF amplifies these biases by optimizing for human approval. The 'agreeableness gorilla' takes over the output distribution, making models pleasant but overconfident."
+            }
+          },
+          {
+            "type": "Quiz",
+            "props": {
+              "question": "What is the core principle behind 'Salience Isn't Importance'?",
+              "options": [
+                "Important things are always rare and hard to notice",
+                "What grabs attention (high frequency, confidence, gradients) isn't necessarily what matters for deeper goals like understanding and reasoning",
+                "Salience and importance are completely unrelated concepts",
+                "AI systems should ignore salient patterns entirely"
+              ],
+              "answer": 1,
+              "explanation": "The principle recognizes that optimization pressure flows toward what's salient (frequent, confident, high-gradient) but these aren't always what matter for the system's true objectives (understanding, reasoning, robustness). Systems need mechanisms to prevent salient patterns from monopolizing all capacity."
+            }
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "7. Connections and Next Steps" },
+        "children": [
+          {
+            "type": "p",
+            "children": "The Zipfian Gorilla problem connects to several other key concepts in operator discovery:"
+          },
+          {
+            "type": "Callout",
+            "props": { "type": "info" },
+            "children": [
+              {
+                "type": "p",
+                "children": "🔗 **Related Concepts:**\n\n• **MDL Operator Discovery** (#45): The compression objective that creates the bias\n• **Information Bottleneck** (#39): IB compression faces the same frequency bias issues\n• **Wake-Sleep Library Learning** (#89): Balanced sampling is crucial for discovering rare but important library functions\n• **Hydra Architecture**: The syntactic gorilla problem and how architectural separation solved it\n• **MoE Routing** (#62): Expert specialization can prevent one expert from dominating all patterns"
+              }
+            ]
+          },
+          {
+            "type": "p",
+            "children": "The deeper lesson: frequency bias is an inherent challenge in any learning system. Recognition is the first step toward mitigation. Every time you see a 'gorilla' pattern — one signal dominating a shared resource — ask yourself: what important but quiet voices are being crowded out? And how can you redesign the system to give them a fair hearing?"
+          },
+          {
+            "type": "Callout",
+            "props": { "type": "next" },
+            "children": [
+              {
+                "type": "p",
+                "children": "🎯 **Next Tutorial:** Dive deeper into balanced sampling techniques in \"Wake-Sleep Library Learning for Operator Discovery\" or explore how the Hydra architecture solved the syntactic gorilla problem in \"From Flat Arrays to Full Rotation Matrices\"."
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}

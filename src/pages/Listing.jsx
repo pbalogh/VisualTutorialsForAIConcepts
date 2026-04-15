@@ -1886,6 +1886,18 @@ const tutorials = [
     difficulty: 2,
   },
   {
+    id: 'brainstorm-56-zipfian-gorilla',
+    title: 'The Zipfian Gorilla',
+    description: 'Why dominant signals colonize shared resources — frequency bias in primitive discovery and beyond',
+    tags: ['Schankian Primitives', 'Compression', 'Zipf\'s Law', 'Training Bias'],
+    icon: '🦍',
+    gradient: 'from-amber-500 to-orange-600',
+    shadowColor: 'shadow-amber-500/25',
+    glowColor: 'amber',
+    readTime: '12 min',
+    difficulty: 'Intermediate'
+  },
+  {
     id: 'brainstorm-95-syntax-tax',
     title: 'The Syntax Tax',
     description: 'What if models waste parameters rediscovering structure that could be given for free? The syntax tax measures this hidden cost, and operator tags might eliminate it. Connects information bottleneck theory to practical architecture design.',
