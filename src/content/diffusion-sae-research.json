@@ -7763,6 +7763,109 @@
             "children": "Running total: ~101 tracked papers. LangFlow is the headline — continuous text diffusion is now definitively competitive, strengthening the case for SAE features (continuous-valued) as the natural latent space for diffusion-based text generation. The continuous vs discrete debate is effectively settled: both work, and hybrids (CADD, CRoCoDiL, CoDAR) may be best."
           }
         ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "📡 Apr 16, 2026: Hallucination Taxonomy + 100B-Scale MDLM Evaluation"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "Two new papers this sweep. The field is shifting from 'can dLLMs match AR quality?' (answered by I-DLM) to 'what are the remaining failure modes and how do dLLMs actually use their parallel decoding ability?'"
+          },
+          {
+            "type": "DeepDive",
+            "title": "[Apr 16] 🔥🔥 Lost in Diffusion: Hallucination Patterns & Failure Modes in dLLMs (ACL 2026 Findings)",
+            "children": [
+              {
+                "type": "p",
+                "children": [
+                  {
+                    "type": "strong",
+                    "children": [
+                      "Paper:"
+                    ]
+                  },
+                  " Guo et al., 'Lost in Diffusion: Uncovering Hallucination Patterns and Failure Modes in Diffusion Large Language Models' (arXiv:2604.10556, Apr 12, 2026, ACL 2026 Findings)"
+                ]
+              },
+              {
+                "type": "p",
+                "children": [
+                  {
+                    "type": "strong",
+                    "children": [
+                      "Key insight:"
+                    ]
+                  },
+                  " First controlled comparative study of hallucination in dLLMs. Three findings: (1) dLLMs hallucinate MORE than AR counterparts at matched architecture/scale/pretraining, (2) quasi-autoregressive decoding saturates early but non-sequential decoding enables continuous refinement, (3) three diffusion-specific failure modes identified: premature termination (stopping too early), incomplete denoising (tokens remain underspecified), and context intrusion (nearby context bleeds into wrong positions). Code released."
+                ]
+              },
+              {
+                "type": "p",
+                "children": [
+                  {
+                    "type": "strong",
+                    "children": [
+                      "Relevance:"
+                    ]
+                  },
+                  " ⭐⭐⭐ CRITICAL FOR ALL IDEAS. The three failure modes are exactly where SAE-guided denoising could intervene: (1) premature termination — SAE feature completeness could detect when generation is 'not done yet' (expected features absent), (2) incomplete denoising — SAE feature coherence analysis could identify underspecified tokens whose features don't form a consistent concept, (3) context intrusion — SAE features could detect when token-level features are inconsistent with positional semantic expectations. The finding that non-sequential decoding unlocks continuous refinement supports our SAE-guided iterative approach. Combined with I-DLM's introspective consistency, SAE features could serve as a second-opinion verifier detecting when the diffusion process has gone wrong."
+                ]
+              }
+            ]
+          },
+          {
+            "type": "DeepDive",
+            "title": "[Apr 16] Parallelism & Generation Order in MDLMs: 100B-Scale Evaluation (2601.15593v2)",
+            "children": [
+              {
+                "type": "p",
+                "children": [
+                  {
+                    "type": "strong",
+                    "children": [
+                      "Paper:"
+                    ]
+                  },
+                  " Zhong et al. (Zhejiang/Ant Group), 'Parallelism and Generation Order in Masked Diffusion Language Models: Limits Today, Potential Tomorrow' (arXiv:2601.15593v2, updated Apr 10, 2026)"
+                ]
+              },
+              {
+                "type": "p",
+                "children": [
+                  {
+                    "type": "strong",
+                    "children": [
+                      "Key insight:"
+                    ]
+                  },
+                  " Largest MDLM evaluation to date: 8 models up to 100B params on 58 benchmarks. New metrics: Average Finalization Parallelism (AFP) and Kendall's τ for measuring actual parallelism and generation order. Critical finding: MDLMs show ADAPTIVE decoding behavior — parallelism and generation order vary significantly with task domain, reasoning stage, and output correctness. On backward-information tasks (Sudoku), MDLMs adopt strategic ordering (fill easier blanks first). Proposes Generate-then-Edit paradigm to mitigate dependency loss while retaining parallel efficiency."
+                ]
+              },
+              {
+                "type": "p",
+                "children": [
+                  {
+                    "type": "strong",
+                    "children": [
+                      "Relevance:"
+                    ]
+                  },
+                  " ⭐⭐ FOR IDEAS 2 & 3. The adaptive decoding behavior finding is key: MDLMs already implicitly vary their generation strategy by task. SAE features could make this adaptation EXPLICIT — different feature configurations could trigger different decoding strategies. The AFP metric could measure whether SAE-guided generation improves or hinders true parallelism. The Generate-then-Edit paradigm aligns with DMax's self-revision and our vision of SAE-guided iterative refinement. The 100B-scale evaluation also confirms that the inter-token dependency weakening from parallel modeling remains the fundamental challenge even at scale — exactly what CoDD and SAE-guided coherence aim to address."
+                ]
+              }
+            ]
+          },
+          {
+            "type": "Callout",
+            "props": {
+              "type": "info"
+            },
+            "children": "Running total: ~103 tracked papers. The field is entering a 'diagnostic' phase: now that I-DLM has closed the quality gap, researchers are systematically cataloging remaining failure modes (hallucination, dependency loss) and measuring actual vs theoretical parallelism. SAE features are well-positioned to address all three identified failure modes (premature termination, incomplete denoising, context intrusion)."
+          }
+        ]
       }
     ]
   }
