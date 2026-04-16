@@ -1,0 +1,325 @@
+{
+  "id": "brainstorm-57b-primitives-routing-boundaries",
+  "title": "Primitives as Natural Routing Boundaries",
+  "subtitle": "Do MoE Experts Rediscover Schank? When Routing and Compression Converge on the Same Categories",
+  "readTime": "14 min",
+  "state": "published",
+  "content": {
+    "type": "Fragment",
+    "children": [
+      {
+        "type": "Callout",
+        "props": { "type": "idea" },
+        "children": [
+          {
+            "type": "p",
+            "children": "Imagine a hospital emergency room. Patients aren't randomly assigned to doctors — they're triaged by injury type. Broken bones go to orthopedics, chest pain goes to cardiology, burns go to the burn unit. Each specialist has different equipment, different protocols, different mental models. The routing IS the diagnosis. Now ask: if you let an AI design a hospital from scratch — no medical knowledge, just patient outcomes — would it reinvent the same specialties? If Schankian primitives are computationally natural, a Mixture-of-Experts model should rediscover them through routing alone."
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "1. The Routing Hypothesis: Primitives as Computational Boundaries" },
+        "children": [
+          {
+            "type": "p",
+            "children": "Schank's conceptual primitives (ATRANS, PTRANS, MTRANS, INGEST, etc.) were proposed as the atomic building blocks of event semantics. Our wake-sleep operator discovery work showed these emerge as compression targets — the MDL-optimal codebook for describing events converges on primitive-like categories. But compression is just one pressure. What about routing?"
+          },
+          {
+            "type": "p",
+            "children": "The key insight: each primitive type implies a fundamentally different computational graph. Processing a transfer of possession (ATRANS) requires tracking two entities and an asymmetric state change — who had it before, who has it now. Processing physical movement (PTRANS) requires spatial trajectory modeling — where was it, what path did it take, where is it now. Processing information transfer (MTRANS) requires modeling source credibility and recipient knowledge states — who knows what, and should we believe them?"
+          },
+          {
+            "type": "DefinitionList",
+            "props": {
+              "items": [
+                {
+                  "term": "ATRANS (Abstract Transfer)",
+                  "definition": "Transfer of possession or control. Needs: two agents, one object, ownership tracking. Computation: asymmetric state update (donor loses, recipient gains)."
+                },
+                {
+                  "term": "PTRANS (Physical Transfer)",
+                  "definition": "Movement through space. Needs: one entity, source/destination locations. Computation: trajectory modeling, spatial reasoning."
+                },
+                {
+                  "term": "MTRANS (Mental Transfer)",
+                  "definition": "Transfer of information between minds. Needs: source agent, recipient agent, proposition. Computation: epistemic state modeling, credibility assessment."
+                },
+                {
+                  "term": "INGEST",
+                  "definition": "Taking something into the body. Needs: agent, substance. Computation: state change modeling (hungry→fed, sober→drunk)."
+                }
+              ]
+            }
+          },
+          {
+            "type": "p",
+            "children": "If these really are different computational problems, then a neural network forced to share parameters across all of them is at a disadvantage. A Mixture-of-Experts architecture — where different experts handle different inputs — should naturally partition along these boundaries, because that's the most efficient allocation of parameters."
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "2. Mixture of Experts: A Crash Course" },
+        "children": [
+          {
+            "type": "p",
+            "children": "A Mixture of Experts (MoE) model has two components: a set of expert networks (each a small feedforward net) and a router (gating network) that decides which expert(s) process each input. The router learns to direct inputs to the experts that will handle them best."
+          },
+          {
+            "type": "Analogy",
+            "props": {
+              "from": "Hospital triage nurse",
+              "to": "MoE router network"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "The triage nurse in an ER doesn't treat anyone — they route. They look at each patient (input), assess the situation (compute routing scores), and direct the patient to the right specialist (expert). Over time, the nurse learns patterns: chest pain + sweating → cardiology; twisted ankle + swelling → orthopedics. The nurse never explicitly learns anatomy or medicine — they learn routing from outcomes.\n\nThe MoE router works identically. It never explicitly learns about Schank's primitives or event semantics. It just learns: 'when I see this pattern of activations, Expert 3 produces the best predictions.' The question is whether the routing patterns it discovers naturally align with the primitive categories that Schank identified from linguistic analysis."
+              }
+            ]
+          },
+          {
+            "type": "DeepDive",
+            "props": { "title": "How MoE Routing Actually Works" },
+            "children": [
+              {
+                "type": "p",
+                "children": "Given an input x, the router computes scores g(x) = softmax(W·x + b) over K experts. The top-k experts (usually k=1 or k=2) are selected, and their outputs are weighted by the routing scores: y = Σᵢ gᵢ(x) · Expertᵢ(x). The router is trained end-to-end via backpropagation — it learns routing that minimizes the overall loss."
+              },
+              {
+                "type": "p",
+                "children": "A key challenge is load balancing: without explicit encouragement, the router often collapses to using just one or two experts for everything (the 'rich-get-richer' problem). Auxiliary losses push toward balanced usage. This is relevant to our question: if the router naturally routes events to different experts along primitive boundaries, that's a strong signal — it's not being forced to specialize, it's choosing to."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "3. The Experiment: Unsupervised Discovery of Primitives via Routing" },
+        "children": [
+          {
+            "type": "p",
+            "children": "The proposed experiment is elegant in its simplicity: train an MoE on event descriptions with standard unsupervised routing, then measure whether the router's learned categories align with Schank's primitives."
+          },
+          {
+            "type": "Example",
+            "props": { "title": "Experimental Design" },
+            "children": [
+              {
+                "type": "p",
+                "children": "Step 1: Train a small MoE (8 experts, ~130M parameters) on ATOMIC and GLUCOSE event descriptions. The training objective is standard: predict event consequences given descriptions. No primitive labels are provided during training.\n\nStep 2: After training, label each event in the evaluation set with its Schankian primitive type (ATRANS, PTRANS, MTRANS, INGEST, etc.) using a hand-coded classifier based on verb semantics.\n\nStep 3: Measure mutual information (MI) between the router's expert assignments and the primitive labels.\n\nStep 4: Compare against a supervised baseline where the router is explicitly told primitive types via auxiliary classification loss."
+              }
+            ]
+          },
+          {
+            "type": "InteractiveDemo",
+            "props": {
+              "id": "routing-mi-explorer",
+              "title": "Routing × Primitive Alignment",
+              "description": "Explore how router assignments might align with Schankian primitives. Each column is an MoE expert; each row is a primitive type. Cell intensity shows what fraction of that primitive's events get routed to that expert. Perfect alignment would be a permutation matrix (one bright cell per row). No alignment would be uniform gray.",
+              "type": "matrix",
+              "rows": ["ATRANS", "PTRANS", "MTRANS", "INGEST", "PROPEL", "MBUILD"],
+              "columns": ["Expert 1", "Expert 2", "Expert 3", "Expert 4", "Expert 5", "Expert 6", "Expert 7", "Expert 8"],
+              "scenarios": {
+                "Perfect Alignment": [[0.95, 0.02, 0.01, 0.01, 0.0, 0.01, 0.0, 0.0], [0.01, 0.93, 0.02, 0.01, 0.02, 0.0, 0.01, 0.0], [0.0, 0.01, 0.02, 0.94, 0.01, 0.01, 0.01, 0.0], [0.01, 0.0, 0.0, 0.01, 0.01, 0.95, 0.01, 0.01], [0.02, 0.01, 0.93, 0.01, 0.01, 0.01, 0.01, 0.0], [0.0, 0.01, 0.01, 0.01, 0.93, 0.01, 0.02, 0.01]],
+                "Partial Alignment": [[0.45, 0.25, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05], [0.05, 0.40, 0.30, 0.05, 0.05, 0.05, 0.05, 0.05], [0.05, 0.05, 0.05, 0.35, 0.30, 0.05, 0.10, 0.05], [0.05, 0.05, 0.05, 0.05, 0.05, 0.40, 0.30, 0.05], [0.20, 0.05, 0.35, 0.10, 0.05, 0.10, 0.05, 0.10], [0.05, 0.10, 0.10, 0.20, 0.25, 0.10, 0.10, 0.10]],
+                "No Alignment": [[0.13, 0.12, 0.13, 0.12, 0.13, 0.12, 0.13, 0.12], [0.12, 0.13, 0.12, 0.13, 0.12, 0.13, 0.12, 0.13], [0.13, 0.12, 0.13, 0.12, 0.13, 0.12, 0.13, 0.12], [0.12, 0.13, 0.12, 0.13, 0.12, 0.13, 0.12, 0.13], [0.13, 0.12, 0.13, 0.12, 0.13, 0.12, 0.13, 0.12], [0.12, 0.13, 0.12, 0.13, 0.12, 0.13, 0.12, 0.13]]
+              }
+            }
+          },
+          {
+            "type": "p",
+            "children": "The critical metric is mutual information (MI). MI = 0 means routing and primitives are completely independent — the router doesn't care about event type. MI = log₂(K) would mean perfect alignment (each expert handles exactly one primitive). We predict MI > 0.3 bits for an unsupervised router, indicating meaningful (though imperfect) alignment."
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "4. The Convergence Argument: When Compression and Routing Agree" },
+        "children": [
+          {
+            "type": "p",
+            "children": "This experiment matters because it tests convergent evidence. Our wake-sleep operator discovery paper showed that Schankian primitives emerge from compression — they're the MDL-optimal codebook for events. If they also emerge from routing, that's two independent pressures converging on the same categories."
+          },
+          {
+            "type": "Callout",
+            "props": { "type": "key-insight" },
+            "children": [
+              {
+                "type": "p",
+                "children": "Compression says: 'These are the reusable parts — the categories that minimize description length.' Routing says: 'These are the parts that need different processing — the categories that maximize expert specialization.' If both pressures converge on ATRANS, PTRANS, MTRANS, INGEST... then Schank's primitives aren't just linguistically convenient labels. They're computationally natural boundaries — the joints at which event semantics naturally carves."
+              }
+            ]
+          },
+          {
+            "type": "Analogy",
+            "props": {
+              "from": "Convergent evolution in biology",
+              "to": "Convergent discovery of primitives"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "Eyes evolved independently in vertebrates, cephalopods, and insects. The fact that three separate evolutionary lineages converged on the same solution (light-focusing optics → photoreceptor array → neural processing) is strong evidence that eyes are a 'natural' solution to the problem of vision. No one thinks vertebrate and octopus eyes look similar by accident.\n\nSimilarly, if compression (wake-sleep) and routing (MoE) independently converge on Schank's primitives, that's convergent 'evolution' under different optimization pressures. It would mean these categories aren't artifacts of Schank's particular theoretical framework — they're the natural joints in event semantics that any sufficiently powerful optimization process will discover."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "5. The Grounding Gradient: Physical vs. Abstract Primitives" },
+        "children": [
+          {
+            "type": "p",
+            "children": "We predict the alignment won't be uniform across all primitives. Physically-grounded primitives (PTRANS, INGEST) should show the strongest routing specialization, while abstract primitives (MTRANS, MBUILD) should show weaker alignment."
+          },
+          {
+            "type": "p",
+            "children": "Why? Physical events have more distinctive computational signatures. Moving an object through space involves spatial features, trajectories, landmarks — a very different activation pattern from ingesting food (which involves body states, satisfaction levels, chemical changes). The router can easily distinguish these because they activate different input features."
+          },
+          {
+            "type": "p",
+            "children": "Abstract events are harder to distinguish computationally. 'Alice told Bob the secret' (MTRANS) and 'Alice realized the answer' (MBUILD) share many surface features — they both involve mental states, propositions, cognitive agents. The router might lump these together, treating all mental events as a single category rather than distinguishing information transfer from internal construction."
+          },
+          {
+            "type": "InteractiveDemo",
+            "props": {
+              "id": "grounding-gradient",
+              "title": "The Grounding Gradient",
+              "description": "Predicted mutual information between routing and primitive labels, ordered by physical grounding. Physically-grounded primitives should show higher MI (the router distinguishes them more easily). Abstract primitives may be harder to route distinctly.",
+              "type": "bar-chart",
+              "data": [
+                { "label": "PTRANS (physical movement)", "value": 0.72, "color": "#22c55e" },
+                { "label": "INGEST (take into body)", "value": 0.65, "color": "#22c55e" },
+                { "label": "PROPEL (apply force)", "value": 0.58, "color": "#86efac" },
+                { "label": "ATRANS (transfer possession)", "value": 0.45, "color": "#fbbf24" },
+                { "label": "MTRANS (tell/inform)", "value": 0.28, "color": "#f97316" },
+                { "label": "MBUILD (think/realize)", "value": 0.18, "color": "#ef4444" }
+              ],
+              "xLabel": "Mutual Information (bits)",
+              "yLabel": "Primitive Type"
+            }
+          },
+          {
+            "type": "DeepDive",
+            "props": { "title": "Why Grounding Helps Routing" },
+            "children": [
+              {
+                "type": "p",
+                "children": "This prediction connects to embodied cognition research. Physically-grounded concepts have more distinctive neural signatures in human brains too — fMRI studies show that reading about physical actions (kicking, grasping) activates motor cortex, while reading about abstract concepts (justice, freedom) activates distributed, overlapping networks. If human brains show a grounding gradient in their neural routing, it's not surprising that artificial neural networks would too."
+              },
+              {
+                "type": "p",
+                "children": "The implication for Schank's theory: his primitives may be more 'natural' at the physical end of the spectrum (where PTRANS and INGEST are clearly distinct computational problems) and more 'conventional' at the abstract end (where MTRANS and MBUILD might be one computational category that Schank split for theoretical reasons)."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "6. Connection to Hydra: Routing at Every Level" },
+        "children": [
+          {
+            "type": "p",
+            "children": "This brainstorm connects directly to the Hydra architecture we're building. Hydra asks: does dynamic routing naturally allocate SSM state to phrase structure vs. thematic roles vs. information structure? This asks: does dynamic routing naturally allocate experts to ATRANS vs. PTRANS vs. MTRANS? Same question, different level of the linguistic stack."
+          },
+          {
+            "type": "p",
+            "children": "If both work, there's a unified story: routing is the mechanism by which neural networks discover natural computational boundaries at every level — syntactic, semantic, and conceptual. The hierarchy would look like:"
+          },
+          {
+            "type": "Example",
+            "props": { "title": "The Routing Hierarchy" },
+            "children": [
+              {
+                "type": "p",
+                "children": "Level 1 — Syntax: Hydra routes SSM state dimensions to phrase structure vs. thematic roles\nLevel 2 — Semantics: MoE routes events to ATRANS vs. PTRANS vs. MTRANS experts\nLevel 3 — Pragmatics: (Speculative) routing could distinguish speech acts, discourse relations, narrative functions\n\nAt each level, the routing mechanism is the same (learned gating over shared resources), but the categories that emerge are specific to that level of linguistic analysis. The computational pressure is universal; the discovered boundaries are level-specific."
+              }
+            ]
+          },
+          {
+            "type": "p",
+            "children": "This would connect Schankian conceptual dependency theory to modern sparse computation architectures in a way Schank never imagined — his hand-crafted primitives turn out to be the categories that gradient descent naturally discovers when given the freedom to specialize."
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "7. What Would Falsify This?" },
+        "children": [
+          {
+            "type": "p",
+            "children": "Good hypotheses need clear falsification criteria. Here's what would kill the routing-boundary hypothesis:"
+          },
+          {
+            "type": "DefinitionList",
+            "props": {
+              "items": [
+                {
+                  "term": "MI ≈ 0",
+                  "definition": "If the router shows near-zero mutual information with primitive labels, primitives aren't natural routing boundaries. The router found some other way to partition events that's more computationally useful."
+                },
+                {
+                  "term": "Verb-surface routing",
+                  "definition": "If routing aligns with surface verb identity (all 'give' events → Expert 1, all 'take' events → Expert 2) rather than primitive type (all ATRANS events → same expert regardless of verb), then the router is doing lexical routing, not semantic routing."
+                },
+                {
+                  "term": "Supervised routing doesn't help",
+                  "definition": "If explicitly telling the router about primitives doesn't improve downstream performance over unsupervised routing, then primitive boundaries aren't actually useful for computation — they're just one of many possible partitionings."
+                }
+              ]
+            }
+          },
+          {
+            "type": "p",
+            "children": "The most interesting failure mode would be if the router discovers boundaries that are finer-grained than Schank's primitives. Maybe ATRANS naturally splits into 'commercial transfer' and 'gift transfer' because they require different computational treatments (tracking payment vs. tracking social obligation). That wouldn't falsify the approach — it would extend it, suggesting Schank stopped decomposing too early."
+          }
+        ]
+      },
+      {
+        "type": "Quiz",
+        "props": {
+          "questions": [
+            {
+              "question": "Why is convergent evidence (compression + routing → same categories) stronger than either alone?",
+              "options": [
+                "It means we ran the experiment twice",
+                "Two independent optimization pressures discovering the same categories makes them less likely to be artifacts of either method",
+                "It doubles the statistical significance",
+                "It means Schank was definitely right"
+              ],
+              "correct": 1,
+              "explanation": "When two fundamentally different optimization pressures (minimize description length vs. maximize expert specialization) converge on the same categories, it's strong evidence those categories are 'real' — properties of the problem domain, not artifacts of the method. Like eyes evolving independently in multiple lineages."
+            },
+            {
+              "question": "Why do we predict physically-grounded primitives (PTRANS, INGEST) will show higher routing alignment than abstract ones (MTRANS, MBUILD)?",
+              "options": [
+                "Physical events are more common in training data",
+                "Physical events have more distinctive computational signatures (spatial features, body states) that the router can easily distinguish",
+                "Abstract events don't follow Schank's taxonomy",
+                "The router only works on concrete nouns"
+              ],
+              "correct": 1,
+              "explanation": "Physical events activate very different input features: PTRANS involves spatial trajectories and landmarks, INGEST involves body states and substances. The router can exploit these distinctive activation patterns. Abstract events like MTRANS and MBUILD share many surface features (mental states, propositions), making them harder to distinguish purely from activations."
+            },
+            {
+              "question": "What would be the most scientifically interesting failure mode?",
+              "options": [
+                "The router doesn't specialize at all",
+                "The router discovers finer-grained boundaries than Schank's primitives",
+                "The router only works with more than 8 experts",
+                "Training takes too long"
+              ],
+              "correct": 1,
+              "explanation": "If the router splits ATRANS into 'commercial transfer' and 'gift transfer' (or similar), it suggests Schank's decomposition was on the right track but stopped too early. The routing pressure reveals finer computational boundaries than human intuition identified — extending Schank's theory rather than refuting it."
+            }
+          ]
+        }
+      }
+    ]
+  }
+}

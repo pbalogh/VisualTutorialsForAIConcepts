@@ -1002,6 +1002,18 @@ const tutorials = [
     difficulty: 3,
   },
   {
+    id: 'brainstorm-57b-primitives-routing-boundaries',
+    title: 'Primitives as Natural Routing Boundaries',
+    description: 'Do MoE experts rediscover Schank? When compression and routing converge on the same event categories, those categories are computationally real',
+    tags: ['schankian', 'mixture-of-experts', 'routing', 'convergent-evidence', 'hydra'],
+    icon: '🔀',
+    gradient: 'from-violet-500 to-purple-600',
+    shadowColor: 'shadow-violet-500/30',
+    glowColor: 'rgba(139, 92, 246, 0.4)',
+    readTime: '14 min',
+    difficulty: 3,
+  },
+  {
     id: 'brainstorm-52-pearls-ladder',
     title: "Pearl's Ladder as an Operator Hierarchy",
     description: "Why confusing correlation with causation is literally a type error — three classes of operators formalize the Causal Hierarchy Theorem",
