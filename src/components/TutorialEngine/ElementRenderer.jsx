@@ -160,6 +160,36 @@ const componentMap = {
     <div className={className}>{children}</div>
   ),
   
+  // Interactive demo — renders description and config for interactive components
+  // Shows a styled card with the description; actual interactivity is per-type
+  InteractiveDemo: ({ type, description, config, children }) => (
+    <div className="my-8 rounded-2xl border-2 border-dashed border-indigo-300 bg-gradient-to-br from-indigo-50 to-violet-50 p-6 shadow-md">
+      <div className="flex items-center gap-2 mb-3">
+        <span className="text-2xl">🧪</span>
+        <span className="font-bold text-indigo-800 text-lg">Interactive: {type?.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase()) || 'Demo'}</span>
+      </div>
+      {description && (
+        <p className="text-gray-700 mb-4 leading-relaxed">{description}</p>
+      )}
+      {config && (
+        <div className="bg-white/70 rounded-xl p-4 border border-indigo-200/50">
+          <div className="text-xs font-mono text-indigo-500 mb-2 uppercase tracking-wider">Configuration</div>
+          <div className="space-y-1">
+            {Object.entries(config).map(([key, val]) => (
+              <div key={key} className="flex gap-2 text-sm">
+                <span className="font-medium text-indigo-700 min-w-[120px]">{key}:</span>
+                <span className="text-gray-600 font-mono text-xs">
+                  {typeof val === 'object' ? JSON.stringify(val) : String(val)}
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+      {children && <div className="mt-4">{children}</div>}
+    </div>
+  ),
+
   // Interactive card - highlighted for interactions
   InteractiveCard: ({ children, className = '' }) => (
     <div className={`
@@ -589,14 +619,35 @@ const componentMap = {
   ),
   
   // Analogy box - for "think of it like..."
-  // Supports both children-based and props-based (concept/analogy) usage
-  Analogy: ({ children, concept, analogy }) => (
+  // Supports: (1) concept/analogy strings, (2) source/target/mapping array, (3) children
+  Analogy: ({ children, concept, analogy, source, target, mapping }) => (
     <div className="my-6 p-5 rounded-xl bg-gradient-to-br from-purple-50 to-pink-50 border border-purple-100">
       <div className="flex items-start gap-3">
         <span className="text-2xl">🎭</span>
-        <div className="text-gray-700 leading-relaxed">
+        <div className="text-gray-700 leading-relaxed w-full">
           {concept && <div className="font-semibold text-purple-800 mb-1 not-italic">{concept}</div>}
-          <div className="italic">{analogy || children}</div>
+          {source && target && (
+            <div className="mb-3">
+              <span className="font-semibold text-purple-800">{source}</span>
+              <span className="mx-2 text-purple-400">→</span>
+              <span className="font-semibold text-purple-800">{target}</span>
+            </div>
+          )}
+          {mapping && Array.isArray(mapping) && (
+            <div className="space-y-2 mt-2">
+              {mapping.map((item, i) => (
+                <div key={i} className="flex items-start gap-2 text-sm">
+                  <span className="text-purple-400 mt-0.5">↔</span>
+                  <div>
+                    <span className="font-medium text-purple-700">{item.from}</span>
+                    <span className="mx-1 text-gray-400">≈</span>
+                    <span className="text-gray-600">{item.to}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+          {!source && !mapping && <div className="italic">{analogy || children}</div>}
         </div>
       </div>
     </div>
