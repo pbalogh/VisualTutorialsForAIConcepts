@@ -24,6 +24,7 @@ import { MambaDeltaViz } from '../visualizations/MambaDeltaViz'
 import { MambaTokenStepViz } from '../visualizations/MambaTokenStepViz'
 import { VanillaMambaViz } from '../visualizations/VanillaMambaViz'
 import { LambdaReductionStepper, ModalWorldExplorer, FactPromotionSim, ClarificationDialogueSim, NeuralRoutingSim } from '../visualizations/DGoIMViz'
+import BOExplorerViz from '../visualizations/BOExplorerViz'
 
 /**
  * Registry of components that can be rendered from JSON
@@ -160,35 +161,46 @@ const componentMap = {
     <div className={className}>{children}</div>
   ),
   
-  // Interactive demo — renders description and config for interactive components
-  // Shows a styled card with the description; actual interactivity is per-type
-  InteractiveDemo: ({ type, description, config, children }) => (
-    <div className="my-8 rounded-2xl border-2 border-dashed border-indigo-300 bg-gradient-to-br from-indigo-50 to-violet-50 p-6 shadow-md">
-      <div className="flex items-center gap-2 mb-3">
-        <span className="text-2xl">🧪</span>
-        <span className="font-bold text-indigo-800 text-lg">Interactive: {type?.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase()) || 'Demo'}</span>
-      </div>
-      {description && (
-        <p className="text-gray-700 mb-4 leading-relaxed">{description}</p>
-      )}
-      {config && (
-        <div className="bg-white/70 rounded-xl p-4 border border-indigo-200/50">
-          <div className="text-xs font-mono text-indigo-500 mb-2 uppercase tracking-wider">Configuration</div>
-          <div className="space-y-1">
-            {Object.entries(config).map(([key, val]) => (
-              <div key={key} className="flex gap-2 text-sm">
-                <span className="font-medium text-indigo-700 min-w-[120px]">{key}:</span>
-                <span className="text-gray-600 font-mono text-xs">
-                  {typeof val === 'object' ? JSON.stringify(val) : String(val)}
-                </span>
-              </div>
-            ))}
+  // Interactive demo — renders actual interactive components when available
+  InteractiveDemo: (() => {
+    const INTERACTIVE_REGISTRY = {
+      'bo-1d-explorer': BOExplorerViz,
+    };
+    return ({ type, description, config, children }) => {
+      const Component = INTERACTIVE_REGISTRY[type];
+      return (
+        <div className="my-8 rounded-2xl border-2 border-indigo-200 bg-gradient-to-br from-indigo-50/50 to-violet-50/50 p-6 shadow-md">
+          <div className="flex items-center gap-2 mb-3">
+            <span className="text-2xl">🧪</span>
+            <span className="font-bold text-indigo-800 text-lg">Interactive: {type?.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase()) || 'Demo'}</span>
           </div>
+          {description && (
+            <p className="text-gray-600 mb-4 leading-relaxed text-sm">{description}</p>
+          )}
+          {Component ? (
+            <Component config={config} />
+          ) : (
+            config && (
+              <div className="bg-white/70 rounded-xl p-4 border border-indigo-200/50">
+                <div className="text-xs font-mono text-indigo-500 mb-2 uppercase tracking-wider">Configuration</div>
+                <div className="space-y-1">
+                  {Object.entries(config).map(([key, val]) => (
+                    <div key={key} className="flex gap-2 text-sm">
+                      <span className="font-medium text-indigo-700 min-w-[120px]">{key}:</span>
+                      <span className="text-gray-600 font-mono text-xs">
+                        {typeof val === 'object' ? JSON.stringify(val) : String(val)}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )
+          )}
+          {children && <div className="mt-4">{children}</div>}
         </div>
-      )}
-      {children && <div className="mt-4">{children}</div>}
-    </div>
-  ),
+      );
+    };
+  })(),
 
   // Interactive card - highlighted for interactions
   InteractiveCard: ({ children, className = '' }) => (
