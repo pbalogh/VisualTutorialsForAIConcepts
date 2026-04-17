@@ -127,6 +127,19 @@ function CreateTutorialModal({ isOpen, onClose }) {
 
 const tutorials = [
   {
+    id: 'bayesian-optimization',
+    title: 'Bayesian Optimization: The Smart Search',
+    description: 'How to find the best hyperparameters without trying them all — surrogate models, acquisition functions, and Tree-structured Parzen Estimators (TPE). With a deep dive into our Hydra SSM decay parameter search.',
+    tags: ['optimization', 'Bayesian', 'hyperparameters', 'Optuna', 'TPE'],
+    icon: '🎯',
+    gradient: 'from-blue-500 to-purple-600',
+    shadowColor: 'shadow-blue-500/30',
+    glowColor: 'rgba(99, 102, 241, 0.4)',
+    readTime: '30 min',
+    difficulty: 2,
+    featured: true,
+  },
+  {
     id: 'dragon-hatchling-bdh',
     title: 'Dragon Hatchling (BDH)',
     description: 'A biologically-inspired LLM architecture combining scale-free networks, Hebbian learning, and inherent interpretability',

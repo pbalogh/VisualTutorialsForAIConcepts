@@ -1,0 +1,588 @@
+{
+  "id": "bayesian-optimization",
+  "title": "Bayesian Optimization: The Smart Search",
+  "subtitle": "How to find the best hyperparameters without trying them all — surrogate models, acquisition functions, and Tree-structured Parzen Estimators",
+  "readTime": "30 min",
+  "state": {},
+  "content": {
+    "type": "Fragment",
+    "children": [
+      {
+        "type": "Section",
+        "props": {
+          "title": "The Exploration-Exploitation Dilemma"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "You have an expensive function — maybe it's training a neural network for 27 minutes on a GPU — and you want to find the inputs that maximize its output. You can't evaluate it a million times. You might get 50 shots. How do you spend them wisely?"
+          },
+          {
+            "type": "p",
+            "children": "This is the fundamental tension in optimization under a budget: exploration vs. exploitation. Do you try something new and risky, hoping to discover a hidden gem? Or do you refine the best thing you've found so far, squeezing out marginal gains?"
+          },
+          {
+            "type": "Callout",
+            "props": {
+              "type": "warning",
+              "title": "The Brute-Force Trap"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "Grid search divides each parameter into evenly-spaced values, then tries every combination. With 4 parameters and 10 values each, that's 10⁴ = 10,000 evaluations. At 27 minutes per trial, that's 187 days of GPU time. And most of those grid points are in boring, flat regions of the landscape."
+              }
+            ]
+          },
+          {
+            "type": "p",
+            "children": "Random search is better — Bergstra & Bengio (2012) showed it outperforms grid search because it doesn't waste samples on unimportant dimensions. But it's still blind. Each new trial ignores everything you've learned from previous ones."
+          },
+          {
+            "type": "DefinitionList",
+            "props": {
+              "items": [
+                {
+                  "term": "Grid Search",
+                  "definition": "Exhaustive enumeration of parameter combinations on a fixed grid. Scales exponentially: O(kᵈ) for k values per dimension and d dimensions. Most evaluations are wasted in unimportant regions."
+                },
+                {
+                  "term": "Random Search",
+                  "definition": "Sample parameter configurations uniformly at random. Better coverage of important dimensions than grid search, but still ignores results of previous trials."
+                },
+                {
+                  "term": "Bayesian Optimization",
+                  "definition": "Build a probabilistic model of the objective function from observed data, then use it to decide where to evaluate next. Each trial is informed by all previous trials. Typically finds better optima in 10–50× fewer evaluations."
+                }
+              ]
+            }
+          },
+          {
+            "type": "p",
+            "children": "Bayesian Optimization (BO) is the principled answer: use what you've already learned to decide what to try next. It's the difference between a blindfolded dart thrower and a strategist who builds a mental map of the landscape after each throw."
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "Surrogate Models: A Cheap Model of Your Expensive Function"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "The core idea of BO is deceptively simple: since your real objective function is expensive, build a cheap model OF it. This cheap model — the surrogate — approximates the expensive function and, crucially, tells you how uncertain it is about unexplored regions."
+          },
+          {
+            "type": "p",
+            "children": "The default surrogate in classical BO is the Gaussian Process (GP). A GP defines a distribution over functions. After observing a few data points (x₁, y₁), (x₂, y₂), ..., the GP gives you two things at every unobserved point x:"
+          },
+          {
+            "type": "DefinitionList",
+            "props": {
+              "items": [
+                {
+                  "term": "Mean μ(x)",
+                  "definition": "Your best guess for the function value at x. This is a weighted average of observed values, where nearby observations get more weight (controlled by the kernel function)."
+                },
+                {
+                  "term": "Variance σ²(x)",
+                  "definition": "Your uncertainty at x. High near observed points? No — low there, because you've seen the answer. High in unexplored regions where you have no data. This uncertainty is what drives exploration."
+                },
+                {
+                  "term": "Kernel (Covariance Function)",
+                  "definition": "Encodes your prior belief about function smoothness. The popular RBF (squared exponential) kernel assumes nearby inputs produce similar outputs. The length-scale parameter controls 'how nearby is nearby.'"
+                }
+              ]
+            }
+          },
+          {
+            "type": "Callout",
+            "props": {
+              "type": "key-insight",
+              "title": "The Surrogate Gives You a Map with Fog of War"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "Think of the GP surrogate as a topographic map that's crystal clear where you've placed sensors, but foggy everywhere else. The mean is the estimated elevation. The variance is the fog density. Bayesian Optimization works by asking: 'Where should I place my next sensor to learn the most about where the peak is?'"
+              }
+            ]
+          },
+          {
+            "type": "p",
+            "children": "The GP surrogate is updated after every observation. You evaluate your expensive function at a new point, add that observation to your dataset, and the GP posterior updates in closed form. The fog lifts a bit more, the map gets sharper, and you make a better decision about where to look next."
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "Acquisition Functions: Where Should I Look Next?"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "The surrogate model gives you a map. But you still need a strategy for using that map. This is the job of the acquisition function — it takes the surrogate's predictions (mean and variance) and produces a single score for each candidate point that balances exploration and exploitation."
+          },
+          {
+            "type": "DefinitionList",
+            "props": {
+              "items": [
+                {
+                  "term": "Expected Improvement (EI)",
+                  "definition": "EI(x) = E[max(f(x) - f(x*), 0)] — the expected amount by which point x will improve over the current best x*. It's high when the mean is high (exploitation) OR when the variance is high near a promising region (exploration). Has a closed-form expression under the GP."
+                },
+                {
+                  "term": "Upper Confidence Bound (UCB)",
+                  "definition": "UCB(x) = μ(x) + κ·σ(x) — simply adds a bonus for uncertainty. The parameter κ controls the exploration-exploitation trade-off. Higher κ = more exploration. Elegant and tunable, with theoretical convergence guarantees (GP-UCB, Srinivas et al. 2010)."
+                },
+                {
+                  "term": "Probability of Improvement (PI)",
+                  "definition": "PI(x) = P(f(x) > f(x*)) — the probability that x beats the current best. Simple but greedy: it doesn't care HOW MUCH better x might be, only whether it's better at all. Tends to under-explore."
+                }
+              ]
+            }
+          },
+          {
+            "type": "Callout",
+            "props": {
+              "type": "key-insight",
+              "title": "Why EI Dominates in Practice"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "Expected Improvement is the most popular acquisition function because it naturally balances exploration and exploitation without a tuning parameter. Unlike UCB (which has κ) or PI (which is too greedy), EI asks exactly the right question: 'How much improvement can I expect?' A point with high uncertainty gets credit for its upside potential, while a point near the current best gets credit for likely incremental gains."
+              }
+            ]
+          },
+          {
+            "type": "p",
+            "children": "The acquisition function is cheap to evaluate — it's just a formula applied to the GP's mean and variance. So you can maximize it using any standard optimizer (L-BFGS, random restarts, etc.) to find the next point to evaluate. This is the 'inner loop' of BO: cheap optimization of the acquisition function guides expensive evaluations of the true objective."
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "The Bayesian Optimization Loop"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "Putting it all together, the BO loop is a simple, elegant cycle. Each iteration makes you a little smarter about the landscape:"
+          },
+          {
+            "type": "Code",
+            "props": {
+              "language": "text"
+            },
+            "children": "The Bayesian Optimization Loop:\n\n  1. INITIALIZE:  Evaluate f at a few random points\n                  D₀ = {(x₁,y₁), (x₂,y₂), ..., (xₖ,yₖ)}\n\n  2. FIT SURROGATE:  Train GP (or TPE) on observed data Dₙ\n                     → Get μ(x) and σ(x) everywhere\n\n  3. MAXIMIZE ACQUISITION:  x_next = argmax α(x)\n                            where α = EI, UCB, or PI\n                            → This is cheap (seconds)\n\n  4. EVALUATE:  y_next = f(x_next)\n                → This is expensive (minutes/hours)\n\n  5. AUGMENT DATA:  Dₙ₊₁ = Dₙ ∪ {(x_next, y_next)}\n\n  6. GOTO 2  (until budget exhausted)\n\n  Return: x* = argmax y over all observed points"
+          },
+          {
+            "type": "Callout",
+            "props": {
+              "type": "tip",
+              "title": "The Cost Asymmetry Is the Key"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "BO works because there's a massive asymmetry between the cost of evaluating the surrogate (milliseconds) and the cost of evaluating the true function (minutes to hours). Steps 2-3 are cheap. Step 4 is expensive. BO front-loads computation into cheap surrogate reasoning to minimize expensive real evaluations."
+              }
+            ]
+          },
+          {
+            "type": "p",
+            "children": "With each iteration, the surrogate gets more accurate, the acquisition function becomes more discerning, and the search converges on the optimum. After 20-50 iterations, BO typically finds solutions that grid search would need thousands of evaluations to match."
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "Interactive: 1D Bayesian Optimization Explorer"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "Watch Bayesian Optimization in action on a 1D function. The black curve is the true (expensive) function. The blue band is the GP surrogate's prediction (mean ± uncertainty). The green curve is the acquisition function (EI). The red star is where BO will evaluate next."
+          },
+          {
+            "type": "InteractiveDemo",
+            "props": {
+              "type": "bo-1d-explorer",
+              "description": "Step through a 1D Bayesian Optimization run. Click 'Step' to evaluate the next point. Watch the GP surrogate (blue band) tighten around observations and the acquisition function (green) shift to balance exploration and exploitation.",
+              "config": {
+                "targetFunction": "sin(3x) + sin(5x) + 0.5*cos(2x)",
+                "domain": [0, 6.28],
+                "initialPoints": 2,
+                "acquisitionFunction": "EI",
+                "kernelLengthScale": 0.5,
+                "showSurrogate": true,
+                "showAcquisition": true,
+                "showNextPoint": true,
+                "showObservations": true,
+                "maxSteps": 20
+              }
+            }
+          },
+          {
+            "type": "Callout",
+            "props": {
+              "type": "tip",
+              "title": "What to Watch For"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "In the first few steps, the acquisition function will favor unexplored regions (exploration). As the surrogate fills in, it shifts toward refining near the observed peaks (exploitation). Notice how the uncertainty band shrinks near observations but remains wide in unsampled gaps."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "TPE: What Optuna Actually Uses"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "Classical GP-based BO is elegant but has a problem: Gaussian Processes scale as O(n³) in the number of observations (due to matrix inversion) and struggle in high dimensions (>20 parameters). For practical hyperparameter optimization, Optuna uses a different surrogate: the Tree-structured Parzen Estimator (TPE)."
+          },
+          {
+            "type": "Callout",
+            "props": {
+              "type": "key-insight",
+              "title": "TPE Flips the Model"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "GP-BO models p(y|x) — 'given parameters x, what score y do I expect?' TPE flips this to model p(x|y) — 'given that the score is good (or bad), what do the parameters look like?' This inversion is the key insight and is why TPE scales to problems GPs can't handle."
+              }
+            ]
+          },
+          {
+            "type": "p",
+            "children": "Here's how TPE works: it splits your observed trials into two groups based on a quantile threshold γ (typically the top 25%):"
+          },
+          {
+            "type": "DefinitionList",
+            "props": {
+              "items": [
+                {
+                  "term": "ℓ(x) — the 'good' distribution",
+                  "definition": "A kernel density estimate (KDE) fit to the parameters of trials that scored above the threshold. This models 'what do good hyperparameters look like?'"
+                },
+                {
+                  "term": "g(x) — the 'bad' distribution",
+                  "definition": "A KDE fit to the parameters of trials that scored below the threshold. This models 'what do bad hyperparameters look like?'"
+                },
+                {
+                  "term": "Acquisition: ℓ(x)/g(x)",
+                  "definition": "TPE suggests the next point by maximizing the ratio ℓ(x)/g(x) — parameters that look like good trials and unlike bad trials. This is equivalent to maximizing Expected Improvement."
+                }
+              ]
+            }
+          },
+          {
+            "type": "Code",
+            "props": {
+              "language": "text"
+            },
+            "children": "GP-BO vs TPE — Two Ways to Build a Surrogate:\n\nGP-BO:  Models p(y | x) directly\n        → \"Given learning_rate=0.01, what loss do I predict?\"\n        → Scales: O(n³) in observations, poor above ~20 dims\n        → Handles: continuous parameters naturally\n\nTPE:    Models p(x | y) via density estimation\n        → \"What do learning_rates look like when loss is low?\"\n        → Scales: O(n log n), works well in 100+ dims\n        → Handles: conditional, categorical, and mixed parameters\n\nWhy TPE wins for hyperparameter optimization:\n  ✓ Naturally handles tree-structured (conditional) search spaces\n  ✓ Categorical + continuous + integer parameters — no problem\n  ✓ Scales linearly with number of trials\n  ✓ No kernel function to choose\n  ✗ Less sample-efficient than GPs in low dimensions (<10 params)"
+          },
+          {
+            "type": "p",
+            "children": "The 'tree-structured' part of TPE refers to its ability to handle conditional parameter spaces — like 'optimizer type' → 'Adam learning rate' vs. 'SGD momentum'. GPs require all parameters to live in a fixed-dimensional space; TPE handles the tree naturally because it estimates densities per-parameter."
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "The Restaurant Analogy"
+        },
+        "children": [
+          {
+            "type": "Analogy",
+            "props": {
+              "source": "Restaurant exploration in a new city",
+              "target": "Bayesian Optimization of hyperparameters",
+              "mapping": [
+                {
+                  "from": "Trying a new restaurant you've never been to",
+                  "to": "Exploration — evaluating an untested region of parameter space where the surrogate has high uncertainty"
+                },
+                {
+                  "from": "Going back to your current favorite restaurant",
+                  "to": "Exploitation — evaluating near the current best parameters to squeeze out marginal improvements"
+                },
+                {
+                  "from": "Your friend's Yelp reviews of restaurants you haven't tried",
+                  "to": "The surrogate model (GP or TPE) — a cheap approximation of the expensive experience of actually eating there"
+                },
+                {
+                  "from": "A restaurant in an unfamiliar neighborhood with no reviews",
+                  "to": "A point with high surrogate uncertainty — could be amazing or terrible, but the potential upside justifies the exploration"
+                },
+                {
+                  "from": "Deciding which restaurant to try tonight",
+                  "to": "Maximizing the acquisition function to choose the next evaluation point"
+                },
+                {
+                  "from": "Your budget of N dinners this month",
+                  "to": "Your budget of N GPU-hours for hyperparameter trials"
+                }
+              ]
+            }
+          },
+          {
+            "type": "p",
+            "children": "The TPE twist on this analogy: instead of predicting how good each restaurant will be (GP approach), TPE looks at all the great meals you've had and asks 'what do those restaurants have in common?' (good neighborhood? good reviews? moderate price?), then looks at all the bad meals and asks the same. It suggests the restaurant that most resembles your hits and least resembles your misses."
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "Practical Considerations"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "Bayesian Optimization is powerful, but it's not magic. Here are the things that matter in practice:"
+          },
+          {
+            "type": "DefinitionList",
+            "props": {
+              "items": [
+                {
+                  "term": "Number of Trials",
+                  "definition": "Rule of thumb: 10× the number of dimensions is a minimum. For 4 parameters, budget at least 40–50 trials. Below that, BO is still better than random, but you may miss the true optimum. More trials = better exploitation of the learned surrogate."
+                },
+                {
+                  "term": "Dimensionality",
+                  "definition": "GP-BO works best in 1-20 dimensions. TPE handles 100+ but needs proportionally more trials. Above ~50 dimensions, consider dimensionality reduction or focusing on the parameters you believe matter most."
+                },
+                {
+                  "term": "Noisy Evaluations",
+                  "definition": "If your objective function is noisy (e.g., validation loss varies across random seeds), the surrogate must account for noise. GPs have an explicit noise parameter (jitter). TPE handles noise implicitly via density smoothing. Consider averaging over multiple seeds per trial if variance is high."
+                },
+                {
+                  "term": "Warm-Starting",
+                  "definition": "You can initialize BO with results from previous runs (different model sizes, earlier experiments). This gives the surrogate a head start. Optuna supports this via study.add_trial()."
+                },
+                {
+                  "term": "Parallel Trials",
+                  "definition": "Real optimization often runs multiple trials simultaneously on multiple GPUs. BO must handle the 'pending evaluation' problem: when suggesting point N+1, trials N-2 and N-1 haven't finished yet. Optuna uses a constant-liar heuristic — it pretends pending trials returned the current best, then suggests the next point."
+                },
+                {
+                  "term": "Search Space Design",
+                  "definition": "Log-uniform priors for learning rates. Categorical for optimizer type. Define reasonable bounds. A well-designed search space is worth more than a better algorithm — most of BO's value comes from not wasting trials in useless regions."
+                }
+              ]
+            }
+          },
+          {
+            "type": "Callout",
+            "props": {
+              "type": "tip",
+              "title": "When NOT to Use BO"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "If your function is cheap to evaluate (milliseconds), just run random search or grid search with more points — the overhead of fitting a surrogate isn't worth it. BO shines when each evaluation costs minutes, hours, or days. It's also overkill for 1-2 parameters, where a simple sweep suffices."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "Deep Dive: Bayesian Optimization for Hydra SSM Decay Parameters"
+        },
+        "children": [
+          {
+            "type": "DeepDive",
+            "props": {
+              "title": "Our Hydra Application: 4D Search Over SSM Decay Values"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "We're using Optuna's TPE to optimize 4 decay parameters for a Hydra (SSM-based) architecture. Each parameter controls how quickly a different linguistic state-space channel forgets information:"
+              },
+              {
+                "type": "DefinitionList",
+                "props": {
+                  "items": [
+                    {
+                      "term": "a_ps (phrase structure)",
+                      "definition": "Controls memory decay for syntactic/structural information — how long the model remembers clause boundaries, embedding depth, and constituent structure."
+                    },
+                    {
+                      "term": "a_th (thematic roles)",
+                      "definition": "Controls decay for who-does-what-to-whom — agent/patient tracking across clauses. Needs longer memory than phrase structure since coreference can span many sentences."
+                    },
+                    {
+                      "term": "a_is (information structure)",
+                      "definition": "Controls decay for topic/focus/given-new status — what the discourse is 'about' right now. Medium timescale: topics shift every few sentences."
+                    },
+                    {
+                      "term": "a_gen (general/semantic)",
+                      "definition": "Controls decay for general semantic content — world knowledge, entity properties, ongoing situation model. Longest timescale: the big picture."
+                    }
+                  ]
+                }
+              },
+              {
+                "type": "p",
+                "children": "The fitness function is a composite linguistic diagnostic score that measures how well the model tracks these different linguistic phenomena. Each evaluation requires training the model from scratch — about 27 minutes on a T4 GPU."
+              },
+              {
+                "type": "Code",
+                "props": {
+                  "language": "text"
+                },
+                "children": "Why BO Beats Grid Search Here:\n\nGrid Search (10 values per param):\n  10⁴ = 10,000 trials × 27 min = 187.5 days of GPU time\n  Most trials are in flat, uninteresting regions\n\nRandom Search (100 trials):\n  100 × 27 min = 45 hours\n  Better, but ignores inter-trial information\n\nOptuna TPE (50 trials):\n  50 × 27 min = 22.5 hours\n  Each trial informed by all previous results\n  TPE handles the 4D space efficiently\n  Naturally explores the interaction between decay rates\n  \nSearch Space:\n  a_ps  ∈ [0.90, 0.999]  (log-uniform)\n  a_th  ∈ [0.95, 0.9999] (log-uniform)\n  a_is  ∈ [0.93, 0.999]  (log-uniform)\n  a_gen ∈ [0.97, 0.9999] (log-uniform)"
+              },
+              {
+                "type": "p",
+                "children": "The search space uses log-uniform distributions because decay rates cluster near 1.0 — the difference between 0.99 and 0.999 (10× the memory half-life) matters much more than the difference between 0.90 and 0.91. TPE's density estimation captures this naturally."
+              },
+              {
+                "type": "Callout",
+                "props": {
+                  "type": "key-insight",
+                  "title": "The Linguistically Informed Prior"
+                },
+                "children": [
+                  {
+                    "type": "p",
+                    "children": "We expect a_gen > a_th > a_is > a_ps — general semantic memory should persist longest, phrase structure should decay fastest. BO doesn't hard-code this ordering, but if the linguistic theory is correct, the optimization should converge on it. This is a nice sanity check: if BO finds that phrase structure needs the longest memory, something is wrong with the model or the diagnostics."
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "Summary: The BO Toolbox"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "Bayesian Optimization is one of the most underappreciated tools in the ML practitioner's toolkit. Its core principle is simple: don't throw away information. Every evaluation teaches you something about the landscape. Use that knowledge."
+          },
+          {
+            "type": "DefinitionList",
+            "props": {
+              "items": [
+                {
+                  "term": "Surrogate Model",
+                  "definition": "A cheap probabilistic model of the expensive objective. Gaussian Processes for low dimensions, TPE (Optuna) for practical hyperparameter optimization."
+                },
+                {
+                  "term": "Acquisition Function",
+                  "definition": "The strategy for using the surrogate. Expected Improvement (EI) is the default choice — it naturally balances exploration and exploitation."
+                },
+                {
+                  "term": "The Loop",
+                  "definition": "Observe → Fit → Acquire → Evaluate → Repeat. Each iteration is O(cheap) for the surrogate, O(expensive) for the true function."
+                },
+                {
+                  "term": "TPE vs GP",
+                  "definition": "GPs model p(y|x) and are more sample-efficient in low dimensions. TPE models p(x|y) and scales to high-dimensional, mixed, and conditional search spaces."
+                }
+              ]
+            }
+          },
+          {
+            "type": "p",
+            "children": "Whether you're tuning learning rates, searching over architecture choices, or — like us — exploring how different memory timescales serve different linguistic functions, Bayesian Optimization turns a needle-in-a-haystack problem into a conversation with a progressively smarter oracle."
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "Test Your Understanding"
+        },
+        "children": [
+          {
+            "type": "Quiz",
+            "props": {
+              "questions": [
+                {
+                  "question": "What is the role of the surrogate model in Bayesian Optimization?",
+                  "options": [
+                    "It replaces the expensive function entirely, so you never need to evaluate it",
+                    "It's a cheap probabilistic approximation of the expensive function that guides where to evaluate next",
+                    "It's a neural network that directly optimizes the hyperparameters",
+                    "It's a preprocessing step that normalizes the search space"
+                  ],
+                  "correct": 1,
+                  "explanation": "The surrogate is a cheap model OF the expensive function. It doesn't replace it — you still evaluate the real function at the points the surrogate recommends. The surrogate's job is to provide a mean prediction (best guess) and uncertainty estimate (how confident) at every point, so the acquisition function can decide where to look next."
+                },
+                {
+                  "question": "Why is Expected Improvement (EI) preferred over Probability of Improvement (PI)?",
+                  "options": [
+                    "EI is faster to compute",
+                    "EI has a tuning parameter that PI lacks",
+                    "EI accounts for HOW MUCH improvement to expect, not just WHETHER improvement occurs",
+                    "EI doesn't require a Gaussian Process"
+                  ],
+                  "correct": 2,
+                  "explanation": "PI only asks 'is this point likely to beat the current best?' — it treats a 0.01% improvement the same as a 50% improvement. EI asks 'how much improvement should I expect?' This means EI gives appropriate credit to high-uncertainty regions that might yield large improvements, naturally balancing exploration and exploitation without a tuning parameter."
+                },
+                {
+                  "question": "How does TPE differ from GP-based Bayesian Optimization?",
+                  "options": [
+                    "TPE uses neural networks instead of Gaussian Processes",
+                    "TPE models p(x|y) — the distribution of parameters given performance — rather than p(y|x)",
+                    "TPE doesn't use any surrogate model",
+                    "TPE only works for continuous parameters"
+                  ],
+                  "correct": 1,
+                  "explanation": "TPE inverts the modeling direction: instead of predicting performance from parameters (p(y|x), what GPs do), it estimates what good parameters look like (ℓ(x)) and what bad parameters look like (g(x)), then maximizes their ratio. This factorization lets TPE handle conditional/categorical parameters and scale to high dimensions where GPs struggle."
+                },
+                {
+                  "question": "In our Hydra decay parameter search, why do we use log-uniform distributions for the search space?",
+                  "options": [
+                    "Because decay rates are always negative",
+                    "Because the important variation happens near 1.0 — the difference between 0.99 and 0.999 (10× memory half-life) matters more than between 0.90 and 0.91",
+                    "Because log-uniform is the only distribution TPE supports",
+                    "Because it makes the GP kernel easier to compute"
+                  ],
+                  "correct": 1,
+                  "explanation": "Decay rates close to 1.0 create exponential differences in effective memory length. A rate of 0.99 gives a half-life of ~69 steps, while 0.999 gives ~693 steps — a 10× difference in a tiny interval. Log-uniform spacing allocates equal search density to each order of magnitude, so TPE explores this critical near-1.0 region as thoroughly as the rest."
+                },
+                {
+                  "question": "When is Bayesian Optimization NOT worth the overhead?",
+                  "options": [
+                    "When you have more than 3 hyperparameters",
+                    "When the objective function is cheap to evaluate (milliseconds per call)",
+                    "When you're optimizing neural network weights",
+                    "When the search space is continuous"
+                  ],
+                  "correct": 1,
+                  "explanation": "BO's value comes from the cost asymmetry: the surrogate (cheap) guides evaluations of the true function (expensive). If the true function is also cheap, there's no asymmetry to exploit — just run thousands of random samples. BO shines when each evaluation costs minutes, hours, or days, and you can only afford 20-100 trials."
+                }
+              ]
+            }
+          }
+        ]
+      }
+    ]
+  }
+}
