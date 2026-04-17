@@ -1,0 +1,332 @@
+{
+  "id": "brainstorm-58b-aspectual-decay",
+  "title": "Aspectual Decay",
+  "subtitle": "Do Schankian Primitives Have Characteristic Timescales? Connecting Event Semantics to SSM Memory",
+  "readTime": "12 min",
+  "state": "published",
+  "content": {
+    "type": "Fragment",
+    "children": [
+      {
+        "type": "Section",
+        "props": { "title": "The Core Insight: Events Have Built-In Clocks" },
+        "children": [
+          {
+            "type": "p",
+            "children": "Not all events live the same length of time in memory. When you hear 'She glanced at the painting,' that perception event (ATTEND) flickers and fades almost instantly — its job is done. But 'She inherited the estate' (ATRANS) creates a permanent state change that must persist indefinitely. The event itself tells you how long to remember it."
+          },
+          {
+            "type": "p",
+            "children": "This tutorial explores a striking convergence: Schank's conceptual dependency primitives each carry an implicit temporal profile — a characteristic timescale over which they remain relevant. These timescales map directly onto the decay rates that state-space models (SSMs) like Mamba use to manage memory. Vendler's aspectual classes from linguistics provide the bridge."
+          },
+          {
+            "type": "p",
+            "children": "The implication is profound: if we can identify the primitive type of an event, we already know how the model should allocate memory for it. The event's aspect is the memory instruction."
+          }
+        ]
+      },
+      {
+        "type": "Callout",
+        "props": { "type": "idea" },
+        "children": [
+          {
+            "type": "p",
+            "children": "🔑 Key Insight: Each Schankian primitive has a characteristic temporal profile — a natural 'half-life' in narrative memory. PTRANS is punctual (move → done), MTRANS unfolds over dialogue turns, ATRANS creates permanent state changes. These map directly to different SSM decay rates, connecting Schank's event semantics to Mamba's A-matrix parameterization. The event type IS the memory instruction."
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "1. Vendler's Aspectual Classes: The Linguistic Foundation" },
+        "children": [
+          {
+            "type": "p",
+            "children": "Before we can talk about how long events persist in memory, we need Zeno Vendler's classification of event types from 1957. These four categories describe the internal temporal structure of events — not when they happen, but how they unfold through time."
+          },
+          {
+            "type": "DefinitionList",
+            "props": {
+              "items": [
+                {
+                  "term": "States",
+                  "definition": "Homogeneous situations with no internal structure or endpoint. They simply hold. Examples: 'know the answer,' 'own a house,' 'love music.' If you know X at time t, you know X at every sub-interval of t. States have no decay — they persist until explicitly cancelled."
+                },
+                {
+                  "term": "Activities",
+                  "definition": "Ongoing processes with internal structure but no inherent endpoint. Examples: 'run,' 'think,' 'push the cart.' You can stop an activity at any point and it's still true that you were doing it. Activities have medium decay — they remain relevant during their duration plus a short aftermath."
+                },
+                {
+                  "term": "Achievements",
+                  "definition": "Instantaneous transitions with no duration. They mark a point of change. Examples: 'notice,' 'recognize,' 'reach the summit,' 'die.' Achievements are punctual — they happen and then the world is different. The event itself decays fast; its result may persist."
+                },
+                {
+                  "term": "Accomplishments",
+                  "definition": "Extended processes with a built-in endpoint (telos). Examples: 'build a house,' 'write a novel,' 'convince someone.' They take time and have a culmination point. Accomplishments need sustained memory through their duration — the model must track the process toward completion."
+                }
+              ]
+            }
+          },
+          {
+            "type": "p",
+            "children": "The crucial observation: each Vendler class implies a different memory requirement. States need indefinite retention. Achievements need barely any. Activities need medium-term tracking. Accomplishments need sustained attention toward a goal. These are exactly the kind of timescale distinctions that SSM decay rates encode."
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "2. Schankian Primitives and Their Temporal Profiles" },
+        "children": [
+          {
+            "type": "p",
+            "children": "Now let's map Schank's six core primitives to Vendler's classes and assign each a characteristic decay profile. This mapping isn't arbitrary — it follows from what each primitive does and how long its effects matter."
+          },
+          {
+            "type": "DefinitionList",
+            "props": {
+              "items": [
+                {
+                  "term": "PTRANS (Physical Transfer)",
+                  "definition": "Moving an object or person from one location to another. Vendler class: Achievement (punctual). 'She walked to the store' — once there, the movement event itself fades; only the resulting location persists. Decay rate: FAST (half-life ≈ 5-10 tokens). The transit is forgotten; the destination is remembered as a new state."
+                },
+                {
+                  "term": "ATRANS (Abstract Transfer)",
+                  "definition": "Transfer of possession, ownership, or control. Vendler class: Achievement → State. 'He sold the car to Mary' — the selling event is instantaneous, but the resulting ownership change is permanent. Decay rate: VERY SLOW (half-life ≈ 500+ tokens). ATRANS creates new states that persist until another ATRANS reverses them."
+                },
+                {
+                  "term": "MTRANS (Mental Transfer)",
+                  "definition": "Communication of information between agents. Vendler class: Accomplishment. 'She explained the theorem to him' — unfolds over dialogue turns, requires tracking what's been communicated and what remains. Decay rate: MEDIUM (half-life ≈ 30-80 tokens). The content transferred persists as new knowledge; the act of transfer fades."
+                },
+                {
+                  "term": "MBUILD (Mental Build)",
+                  "definition": "Construction of new thoughts, decisions, or inferences. Vendler class: Accomplishment → State. 'He realized the door was unlocked' — the realization process may be brief, but the resulting knowledge is permanent. Decay rate: SLOW (half-life ≈ 100-200 tokens). The process of building fades; the built knowledge persists."
+                },
+                {
+                  "term": "ATTEND (Attend)",
+                  "definition": "Directing sensory attention to a stimulus. Vendler class: Achievement (punctual). 'She heard a noise' — perception events are nearly instantaneous and fade quickly unless they trigger further processing. Decay rate: VERY FAST (half-life ≈ 2-5 tokens). Perceptions are the most ephemeral events."
+                },
+                {
+                  "term": "INGEST (Ingest)",
+                  "definition": "Taking something into the body (eating, breathing, absorbing). Vendler class: Activity. 'He ate lunch' — an ongoing process with moderate duration. Decay rate: MEDIUM-FAST (half-life ≈ 10-20 tokens). The act of ingesting fades; physiological state changes may persist longer."
+                }
+              ]
+            }
+          },
+          {
+            "type": "Callout",
+            "props": { "type": "warning" },
+            "children": [
+              {
+                "type": "p",
+                "children": "⚠️ Event vs. Result Decay: Every event has two decay components — the event process itself and its resulting state. ATRANS events decay fast as events but create states that persist forever. The model needs BOTH timescales: a fast one to forget the transfer act, and a slow one to remember the new ownership. This dual-timescale requirement is why multi-headed SSMs (like Hydra) may be necessary."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "3. Interactive: Decay Rate Explorer" },
+        "children": [
+          {
+            "type": "p",
+            "children": "Explore how different Schankian primitives retain their 'memory trace' over narrative tokens. Each primitive's memory decays exponentially at its characteristic rate. Select a primitive and adjust the half-life to see how the decay curve changes."
+          },
+          {
+            "type": "InteractiveDemo",
+            "props": {
+              "title": "Decay Rate Explorer",
+              "type": "decay-rate-explorer"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "Each primitive has a characteristic exponential decay curve: h(t) = e^(-λt), where λ = ln(2)/half-life. ATTEND (half-life ~3 tokens) drops to 50% after just 3 tokens and is nearly gone by 15. ATRANS (half-life ~500 tokens) barely budges — its memory trace persists across entire passages. MTRANS and MBUILD sit in between, maintaining relevance across dialogue spans. Use the sliders to adjust half-lives and see how memory traces overlap and interact across narrative distance."
+              }
+            ]
+          },
+          {
+            "type": "p",
+            "children": "Notice how the curves separate into distinct bands. This isn't accidental — it reflects the fundamental temporal structure of narrative. Stories operate on multiple timescales simultaneously: moment-to-moment perception (ATTEND), scene-level action (PTRANS, INGEST), episode-level communication (MTRANS), and story-level state changes (ATRANS, MBUILD results). A model that can't represent all these timescales will lose track of some narrative layer."
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "4. The SSM Connection: Decay Rates as the A Matrix" },
+        "children": [
+          {
+            "type": "p",
+            "children": "State-space models (SSMs) like Mamba maintain a hidden state h that evolves according to: h(t) = A·h(t-1) + B·x(t). The matrix A controls how quickly information decays. When A is close to 1, memory persists; when A is close to 0, memory fades fast. This is exactly the mechanism we need for aspectual decay."
+          },
+          {
+            "type": "p",
+            "children": "The key equation linking Vendler aspect to SSM parameterization is the half-life formula:"
+          },
+          {
+            "type": "Callout",
+            "props": { "type": "info" },
+            "children": [
+              {
+                "type": "p",
+                "children": "📐 Half-Life Formula: t₁/₂ = -ln(2) / ln(a), where a is the diagonal entry of the A matrix. For ATTEND with a = 0.80, half-life ≈ 3.1 tokens. For ATRANS with a = 0.9986, half-life ≈ 500 tokens. The A matrix diagonal directly encodes event aspect."
+              }
+            ]
+          },
+          {
+            "type": "p",
+            "children": "In Mamba, A is parameterized as a learnable diagonal matrix, often initialized with the HiPPO framework. The Hydra timescale specialization work showed that different attention heads naturally learn different decay rates — some heads specialize in short-range patterns, others in long-range dependencies. Aspectual decay theory explains WHY: the heads are learning to track different Vendler classes."
+          },
+          {
+            "type": "Example",
+            "props": { "title": "Mapping Primitives to A-Matrix Values" },
+            "children": [
+              {
+                "type": "p",
+                "children": "Here's the concrete mapping from primitive type to SSM parameter:\n\n• ATTEND → a ≈ 0.80 (half-life ~3 tokens) — Perception fades in a sentence\n• PTRANS → a ≈ 0.93 (half-life ~10 tokens) — Movement fades in a paragraph\n• INGEST → a ≈ 0.95 (half-life ~15 tokens) — Bodily actions fade within a scene\n• MTRANS → a ≈ 0.985 (half-life ~50 tokens) — Communication persists across dialogue\n• MBUILD → a ≈ 0.993 (half-life ~100 tokens) — Decisions persist across scenes\n• ATRANS → a ≈ 0.999 (half-life ~700 tokens) — Ownership persists across chapters\n\nThese aren't arbitrary — they're predictions. If we analyze learned A matrices in Mamba models trained on narrative text, we should find clusters near these values, each cluster corresponding to a Vendler class."
+              }
+            ]
+          },
+          {
+            "type": "p",
+            "children": "The Hydra connection is direct. In the Hydra architecture, different SSM heads were found to specialize in different timescales. This was presented as an emergent property of training. Aspectual decay theory provides a top-down explanation: the heads are specializing because narrative events naturally cluster into distinct temporal classes. Vendler told us this in 1957; the models are rediscovering it from data."
+          }
+        ]
+      },
+      {
+        "type": "Analogy",
+        "props": {
+          "from": "Different types of paint with different durability",
+          "to": "Schankian primitives with different memory decay rates"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "Think of each primitive as a different kind of paint applied to a wall exposed to weather:\n\n🎨 **Spray paint** = ATTEND — Bright and vivid for a moment, but rain washes it away in days. Perception events register intensely but fade almost immediately. Glancing at a clock, hearing a door slam — spray paint on consciousness.\n\n🎨 **Watercolor** = PTRANS/INGEST — Delicate and transient. A walk across the room, eating a meal — they last through the scene but blur by the next chapter. Beautiful in the moment, dissolved by the first real storm.\n\n🎨 **Acrylic** = MTRANS — Durable enough for outdoor murals. Conversations and explanations persist across dialogue spans. 'She told him the secret' — that paint sticks for a good while, fading only gradually as new information layers over it.\n\n🎨 **Oil paint** = MBUILD — The Old Masters used it for a reason. Decisions and realizations are thick, slow-drying, and permanent. 'He understood the betrayal' — that realization isn't going anywhere.\n\n🎨 **Ceramic glaze (fired)** = ATRANS — Fired into permanence. Ownership transfers, legal changes, deaths — these don't fade at all. 'The kingdom passed to his son.' That's kiln-fired. It's part of the wall now.\n\nA model that uses only one type of paint (one decay rate) will either lose everything quickly or waste memory on trivia. You need the full palette."
+          }
+        ]
+      },
+      {
+        "type": "DeepDive",
+        "props": { "title": "Pustejovsky's Event Structure and Multi-Phase Memory" },
+        "children": [
+          {
+            "type": "p",
+            "children": "James Pustejovsky's Generative Lexicon theory (1995) decomposes events into three temporal phases, each with different memory requirements:\n\n**1. Preparation Phase (Agentive Role)**\nThe buildup before the main event. 'She reached for the gun' before 'She fired.' This phase needs INCREASING memory allocation — the model must accumulate context about what's being prepared. Decay rate should be near zero or even negative (growing salience) during preparation.\n\n**2. Culmination Phase (Formal Role)**\nThe moment of change. 'The bullet hit.' This is the achievement point — maximum salience, maximum information content. The decay curve peaks here. For ATRANS, this is where ownership actually transfers. For MBUILD, this is the 'aha moment.'\n\n**3. Consequence Phase (Telic Role)**\nThe aftermath and resulting state. 'He lay dead.' This phase determines the LONG-TERM decay rate. For ATTEND events, consequences are minimal (fast decay). For ATRANS events, the consequence IS the new state (near-zero decay).\n\nThe crucial insight: a single decay rate per primitive is an oversimplification. Each event needs a decay PROFILE — a curve that changes shape across these three phases. During preparation, memory should build. At culmination, it peaks. During consequences, it settles to the primitive's characteristic long-term rate.\n\nThis maps to SSM architectures with input-dependent dynamics — exactly what Mamba's selective mechanism provides. The B and C matrices can modulate the effective decay rate based on the current phase of the event, while the A matrix provides the baseline timescale."
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "5. Quiz: Test Your Understanding" },
+        "children": [
+          {
+            "type": "Quiz",
+            "props": {
+              "question": "Why does ATRANS (transfer of possession) have the slowest decay rate among Schankian primitives?",
+              "options": [
+                "Because possession transfers happen slowly in real life",
+                "Because ATRANS creates permanent state changes (new ownership) that must persist until explicitly reversed",
+                "Because ATRANS events are rare and the model needs to remember rare things longer",
+                "Because the A matrix for ATRANS is always set to exactly 1.0"
+              ],
+              "answer": 1,
+              "explanation": "ATRANS creates state changes — new ownership, new possession — that remain true indefinitely. 'She sold the house' means the ownership has changed, and that fact persists until another ATRANS reverses it. The event itself is punctual (an achievement), but its RESULT is a permanent state. This is why ATRANS needs near-zero decay: the model must remember who owns what across the entire narrative."
+            }
+          },
+          {
+            "type": "Quiz",
+            "props": {
+              "question": "In the SSM half-life formula t₁/₂ = -ln(2)/ln(a), what happens as 'a' approaches 1.0?",
+              "options": [
+                "The half-life approaches zero (instant decay)",
+                "The half-life approaches infinity (permanent memory)",
+                "The half-life stays constant at ln(2)",
+                "The formula becomes undefined and the system oscillates"
+              ],
+              "answer": 1,
+              "explanation": "As a → 1.0, ln(a) → 0, so -ln(2)/ln(a) → ∞. This means the state barely decays at all — information persists essentially forever. This is the regime needed for ATRANS-type events where state changes are permanent. Conversely, smaller values of a (like 0.80 for ATTEND) give very short half-lives."
+            }
+          },
+          {
+            "type": "Quiz",
+            "props": {
+              "question": "Which Vendler aspectual class best describes 'She convinced him to join the team'?",
+              "options": [
+                "State — because belief is a mental state",
+                "Activity — because convincing is an ongoing process",
+                "Achievement — because the decision happens at a single moment",
+                "Accomplishment — because convincing takes time and has a built-in endpoint (being convinced)"
+              ],
+              "answer": 3,
+              "explanation": "'Convince' is a classic accomplishment: it takes time (you can't convince someone instantaneously), it has an inherent endpoint (the person is convinced), and it can be interrupted ('She was convincing him when...' makes sense). This means the model needs sustained memory throughout the convincing process — a medium decay rate during the activity, dropping to low decay once the accomplishment is achieved and the result (belief change) becomes a persistent state."
+            }
+          },
+          {
+            "type": "Quiz",
+            "props": {
+              "question": "Pustejovsky's three-phase event structure (preparation → culmination → consequence) implies that:",
+              "options": [
+                "Every event needs exactly three SSM heads to track it",
+                "A single fixed decay rate per event is sufficient since the phases average out",
+                "The effective decay rate should CHANGE across the event's phases — building during preparation, peaking at culmination, settling during consequence",
+                "Only the culmination phase matters for memory; preparation and consequence can be ignored"
+              ],
+              "answer": 2,
+              "explanation": "Pustejovsky's structure shows that events aren't temporally uniform. During preparation, the model needs to ACCUMULATE context (low or negative effective decay). At culmination, information peaks. During consequence, it settles to the primitive's characteristic long-term decay rate. This requires input-dependent dynamics — exactly what Mamba's selective mechanism (input-dependent B and C matrices) provides."
+            }
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "6. Testable Predictions and Experimental Design" },
+        "children": [
+          {
+            "type": "p",
+            "children": "The aspectual decay hypothesis makes concrete, falsifiable predictions. Here's how to test them."
+          },
+          {
+            "type": "Example",
+            "props": { "title": "Prediction 1: A-Matrix Clustering" },
+            "children": [
+              {
+                "type": "p",
+                "children": "Trained Mamba models should show clusters in their learned A-matrix diagonals corresponding to Vendler's four aspectual classes. Specifically: a cluster near a=0.80-0.85 (achievements/perceptions), a cluster near a=0.93-0.96 (activities), a cluster near a=0.98-0.99 (accomplishments), and a cluster near a=0.999+ (states).\n\nExperiment: Extract A-matrix diagonals from Mamba-130M, Mamba-370M, and Mamba-1.4B. Apply k-means clustering (k=4). Test whether the cluster centers match the predicted values. Compare cluster assignments across model sizes — if aspectual decay is real, the clusters should be consistent."
+              }
+            ]
+          },
+          {
+            "type": "Example",
+            "props": { "title": "Prediction 2: Narrative Probing" },
+            "children": [
+              {
+                "type": "p",
+                "children": "After an ATRANS event ('Alice gave the book to Bob'), a probe for 'Who has the book?' should remain accurate at long distances (100+ tokens). After an ATTEND event ('Alice glanced at the painting'), a probe for 'What did Alice look at?' should degrade rapidly (accuracy drops by 50% within 10 tokens).\n\nExperiment: Create synthetic narratives with controlled event types. Insert probe questions at varying distances (1, 5, 10, 25, 50, 100, 200 tokens). Measure probe accuracy as a function of distance and event type. Plot decay curves. The curves should match the predicted half-lives for each primitive type."
+              }
+            ]
+          },
+          {
+            "type": "Example",
+            "props": { "title": "Prediction 3: Aspect-Informed Initialization" },
+            "children": [
+              {
+                "type": "p",
+                "children": "If we initialize Mamba's A matrix with aspect-informed values (instead of random or HiPPO initialization), training should converge faster and achieve lower perplexity on narrative text.\n\nExperiment: Train three Mamba-130M models on the same narrative corpus:\n• Baseline: HiPPO initialization\n• Aspect-informed: Initialize A-matrix diagonals as a mixture of 4 components matching Vendler classes\n• Random: Random initialization in [0, 1]\n\nCompare training curves. If aspect-informed initialization helps, it's evidence that the model needs to learn these timescales anyway — we're just giving it a head start."
+              }
+            ]
+          },
+          {
+            "type": "Callout",
+            "props": { "type": "next" },
+            "children": [
+              {
+                "type": "p",
+                "children": "🎯 Next Steps: This framework connects naturally to several other research directions:\n\n• **Hydra's Timescale Specialization** — The multi-headed SSM architecture that inspired this analysis\n• **The Zipfian Gorilla** — Frequency bias in primitive discovery (if ATTEND events dominate, do models over-allocate fast-decay heads?)\n• **Wake-Sleep Library Learning** — Do learned library functions correspond to aspectual classes?\n• **The Syntax Tax** — If aspect is structural, should it be given to the model for free rather than learned?"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}

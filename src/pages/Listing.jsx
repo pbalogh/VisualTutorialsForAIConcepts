@@ -1910,6 +1910,18 @@ const tutorials = [
     difficulty: 'Intermediate'
   },
   {
+    id: 'brainstorm-58b-aspectual-decay',
+    title: 'Aspectual Decay: Primitive Timescales Meet SSM Memory',
+    description: 'How Schankian primitives have characteristic temporal profiles that map to SSM decay rates',
+    tags: ['Schank', 'SSM', 'Aspect', 'Mamba', 'Decay'],
+    icon: '⏳',
+    gradient: 'from-amber-500 to-orange-600',
+    shadowColor: 'shadow-amber-500/25',
+    glowColor: 'group-hover:shadow-amber-500/40',
+    readTime: '12 min',
+    difficulty: 'Intermediate'
+  },
+  {
     id: 'brainstorm-95-syntax-tax',
     title: 'The Syntax Tax',
     description: 'What if models waste parameters rediscovering structure that could be given for free? The syntax tax measures this hidden cost, and operator tags might eliminate it. Connects information bottleneck theory to practical architecture design.',
