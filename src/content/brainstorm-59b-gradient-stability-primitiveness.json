@@ -1,0 +1,456 @@
+{
+  "id": "brainstorm-59b-gradient-stability-primitiveness",
+  "title": "Gradient Stability as Primitiveness",
+  "subtitle": "The Edge-of-Stability Test: Why Primitive Operators Live in Flat Loss Landscapes",
+  "readTime": "14 min",
+  "state": "published",
+  "content": {
+    "type": "Fragment",
+    "children": [
+      {
+        "type": "Section",
+        "props": {
+          "title": "The Surprise: Training Stability Reveals Abstraction"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "Here's a result nobody expected: when training a state-space model (Mamba) with different decay rates for different linguistic channels, the surface-pattern channels explode into NaN after ~1000 training steps, while the thematic-role channels remain perfectly stable. The channels tracking agent/patient/instrument roles — which are essentially Schank's case frames — survive aggressive training that destroys everything else."
+          },
+          {
+            "type": "p",
+            "children": "This isn't a bug. It's a diagnostic. The gradient stability of a representation under training pressure tells you something deep about what kind of abstraction it encodes. Truly primitive operators — Schank's ATRANS, PTRANS, MTRANS — should occupy flat, stable regions of the loss landscape because they compress many surface forms into a single abstract pattern. Surface-level features sit in sharp, narrow basins that shatter under perturbation."
+          },
+          {
+            "type": "p",
+            "children": "This tutorial explores the connection between loss landscape geometry and semantic primitiveness, building on the 'Edge of Stability' phenomenon in deep learning and our experimental evidence from the Hydra architecture."
+          }
+        ]
+      },
+      {
+        "type": "Callout",
+        "props": {
+          "type": "idea"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "🔑 Core Claim: The training stability of a neural representation is a proxy for its level of abstraction. Primitive operators live in flat minima; surface patterns live in sharp ones. You can use gradient stress tests to discover which representations are truly primitive."
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "Background: The Edge of Stability"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "Cohen et al. (2021) discovered a remarkable phenomenon: when training neural networks with gradient descent, the maximum eigenvalue of the Hessian (a measure of loss landscape sharpness) grows until it reaches approximately 2/η (where η is the learning rate), then hovers there. The training operates right at the boundary of stability — the 'edge of stability.'"
+          },
+          {
+            "type": "DeepDive",
+            "props": {
+              "title": "What is the Hessian eigenvalue?"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "The Hessian matrix contains all second derivatives of the loss function with respect to the model parameters. Its eigenvalues tell you about the curvature of the loss landscape. A large eigenvalue means there's a direction in parameter space where the loss changes very rapidly — a sharp valley. A small eigenvalue means the loss changes slowly — a flat plateau. The maximum eigenvalue λ_max determines whether gradient descent will converge (λ_max < 2/η) or diverge (λ_max > 2/η)."
+              }
+            ]
+          },
+          {
+            "type": "p",
+            "children": "The key insight is that different parts of the network hit this edge at different times. Some parameters find stable, flat regions quickly. Others are perpetually dancing on the cliff edge. What determines which is which?"
+          },
+          {
+            "type": "Analogy",
+            "props": {
+              "title": "The Mountain Metaphor"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "Imagine the loss landscape as a mountain range. Surface-pattern features are like narrow ridge trails — one wrong step and you fall off. Abstract primitives are like broad valleys — you can wander quite far and still stay at roughly the same altitude. When you increase your stride length (learning rate), ridge-walkers fall first. Valley-dwellers barely notice."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "The Hydra Experiment: Watching Channels Die"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "In the Hydra architecture, we partition a Mamba SSM's 16-dimensional state into four regions, each tracking a different linguistic structure: phrase structure (PS), thematic roles (TH), information structure (IS), and general surface patterns (Gen). Bayesian optimization found optimal decay rates for each partition."
+          },
+          {
+            "type": "DefinitionList",
+            "children": [
+              {
+                "type": "dt",
+                "children": "Phrase Structure (PS = 1.77)"
+              },
+              {
+                "type": "dd",
+                "children": "Tracks constituency brackets: NP, VP, PP boundaries. Moderate decay — syntactic structure persists across a few tokens."
+              },
+              {
+                "type": "dt",
+                "children": "Thematic Roles (TH = 5.84)"
+              },
+              {
+                "type": "dd",
+                "children": "Tracks agent, patient, instrument, beneficiary. Slow decay — thematic roles persist across clauses. These ARE Schank's case frames."
+              },
+              {
+                "type": "dt",
+                "children": "Information Structure (IS = 0.61)"
+              },
+              {
+                "type": "dd",
+                "children": "Tracks topic/focus/given/new. Surprisingly fast decay — topic shifts are more local than expected."
+              },
+              {
+                "type": "dt",
+                "children": "General/Surface (Gen = 32.16)"
+              },
+              {
+                "type": "dd",
+                "children": "Tracks surface patterns, collocations, n-gram regularities. Very fast decay — these are ephemeral by nature."
+              }
+            ]
+          },
+          {
+            "type": "p",
+            "children": "When we ran a validation experiment training for 5000 steps (5× the optimization horizon), something dramatic happened:"
+          },
+          {
+            "type": "InteractiveDemo",
+            "props": {
+              "id": "nan-timeline",
+              "title": "The NaN Explosion Timeline",
+              "description": "Watch how different channels respond to extended training. The model trains normally until step ~1000, when surface-pattern gradients become unstable and propagate NaN values through the entire network.",
+              "type": "timeline",
+              "steps": [
+                {
+                  "label": "Step 0",
+                  "description": "All channels healthy. Baseline accuracy: 48.6%. Weights: lm_head std=0.062, A_log mean=1.27."
+                },
+                {
+                  "label": "Step 500",
+                  "description": "Mixed signals. Agreement improves (45%→54%), garden path improves (34%→46%). But binding drops (50%→40%), NPI drops (60%→40%). Surface channels showing stress."
+                },
+                {
+                  "label": "Step 1000",
+                  "description": "Garden path surges to 63.2% — thematic head is working! Agreement holds at 54%. Overall accuracy at 49.9%. Last healthy checkpoint."
+                },
+                {
+                  "label": "Step 1000-1500",
+                  "description": "💥 NaN EXPLOSION. Gen channels (decay=32.16) produce gradients that exceed floating-point range. NaN propagates to all weights. Model is dead."
+                },
+                {
+                  "label": "Step 1500+",
+                  "description": "All weights NaN. Every diagnostic returns 0.0%. The model is mathematically undefined."
+                }
+              ]
+            }
+          },
+          {
+            "type": "Callout",
+            "props": {
+              "type": "warning"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "⚡ The critical observation: Gen channels (surface patterns, decay=32.16) died first. Thematic channels (decay=5.84) were stable at step 1000. The ordering of failure mirrors the abstraction hierarchy — most surface → most abstract."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "Why Primitives Are Flat: The Compression Argument"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "There's a clean information-theoretic reason why primitive operators should occupy flatter loss basins. Consider what ATRANS (abstract transfer) encodes: giving, selling, buying, lending, borrowing, bequeathing, donating, awarding, granting, bestowing — thousands of surface verbs all mapping to the same underlying operation. Each training example reinforces the same abstract representation from a slightly different angle."
+          },
+          {
+            "type": "p",
+            "children": "In loss landscape terms, this means the gradient from one 'give' example points in roughly the same direction as the gradient from one 'sell' example — they're all pushing toward the same abstract attractor. The resulting basin is broad because it's carved by many consistent signals."
+          },
+          {
+            "type": "Example",
+            "props": {
+              "title": "Surface vs. Primitive Basin Geometry"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "Surface pattern: The collocation 'in terms of' is learned from examples containing exactly 'in terms of'. The basin is narrow — supported by one specific pattern. Small perturbation → you leave the basin."
+              },
+              {
+                "type": "p",
+                "children": "Primitive operator: ATRANS is learned from 'She gave him the book', 'The company sold its assets', 'He inherited the estate', 'Congress awarded the medal', etc. The basin is wide — supported by thousands of consistent examples from different surface forms. Large perturbation → you're still in the basin."
+              }
+            ]
+          },
+          {
+            "type": "DeepDive",
+            "props": {
+              "title": "Connection to PAC-Bayes and Flat Minima"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "The flat-minima generalization argument (Hochreiter & Schmidhuber 1997, Keskar et al. 2017) says that parameters in flat basins generalize better because small perturbations don't change predictions. This is exactly the primitiveness argument reframed: a representation that generalizes across many surface forms (= a primitive) necessarily lives in a flat basin, because 'generalizes well' and 'tolerates perturbation' are the same thing. PAC-Bayes bounds formalize this — the prior-posterior KL divergence is smaller for parameters in flat regions, and those parameters carry more generalizable information."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "The Sharpness Primitiveness Score"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "This gives us a practical diagnostic: compute per-channel Hessian sharpness and use it to rank representations by abstraction level. Channels with low sharpness → high abstraction (primitive). Channels with high sharpness → low abstraction (surface)."
+          },
+          {
+            "type": "InteractiveDemo",
+            "props": {
+              "id": "sharpness-ranking",
+              "title": "The Sharpness Primitiveness Ladder",
+              "description": "Predicted ordering of representations by Hessian sharpness (flattest = most primitive). This is a testable prediction — compute per-channel λ_max and check if the ordering matches.",
+              "type": "ranking",
+              "items": [
+                {
+                  "label": "🟢 Schankian Primitives (ATRANS, PTRANS, MTRANS)",
+                  "detail": "Flattest. Compressed from thousands of surface verbs. Most training-stable.",
+                  "sharpness": "Low"
+                },
+                {
+                  "label": "🟡 Thematic Roles (agent, patient, instrument)",
+                  "detail": "Fairly flat. Shared across verb frames. TH=5.84 survived to step 1000.",
+                  "sharpness": "Low-Medium"
+                },
+                {
+                  "label": "🟠 Syntactic Categories (NP, VP, PP)",
+                  "detail": "Moderate sharpness. Regular patterns but language-specific.",
+                  "sharpness": "Medium"
+                },
+                {
+                  "label": "🔴 Surface Collocations ('in terms of', 'by and large')",
+                  "detail": "Sharp basins. Idiosyncratic, narrow support. Gen=32 NaN'd first.",
+                  "sharpness": "High"
+                }
+              ]
+            }
+          },
+          {
+            "type": "p",
+            "children": "The stress test version is even simpler: progressively increase the learning rate and record the order in which different channels diverge. The failure sequence IS the abstraction hierarchy — surface features die first, primitives die last (or never)."
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "SAM Meets Wake-Sleep: Flat-Seeking Primitive Discovery"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "Sharpness-Aware Minimization (SAM; Foret et al. 2021) explicitly modifies the optimizer to seek flat minima. Instead of minimizing the loss at the current point, SAM minimizes the worst-case loss in a neighborhood around the current point. This biases training toward broad, flat basins — exactly where we expect primitive operators to live."
+          },
+          {
+            "type": "p",
+            "children": "The provocative prediction: if you apply SAM to wake-sleep operator compression (the method from our Operator Discovery paper), the resulting library should be cleaner and more abstract than the SGD-trained version. SAM should preferentially preserve operators that generalize across surface forms (= primitives) and wash out operators that only capture surface regularities."
+          },
+          {
+            "type": "DeepDive",
+            "props": {
+              "title": "How SAM works"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "Standard gradient descent: θ_{t+1} = θ_t - η∇L(θ_t). SAM: first compute the adversarial perturbation ε = ρ · ∇L(θ_t)/||∇L(θ_t)||, then update θ_{t+1} = θ_t - η∇L(θ_t + ε). This two-step process finds the direction where the loss increases most sharply (the sharpest wall of the basin) and then steps away from it. The result: the optimizer naturally migrates from sharp basins to flat ones."
+              }
+            ]
+          },
+          {
+            "type": "Callout",
+            "props": {
+              "type": "experiment"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "🧪 Testable Prediction: Train two wake-sleep compression runs — one with SGD, one with SAM — on the same ATOMIC event data. The SAM-trained library should: (1) have fewer operators, (2) show higher Schank primitive coverage per operator, (3) achieve equal or better MDL compression, and (4) produce operators whose Hessian eigenvalues are uniformly lower."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "The Stress Test Protocol"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "Here's a concrete experimental protocol for using gradient stability as a primitiveness diagnostic:"
+          },
+          {
+            "type": "Example",
+            "props": {
+              "title": "The Progressive LR Stress Test"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "1. Train a model (SSM or transformer) on narrative text until convergence.\n2. Extract per-channel (or per-head) representations.\n3. Progressively increase the learning rate: 1e-4 → 2e-4 → 5e-4 → 1e-3 → 2e-3 → ...\n4. At each LR, check which channels have diverged (NaN, loss explosion, or accuracy collapse).\n5. Record the 'death order' — the sequence in which channels fail.\n6. Compare the death order to known abstraction hierarchies (Schank primitives > thematic roles > syntax > surface)."
+              },
+              {
+                "type": "p",
+                "children": "Prediction: the death order will mirror the abstraction hierarchy. Surface collocations die first. Schankian primitives die last."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "Broader Implications"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "If gradient stability really does correlate with primitiveness, this has implications beyond operator discovery:"
+          },
+          {
+            "type": "DefinitionList",
+            "children": [
+              {
+                "type": "dt",
+                "children": "Feature Selection"
+              },
+              {
+                "type": "dd",
+                "children": "Use sharpness-based ranking to identify which SAE features represent genuine semantic primitives vs. surface artifacts. No labeled data needed."
+              },
+              {
+                "type": "dt",
+                "children": "Transfer Learning"
+              },
+              {
+                "type": "dd",
+                "children": "Flat features should transfer better across domains (because they're more abstract). The sharpness score predicts transferability."
+              },
+              {
+                "type": "dt",
+                "children": "Model Compression"
+              },
+              {
+                "type": "dd",
+                "children": "Prune the sharpest channels first — they're the least abstract, most surface-specific, and least likely to generalize. Keep the flat ones."
+              },
+              {
+                "type": "dt",
+                "children": "Biological Plausibility"
+              },
+              {
+                "type": "dd",
+                "children": "Synaptic consolidation in the brain preferentially stabilizes abstract concepts over episodic details. Flat basins may be the loss-landscape analogue of 'consolidated' memories."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Quiz",
+        "props": {
+          "questions": [
+            {
+              "question": "Why do surface-pattern channels NaN before thematic-role channels during aggressive training?",
+              "options": [
+                "Surface patterns are in sharper loss basins because they compress fewer diverse examples",
+                "Surface patterns have more parameters",
+                "Thematic roles are closer to the output layer",
+                "The learning rate is higher for surface channels"
+              ],
+              "correct": 0,
+              "explanation": "Surface patterns sit in sharp, narrow basins because each pattern is supported by few specific examples. Thematic roles are reinforced by thousands of diverse verb frames, creating broad, flat basins that tolerate larger gradient steps."
+            },
+            {
+              "question": "What does the Edge of Stability (Cohen et al. 2021) predict about the Hessian during training?",
+              "options": [
+                "The maximum Hessian eigenvalue decreases monotonically",
+                "The maximum eigenvalue grows until it reaches ~2/η, then hovers there",
+                "The Hessian becomes identity matrix at convergence",
+                "All eigenvalues become equal"
+              ],
+              "correct": 1,
+              "explanation": "The Edge of Stability phenomenon shows that gradient descent pushes the maximum Hessian eigenvalue λ_max up to 2/η (the stability boundary for learning rate η), where it oscillates. Different representations hit this edge at different training steps."
+            },
+            {
+              "question": "How would SAM-trained wake-sleep compression differ from SGD-trained?",
+              "options": [
+                "More operators, each more specific",
+                "Faster training, same results",
+                "Fewer but more abstract operators with higher Schank primitive coverage",
+                "No difference — SAM only affects classification tasks"
+              ],
+              "correct": 2,
+              "explanation": "SAM seeks flat minima, which correspond to abstract (primitive) representations. It should wash out sharp, surface-specific operators and preserve the broad, generalizable ones — producing a cleaner, more compressed primitive library."
+            }
+          ]
+        }
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "Key References"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "• Cohen et al. 2021 — 'Gradient Descent on Neural Networks Typically Occurs at the Edge of Stability' (ICLR 2021). The foundational observation that training operates at the Hessian stability boundary."
+          },
+          {
+            "type": "p",
+            "children": "• Foret et al. 2021 — 'Sharpness-Aware Minimization for Efficiently Improving Generalization' (ICLR 2021). SAM optimizer that explicitly seeks flat minima."
+          },
+          {
+            "type": "p",
+            "children": "• Long & Bartlett 2024 — 'Sharpness-Aware Minimization and the Edge of Stability' (arXiv:2309.12488). Extends edge-of-stability analysis to SAM."
+          },
+          {
+            "type": "p",
+            "children": "• Keskar et al. 2017 — 'On Large-Batch Training for Deep Learning' (ICLR 2017). The original flat-minima-generalize-better argument for deep learning."
+          },
+          {
+            "type": "p",
+            "children": "• Balogh 2026 — Hydra architecture experiments (this workspace). Empirical evidence that thematic-role channels survive aggressive training that kills surface-pattern channels."
+          }
+        ]
+      }
+    ]
+  }
+}

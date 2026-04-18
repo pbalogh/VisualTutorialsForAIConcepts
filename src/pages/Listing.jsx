@@ -1935,6 +1935,18 @@ const tutorials = [
     difficulty: 'Intermediate'
   },
   {
+    id: 'brainstorm-59b-gradient-stability-primitiveness',
+    title: 'Gradient Stability as Primitiveness',
+    description: 'Why primitive operators live in flat loss landscapes and surface patterns explode into NaN. The edge-of-stability test for semantic abstraction.',
+    tags: ['Schank', 'Loss Landscape', 'SAM', 'Edge of Stability', 'Hydra'],
+    icon: '📉',
+    gradient: 'from-red-500 to-amber-600',
+    shadowColor: 'shadow-red-500/25',
+    glowColor: 'group-hover:shadow-red-500/40',
+    readTime: '14 min',
+    difficulty: 'Advanced'
+  },
+  {
     id: 'brainstorm-95-syntax-tax',
     title: 'The Syntax Tax',
     description: 'What if models waste parameters rediscovering structure that could be given for free? The syntax tax measures this hidden cost, and operator tags might eliminate it. Connects information bottleneck theory to practical architecture design.',
