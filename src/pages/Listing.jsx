@@ -1935,6 +1935,18 @@ const tutorials = [
     difficulty: 'Intermediate'
   },
   {
+    id: 'brainstorm-60-polysemy-operator-superposition',
+    title: 'Polysemy IS Operator Superposition',
+    description: 'Why 57% of "polysemanticity" is actually Schankian operator structure. The superposition debate meets computational semantics — and both communities are studying the same phenomenon.',
+    tags: ['Superposition', 'SAE', 'Polysemy', 'Schank', 'Interpretability'],
+    icon: '🔀',
+    gradient: 'from-violet-500 to-fuchsia-600',
+    shadowColor: 'shadow-violet-500/25',
+    glowColor: 'group-hover:shadow-violet-500/40',
+    readTime: '16 min',
+    difficulty: 'Advanced'
+  },
+  {
     id: 'brainstorm-59b-gradient-stability-primitiveness',
     title: 'Gradient Stability as Primitiveness',
     description: 'Why primitive operators live in flat loss landscapes and surface patterns explode into NaN. The edge-of-stability test for semantic abstraction.',
