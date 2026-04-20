@@ -1899,6 +1899,18 @@ const tutorials = [
     difficulty: 3,
   },
   {
+    id: 'brainstorm-operator-motifs-causal',
+    title: 'Operator Motifs as Causal Contribution Patterns',
+    description: 'Can behavioral compression (wake-sleep) and mechanistic decomposition (CODEC/SAE) converge on the same Schankian primitives from opposite directions? If so, operators are real computational structures, not just labels.',
+    tags: ['Schankian primitives', 'SAE', 'CODEC', 'causal motifs', 'convergent evidence'],
+    icon: '🔬',
+    gradient: 'from-emerald-500 to-teal-600',
+    shadowColor: 'shadow-emerald-500/30',
+    glowColor: 'rgba(16, 185, 129, 0.4)',
+    readTime: '14 min',
+    difficulty: 3,
+  },
+  {
     id: 'sgd-to-spectra-weight-dynamics',
     title: 'From SGD to Spectra: Weight Matrix Dynamics',
     description: 'A weight matrix is a fuzzy hashmap — but what SHAPE is the hashmap? How training sculpts the spectrum of singular values, why eigenvalues repel like charged particles, and what the bulk+tail structure tells you about learning. Based on Fatehmanesh et al. (2025).',

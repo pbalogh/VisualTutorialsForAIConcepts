@@ -1,0 +1,228 @@
+{
+  "type": "Fragment",
+  "meta": {
+    "title": "Operator Motifs as Causal Contribution Patterns",
+    "description": "Can we find Schankian primitives by looking at neural causal motifs? Convergent evidence from above (behavioral compression) and below (mechanistic decomposition).",
+    "author": "Clawd",
+    "lastUpdated": "2026-04-20"
+  },
+  "content": {
+    "type": "Fragment",
+    "children": [
+      {
+        "type": "Section",
+        "title": "The Core Idea: Two Paths to the Same Primitives",
+        "children": [
+          {
+            "type": "Callout",
+            "props": {"type": "info"},
+            "children": "What if behavioral compression (wake-sleep) and mechanistic decomposition (SAE/CODEC) converge on the same operator primitives from opposite directions? That convergence would be powerful evidence that Schankian primitives are 'real' computational structures, not just compression artifacts."
+          },
+          {
+            "type": "p",
+            "children": "We've been discovering Schankian primitives (ATRANS, PTRANS, MTRANS, INGEST, etc.) by compressing event descriptions through a wake-sleep algorithm. Events cluster into operator types based on their information-theoretic structure. But is this just a convenient labeling? Or do these operators correspond to actual computational circuits inside neural networks?"
+          },
+          {
+            "type": "p",
+            "children": "CODEC (Contribution Decomposition, arXiv:2603.06557) offers a way to check. It uses sparse autoencoders to decompose neural network behavior into sparse motifs of hidden-neuron contributions — revealing the causal processes that drive predictions. If we run CODEC on a language model processing event descriptions, and the resulting motifs align with our operator assignments, we have convergent evidence from two entirely different methodologies."
+          },
+          {
+            "type": "Analogy",
+            "props": {"title": "Archaeologist Meets Architect"},
+            "children": [
+              {
+                "type": "p",
+                "children": "Imagine two people analyzing a building. The archaeologist (wake-sleep) studies what people DO in each room and infers the building's functional blueprint. The architect (CODEC) X-rays the walls and traces the actual structural supports. If both independently conclude 'this is a hospital with 6 departments,' that's much stronger evidence than either alone — one found function, the other found structure, and they agree."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "title": "CODEC: Contribution Decomposition Explained",
+        "children": [
+          {
+            "type": "p",
+            "children": "Traditional interpretability looks at activations — what neurons fire. CODEC looks at contributions — how each neuron's firing actually affects the output. The distinction matters enormously:"
+          },
+          {
+            "type": "DeepDive",
+            "props": {"title": "Activations vs. Contributions"},
+            "children": [
+              {
+                "type": "CodeBlock",
+                "props": {"language": "text"},
+                "children": "ACTIVATION:    How much does neuron N fire?\n               → Tells you the neuron is active\n               → Doesn't tell you what it DOES to the output\n\nCONTRIBUTION: How much does neuron N's firing change the output?\n               → Tells you the causal effect\n               → A strongly-firing neuron might contribute nothing\n                 (if its weight to the output is near zero)\n\nCODEC MOTIF:   A sparse pattern of contributions that recurs\n               → Multiple neurons working together\n               → The 'circuit' that computes a specific function\n\nExample: For the sentence 'John gave Mary a book'\n  Activation view: 200 neurons fire above threshold\n  Contribution view: 12 neurons account for 90% of the\n                     prediction of 'transfer event'\n  CODEC motif: Those 12 neurons form a recurring pattern\n               that appears for ALL transfer events"
+              }
+            ]
+          },
+          {
+            "type": "DeepDive",
+            "props": {"title": "How CODEC Works (Simplified)"},
+            "children": [
+              {
+                "type": "p",
+                "children": "CODEC has three steps:"
+              },
+              {
+                "type": "CodeBlock",
+                "props": {"language": "text"},
+                "children": "Step 1: DECOMPOSE\n  For each prediction, compute each neuron's contribution\n  to the output logits (not just its activation).\n  contribution_i = activation_i × weight_to_output_i\n\nStep 2: COMPRESS (via SAE)\n  Train a sparse autoencoder on the contribution vectors.\n  The SAE learns to represent each prediction as a sparse\n  combination of 'motifs' — recurring contribution patterns.\n\nStep 3: INTERPRET\n  Each SAE feature = one 'causal motif'\n  A motif is a specific pattern of neurons contributing\n  together to produce a specific type of output.\n\nKey insight: Because we decompose CONTRIBUTIONS (not\nactivations), the motifs are causally meaningful —\nthey represent actual computational pathways."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "title": "The Convergence Experiment",
+        "children": [
+          {
+            "type": "p",
+            "children": "Here's the experiment that would test whether behavioral operators and neural motifs are the same thing:"
+          },
+          {
+            "type": "DeepDive",
+            "props": {"title": "Experimental Design"},
+            "children": [
+              {
+                "type": "CodeBlock",
+                "props": {"language": "python"},
+                "children": "# Pseudocode for the convergence experiment\n\n# PATH A: Behavioral (our existing work)\nevent_sentences = load_atomic_plus_glucose()\noperator_labels = wake_sleep_compress(event_sentences)\n# Result: each event gets a Schankian label\n# e.g., 'John gave Mary a book' → ATRANS\n\n# PATH B: Mechanistic (CODEC)\nmodel = load_language_model('gpt2')\ncontributions = []\nfor sentence in event_sentences:\n    # Get contribution vectors at the event verb position\n    c = compute_neuron_contributions(model, sentence, position='verb')\n    contributions.append(c)\n\n# Train SAE on contribution vectors\nsae = SparseAutoencoder(n_features=64)\nmotifs = sae.encode(contributions)  # sparse motif activations\n\n# THE KEY TEST: Do motif clusters = operator clusters?\nfrom sklearn.metrics import adjusted_mutual_info_score\nami = adjusted_mutual_info_score(operator_labels, motif_clusters)\nprint(f'Convergence score: {ami:.3f}')\n# AMI > 0.3 would be strong evidence\n# AMI > 0.5 would be remarkable"
+              }
+            ]
+          },
+          {
+            "type": "Example",
+            "props": {"title": "What Convergence Would Look Like"},
+            "children": [
+              {
+                "type": "CodeBlock",
+                "props": {"language": "text"},
+                "children": "If operators ARE causal motifs, we'd see:\n\nMotif #7 fires for:        Operator label:\n  'gave a book'            → ATRANS\n  'sold the car'           → ATRANS\n  'donated money'          → ATRANS\n  'transferred ownership'  → ATRANS\n\nMotif #12 fires for:\n  'walked to the store'    → PTRANS\n  'drove home'             → PTRANS\n  'flew to Paris'          → PTRANS\n  'moved the box'          → PTRANS\n\nThe motifs and operators would partition events\nthe same way — not because we trained them together,\nbut because both methods found the same structure."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "title": "Why This Matters: The 'Realness' Question",
+        "children": [
+          {
+            "type": "p",
+            "children": "There's a persistent skepticism about Schankian primitives: are they real cognitive structures, or just a 1970s naming convention? This experiment addresses that directly."
+          },
+          {
+            "type": "DeepDive",
+            "props": {"title": "Three Possible Outcomes"},
+            "children": [
+              {
+                "type": "CodeBlock",
+                "props": {"language": "text"},
+                "children": "OUTCOME 1: Strong convergence (AMI > 0.5)\n  → Operators are real computational primitives\n  → The brain (and neural nets) actually have ATRANS circuits\n  → Schank was right about the ontology, not just useful\n  → Paper: 'Neural Circuits Implement Schankian Primitives'\n\nOUTCOME 2: Partial convergence (AMI 0.2-0.5)\n  → Operators capture some neural structure but not all\n  → Maybe the neural level has finer granularity\n  → Or operators are 'good approximations' of circuits\n  → Paper: 'Schankian Primitives as Lossy Descriptions of\n            Neural Operator Circuits'\n\nOUTCOME 3: No convergence (AMI < 0.2)\n  → Operators are behavioral categories, not neural ones\n  → The brain computes events differently than it describes them\n  → Still valuable (negative results clarify boundaries)\n  → Paper: 'The Behavioral-Mechanistic Gap in Event Semantics'"
+              }
+            ]
+          },
+          {
+            "type": "Callout",
+            "props": {"type": "tip"},
+            "children": "All three outcomes are publishable. This is the hallmark of a well-designed experiment — you learn something important regardless of which way it goes."
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "title": "Connection to Our Other Work",
+        "children": [
+          {
+            "type": "p",
+            "children": "This idea bridges several threads in our research program:"
+          },
+          {
+            "type": "DeepDive",
+            "props": {"title": "The Research Web"},
+            "children": [
+              {
+                "type": "CodeBlock",
+                "props": {"language": "text"},
+                "children": "DISCRETE CHARM (arXiv:2603.10985)\n  └── MLP neurons route via binary firing patterns\n  └── Q: Are operator-specific motifs just routing patterns?\n\nDARKNESS VISIBLE (arXiv:2604.04756)\n  └── 27 named neurons form an exception handler\n  └── Q: Do Schankian operators map to specific tiers?\n\nOPERATOR DISCOVERY (arXiv:2603.25975)\n  └── Wake-sleep finds 6 operators from behavior\n  └── Q: Do CODEC motifs find the same 6?\n\nMENTALESE GRAMMAR (unpublished)\n  └── SAE features have positional 'case' system\n  └── Q: Are operator motifs composed of case features?\n\nCODEC (arXiv:2603.06557)\n  └── Contribution decomposition → causal motifs\n  └── Q: Applied to events, what emerges?"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "title": "Interactive: Design Your Convergence Test",
+        "children": [
+          {
+            "type": "InteractiveDemo",
+            "props": {
+              "title": "Convergence Score Simulator",
+              "description": "Explore how different levels of operator-motif alignment produce different AMI scores. Adjust the confusion matrix to see what 'partial convergence' looks like.",
+              "type": "slider",
+              "config": {
+                "sliders": [
+                  {"label": "ATRANS motif purity (%)", "min": 20, "max": 100, "default": 80, "step": 5},
+                  {"label": "PTRANS motif purity (%)", "min": 20, "max": 100, "default": 75, "step": 5},
+                  {"label": "MTRANS motif purity (%)", "min": 20, "max": 100, "default": 60, "step": 5},
+                  {"label": "Number of motifs discovered", "min": 4, "max": 20, "default": 8, "step": 1}
+                ],
+                "output": "With these purities, the expected AMI ≈ (avg_purity - 50) / 50 × 0.7. Higher purity = cleaner correspondence between neural motifs and behavioral operators. More motifs than operators suggests the neural level has finer granularity (operators are 'super-categories' of motifs)."
+              }
+            }
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "title": "Quiz: Test Your Understanding",
+        "children": [
+          {
+            "type": "Quiz",
+            "props": {
+              "title": "Operator Motifs Quiz",
+              "questions": [
+                {
+                  "question": "What's the key difference between activations and contributions in CODEC?",
+                  "options": [
+                    "Activations are larger numbers",
+                    "Contributions measure causal effect on output, not just firing strength",
+                    "Contributions only look at the final layer",
+                    "Activations require a sparse autoencoder"
+                  ],
+                  "correct": 1,
+                  "explanation": "A neuron can fire strongly (high activation) but contribute nothing to the output if its downstream weights are near zero. Contributions measure the actual causal impact."
+                },
+                {
+                  "question": "Why would convergence between wake-sleep operators and CODEC motifs be significant?",
+                  "options": [
+                    "It would prove Schank was smarter than modern researchers",
+                    "It would show two independent methods found the same structure, suggesting the operators are 'real' computational primitives",
+                    "It would mean SAEs are equivalent to compression",
+                    "It would prove language models think like humans"
+                  ],
+                  "correct": 1,
+                  "explanation": "Convergent evidence from independent methods is the gold standard in science. If behavioral compression and mechanistic decomposition find the same operator boundaries, those boundaries likely reflect genuine computational structure."
+                },
+                {
+                  "question": "What would it mean if CODEC finds MORE motifs than we have operators?",
+                  "options": [
+                    "CODEC is broken",
+                    "Our operators are wrong",
+                    "The neural level may have finer granularity — operators are super-categories of sub-circuits",
+                    "We need more training data"
+                  ],
+                  "correct": 2,
+                  "explanation": "If CODEC finds 12 motifs that cluster into our 6 operators (2 per operator), it means each behavioral operator is implemented by 2 distinct sub-circuits. The operators are still 'real' but coarser than the neural implementation."
+                }
+              ]
+            }
+          }
+        ]
+      }
+    ]
+  }
+}
