@@ -1899,6 +1899,18 @@ const tutorials = [
     difficulty: 3,
   },
   {
+    id: 'brainstorm-62-operators-conservation-laws',
+    title: 'Operators as Conservation Laws',
+    description: 'Schankian operators are conservation laws: ATRANS conserves possession, MTRANS breaks conservation (info copies). The taxonomy derives purely from the algebraic structure of state diffs. Connects operator discovery to write-time knowledge graph constraints via Noether\'s theorem.',
+    tags: ['Schankian primitives', 'conservation laws', 'knowledge graphs', 'write-time constraints', 'Noether'],
+    icon: '⚖️',
+    gradient: 'from-amber-500 to-orange-600',
+    shadowColor: 'shadow-amber-500/30',
+    glowColor: 'rgba(245, 158, 11, 0.4)',
+    readTime: '14 min',
+    difficulty: 2,
+  },
+  {
     id: 'brainstorm-operator-motifs-causal',
     title: 'Operator Motifs as Causal Contribution Patterns',
     description: 'Can behavioral compression (wake-sleep) and mechanistic decomposition (CODEC/SAE) converge on the same Schankian primitives from opposite directions? If so, operators are real computational structures, not just labels.',

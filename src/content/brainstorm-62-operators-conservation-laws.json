@@ -1,0 +1,489 @@
+{
+  "id": "brainstorm-62-operators-conservation-laws",
+  "title": "Operators as Conservation Laws",
+  "subtitle": "Write-Time Constraints from Event Primitives — Why ATRANS Conserves and MTRANS Doesn't",
+  "readTime": "14 min",
+  "state": "published",
+  "content": {
+    "type": "Fragment",
+    "children": [
+      {
+        "type": "Section",
+        "props": { "title": "The Insight: Primitives Are Physics" },
+        "children": [
+          {
+            "type": "p",
+            "children": "Here's a question nobody asked about Schank's Conceptual Dependency theory: why does ATRANS (transfer of possession) look different from MTRANS (transfer of information)? Both involve something moving from A to B. But ATRANS is a zero-sum game — John loses the book, Mary gains the book, total books unchanged. MTRANS is not — John tells Mary a secret, but John still knows it. The total amount of 'knowing' increases."
+          },
+          {
+            "type": "p",
+            "children": "This isn't a quirk of Schank's notation. It's a conservation law. And it turns out you can derive the entire operator taxonomy — the one our wake-sleep system rediscovered from compression — purely from which quantities are conserved and which aren't."
+          },
+          {
+            "type": "Analogy",
+            "props": {
+              "source": "In physics, conservation of energy says you can't create or destroy energy — only transfer it between systems. A ball rolls downhill: potential energy converts to kinetic energy, but the total stays constant.",
+              "target": "ATRANS is conservation of possession. If Mary gains a book, someone must lose a book. MTRANS violates this 'conservation law' — information can be copied without the source losing anything. This structural difference is what makes them fundamentally different operators."
+            }
+          }
+        ]
+      },
+      {
+        "type": "Callout",
+        "props": { "type": "key-insight" },
+        "children": [
+          {
+            "type": "p",
+            "children": "Core Claim: Schankian operators are conservation laws over entity-property pairs. The operator taxonomy can be derived purely from the algebraic structure of state diffs — which quantities are preserved, created, or destroyed — without any semantic labels."
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "The Conservation Matrix" },
+        "children": [
+          {
+            "type": "p",
+            "children": "For any operator, we can compute a conservation matrix. Consider the state diff — the set of triples added and removed. For each property type (has, location, knows, feels, etc.), count the net change across all entities:"
+          },
+          {
+            "type": "Example",
+            "props": {
+              "title": "ATRANS: 'John gave Mary the book'"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "State diff: −(John, has, book) +(Mary, has, book)"
+              },
+              {
+                "type": "p",
+                "children": "Conservation check for 'has': Removed 1 instance, Added 1 instance → Net change = 0 → CONSERVED ✓"
+              },
+              {
+                "type": "p",
+                "children": "This holds for every ATRANS event: give, sell, donate, steal. The 'has' property total never changes. Something always moves from one entity to another."
+              }
+            ]
+          },
+          {
+            "type": "Example",
+            "props": {
+              "title": "MTRANS: 'John told Mary the secret'"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "State diff: +(Mary, knows, secret) — note: nothing removed from John!"
+              },
+              {
+                "type": "p",
+                "children": "Conservation check for 'knows': Removed 0, Added 1 → Net change = +1 → NOT CONSERVED ✗"
+              },
+              {
+                "type": "p",
+                "children": "Information is duplicated, not transferred. This is why MTRANS uses the SET operator (add only) while ATRANS uses MOVE_PROP (remove + add). The conservation structure demands different primitives."
+              }
+            ]
+          },
+          {
+            "type": "Example",
+            "props": {
+              "title": "PTRANS: 'John walked to the park'"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "State diff: −(John, location, home) +(John, location, park)"
+              },
+              {
+                "type": "p",
+                "children": "Conservation check for 'location': Removed 1 instance, Added 1 instance → Net change = 0 → CONSERVED ✓ (with a twist: same entity changes value, so it's a CHANGE, not a MOVE_PROP)"
+              }
+            ]
+          },
+          {
+            "type": "Example",
+            "props": {
+              "title": "INGEST: 'John ate the apple'"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "State diff: −(John, has, apple) +(John, consumed, apple)"
+              },
+              {
+                "type": "p",
+                "children": "Conservation check for 'has': Removed 1, Added 0 → Net change = −1 → DESTROYED. But 'consumed' increases by 1 → CREATED. INGEST converts one property type into another — like matter converting to energy."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "The Taxonomy Emerges" },
+        "children": [
+          {
+            "type": "p",
+            "children": "Now here's the punchline. If you compute the conservation matrix for every discovered operator and cluster them by their conservation signatures, you get exactly Schank's taxonomy — without ever looking at the semantic labels:"
+          },
+          {
+            "type": "DefinitionList",
+            "children": [
+              {
+                "type": "dt",
+                "children": "Transfer Operators (conservation ≥ 0 across all properties)"
+              },
+              {
+                "type": "dd",
+                "children": "ATRANS (MOVE_PROP_has): possession conserved. PTRANS (CHANGE_location): location conserved (value changes, count doesn't). These are the 'physics-like' operators — zero-sum games."
+              },
+              {
+                "type": "dt",
+                "children": "Creation Operators (net positive on at least one property)"
+              },
+              {
+                "type": "dd",
+                "children": "MTRANS (SET_knows): information created (copied without loss). SET_feels: emotional state created. SET_consumed: consumption state created. These break conservation — they add to the world."
+              },
+              {
+                "type": "dt",
+                "children": "Destruction Operators (net negative on at least one property)"
+              },
+              {
+                "type": "dd",
+                "children": "UNSET_has: possession destroyed (object lost, no recipient). These remove from the world without compensating addition."
+              },
+              {
+                "type": "dt",
+                "children": "Transformation Operators (property type conversion)"
+              },
+              {
+                "type": "dd",
+                "children": "INGEST: converts 'has' into 'consumed'. CHANGE_feels: converts one emotional state into another. Total 'stuff' may be conserved, but its type changes — like nuclear transmutation."
+              }
+            ]
+          },
+          {
+            "type": "Callout",
+            "props": { "type": "warning" },
+            "children": [
+              {
+                "type": "p",
+                "children": "Note: Our wake-sleep system discovers this taxonomy from compression pressure alone. It doesn't know about conservation laws. But the operators it finds happen to cluster perfectly by conservation signature — because conservation structure IS compression structure. Operators that conserve totals need fewer bits to describe (the 'removed' set predicts the 'added' set)."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "Why This Matters: Write-Time Constraints" },
+        "children": [
+          {
+            "type": "p",
+            "children": "Here's where the insight becomes practical. If operators are conservation laws, then they imply constraints that can be enforced at write time in a knowledge graph. When you assert an ATRANS event, the system can automatically:"
+          },
+          {
+            "type": "DefinitionList",
+            "children": [
+              {
+                "type": "dt",
+                "children": "Precondition checking"
+              },
+              {
+                "type": "dd",
+                "children": "ATRANS: verify the source actually possesses the object. 'Mary gave John the book' fails if Mary doesn't have the book. The conservation law demands a source."
+              },
+              {
+                "type": "dt",
+                "children": "Consistency maintenance"
+              },
+              {
+                "type": "dd",
+                "children": "PTRANS: automatically invalidate the old location. If John moves to the park, he can't also be at home. Conservation of location occupancy = mutual exclusion."
+              },
+              {
+                "type": "dt",
+                "children": "Conservation exceptions"
+              },
+              {
+                "type": "dd",
+                "children": "MTRANS: do NOT invalidate the source's knowledge. John telling Mary the secret doesn't mean John forgets it. This constraint is derivable — not hand-coded — from the operator's conservation signature."
+              }
+            ]
+          },
+          {
+            "type": "p",
+            "children": "This connects directly to the WorldDB paper (arXiv:2604.18478), which treats edges as 'write-time programs' with on_insert/on_delete handlers. Our insight: these handlers aren't arbitrary — they're determined by the operator's conservation class. You don't need to code them per-domain; you derive them from the operator taxonomy."
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "Noether's Theorem for Event Semantics" },
+        "children": [
+          {
+            "type": "p",
+            "children": "In physics, Emmy Noether proved that every conservation law corresponds to a symmetry. Conservation of energy ↔ time-translation symmetry. Conservation of momentum ↔ space-translation symmetry. Can we find the 'symmetries' behind our operator conservation laws?"
+          },
+          {
+            "type": "DeepDive",
+            "props": {
+              "title": "The Symmetry-Conservation Correspondence"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "ATRANS conserves possession. The corresponding 'symmetry' is: the system is invariant under relabeling of possessors. It doesn't matter WHO has the book — the total count of 'has' relations stays the same. The operator only moves ownership; it doesn't create or destroy it."
+              },
+              {
+                "type": "p",
+                "children": "MTRANS breaks this symmetry for information. Knowledge is NOT invariant under relabeling — telling someone something creates new knowledge. Information has different 'physics' than matter."
+              },
+              {
+                "type": "p",
+                "children": "This maps to a deep distinction in physics: matter obeys conservation laws (you can't create or destroy atoms in chemistry, only rearrange). Information obeys different laws (you CAN copy a bit; quantum no-cloning is the exception, not the rule). Schank's ATRANS/MTRANS distinction captures exactly this physical/informational divide."
+              }
+            ]
+          },
+          {
+            "type": "Analogy",
+            "props": {
+              "source": "In thermodynamics, processes are classified by what they conserve: isothermal (temperature), isobaric (pressure), isochoric (volume), adiabatic (heat). Each conservation type defines a different class of physical process.",
+              "target": "In event semantics, operators are classified by what they conserve: ATRANS (possession count), PTRANS (location uniqueness), MTRANS (nothing — information is free). Each conservation type defines a different class of event."
+            }
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "Interactive: The Conservation Classifier" },
+        "children": [
+          {
+            "type": "p",
+            "children": "Try classifying these events by their conservation signature:"
+          },
+          {
+            "type": "InteractiveDemo",
+            "props": {
+              "title": "Classify the Conservation Type",
+              "description": "For each event, determine: does the affected property's total count increase, decrease, or stay the same?",
+              "steps": [
+                {
+                  "label": "Event: 'Alice sold Bob the car'",
+                  "detail": "State diff: −(Alice, has, car) +(Bob, has, car). Property 'has': removed 1, added 1 → Net = 0 → CONSERVED. This is ATRANS."
+                },
+                {
+                  "label": "Event: 'The teacher taught the student calculus'",
+                  "detail": "State diff: +(student, knows, calculus). Property 'knows': removed 0, added 1 → Net = +1 → CREATED. This is MTRANS (SET_knows). The teacher still knows calculus!"
+                },
+                {
+                  "label": "Event: 'The cat walked from the kitchen to the garden'",
+                  "detail": "State diff: −(cat, location, kitchen) +(cat, location, garden). Property 'location': removed 1, added 1 → Net = 0 → CONSERVED. This is PTRANS (CHANGE_location). A cat can only be in one place."
+                },
+                {
+                  "label": "Event: 'She drank the coffee'",
+                  "detail": "State diff: −(she, has, coffee) +(she, consumed, coffee). Property 'has': Net = −1 (DESTROYED). Property 'consumed': Net = +1 (CREATED). This is INGEST — a property-type conversion. The coffee doesn't vanish; it changes category."
+                },
+                {
+                  "label": "Event: 'The news made him sad'",
+                  "detail": "State diff: +(him, feels, sad). Property 'feels': Net = +1 → CREATED. This is CHANGE_feels (actually SET_feels) — an emotional state is created. No corresponding emotion is 'used up'. Schank had no operator for this!"
+                }
+              ]
+            }
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "The Conservation Table" },
+        "children": [
+          {
+            "type": "p",
+            "children": "Here's the complete conservation classification of our discovered operators, organized by their algebraic structure:"
+          },
+          {
+            "type": "InteractiveDemo",
+            "props": {
+              "title": "Conservation Signatures of Discovered Operators",
+              "description": "Each operator's signature tells you what happens to property totals when the event occurs.",
+              "steps": [
+                {
+                  "label": "MOVE_PROP_has (≈ ATRANS): [has: 0, other: 0]",
+                  "detail": "Conserves 'has' count. Zero-sum transfer: source loses exactly what destination gains. The 'purest' conservation law in the system. Usage: give, sell, donate, steal."
+                },
+                {
+                  "label": "CHANGE_location (≈ PTRANS): [location: 0]",
+                  "detail": "Conserves location count (always exactly 1 per entity). Changes the VALUE but not the COUNT. Single-entity conservation. Usage: walk, drive, fly."
+                },
+                {
+                  "label": "SET_knows (≈ MTRANS): [knows: +1]",
+                  "detail": "CREATES knowledge. Does not conserve — the total amount of 'knowing' in the world increases. This is the fundamental asymmetry between information and matter. Usage: tell, teach, inform."
+                },
+                {
+                  "label": "SET_consumed (≈ INGEST): [has: −1, consumed: +1]",
+                  "detail": "DESTROYS possession, CREATES consumption. Type conversion — total 'stuff' is conserved but changes category. Usage: eat, drink."
+                },
+                {
+                  "label": "CHANGE_feels (novel): [feels: 0 or +1]",
+                  "detail": "If replacing an emotion: conserved (sad → happy, net 0). If adding first emotion: created (+1). Context-dependent conservation. Usage: cheer, anger, comfort."
+                },
+                {
+                  "label": "CHANGE_wants (novel, ATOMIC top operator at 20%): [wants: 0 or +1]",
+                  "detail": "Same pattern as CHANGE_feels — context-dependent conservation. The fact that this is the #1 ATOMIC operator suggests that human commonsense reasoning is mostly about tracking DESIRES, not physical actions. Schank completely missed this."
+                }
+              ]
+            }
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "Why Compression Finds Conservation" },
+        "children": [
+          {
+            "type": "p",
+            "children": "There's a beautiful information-theoretic explanation for why our MDL-based operator discovery naturally finds conservation-respecting operators."
+          },
+          {
+            "type": "DeepDive",
+            "props": {
+              "title": "Conservation = Redundancy = Compressibility"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "When a property is conserved (removed count = added count), the 'added' set is partially predicted by the 'removed' set. If John loses a book, SOMEONE must gain a book. This predictability is redundancy, and redundancy is exactly what compression exploits."
+              },
+              {
+                "type": "p",
+                "children": "A conserved-transfer operator (ATRANS) needs fewer bits to encode than two independent SET/UNSET operations because the second half is constrained by the first. MDL naturally prefers the conserved operator — not because it 'knows about' conservation, but because conservation IS compressibility."
+              },
+              {
+                "type": "p",
+                "children": "Conversely, MTRANS (non-conserving) can't be compressed into a transfer — there IS no removed set to predict from. So it stays as a separate SET operator. The conservation taxonomy emerges from compression because conservation and compression are two perspectives on the same mathematical structure: mutual information between parts of the state diff."
+              }
+            ]
+          },
+          {
+            "type": "Callout",
+            "props": { "type": "key-insight" },
+            "children": [
+              {
+                "type": "p",
+                "children": "Conservation laws, compression, and operator taxonomy are three views of the same thing. Conservation creates redundancy. Redundancy enables compression. Compression discovers operators. The operators respect conservation — completing the circle."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "Quiz: Test Your Understanding" },
+        "children": [
+          {
+            "type": "Quiz",
+            "props": {
+              "question": "Why does MTRANS (information transfer) use a different base operator than ATRANS (possession transfer)?",
+              "options": [
+                "Because Schank arbitrarily defined them differently",
+                "Because information doesn't obey conservation — the source retains what the destination gains",
+                "Because information is less important than physical objects",
+                "Because they operate on different entity types"
+              ],
+              "correctIndex": 1,
+              "explanation": "The key structural difference is conservation. ATRANS is zero-sum (source loses what destination gains), so it uses MOVE_PROP. MTRANS is non-conserving (source retains), so it uses SET. This isn't arbitrary — it's forced by the algebraic structure of the state diff."
+            }
+          },
+          {
+            "type": "Quiz",
+            "props": {
+              "question": "What is the conservation signature of 'John traded his book for Mary's pen'?",
+              "options": [
+                "[has: +2] — both gain something",
+                "[has: 0] — conservation holds (two transfers cancel out)",
+                "[has: −2] — both lose something",
+                "[has: +1] — net creation of possession"
+              ],
+              "correctIndex": 1,
+              "explanation": "Trade is ATRANS ∘ ATRANS — two conservation-preserving transfers composed. John loses a book (+0 net) but gains a pen. Mary loses a pen but gains a book. Total 'has' count: unchanged. Conservation composes: the composition of conserving operators is conserving."
+            }
+          },
+          {
+            "type": "Quiz",
+            "props": {
+              "question": "Why does MDL-based compression naturally discover conservation-respecting operators?",
+              "options": [
+                "The algorithm is explicitly programmed to look for conservation",
+                "Conservation creates redundancy (removed set predicts added set), and compression exploits redundancy",
+                "Conservation laws are built into the seed operators",
+                "It's a coincidence — conservation has nothing to do with compression"
+              ],
+              "correctIndex": 1,
+              "explanation": "Conservation means the 'removed' part of a state diff constrains the 'added' part. This mutual information is redundancy. MDL compression exploits exactly this: a single MOVE_PROP operator needs fewer bits than two independent SET/UNSET operations because the second half is predictable from the first. Conservation IS compressibility."
+            }
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "Connections & Future Directions" },
+        "children": [
+          {
+            "type": "p",
+            "children": "This conservation-law perspective opens several research directions:"
+          },
+          {
+            "type": "DefinitionList",
+            "children": [
+              {
+                "type": "dt",
+                "children": "Knowledge graph integrity"
+              },
+              {
+                "type": "dd",
+                "children": "Derive write-time constraints from operator conservation signatures. An ATRANS assertion auto-checks source possession; a PTRANS auto-invalidates old location. No per-domain rule authoring needed."
+              },
+              {
+                "type": "dt",
+                "children": "Anomaly detection"
+              },
+              {
+                "type": "dd",
+                "children": "Events that violate their expected conservation signature are anomalous. 'John gave Mary the book but John still has the book' violates ATRANS conservation. This gives a principled definition of narrative inconsistency."
+              },
+              {
+                "type": "dt",
+                "children": "Cross-domain transfer"
+              },
+              {
+                "type": "dd",
+                "children": "Conservation signatures are domain-independent. Financial transactions (ATRANS of money), logistics (PTRANS of goods), education (MTRANS of knowledge) all share the same conservation structure. Learn once, apply everywhere."
+              },
+              {
+                "type": "dt",
+                "children": "Quantum information analogy"
+              },
+              {
+                "type": "dd",
+                "children": "In quantum mechanics, the no-cloning theorem says you CAN'T copy quantum states — unlike classical information. MTRANS (classical copying) has no quantum analogue. This suggests a deeper connection between Schankian operators and information-theoretic limits."
+              }
+            ]
+          },
+          {
+            "type": "Callout",
+            "props": { "type": "connection" },
+            "children": [
+              {
+                "type": "p",
+                "children": "Today's WorldDB paper (arXiv:2604.18478) validates this direction: their write-time reconciliation programs (supersession, contradiction, merge) are exactly the kind of constraints that conservation laws predict. The difference: they hand-code the handlers; we can derive them from the operator taxonomy."
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}
