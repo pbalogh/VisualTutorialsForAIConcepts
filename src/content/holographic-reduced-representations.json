@@ -215,6 +215,107 @@
                 "children": "The key takeaway: HRR doesn't just happen to use circular convolution — it specifically exploits the algebraic structure of polynomial rings mod x^d - 1. This structure simultaneously guarantees fixed-size outputs (the wrapping), efficient computation (via FFT), and approximate invertibility (via correlation). When you see 'circular' in HRR, think: this is the mathematical trick that makes holographic storage possible without dimensionality explosion."
               }
             ]
+          },
+          {
+            "type": "DeepDive",
+            "props": {
+              "title": "Deep Dive: Polynomial rings modulo x^d - 1 give us approximate inverses 'for free.'",
+              "defaultOpen": true,
+              "id": "ann-1776888912763-rx0wfx",
+              "sourceId": "source-ann-1776888912763-rx0wfx"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "In normal arithmetic, dividing is expensive — you need exact inverses, and they don't always exist cleanly. But when we work with polynomials modulo x^d - 1, something magical happens: the \"wrap-around\" structure of this ring means that reversing a vector's components gives you something that behaves almost like its inverse under circular convolution. This is why HRRs can unbind pairs without ever computing a true matrix inverse — circular correlation is just convolution with a reversed (approximately inverted) vector, and the ring structure is what makes that reversal work as an approximate inverse."
+              },
+              {
+                "type": "Example",
+                "props": {
+                  "title": "Example: Why \"modulo x^d - 1\" creates wrap-around"
+                },
+                "children": [
+                  {
+                    "type": "p",
+                    "children": "When you multiply polynomials normally, the degree grows — multiplying two degree-3 polynomials gives a degree-6 result. But modulo x^d - 1, any power x^k where k ≥ d wraps around: x^d = 1, x^(d+1) = x, x^(d+2) = x², and so on. This is exactly circular convolution — the overflow coefficients fold back onto the lower positions."
+                  },
+                  {
+                    "type": "Formula",
+                    "props": {
+                      "label": "The key identity"
+                    },
+                    "children": "x^d ≡ 1 (mod x^d - 1), so x^(d+k) ≡ x^k"
+                  },
+                  {
+                    "type": "p",
+                    "children": "Now consider: if a(x) is your vector as a polynomial, then a*(x) — its coefficients reversed — satisfies a(x) · a*(x) ≈ ||a||² (mod x^d - 1) when a's components are random. The cross-terms approximately cancel because random high-dimensional vectors are nearly orthogonal. So reversal ≈ inverse, and you never had to compute a matrix inverse at all."
+                  }
+                ]
+              },
+              {
+                "type": "Analogy",
+                "children": "Think of it like clock arithmetic. On a 12-hour clock, you don't need negative numbers to go backward — going forward 11 hours is the same as going back 1. The ring modulo x^d - 1 works the same way: reversing the polynomial coefficients is the ring's version of \"going the other way around the clock,\" and it undoes convolution (binding) in the same way subtracting undoes addition on a clock face. The inverse comes \"for free\" because the circular structure provides it automatically."
+              },
+              {
+                "type": "ComparisonTable",
+                "props": {
+                  "headers": [
+                    "Standard polynomials",
+                    "Polynomials mod x^d - 1"
+                  ],
+                  "rows": [
+                    [
+                      "Multiplication grows degree",
+                      "Degree stays fixed at d (wraps around)"
+                    ],
+                    [
+                      "True inverse often doesn't exist",
+                      "Approximate inverse = just reverse coefficients"
+                    ],
+                    [
+                      "Division requires explicit computation",
+                      "Circular correlation acts as division"
+                    ],
+                    [
+                      "Vectors would grow unboundedly with binding",
+                      "Bound vectors stay d-dimensional"
+                    ],
+                    [
+                      "Unbinding needs matrix inversion: O(d³)",
+                      "Unbinding is O(d log d) via FFT"
+                    ]
+                  ]
+                }
+              },
+              {
+                "type": "ul",
+                "children": [
+                  {
+                    "type": "li",
+                    "children": "The ring Z[x]/(x^d - 1) forces all polynomial products to stay d-dimensional — this is why binding preserves dimensionality"
+                  },
+                  {
+                    "type": "li",
+                    "children": "In this ring, the approximate inverse of a random vector is simply its reversal (element 0 stays, elements 1 through d-1 flip) — no computation needed beyond rearranging"
+                  },
+                  {
+                    "type": "li",
+                    "children": "The approximation is good (not exact) because random high-dimensional vectors produce cross-terms that nearly cancel — this is the same \"blessing of dimensionality\" that makes all of HRR work"
+                  },
+                  {
+                    "type": "li",
+                    "children": "Circular correlation = convolution with the reversed vector = multiplication by the approximate inverse in the ring — all three are the same operation viewed differently"
+                  }
+                ]
+              },
+              {
+                "type": "Callout",
+                "props": {
+                  "type": "tip"
+                },
+                "children": "This is the deep reason HRRs use circular convolution rather than some other binding operation: it's the one whose algebraic structure (polynomial ring mod x^d - 1) hands you approximate inverses for free. If you chose a different binding, you'd either lose the ability to unbind, or need expensive computation to do it. The ring structure isn't a mathematical coincidence — it's the entire reason the system works."
+              }
+            ]
           }
         ]
       },
