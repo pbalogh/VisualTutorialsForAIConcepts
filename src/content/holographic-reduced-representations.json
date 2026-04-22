@@ -248,7 +248,18 @@
                   },
                   {
                     "type": "p",
-                    "children": "Now consider: if a(x) is your vector as a polynomial, then a*(x) — its coefficients reversed — satisfies a(x) · a*(x) ≈ ||a||² (mod x^d - 1) when a's components are random. The cross-terms approximately cancel because random high-dimensional vectors are nearly orthogonal. So reversal ≈ inverse, and you never had to compute a matrix inverse at all."
+                    "children": [
+                      "Now consider: if a(x) is your vector as a polynomial, then a*(x) — its coefficients reversed",
+                      {
+                        "type": "FootnoteRef",
+                        "props": {
+                          "id": "source-ann-1776889955700-fgbymz",
+                          "targetId": "ann-1776889955700-fgbymz",
+                          "type": "ask"
+                        }
+                      },
+                      " — satisfies a(x) · a*(x) ≈ ||a||² (mod x^d - 1) when a's components are random. The cross-terms approximately cancel because random high-dimensional vectors are nearly orthogonal. So reversal ≈ inverse, and you never had to compute a matrix inverse at all."
+                    ]
                   }
                 ]
               },
@@ -314,6 +325,41 @@
                   "type": "tip"
                 },
                 "children": "This is the deep reason HRRs use circular convolution rather than some other binding operation: it's the one whose algebraic structure (polynomial ring mod x^d - 1) hands you approximate inverses for free. If you chose a different binding, you'd either lose the ability to unbind, or need expensive computation to do it. The ring structure isn't a mathematical coincidence — it's the entire reason the system works."
+              }
+            ]
+          },
+          {
+            "type": "Sidebar",
+            "props": {
+              "type": "note",
+              "title": "Q: What do you mean? Can you give a simple example?",
+              "expanded": true,
+              "id": "ann-1776889955700-fgbymz",
+              "sourceId": "source-ann-1776889955700-fgbymz"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "Say your vector is [3, 1, 4, 2]. When we treat this as a polynomial, it becomes 3 + 1x + 4x² + 2x³. To \"reverse the coefficients,\" you take that list and flip it, but with a small twist: the first element stays in place, and the rest get reversed. So [3, 1, 4, 2] becomes [3, 2, 4, 1]. In polynomial form, that is 3 + 2x + 4x² + 1x³. This flipped version is what the tutorial calls a*(x)."
+              },
+              {
+                "type": "p",
+                "children": "Why does this matter? In HRRs, binding two concepts together uses circular convolution, which is just polynomial multiplication mod x^d - 1. To unbind, you need something like an inverse. Normally, computing an inverse is expensive. But it turns out that for random high-dimensional vectors, this simple reversal operation acts almost like a true inverse. When you circularly convolve a vector with its reversed version, the result is a sharp spike at position zero (approximately equal to the squared length of the vector) with near-zero values everywhere else. That spike is what lets you recover a bound item."
+              },
+              {
+                "type": "p",
+                "children": "Think of it like this: if you record a sound and play it backwards, then overlap the forward and backward versions, the only moment they perfectly sync up is the midpoint. Everything else is a jumble that mostly cancels out. The reversal trick in HRRs works the same way — the cross-terms are all products of unrelated random components, and in high dimensions, those products average out to roughly zero. Only the matching-position terms (each element multiplied by itself) survive and add up cleanly."
+              },
+              {
+                "type": "p",
+                "children": "So \"coefficients reversed\" is just a computationally cheap way to approximate an inverse. Instead of doing heavy linear algebra, you just flip the vector, convolve, and get a clean enough result to decode what was bound together."
+              },
+              {
+                "type": "p",
+                "props": {
+                  "className": "text-xs text-gray-400 mt-2"
+                },
+                "children": "Asked about \"coefficients reversed\" — 4/22/2026, 4:32:17 PM"
               }
             ]
           }
