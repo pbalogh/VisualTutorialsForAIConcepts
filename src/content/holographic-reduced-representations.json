@@ -1,0 +1,500 @@
+{
+  "id": "holographic-reduced-representations",
+  "title": "Holographic Reduced Representations",
+  "subtitle": "How to Bind Ideas Together with Circular Convolution — and Why SSMs Already Speak This Language",
+  "readTime": "25 min",
+  "state": {},
+  "content": {
+    "type": "Fragment",
+    "children": [
+      {
+        "type": "Callout",
+        "props": { "type": "info" },
+        "children": "This tutorial explains Holographic Reduced Representations (HRR), Tony Plate's 1995 framework for representing structured knowledge as fixed-size vectors. The key trick: circular convolution lets you bind 'dog' to 'agent' and 'bone' to 'patient' in the SAME vector space, at the SAME dimensionality, and unbind them later. We connect this to Mamba/SSMs, where the native complex-valued diagonal computation turns out to be exactly the same operation."
+      },
+      {
+        "type": "Section",
+        "props": { "title": "1. The Binding Problem" },
+        "children": [
+          {
+            "type": "h3",
+            "children": "Why Can't We Just Concatenate?"
+          },
+          {
+            "type": "p",
+            "children": "Suppose you want to represent 'the dog chased the cat.' You have vectors for dog, chase, and cat. You know dog is the agent (chaser) and cat is the patient (chasee). How do you store this?"
+          },
+          {
+            "type": "p",
+            "children": "Naive approach: concatenate. Stack [agent_vector | dog_vector | patient_vector | cat_vector]. But now your representation is 4× larger. Add a location role and it's 6×. Add a second event and it's 12×. The representation grows with every piece of structure. This doesn't scale."
+          },
+          {
+            "type": "p",
+            "children": "What we want: a fixed-size vector that encodes 'dog is agent, cat is patient' — and from which we can later EXTRACT 'who is the agent?' and get back something close to dog."
+          },
+          {
+            "type": "Analogy",
+            "props": {
+              "title": "The Hologram Analogy",
+              "source": "A holographic plate stores a 3D image in a 2D surface. Every piece of the plate contains the whole image (blurrier). You can reconstruct different views by shining light from different angles.",
+              "target": "An HRR vector stores multiple role-filler bindings in a single fixed-size vector. Every binding is distributed across all dimensions. You can extract different fillers by 'probing' with different role vectors.",
+              "mapping": "The angle of light = the role vector. The reconstructed image = the retrieved filler. The blurriness from a small plate fragment = the noise from having many bindings in one vector."
+            }
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "2. Circular Convolution: The Core Operation" },
+        "children": [
+          {
+            "type": "p",
+            "children": "HRR uses circular convolution (⊛) to bind a role to a filler. For two vectors a and b of dimension d, their circular convolution c = a ⊛ b is:"
+          },
+          {
+            "type": "Example",
+            "props": { "title": "Circular Convolution Formula" },
+            "children": [
+              {
+                "type": "p",
+                "children": "c[k] = Σᵢ a[i] · b[(k − i) mod d]    for k = 0, 1, ..., d−1"
+              },
+              {
+                "type": "p",
+                "children": "Each element of the output is a sum of products, where one vector is 'shifted and wrapped around.' It's like regular convolution but the ends connect — hence 'circular.'"
+              }
+            ]
+          },
+          {
+            "type": "InteractiveDemo",
+            "props": {
+              "title": "Circular Convolution Step by Step",
+              "description": "Let's convolve two tiny vectors (d=4) to see what happens.",
+              "steps": [
+                {
+                  "label": "Input: a = [1, 0, 2, 1], b = [0, 1, 0, 1]",
+                  "detail": "These are our two vectors to bind. In practice they'd be 64-dimensional or larger, but d=4 shows the mechanics."
+                },
+                {
+                  "label": "c[0] = a[0]·b[0] + a[1]·b[3] + a[2]·b[2] + a[3]·b[1] = 1·0 + 0·1 + 2·0 + 1·1 = 1",
+                  "detail": "For index 0: multiply a[i] by b[(0−i) mod 4]. So a[0]·b[0], a[1]·b[−1 mod 4]=b[3], a[2]·b[−2 mod 4]=b[2], a[3]·b[−3 mod 4]=b[1]."
+                },
+                {
+                  "label": "c[1] = a[0]·b[1] + a[1]·b[0] + a[2]·b[3] + a[3]·b[2] = 1·1 + 0·0 + 2·1 + 1·0 = 3",
+                  "detail": "For index 1: b shifts one position. Now a[0] sees b[1], a[1] sees b[0], etc."
+                },
+                {
+                  "label": "c[2] = a[0]·b[2] + a[1]·b[1] + a[2]·b[0] + a[3]·b[3] = 1·0 + 0·1 + 2·0 + 1·1 = 1",
+                  "detail": "Shift again. Each output element sees a different alignment of the two vectors."
+                },
+                {
+                  "label": "c[3] = a[0]·b[3] + a[1]·b[2] + a[2]·b[1] + a[3]·b[0] = 1·1 + 0·0 + 2·1 + 1·0 = 3",
+                  "detail": "Final element. Result: c = [1, 3, 1, 3]."
+                },
+                {
+                  "label": "Key property: c has the SAME dimensionality as a and b!",
+                  "detail": "Both inputs are d=4, output is d=4. No matter how many things we bind, the result stays d-dimensional. This is the magic — tensor products give you d², but circular convolution gives you d."
+                }
+              ]
+            }
+          },
+          {
+            "type": "DeepDive",
+            "props": {
+              "title": "Wait, isn't this just polynomial multiplication mod x^d − 1?",
+              "id": "poly-mult"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "Yes! If you think of vectors as polynomials (a[0] + a[1]x + a[2]x² + ...), then circular convolution is polynomial multiplication where x^d = 1 (the powers 'wrap around'). This algebraic structure is why HRR works — it inherits the nice properties of polynomial rings."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "3. The FFT Shortcut" },
+        "children": [
+          {
+            "type": "p",
+            "children": "Computing circular convolution directly is O(d²) — for each of d output elements, you sum d products. But there's a famous shortcut using the Fast Fourier Transform:"
+          },
+          {
+            "type": "Callout",
+            "props": { "type": "key" },
+            "children": "Circular convolution in the time domain = element-wise multiplication in the frequency domain. So: a ⊛ b = IFFT(FFT(a) · FFT(b)). Cost: O(d log d) instead of O(d²)."
+          },
+          {
+            "type": "Example",
+            "props": { "title": "The FFT Trick in Python" },
+            "children": [
+              {
+                "type": "p",
+                "children": "import numpy as np\n\ndef circular_conv(a, b):\n    return np.real(np.fft.ifft(np.fft.fft(a) * np.fft.fft(b)))\n\n# That's it. Three lines."
+              }
+            ]
+          },
+          {
+            "type": "p",
+            "children": "This is important for two reasons: (1) it makes HRR practical for large d, and (2) it reveals that binding in the frequency domain is just ELEMENT-WISE MULTIPLICATION. Each frequency component is multiplied independently. Remember this — it's the connection to SSMs."
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "4. Binding and Unbinding" },
+        "children": [
+          {
+            "type": "h3",
+            "children": "Binding: Tying a Role to a Filler"
+          },
+          {
+            "type": "p",
+            "children": "To represent 'dog is the agent,' we circularly convolve the role vector with the filler vector:"
+          },
+          {
+            "type": "Example",
+            "props": { "title": "Binding Example" },
+            "children": [
+              {
+                "type": "p",
+                "children": "r_agent = [random vector, d dimensions]\nv_dog   = [random vector, d dimensions]\n\nbinding = r_agent ⊛ v_dog   # → [d dimensions]\n\n# This single d-dimensional vector encodes 'dog is the agent'"
+              }
+            ]
+          },
+          {
+            "type": "h3",
+            "children": "Multiple Bindings: Superposition"
+          },
+          {
+            "type": "p",
+            "children": "To store a whole event — 'the dog chased the cat' — we bind each role-filler pair and ADD them together:"
+          },
+          {
+            "type": "Example",
+            "props": { "title": "Superposition of Bindings" },
+            "children": [
+              {
+                "type": "p",
+                "children": "event = (r_agent ⊛ v_dog) + (r_verb ⊛ v_chase) + (r_patient ⊛ v_cat)\n\n# One d-dimensional vector encodes the ENTIRE event!\n# All three bindings coexist in the same vector via superposition."
+              }
+            ]
+          },
+          {
+            "type": "h3",
+            "children": "Unbinding: Extracting a Filler"
+          },
+          {
+            "type": "p",
+            "children": "To ask 'who is the agent?', we use circular CORRELATION (⊘), the approximate inverse of convolution:"
+          },
+          {
+            "type": "Example",
+            "props": { "title": "Unbinding / Retrieval" },
+            "children": [
+              {
+                "type": "p",
+                "children": "retrieved = r_agent ⊘ event\n         = r_agent ⊘ (r_agent ⊛ v_dog + r_verb ⊛ v_chase + r_patient ⊛ v_cat)\n         ≈ v_dog + noise\n\n# The noise comes from the other bindings (verb, patient).\n# With random vectors in high dimensions, the noise is small."
+              },
+              {
+                "type": "p",
+                "children": "# To find which entity was retrieved:\nmost_similar = argmax_e cosine(retrieved, v_e)\n# → v_dog wins (highest similarity)"
+              }
+            ]
+          },
+          {
+            "type": "Callout",
+            "props": { "type": "key" },
+            "children": "Circular correlation is just circular convolution with the INVERSE of the role vector. In the frequency domain: a ⊘ b = IFFT(FFT(a)* · FFT(b)), where * is complex conjugate. The conjugate flips the 'direction' of the convolution, undoing the binding."
+          },
+          {
+            "type": "DeepDive",
+            "props": {
+              "title": "How much noise is there? When does this break down?",
+              "id": "noise-analysis"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "For random vectors in d dimensions, each 'interference term' (from the other bindings) has expected magnitude ~1/√d. With k bindings in one vector, the total noise magnitude is ~√(k-1)/√d = √((k-1)/d)."
+              },
+              {
+                "type": "p",
+                "children": "So for d=512 and k=5 bindings: noise ≈ √(4/512) ≈ 0.088. The signal (the correct filler) has magnitude ~1. Signal-to-noise ratio ≈ 11:1. Plenty clean."
+              },
+              {
+                "type": "p",
+                "children": "Rule of thumb: you can reliably store about √d bindings per vector. For d=512, that's ~22 bindings before retrieval gets unreliable. For d=2048, ~45 bindings."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "5. Why This Matters for SSMs and Mamba" },
+        "children": [
+          {
+            "type": "p",
+            "children": "Here's the connection that got us excited. Mamba's state update uses a complex-valued diagonal A-matrix. In the frequency domain, the SSM recurrence is:"
+          },
+          {
+            "type": "Example",
+            "props": { "title": "Mamba's Recurrence in Frequency Domain" },
+            "children": [
+              {
+                "type": "p",
+                "children": "h_freq(t+1) = A_diag · h_freq(t) + B_freq · x_freq(t)\n\nwhere A_diag is a diagonal matrix of complex values\nand · is element-wise multiplication"
+              }
+            ]
+          },
+          {
+            "type": "Callout",
+            "props": { "type": "key" },
+            "children": "Element-wise multiplication of complex vectors in the frequency domain IS circular convolution in the time domain. Mamba's native state update IS the HRR binding operation. The SSM already speaks holographic!"
+          },
+          {
+            "type": "p",
+            "children": "This isn't a coincidence. It means:"
+          },
+          {
+            "type": "DefinitionList",
+            "props": {
+              "items": [
+                { "term": "State update = binding", "definition": "When Mamba updates its hidden state with a new input, it's performing the same operation as binding a role to a filler in HRR." },
+                { "term": "State readout = unbinding", "definition": "When Mamba reads from its state to make a prediction, it's performing circular correlation — extracting a filler from the holographic memory." },
+                { "term": "Decay = forgetting", "definition": "The magnitude of A controls how quickly bindings fade. This is why Hydra's slow-decay thematic channels maintain entity bindings longer — they have higher |A|, so the holographic trace persists." },
+                { "term": "Phase of A = rotation", "definition": "The complex phase of A rotates the binding in frequency space over time. Different phases for different channels create a temporal code — you can tell WHEN something was bound by its current phase." }
+              ]
+            }
+          },
+          {
+            "type": "DeepDive",
+            "props": {
+              "title": "Does Mamba 'know' it's doing holographic binding?",
+              "id": "does-mamba-know"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "Not explicitly — the model is just optimizing next-token prediction. But the mathematical structure is there: the recurrence performs circular convolution, and the learned A values determine the binding/unbinding dynamics. If the model discovers that maintaining entity-role bindings helps predict next tokens (which it should), it will naturally learn A values that implement HRR-like memory. Hydra's contribution is making this explicit by partitioning the A values into slow-decay (persistent binding) and fast-decay (transient binding) groups."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "6. Building a Knowledge Store with HRR" },
+        "children": [
+          {
+            "type": "p",
+            "children": "If we can bind roles to fillers and unbind them, we can build a full knowledge store where every fact is a single fixed-size vector:"
+          },
+          {
+            "type": "InteractiveDemo",
+            "props": {
+              "title": "HRR Knowledge Store Operations",
+              "description": "Walk through storing and querying facts as HRR vectors.",
+              "steps": [
+                {
+                  "label": "Store: 'John gave Mary the book'",
+                  "detail": "fact_1 = (r_agent ⊛ v_john) + (r_patient ⊛ v_book) + (r_recipient ⊛ v_mary) + (r_verb ⊛ v_give)\nThis single vector encodes the entire event. Store it in the ATRANS index."
+                },
+                {
+                  "label": "Store: 'Alice told Bob the secret'",
+                  "detail": "fact_2 = (r_agent ⊛ v_alice) + (r_patient ⊛ v_secret) + (r_recipient ⊛ v_bob) + (r_verb ⊛ v_tell)\nStore in the MTRANS index. Same d dimensions."
+                },
+                {
+                  "label": "Query: 'Who did John give the book to?'",
+                  "detail": "query = r_recipient ⊘ fact_1\n     ≈ v_mary + noise\n\nnearest_entity(query) → mary ✓\n\nWe extracted the recipient by 'unbinding' with the recipient role vector."
+                },
+                {
+                  "label": "Query: 'What did Alice tell?'",
+                  "detail": "query = r_patient ⊘ fact_2\n     ≈ v_secret + noise\n\nnearest_entity(query) → secret ✓"
+                },
+                {
+                  "label": "Partial query: 'Find all events where John is the agent'",
+                  "detail": "For each fact_vector in the store:\n  agent_component = r_agent ⊘ fact_vector\n  similarity = cosine(agent_component, v_john)\n  if similarity > threshold: match!\n\nThis is a STRUCTURAL search — not keyword matching, not embedding similarity. It asks 'is John bound to the agent role in this fact?'"
+                }
+              ]
+            }
+          },
+          {
+            "type": "p",
+            "children": "Notice what just happened: we built a queryable knowledge base where every fact is a d-dimensional vector, queries are role-vector unbinding operations, and the whole thing runs on circular convolution and cosine similarity. No database engine. No SQL. No text search. Just vectors and linear algebra."
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "7. Comparison: HRR vs. Tensor Products vs. Slots" },
+        "children": [
+          {
+            "type": "InteractiveDemo",
+            "props": {
+              "title": "Three Binding Approaches Compared",
+              "description": "Each approach trades off space, retrieval quality, and computational cost.",
+              "steps": [
+                {
+                  "label": "Slot-Based: State = [v_agent | v_patient | v_recipient]",
+                  "detail": "Size: n_roles × d. For 5 roles, d=64: 320 elements. Retrieval: perfect (just read the slot). Limitation: fixed number of roles, can't handle variable structure. This is what Hydra currently does with its channel groups."
+                },
+                {
+                  "label": "Tensor Product: binding = r ⊗ v (outer product)",
+                  "detail": "Size: d² per fact. For d=64: 4,096 elements per fact. Retrieval: exact (matrix-vector multiply). Pros: compositional, clean algebra. Cons: quadratic space explosion. 1000 facts × 4096 elements = 4M parameters just for storage."
+                },
+                {
+                  "label": "HRR: binding = r ⊛ v (circular convolution)",
+                  "detail": "Size: d per fact. For d=64: 64 elements per fact! Same as a single entity vector. Retrieval: approximate (noise from other bindings). Pros: constant size, O(d log d) via FFT, native to SSMs. Cons: lossy retrieval, noise grows with bindings. 1000 facts × 64 elements = 64K parameters. That's 62× smaller than tensor products."
+                },
+                {
+                  "label": "Winner depends on context",
+                  "detail": "Few roles, real-time: slots (Hydra's current approach). Need exactness: tensor products. Need scale + SSM compatibility: HRR. Our plan: start with slots (Level 2-3), graduate to HRR (Level 4) when the store grows large."
+                }
+              ]
+            }
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "8. The Deep Connection: Why Holograms?" },
+        "children": [
+          {
+            "type": "p",
+            "children": "The name 'holographic' isn't just a metaphor. Real holograms store information as interference patterns — the light from an object interferes with a reference beam, and the pattern encodes the 3D structure. To retrieve, you shine the reference beam again and the original image reconstructs."
+          },
+          {
+            "type": "p",
+            "children": "HRR does the same thing with vectors:"
+          },
+          {
+            "type": "DefinitionList",
+            "props": {
+              "items": [
+                { "term": "Object light", "definition": "The filler vector (v_dog)" },
+                { "term": "Reference beam", "definition": "The role vector (r_agent)" },
+                { "term": "Interference pattern", "definition": "The binding (r_agent ⊛ v_dog)" },
+                { "term": "Holographic plate", "definition": "The superposition of all bindings (the event vector)" },
+                { "term": "Reconstruction", "definition": "Shining the reference beam again = circular correlation (r_agent ⊘ event) → recovers v_dog" }
+              ]
+            }
+          },
+          {
+            "type": "p",
+            "children": "And just like a real hologram, every piece of the vector contains information about every binding. You can't point to 'the part that stores the agent' — it's distributed across all d dimensions. This is why it's robust to noise and partial damage, and why it compresses so well."
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "Quiz: Test Your Understanding" },
+        "children": [
+          {
+            "type": "Quiz",
+            "props": {
+              "question": "What is the key advantage of circular convolution over the outer product (tensor product) for binding?",
+              "options": [
+                "Circular convolution is more accurate",
+                "The result has the same dimensionality as the inputs (d instead of d²)",
+                "Circular convolution is commutative",
+                "The outer product can't represent multiple bindings"
+              ],
+              "correctIndex": 1,
+              "explanation": "The outer product of two d-dimensional vectors produces a d×d matrix (d² elements). Circular convolution produces a d-dimensional vector. This means HRR bindings stay the same size as the original vectors, no matter how many things you bind. The trade-off is that retrieval is approximate (noisy) instead of exact."
+            }
+          },
+          {
+            "type": "Quiz",
+            "props": {
+              "question": "In the frequency domain, circular convolution becomes:",
+              "options": [
+                "Matrix multiplication",
+                "Element-wise addition",
+                "Element-wise multiplication",
+                "Dot product"
+              ],
+              "correctIndex": 2,
+              "explanation": "This is the convolution theorem: a ⊛ b = IFFT(FFT(a) · FFT(b)), where · is element-wise multiplication. This is why FFT makes circular convolution O(d log d) instead of O(d²) — you just multiply corresponding frequency components."
+            }
+          },
+          {
+            "type": "Quiz",
+            "props": {
+              "question": "Why is the connection between HRR and Mamba's state update significant?",
+              "options": [
+                "It means Mamba can't learn temporal patterns",
+                "Mamba's complex diagonal A-matrix performs element-wise multiplication in frequency space — the same operation as HRR binding",
+                "HRR was originally designed for SSMs",
+                "It means Mamba is always doing holographic storage"
+              ],
+              "correctIndex": 1,
+              "explanation": "Mamba's state update multiplies the state by a complex diagonal matrix — element-wise multiplication in what is effectively a frequency representation. This is mathematically identical to the HRR binding operation. The SSM's native computation IS circular convolution. It doesn't mean Mamba is 'doing' HRR intentionally, but it means the computational substrate is naturally compatible."
+            }
+          },
+          {
+            "type": "Quiz",
+            "props": {
+              "question": "How many role-filler bindings can you reliably store in a single HRR vector of dimension d?",
+              "options": [
+                "Exactly d",
+                "About d²",
+                "About √d",
+                "Only 1"
+              ],
+              "correctIndex": 2,
+              "explanation": "The noise from k bindings scales as √((k-1)/d). Retrieval becomes unreliable when noise approaches the signal magnitude (~1), which happens around k ≈ √d. For d=512, that's about 22 bindings. For d=2048, about 45."
+            }
+          },
+          {
+            "type": "Quiz",
+            "props": {
+              "question": "To extract 'who is the patient?' from an HRR event vector, you would:",
+              "options": [
+                "Multiply the event vector by the patient role vector",
+                "Take the dot product with every entity vector",
+                "Circularly correlate the event vector with the patient role vector, then find the nearest entity",
+                "Subtract the agent binding from the event vector"
+              ],
+              "correctIndex": 2,
+              "explanation": "Circular correlation (⊘) is the approximate inverse of circular convolution (⊛). Correlating the event vector with the patient role vector 'unbinds' the patient, producing a noisy version of the patient entity vector. You then find the nearest known entity to identify it. In the frequency domain, correlation uses the complex conjugate: FFT(r_patient)* · FFT(event)."
+            }
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "Further Reading" },
+        "children": [
+          {
+            "type": "p",
+            "children": [
+              "• ",
+              { "type": "a", "props": { "href": "https://www.sciencedirect.com/science/article/pii/S0364021399800124" }, "children": "Plate 1995 — Holographic Reduced Representations (original paper)" },
+              " — The foundational paper introducing circular convolution for distributed representations."
+            ]
+          },
+          {
+            "type": "p",
+            "children": [
+              "• ",
+              { "type": "a", "props": { "href": "https://arxiv.org/abs/2312.06837" }, "children": "Hernandez et al. 2024 — Linear Relational Embeddings" },
+              " — Relations as linear maps in LLM representation spaces."
+            ]
+          },
+          {
+            "type": "p",
+            "children": "• Smolensky 1990 — Tensor Product Variable Binding and the Representation of Symbolic Structures in Connectionist Systems. The tensor product alternative that HRR improves upon."
+          },
+          {
+            "type": "p",
+            "children": "• Kanerva 2009 — Hyperdimensional Computing: An Introduction to Computing in Distributed Representation with High-Dimensional Random Vectors. Broader framework that includes HRR."
+          }
+        ]
+      }
+    ]
+  }
+}

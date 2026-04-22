@@ -1502,6 +1502,18 @@ const tutorials = [
     featured: true,
   },
   {
+    id: 'holographic-reduced-representations',
+    title: 'Holographic Reduced Representations',
+    description: 'Bind ideas together with circular convolution, unbind them with correlation. Fixed-size vectors that encode structured knowledge — and why Mamba\'s complex diagonal A-matrix is secretly doing the same operation.',
+    tags: ['HRR', 'circular convolution', 'binding', 'SSM', 'Mamba', 'knowledge representation'],
+    icon: '🔮',
+    gradient: 'from-violet-500 to-purple-600',
+    shadowColor: 'shadow-violet-500/30',
+    glowColor: 'rgba(139, 92, 246, 0.4)',
+    readTime: '25 min',
+    difficulty: 3,
+  },
+  {
     id: 'holographic-residual-stream',
     title: 'The Holographic Residual Stream',
     description: 'How the residual stream encodes information holographically — every position contains a compressed version of the whole.',
