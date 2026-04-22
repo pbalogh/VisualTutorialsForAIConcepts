@@ -7866,6 +7866,109 @@
             "children": "Running total: ~103 tracked papers. The field is entering a 'diagnostic' phase: now that I-DLM has closed the quality gap, researchers are systematically cataloging remaining failure modes (hallucination, dependency loss) and measuring actual vs theoretical parallelism. SAE features are well-positioned to address all three identified failure modes (premature termination, incomplete denoising, context intrusion)."
           }
         ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "📡 Apr 22, 2026: Temporal Stability Theory + Likelihood-Free RL for dLLMs"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "Two strong papers this sweep. Both address core dLLM challenges — decoding quality and RL fine-tuning — with principled theoretical contributions."
+          },
+          {
+            "type": "DeepDive",
+            "title": "[Apr 22] 🔥🔥 SWD: Stability-Weighted Decoding for dLLMs (Apr 18, 2026)",
+            "children": [
+              {
+                "type": "p",
+                "children": [
+                  {
+                    "type": "strong",
+                    "children": [
+                      "Paper:"
+                    ]
+                  },
+                  " Wu & Huang, 'Stability-Weighted Decoding for Diffusion Language Models' (arXiv:2604.17068, Apr 18, 2026)"
+                ]
+              },
+              {
+                "type": "p",
+                "children": [
+                  {
+                    "type": "strong",
+                    "children": [
+                      "Key insight:"
+                    ]
+                  },
+                  " Theoretically establishes that a token's temporal instability — measured by KL divergence between consecutive prediction distributions — provides a strict LOWER BOUND on its mutual information with the remaining masked context. Temporally unstable tokens are provably unsafe to unmask. SWD incorporates temporal stability into token scoring as a training-free, plug-and-play universal modulator for any score-based decoding policy. Consistent improvements on code generation and mathematical reasoning, with exceptional robustness across varying acceleration ratios."
+                ]
+              },
+              {
+                "type": "p",
+                "children": [
+                  {
+                    "type": "strong",
+                    "children": [
+                      "Relevance:"
+                    ]
+                  },
+                  " ⭐⭐⭐ CRITICAL FOR IDEAS 2 & 3. The theoretical result — temporal KL as MI lower bound — provides a principled justification for stability-based decoding that STDec and AHD pursued empirically. More importantly for SAE work: SAE feature stability across denoising steps is a RICHER signal than token-level KL divergence. Token-level KL captures distributional shift over the vocabulary; SAE feature KL captures distributional shift over semantic concepts. SWD's framework could be directly extended: replace token prediction KL with SAE feature activation KL to get a feature-level stability score that's theoretically grounded (the MI lower bound argument should transfer). This would give SAE-guided decoding a formal theoretical basis rather than just empirical motivation. Combined with I-DLM's introspective consistency and Lost in Diffusion's failure taxonomy, SWD completes a theoretical toolkit for understanding WHEN tokens should be unmasked."
+                ]
+              }
+            ]
+          },
+          {
+            "type": "DeepDive",
+            "title": "[Apr 22] 🔥 DTM: Discrete Tilt Matching — Likelihood-Free RL for dLLMs (Apr 20, 2026)",
+            "children": [
+              {
+                "type": "p",
+                "children": [
+                  {
+                    "type": "strong",
+                    "children": [
+                      "Paper:"
+                    ]
+                  },
+                  " Chen et al., 'Discrete Tilt Matching' (arXiv:2604.18739, Apr 20, 2026)"
+                ]
+              },
+              {
+                "type": "p",
+                "children": [
+                  {
+                    "type": "strong",
+                    "children": [
+                      "Key insight:"
+                    ]
+                  },
+                  " Existing RL methods for dLLMs depend on sequence-level marginal likelihoods, which are intractable for masked diffusion models. DTM derives a likelihood-free alternative: recasts dLLM fine-tuning as STATE-LEVEL matching of local unmasking posteriors under reward tilting. The objective is a weighted cross-entropy with explicit minimizer, plus control variates for training stability. Evaluated on LLaDA-8B-Instruct: strong gains on Sudoku and Countdown while remaining competitive on MATH500 and GSM8K. Includes analysis of annealing schedule and mode collapse prevention."
+                ]
+              },
+              {
+                "type": "p",
+                "children": [
+                  {
+                    "type": "strong",
+                    "children": [
+                      "Relevance:"
+                    ]
+                  },
+                  " ⭐⭐ FOR IDEAS 2 & 4. DTM's state-level (rather than trajectory-level) reward matching is exactly what's needed for SAE-guided RL: SAE feature objectives are naturally defined at the state level (feature activations at a given denoising step), not the trajectory level. The reward tilting framework could incorporate SAE feature rewards — e.g., tilting the unmasking posterior toward states with desired SAE feature configurations. Combined with dTRPO (trajectory reduction) and DARE (unified RL framework), the RL-for-dLLMs toolkit now has three complementary approaches: trajectory-level (dTRPO), state-level likelihood-free (DTM), and framework-level (DARE). DTM is the most natural fit for SAE-guided objectives due to its state-level formulation."
+                ]
+              }
+            ]
+          },
+          {
+            "type": "Callout",
+            "props": {
+              "type": "info"
+            },
+            "children": "Running total: ~105 tracked papers. SWD's theoretical grounding of temporal stability is the most important conceptual advance since I-DLM — it provides a formal basis for stability-guided decoding that can be extended to SAE feature space. DTM completes the RL toolkit with a state-level, likelihood-free approach perfectly suited for SAE feature rewards. The field continues to mature rapidly: decoding theory (SWD), RL theory (DTM), quality parity (I-DLM), and failure analysis (Lost in Diffusion) are all converging."
+          }
+        ]
       }
     ]
   }
