@@ -1911,6 +1911,18 @@ const tutorials = [
     difficulty: 2,
   },
   {
+    id: 'brainstorm-63-primitives-transition-matrices',
+    title: 'Primitives as Structured Transition Matrices',
+    description: 'Schankian primitives as PD-SSM transition matrices: each operator is a (P,D) pair routing state to specific channels. Connects Hydra timescale partitions, operator discovery, and persistent knowledge stores through one mechanism.',
+    tags: ['Schankian primitives', 'PD-SSM', 'state space models', 'transition matrices', 'Hydra', 'knowledge store'],
+    icon: '🔀',
+    gradient: 'from-cyan-500 to-blue-600',
+    shadowColor: 'shadow-cyan-500/30',
+    glowColor: 'rgba(6, 182, 212, 0.4)',
+    readTime: '18 min',
+    difficulty: 3,
+  },
+  {
     id: 'brainstorm-operator-motifs-causal',
     title: 'Operator Motifs as Causal Contribution Patterns',
     description: 'Can behavioral compression (wake-sleep) and mechanistic decomposition (CODEC/SAE) converge on the same Schankian primitives from opposite directions? If so, operators are real computational structures, not just labels.',

@@ -1,0 +1,406 @@
+{
+  "id": "brainstorm-63-primitives-transition-matrices",
+  "title": "Primitives as Structured Transition Matrices",
+  "subtitle": "Schank Meets PD-SSM: How Semantic Operators Could Be Sparse State Transitions",
+  "readTime": "18 min",
+  "state": {},
+  "content": {
+    "type": "Fragment",
+    "children": [
+      {
+        "type": "Callout",
+        "props": { "type": "info" },
+        "children": "This tutorial explores the connection between Schankian primitive operators (ATRANS, PTRANS, MTRANS) and structured sparse transition matrices in state space models. The key idea: each semantic primitive could be a specific routing pattern through the SSM's state channels — connecting operator discovery, Hydra's timescale partitions, and persistent knowledge stores through a single mechanism."
+      },
+      {
+        "type": "Section",
+        "props": { "title": "1. The Problem: State Tracking in Sequence Models" },
+        "children": [
+          {
+            "type": "p",
+            "children": "When you read 'John gave Mary the book, then she lent it to Bob,' your brain effortlessly tracks a chain of state changes: the book's possession goes John → Mary → Bob. But for a neural sequence model, this is surprisingly hard."
+          },
+          {
+            "type": "p",
+            "children": "Why? Because standard sequence models process tokens one at a time, updating a hidden state vector. The hidden state has to simultaneously encode everything the model might need later: who has what, where things are, what people know, syntactic expectations, discourse structure. All of this gets compressed into a single fixed-size vector."
+          },
+          {
+            "type": "DeepDive",
+            "props": {
+              "title": "Why is this harder than it sounds?",
+              "id": "why-hard"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "Consider a simple state machine: a book can be owned by Alice, Bob, or Carol. That's 3 states. Now add a second object (a pen) — that's 3 × 3 = 9 states. Three objects? 27 states. The state space grows exponentially with the number of entities being tracked. A neural network has to compress this combinatorial explosion into a fixed-dimensional vector. Most of the time, it just... doesn't. It pattern-matches instead."
+              }
+            ]
+          },
+          {
+            "type": "Analogy",
+            "props": {
+              "title": "The Filing Cabinet vs. The Junk Drawer",
+              "source": "A filing cabinet with labeled folders (Possessions, Locations, Knowledge)",
+              "target": "An SSM with dedicated state channels for each type of state change",
+              "mapping": "Just as you can find things faster in labeled folders than in a junk drawer, a model with dedicated channels for different state types can track entities more reliably than one where everything is mixed together."
+            }
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "2. State Space Models: A Quick Primer" },
+        "children": [
+          {
+            "type": "p",
+            "children": "A State Space Model (SSM) like Mamba processes sequences by maintaining a hidden state vector h that gets updated at each timestep. The update rule is:"
+          },
+          {
+            "type": "Example",
+            "props": {
+              "title": "The SSM Update Equation"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "h(t+1) = A · h(t) + B · x(t)"
+              },
+              {
+                "type": "p",
+                "children": "Where:"
+              },
+              {
+                "type": "DefinitionList",
+                "props": {
+                  "items": [
+                    { "term": "h(t)", "definition": "The hidden state at time t — what the model 'remembers'" },
+                    { "term": "A", "definition": "The transition matrix — how the old state transforms into the new state" },
+                    { "term": "B", "definition": "The input matrix — how the new token enters the state" },
+                    { "term": "x(t)", "definition": "The current input (token embedding)" }
+                  ]
+                }
+              },
+              {
+                "type": "p",
+                "children": "The A matrix is the key player. It determines how information persists, decays, and transforms over time. A diagonal A matrix means each channel evolves independently — simple but limited. A full A matrix allows cross-channel interactions — powerful but O(N²) expensive."
+              }
+            ]
+          },
+          {
+            "type": "DeepDive",
+            "props": {
+              "title": "What does 'diagonal' mean here?",
+              "id": "diagonal-explain"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "A diagonal matrix only has values on the main diagonal — everything else is zero. This means channel 1 can only affect channel 1, channel 2 can only affect channel 2, etc. No cross-talk. It's like having N independent one-dimensional systems running in parallel. Fast to compute (O(N)) but each channel is isolated. A full matrix allows channel 1 to influence channel 5, channel 3, etc. — but costs O(N²) to compute."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "3. PD-SSM: Structured Sparse Transitions" },
+        "children": [
+          {
+            "type": "Callout",
+            "props": { "type": "key" },
+            "children": "IBM's PD-SSM (NeurIPS 2025 Spotlight) found a brilliant middle ground: factor the transition matrix as A = P · D, where P is a column one-hot routing matrix and D is a complex-valued diagonal. This gives you cross-channel routing at diagonal cost."
+          },
+          {
+            "type": "p",
+            "children": "The P matrix is a permutation-like structure — each column has exactly one non-zero entry. It says 'route the output of channel i to channel j.' The D matrix scales each channel with a complex value that controls magnitude (decay) and phase (oscillation)."
+          },
+          {
+            "type": "InteractiveDemo",
+            "props": {
+              "title": "How P·D Routing Works",
+              "description": "Walk through how a PD-SSM transition routes information between channels.",
+              "steps": [
+                {
+                  "label": "Step 1: Start with state h = [possession: 0.8, location: 0.3, knowledge: 0.5]",
+                  "detail": "Three channels, each tracking a different type of entity state. The values represent how 'active' each state dimension is."
+                },
+                {
+                  "label": "Step 2: Apply D (diagonal scaling): D = [0.95, 0.90, 0.99]",
+                  "detail": "Each channel decays at its own rate. Possession decays slowly (0.95), location faster (0.90), knowledge barely at all (0.99). After D: [0.76, 0.27, 0.495]. This is the timescale structure — different channels remember for different durations."
+                },
+                {
+                  "label": "Step 3: Apply P (routing): P routes channel 1→1, 2→2, 3→3 (identity)",
+                  "detail": "With identity routing, each channel stays put. Result: [0.76, 0.27, 0.495]. This is equivalent to a diagonal SSM — no cross-channel interaction."
+                },
+                {
+                  "label": "Step 3 (alternative): P routes channel 1→2, 2→1, 3→3",
+                  "detail": "Now possession info routes to the location channel and vice versa! Result: [0.27, 0.76, 0.495]. This cross-channel routing is what makes PD-SSM more expressive than diagonal — and it costs the same to compute."
+                },
+                {
+                  "label": "Key insight: Different events need different routing patterns",
+                  "detail": "An ATRANS event (giving) needs to update possession channels. A PTRANS event (moving) needs to update location channels. The routing pattern IS the event type. This is where Schankian primitives enter the picture."
+                }
+              ]
+            }
+          },
+          {
+            "type": "p",
+            "children": "The theoretical result: PD-SSM can emulate any N-state finite automaton with one layer of dimension N and a linear readout. This is optimal — you can't do better with any structured matrix. And the compute cost scales linearly with state size, same as diagonal SSMs."
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "4. Schankian Primitives as Transition Patterns" },
+        "children": [
+          {
+            "type": "p",
+            "children": "Roger Schank proposed that all human events decompose into a small set of primitive operators: ATRANS (transfer of possession), PTRANS (transfer of location), MTRANS (transfer of information), INGEST (consumption), and a few others. Our wake-sleep compression experiments rediscovered four of these automatically."
+          },
+          {
+            "type": "p",
+            "children": "Now here's the connection: each Schankian primitive describes a specific pattern of state change. And each PD-SSM transition matrix describes a specific pattern of state routing. What if they're the same thing?"
+          },
+          {
+            "type": "InteractiveDemo",
+            "props": {
+              "title": "Primitives as (P, D) Pairs",
+              "description": "See how each Schankian primitive maps to a specific transition matrix structure.",
+              "steps": [
+                {
+                  "label": "ATRANS (give, sell, donate): P routes to possession channels, D = slow decay",
+                  "detail": "When 'John gave Mary the book' is processed, the ATRANS transition routes entity vectors into the possession-tracking channels. The slow decay (D ≈ 0.99) means the ownership change persists for many tokens. The P matrix specifically targets the channels that Hydra's thematic head reserves for possession tracking."
+                },
+                {
+                  "label": "PTRANS (walk, drive, fly): P routes to location channels, D = medium decay",
+                  "detail": "A movement event updates location state. 'The cat walked to the garden' routes the cat-entity vector into location channels. Medium decay (D ≈ 0.95) because locations change more frequently than ownership. The P matrix targets different channels than ATRANS — that's why the model can track possession AND location simultaneously."
+                },
+                {
+                  "label": "MTRANS (tell, teach, inform): P routes to knowledge channels, D = very slow decay",
+                  "detail": "Information transfer is special: it's NON-DESTRUCTIVE. 'Alice told Bob the secret' doesn't remove knowledge from Alice. The P matrix copies to knowledge channels without clearing the source. Very slow decay (D ≈ 0.995) because knowledge persists almost indefinitely. This is the conservation law breaking: MTRANS creates information."
+                },
+                {
+                  "label": "INGEST (eat, drink): P routes to consumption channels, D = fast decay",
+                  "detail": "Consumption destroys possession and creates a consumed-state. Fast decay (D ≈ 0.85) because the act of eating is transient — what matters is the state change it produces, not the act itself. The P matrix bridges possession channels to consumption channels."
+                },
+                {
+                  "label": "The primitive type IS the routing pattern",
+                  "detail": "This is the key insight: you don't need separate 'event type classifiers' or 'semantic role labelers.' The transition matrix itself encodes the event type through its routing structure. Different primitives = different (P, D) pairs = different patterns of which state channels talk to which."
+                }
+              ]
+            }
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "5. Connection to Hydra: Timescale-Protected Channels" },
+        "children": [
+          {
+            "type": "p",
+            "children": "The Hydra architecture partitions SSM state into heads with different decay rates: phrase structure (fast decay), thematic roles (slow decay), and information structure (medium decay). This is exactly the D part of PD-SSM — different timescales for different types of information."
+          },
+          {
+            "type": "p",
+            "children": "What PD-SSM adds is the P part: structured routing between channels. Hydra currently uses frozen A-matrices with fixed decay rates but no cross-channel routing. PD-SSM transitions would let the model learn which channels should talk to each other for each event type — while keeping the compute cost the same as the current diagonal approach."
+          },
+          {
+            "type": "Example",
+            "props": {
+              "title": "From Hydra's Fixed Partitions to Learned Routing"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "Current Hydra: Three heads with fixed decay rates. Channels within each head are independent (diagonal A)."
+              },
+              {
+                "type": "p",
+                "children": "Hydra + PD-SSM: Same three heads, same decay rates, but now with learned routing WITHIN and BETWEEN heads. An ATRANS event can route entity information from a 'general entity' channel to a 'possessed-by' channel within the thematic head. The routing pattern is learned, not hand-coded — but the timescale structure ensures it happens in the right temporal regime."
+              },
+              {
+                "type": "p",
+                "children": "This is the best of both worlds: hand-coded physics (timescales) + learned policy (routing)."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "6. The Bridge to Persistent Memory" },
+        "children": [
+          {
+            "type": "p",
+            "children": "Here's where it gets really interesting. If each primitive has a known (P, D) transition structure, then the transition type tells you:"
+          },
+          {
+            "type": "DefinitionList",
+            "props": {
+              "items": [
+                { "term": "What to store", "definition": "The P matrix identifies which channels were updated → those are the state changes worth persisting" },
+                { "term": "How to index it", "definition": "The primitive type (ATRANS, PTRANS, etc.) determines which index in the knowledge store to write to" },
+                { "term": "How to retrieve it", "definition": "A query like 'what does John possess?' maps to: look up ATRANS entries with agent=John in the possession index" }
+              ]
+            }
+          },
+          {
+            "type": "p",
+            "children": "This connects SSM state tracking to a persistent lambda knowledge store. The SSM's thematic channels hold working memory (what's happening now). The knowledge store holds long-term memory (what's happened before). And the transition matrices are the read/write interface between them."
+          },
+          {
+            "type": "Analogy",
+            "props": {
+              "title": "The Library Analogy",
+              "source": "A library with sections (Science, History, Fiction) where each book has a Dewey Decimal number",
+              "target": "A knowledge store with indexes (Possession, Location, Knowledge) where each fact has a primitive-type label",
+              "mapping": "The Dewey Decimal system routes books to shelves by subject. PD-SSM routing routes state updates to channels by primitive type. In both cases, the classification system determines where things go AND how to find them later."
+            }
+          },
+          {
+            "type": "DeepDive",
+            "props": {
+              "title": "Why is this better than RAG (Retrieval-Augmented Generation)?",
+              "id": "better-than-rag"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "RAG systems retrieve text by embedding similarity — a lossy, approximate match. You ask 'what does John own?' and hope the retriever finds relevant passages. Our approach retrieves by STRUCTURAL match: query the possession index for ATRANS events with agent=John. The result comes back as state vectors the model already knows how to use — no re-encoding, no text bottleneck, no hoping the retriever works."
+              },
+              {
+                "type": "p",
+                "children": "The primitive type gives you typed addressing. It's the difference between a Google search (hope for the best) and a SQL query (exact match on structured data)."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "7. Convergent Evidence: Two Paths to the Same Operators" },
+        "children": [
+          {
+            "type": "p",
+            "children": "There's a beautiful scientific opportunity here. We now have two independent ways to discover semantic primitives:"
+          },
+          {
+            "type": "DefinitionList",
+            "props": {
+              "items": [
+                { "term": "Top-down (behavioral)", "definition": "Wake-sleep compression on event descriptions → discovers operators by compressing which events behave similarly. This is our published approach (arXiv:2603.25975)." },
+                { "term": "Bottom-up (mechanistic)", "definition": "Train PD-SSM on language data → inspect the learned (P, D) pairs → cluster by routing structure. Operators emerge from optimization pressure, not compression." }
+              ]
+            }
+          },
+          {
+            "type": "p",
+            "children": "If both approaches discover the same operators — if behavioral compression and mechanistic optimization converge on the same set of primitives — that's powerful evidence that the operators are 'real' computational structures, not just convenient labels."
+          },
+          {
+            "type": "Callout",
+            "props": { "type": "key" },
+            "children": "This would be the Schankian equivalent of finding the same protein structure through X-ray crystallography AND cryo-EM. Two completely different methods, same result → the structure is real."
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "Quiz: Test Your Understanding" },
+        "children": [
+          {
+            "type": "Quiz",
+            "props": {
+              "question": "In PD-SSM, what role does the P matrix play?",
+              "options": [
+                "It scales each channel by a decay factor",
+                "It routes information between channels (which channel talks to which)",
+                "It encodes the input tokens into the state",
+                "It computes attention weights between positions"
+              ],
+              "correctIndex": 1,
+              "explanation": "The P matrix is a column one-hot routing matrix — it determines which channel's output gets sent to which channel's input. The D matrix handles scaling/decay. Together, P·D gives cross-channel routing at diagonal cost."
+            }
+          },
+          {
+            "type": "Quiz",
+            "props": {
+              "question": "Why is MTRANS (information transfer) fundamentally different from ATRANS (possession transfer)?",
+              "options": [
+                "MTRANS is faster than ATRANS",
+                "MTRANS involves more entities",
+                "MTRANS is non-destructive — the source retains what the destination gains",
+                "MTRANS only applies to written language"
+              ],
+              "correctIndex": 2,
+              "explanation": "MTRANS breaks the conservation law that ATRANS obeys. When you give someone a book (ATRANS), you lose it. When you tell someone a secret (MTRANS), you still know it. This asymmetry — information copies rather than moves — is reflected in different (P, D) routing: MTRANS doesn't clear the source channels."
+            }
+          },
+          {
+            "type": "Quiz",
+            "props": {
+              "question": "What advantage does primitive-typed store addressing have over RAG-style retrieval?",
+              "options": [
+                "It's faster because it uses GPUs",
+                "It retrieves by structural match (exact query on typed index) rather than embedding similarity",
+                "It requires less training data",
+                "It works with larger documents"
+              ],
+              "correctIndex": 1,
+              "explanation": "RAG retrieves by embedding similarity — approximate and lossy. Primitive-typed addressing queries a structured index: 'all ATRANS events with agent=John' is an exact structural query, not a similarity search. The results come back as vectors the model can use directly, with no re-encoding step."
+            }
+          },
+          {
+            "type": "Quiz",
+            "props": {
+              "question": "If wake-sleep compression (top-down) and PD-SSM training (bottom-up) both discover the same primitive operators, what does that suggest?",
+              "options": [
+                "The training data was too small",
+                "The operators are artifacts of the compression algorithm",
+                "The operators are 'real' computational structures — convergent evidence from independent methods",
+                "The SSM is overfitting to the compression labels"
+              ],
+              "correctIndex": 2,
+              "explanation": "Convergent evidence from independent methods is the gold standard in science. If behavioral compression (which events group together) and mechanistic optimization (which routing patterns emerge) find the same operators, it's strong evidence that these primitives reflect genuine structure in how events work — not just artifacts of any single method."
+            }
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "Further Reading" },
+        "children": [
+          {
+            "type": "p",
+            "children": [
+              "• ",
+              { "type": "a", "props": { "href": "https://arxiv.org/abs/2509.22284" }, "children": "PD-SSM: Structured Sparse Transition Matrices (NeurIPS 2025 Spotlight)" },
+              " — The IBM paper proving structured sparse transitions enable FSA tracking at diagonal cost."
+            ]
+          },
+          {
+            "type": "p",
+            "children": [
+              "• ",
+              { "type": "a", "props": { "href": "https://github.com/IBM/expressive-sparse-state-space-model" }, "children": "PD-SSM Code (GitHub)" },
+              " — Open-source implementation."
+            ]
+          },
+          {
+            "type": "p",
+            "children": [
+              "• ",
+              { "type": "a", "props": { "href": "https://arxiv.org/abs/2603.25975" }, "children": "Do Neurons Dream of Primitive Operators? (Balogh 2026)" },
+              " — Wake-sleep compression rediscovers Schank's event semantics."
+            ]
+          },
+          {
+            "type": "p",
+            "children": "• Schank, R.C. (1972). Conceptual dependency: A theory of natural language understanding. Cognitive Psychology, 3(4), 552-631."
+          }
+        ]
+      }
+    ]
+  }
+}
