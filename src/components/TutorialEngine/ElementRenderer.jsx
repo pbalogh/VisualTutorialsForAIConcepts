@@ -166,19 +166,50 @@ const componentMap = {
     const INTERACTIVE_REGISTRY = {
       'bo-1d-explorer': BOExplorerViz,
     };
-    return ({ type, description, config, children }) => {
+    return ({ type, title, description, config, steps, children }) => {
       const Component = INTERACTIVE_REGISTRY[type];
+      const [openStep, setOpenStep] = React.useState(null);
       return (
         <div className="my-8 rounded-2xl border-2 border-indigo-200 bg-gradient-to-br from-indigo-50/50 to-violet-50/50 p-6 shadow-md">
           <div className="flex items-center gap-2 mb-3">
             <span className="text-2xl">🧪</span>
-            <span className="font-bold text-indigo-800 text-lg">Interactive: {type?.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase()) || 'Demo'}</span>
+            <span className="font-bold text-indigo-800 text-lg">{title || (type?.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase())) || 'Interactive Demo'}</span>
           </div>
           {description && (
             <p className="text-gray-600 mb-4 leading-relaxed text-sm">{description}</p>
           )}
           {Component ? (
             <Component config={config} />
+          ) : steps && Array.isArray(steps) ? (
+            <div className="space-y-2">
+              {steps.map((step, i) => (
+                <div key={i} className="rounded-xl border border-indigo-200/60 bg-white/70 overflow-hidden transition-all duration-200">
+                  <button
+                    onClick={() => setOpenStep(openStep === i ? null : i)}
+                    className="w-full text-left px-4 py-3 flex items-center gap-3 hover:bg-indigo-50/50 transition-colors"
+                  >
+                    <span className={`
+                      flex-shrink-0 w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold
+                      ${openStep === i ? 'bg-indigo-600 text-white' : 'bg-indigo-100 text-indigo-600'}
+                      transition-colors duration-200
+                    `}>
+                      {i + 1}
+                    </span>
+                    <span className={`font-medium text-sm ${openStep === i ? 'text-indigo-800' : 'text-gray-700'}`}>
+                      {step.label}
+                    </span>
+                    <span className={`ml-auto text-indigo-400 transition-transform duration-200 ${openStep === i ? 'rotate-180' : ''}`}>
+                      ▼
+                    </span>
+                  </button>
+                  {openStep === i && step.detail && (
+                    <div className="px-4 pb-4 pt-1 ml-10 text-sm text-gray-600 leading-relaxed border-t border-indigo-100/50 animate-in fade-in">
+                      {step.detail}
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
           ) : (
             config && (
               <div className="bg-white/70 rounded-xl p-4 border border-indigo-200/50">
