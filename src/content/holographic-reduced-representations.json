@@ -9,12 +9,16 @@
     "children": [
       {
         "type": "Callout",
-        "props": { "type": "info" },
+        "props": {
+          "type": "info"
+        },
         "children": "This tutorial explains Holographic Reduced Representations (HRR), Tony Plate's 1995 framework for representing structured knowledge as fixed-size vectors. The key trick: circular convolution lets you bind 'dog' to 'agent' and 'bone' to 'patient' in the SAME vector space, at the SAME dimensionality, and unbind them later. We connect this to Mamba/SSMs, where the native complex-valued diagonal computation turns out to be exactly the same operation."
       },
       {
         "type": "Section",
-        "props": { "title": "1. The Binding Problem" },
+        "props": {
+          "title": "1. The Binding Problem"
+        },
         "children": [
           {
             "type": "h3",
@@ -45,7 +49,9 @@
       },
       {
         "type": "Section",
-        "props": { "title": "2. Circular Convolution: The Core Operation" },
+        "props": {
+          "title": "2. Circular Convolution: The Core Operation"
+        },
         "children": [
           {
             "type": "p",
@@ -53,7 +59,9 @@
           },
           {
             "type": "Example",
-            "props": { "title": "Circular Convolution Formula" },
+            "props": {
+              "title": "Circular Convolution Formula"
+            },
             "children": [
               {
                 "type": "p",
@@ -107,7 +115,104 @@
             "children": [
               {
                 "type": "p",
-                "children": "Yes! If you think of vectors as polynomials (a[0] + a[1]x + a[2]x² + ...), then circular convolution is polynomial multiplication where x^d = 1 (the powers 'wrap around'). This algebraic structure is why HRR works — it inherits the nice properties of polynomial rings."
+                "children": [
+                  "Yes! If you think of vectors as polynomials (a[0] + a[1]x + a[2]x² + ...), then circular convolution is polynomial multiplication where x^d = 1 (the powers 'wrap around')",
+                  {
+                    "type": "FootnoteRef",
+                    "props": {
+                      "id": "source-ann-1776888464731-igesue",
+                      "targetId": "ann-1776888464731-igesue",
+                      "type": "branch"
+                    }
+                  },
+                  ". This algebraic structure is why HRR works — it inherits the nice properties of polynomial rings."
+                ]
+              }
+            ]
+          },
+          {
+            "type": "DeepDive",
+            "props": {
+              "title": "Deep Dive: then circular convolution is polynomial multiplication where x^d = 1 (the powers 'wrap around')",
+              "defaultOpen": true,
+              "id": "ann-1776888464731-igesue",
+              "sourceId": "source-ann-1776888464731-igesue"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "This connection between circular convolution and polynomial multiplication isn't just a cute analogy — it's the deep mathematical reason HRR works at all. When we say x^d = 1, we mean that the polynomial variable 'wraps around' after d terms, exactly like a clock wraps after 12 hours. This is what keeps our vectors fixed-size: no matter how many things we bind together, the result is always a d-dimensional vector, because all the higher powers fold back into the range [0, d-1]."
+              },
+              {
+                "type": "Example",
+                "props": {
+                  "title": "Example: Polynomial multiplication with wraparound"
+                },
+                "children": [
+                  {
+                    "type": "p",
+                    "children": "Suppose d = 4. We have two vectors treated as polynomials:"
+                  },
+                  {
+                    "type": "Formula",
+                    "props": {
+                      "label": "Vector A as polynomial"
+                    },
+                    "children": "A(x) = 2 + 3x + 1x² + 0x³"
+                  },
+                  {
+                    "type": "Formula",
+                    "props": {
+                      "label": "Vector B as polynomial"
+                    },
+                    "children": "B(x) = 1 + 0x + 4x² + 2x³"
+                  },
+                  {
+                    "type": "p",
+                    "children": "Normal polynomial multiplication would give terms up to x⁶ — a 7-element result from two 4-element inputs. But with x⁴ = 1, the high terms wrap: x⁴ → 1, x⁵ → x, x⁶ → x². So the 'overflow' folds back and adds into the lower coefficients, giving us exactly 4 output elements. This is circular convolution."
+                  },
+                  {
+                    "type": "Code",
+                    "props": {
+                      "language": "python"
+                    },
+                    "children": "# Normal multiplication gives: [2, 3, 9, 16, 14, 2, 0]\n# But with wraparound (x^4 = 1):\n# x^4 term (14) wraps to x^0:  2 + 14 = 16\n# x^5 term (2)  wraps to x^1:  3 + 2  = 5\n# x^6 term (0)  wraps to x^2:  9 + 0  = 9\n# Result: [16, 5, 9, 16]  — still 4 elements!"
+                  }
+                ]
+              },
+              {
+                "type": "Analogy",
+                "children": "Think of it like a circular running track with d lanes. When you multiply two polynomials, the terms naturally want to spread out into more and more lanes. But the track is circular — once you pass lane d, you're back at lane 0, and your contribution piles on top of whatever was already there. This 'piling on' is the superposition that lets a single fixed-size vector store multiple bound pairs simultaneously."
+              },
+              {
+                "type": "DefinitionList",
+                "props": {
+                  "items": [
+                    {
+                      "term": "Polynomial ring Z[x] / (x^d - 1)",
+                      "definition": "The formal algebraic structure we're working in. 'Quotient by x^d - 1' is the mathematician's way of saying 'x^d wraps to 1.' This ring has built-in associativity and distributivity — which is why binding and bundling in HRR behave predictably."
+                    },
+                    {
+                      "term": "Fixed dimensionality",
+                      "definition": "The wraparound guarantees that binding two d-dimensional vectors always yields a d-dimensional vector. Unlike tensor products (which explode in size), circular convolution compresses by superimposing the overflow."
+                    },
+                    {
+                      "term": "Approximate inverse via correlation",
+                      "definition": "Polynomial rings modulo x^d - 1 give us approximate inverses 'for free.' Circular correlation (the unbinding operation) works because in this ring, reversing the coefficients approximates polynomial division — letting us decode bound pairs."
+                    },
+                    {
+                      "term": "FFT connection",
+                      "definition": "The reason circular convolution can be computed in O(d log d) via FFT: the Fourier transform diagonalizes this polynomial ring, turning convolution into element-wise multiplication in frequency space."
+                    }
+                  ]
+                }
+              },
+              {
+                "type": "Callout",
+                "props": {
+                  "type": "tip"
+                },
+                "children": "The key takeaway: HRR doesn't just happen to use circular convolution — it specifically exploits the algebraic structure of polynomial rings mod x^d - 1. This structure simultaneously guarantees fixed-size outputs (the wrapping), efficient computation (via FFT), and approximate invertibility (via correlation). When you see 'circular' in HRR, think: this is the mathematical trick that makes holographic storage possible without dimensionality explosion."
               }
             ]
           }
@@ -115,7 +220,9 @@
       },
       {
         "type": "Section",
-        "props": { "title": "3. The FFT Shortcut" },
+        "props": {
+          "title": "3. The FFT Shortcut"
+        },
         "children": [
           {
             "type": "p",
@@ -123,12 +230,16 @@
           },
           {
             "type": "Callout",
-            "props": { "type": "key" },
+            "props": {
+              "type": "key"
+            },
             "children": "Circular convolution in the time domain = element-wise multiplication in the frequency domain. So: a ⊛ b = IFFT(FFT(a) · FFT(b)). Cost: O(d log d) instead of O(d²)."
           },
           {
             "type": "Example",
-            "props": { "title": "The FFT Trick in Python" },
+            "props": {
+              "title": "The FFT Trick in Python"
+            },
             "children": [
               {
                 "type": "p",
@@ -144,7 +255,9 @@
       },
       {
         "type": "Section",
-        "props": { "title": "4. Binding and Unbinding" },
+        "props": {
+          "title": "4. Binding and Unbinding"
+        },
         "children": [
           {
             "type": "h3",
@@ -156,7 +269,9 @@
           },
           {
             "type": "Example",
-            "props": { "title": "Binding Example" },
+            "props": {
+              "title": "Binding Example"
+            },
             "children": [
               {
                 "type": "p",
@@ -174,7 +289,9 @@
           },
           {
             "type": "Example",
-            "props": { "title": "Superposition of Bindings" },
+            "props": {
+              "title": "Superposition of Bindings"
+            },
             "children": [
               {
                 "type": "p",
@@ -192,7 +309,9 @@
           },
           {
             "type": "Example",
-            "props": { "title": "Unbinding / Retrieval" },
+            "props": {
+              "title": "Unbinding / Retrieval"
+            },
             "children": [
               {
                 "type": "p",
@@ -206,7 +325,9 @@
           },
           {
             "type": "Callout",
-            "props": { "type": "key" },
+            "props": {
+              "type": "key"
+            },
             "children": "Circular correlation is just circular convolution with the INVERSE of the role vector. In the frequency domain: a ⊘ b = IFFT(FFT(a)* · FFT(b)), where * is complex conjugate. The conjugate flips the 'direction' of the convolution, undoing the binding."
           },
           {
@@ -234,7 +355,9 @@
       },
       {
         "type": "Section",
-        "props": { "title": "5. Why This Matters for SSMs and Mamba" },
+        "props": {
+          "title": "5. Why This Matters for SSMs and Mamba"
+        },
         "children": [
           {
             "type": "p",
@@ -242,7 +365,9 @@
           },
           {
             "type": "Example",
-            "props": { "title": "Mamba's Recurrence in Frequency Domain" },
+            "props": {
+              "title": "Mamba's Recurrence in Frequency Domain"
+            },
             "children": [
               {
                 "type": "p",
@@ -252,7 +377,9 @@
           },
           {
             "type": "Callout",
-            "props": { "type": "key" },
+            "props": {
+              "type": "key"
+            },
             "children": "Element-wise multiplication of complex vectors in the frequency domain IS circular convolution in the time domain. Mamba's native state update IS the HRR binding operation. The SSM already speaks holographic!"
           },
           {
@@ -263,10 +390,22 @@
             "type": "DefinitionList",
             "props": {
               "items": [
-                { "term": "State update = binding", "definition": "When Mamba updates its hidden state with a new input, it's performing the same operation as binding a role to a filler in HRR." },
-                { "term": "State readout = unbinding", "definition": "When Mamba reads from its state to make a prediction, it's performing circular correlation — extracting a filler from the holographic memory." },
-                { "term": "Decay = forgetting", "definition": "The magnitude of A controls how quickly bindings fade. This is why Hydra's slow-decay thematic channels maintain entity bindings longer — they have higher |A|, so the holographic trace persists." },
-                { "term": "Phase of A = rotation", "definition": "The complex phase of A rotates the binding in frequency space over time. Different phases for different channels create a temporal code — you can tell WHEN something was bound by its current phase." }
+                {
+                  "term": "State update = binding",
+                  "definition": "When Mamba updates its hidden state with a new input, it's performing the same operation as binding a role to a filler in HRR."
+                },
+                {
+                  "term": "State readout = unbinding",
+                  "definition": "When Mamba reads from its state to make a prediction, it's performing circular correlation — extracting a filler from the holographic memory."
+                },
+                {
+                  "term": "Decay = forgetting",
+                  "definition": "The magnitude of A controls how quickly bindings fade. This is why Hydra's slow-decay thematic channels maintain entity bindings longer — they have higher |A|, so the holographic trace persists."
+                },
+                {
+                  "term": "Phase of A = rotation",
+                  "definition": "The complex phase of A rotates the binding in frequency space over time. Different phases for different channels create a temporal code — you can tell WHEN something was bound by its current phase."
+                }
               ]
             }
           },
@@ -287,7 +426,9 @@
       },
       {
         "type": "Section",
-        "props": { "title": "6. Building a Knowledge Store with HRR" },
+        "props": {
+          "title": "6. Building a Knowledge Store with HRR"
+        },
         "children": [
           {
             "type": "p",
@@ -330,7 +471,9 @@
       },
       {
         "type": "Section",
-        "props": { "title": "7. Comparison: HRR vs. Tensor Products vs. Slots" },
+        "props": {
+          "title": "7. Comparison: HRR vs. Tensor Products vs. Slots"
+        },
         "children": [
           {
             "type": "InteractiveDemo",
@@ -361,7 +504,9 @@
       },
       {
         "type": "Section",
-        "props": { "title": "8. The Deep Connection: Why Holograms?" },
+        "props": {
+          "title": "8. The Deep Connection: Why Holograms?"
+        },
         "children": [
           {
             "type": "p",
@@ -375,11 +520,26 @@
             "type": "DefinitionList",
             "props": {
               "items": [
-                { "term": "Object light", "definition": "The filler vector (v_dog)" },
-                { "term": "Reference beam", "definition": "The role vector (r_agent)" },
-                { "term": "Interference pattern", "definition": "The binding (r_agent ⊛ v_dog)" },
-                { "term": "Holographic plate", "definition": "The superposition of all bindings (the event vector)" },
-                { "term": "Reconstruction", "definition": "Shining the reference beam again = circular correlation (r_agent ⊘ event) → recovers v_dog" }
+                {
+                  "term": "Object light",
+                  "definition": "The filler vector (v_dog)"
+                },
+                {
+                  "term": "Reference beam",
+                  "definition": "The role vector (r_agent)"
+                },
+                {
+                  "term": "Interference pattern",
+                  "definition": "The binding (r_agent ⊛ v_dog)"
+                },
+                {
+                  "term": "Holographic plate",
+                  "definition": "The superposition of all bindings (the event vector)"
+                },
+                {
+                  "term": "Reconstruction",
+                  "definition": "Shining the reference beam again = circular correlation (r_agent ⊘ event) → recovers v_dog"
+                }
               ]
             }
           },
@@ -391,7 +551,9 @@
       },
       {
         "type": "Section",
-        "props": { "title": "Quiz: Test Your Understanding" },
+        "props": {
+          "title": "Quiz: Test Your Understanding"
+        },
         "children": [
           {
             "type": "Quiz",
@@ -467,13 +629,21 @@
       },
       {
         "type": "Section",
-        "props": { "title": "Further Reading" },
+        "props": {
+          "title": "Further Reading"
+        },
         "children": [
           {
             "type": "p",
             "children": [
               "• ",
-              { "type": "a", "props": { "href": "https://www.sciencedirect.com/science/article/pii/S0364021399800124" }, "children": "Plate 1995 — Holographic Reduced Representations (original paper)" },
+              {
+                "type": "a",
+                "props": {
+                  "href": "https://www.sciencedirect.com/science/article/pii/S0364021399800124"
+                },
+                "children": "Plate 1995 — Holographic Reduced Representations (original paper)"
+              },
               " — The foundational paper introducing circular convolution for distributed representations."
             ]
           },
@@ -481,7 +651,13 @@
             "type": "p",
             "children": [
               "• ",
-              { "type": "a", "props": { "href": "https://arxiv.org/abs/2312.06837" }, "children": "Hernandez et al. 2024 — Linear Relational Embeddings" },
+              {
+                "type": "a",
+                "props": {
+                  "href": "https://arxiv.org/abs/2312.06837"
+                },
+                "children": "Hernandez et al. 2024 — Linear Relational Embeddings"
+              },
               " — Relations as linear maps in LLM representation spaces."
             ]
           },
