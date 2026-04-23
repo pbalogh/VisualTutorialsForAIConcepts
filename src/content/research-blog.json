@@ -35,6 +35,31 @@
       },
       {
         "type": "Section",
+        "title": "April 23, 2026 \u2014 Cognitive Constraints as Inductive Bias",
+        "children": [
+          {
+            "type": "Fragment",
+            "content": "Three papers today with connections to our structural competence work in Hydra."
+          },
+          {
+            "type": "DeepDive",
+            "title": "\ud83d\udd34 Working Memory Constraints Scaffold Learning in Transformers (Madhyastha & Adamcova, ACL 2026 Findings)",
+            "content": "**arXiv:2604.20789** \u2014 The Transformer-side mirror of Hydra. They implement cognitively-inspired attention variants \u2014 fixed-width windows and temporal decay \u2014 in GPT-2 trained on developmentally plausible datasets (10M\u2013100M words). Evaluated on BLiMP grammatical judgments and human reading times.\n\n**Key finding:** Cognitive constraints significantly improve grammatical accuracy when data is scarce, and produce stronger alignment with human processing metrics.\n\n**Why it matters for us:** This is exactly Hydra's thesis applied to Transformers instead of SSMs. They use attention windowing as their inductive bias; we use SSM timescale partitioning. Both argue that cognitive constraints are a beneficial inductive bias for structural competence at finite scale. Their BLiMP evaluation is the Transformer equivalent of our structural diagnostics suite. Strong citation target for the Hydra paper \u2014 validates the general principle across architectures. The fact that this appeared at ACL 2026 Findings means the community is receptive to this framing."
+          },
+          {
+            "type": "DeepDive",
+            "title": "\ud83d\udfe1 Convergent Evolution: Different Language Models Learn Similar Number Representations (Fu et al.)",
+            "content": "**arXiv:2604.20817** \u2014 Transformers, Linear RNNs, LSTMs, and classical embeddings all learn periodic features for numbers (periods T=2,5,10), but only some learn geometrically separable features usable for linear classification. They prove Fourier sparsity is necessary but not sufficient for separability.\n\n**Why it matters:** The 'convergent evolution' framing \u2014 diverse architectures learn similar features from different training signals \u2014 connects to our Mentalese Grammar question: do different architectures learn the same internal grammar? Their finding that architecture, optimizer, and tokenizer all affect whether features become geometrically separable is relevant to our SAE alignment work. If number representations converge across architectures, do structural representations (case features, thematic roles) also converge?"
+          },
+          {
+            "type": "DeepDive",
+            "title": "\ud83d\udfe1 Diagnosing CFG Interpretation in LLMs (Li et al.)",
+            "content": "**arXiv:2604.20811** \u2014 Tests LLMs on in-context CFG interpretation. Finds 'hierarchical degradation': surface syntax maintained but structural semantics fail under deep recursion. 'Alien lexicons' show LLMs rely on semantic bootstrapping rather than symbolic induction.\n\n**Why it matters:** Their 'hierarchical degradation' mirrors our Phase 5 finding that 130M models generating coherent text are structurally at chance. Their 'semantic bootstrapping' finding is our v4e result (same architecture, plain text \u2192 GP crashes from 65% to 29%). Both point to the same conclusion: structural competence doesn't emerge automatically from language modeling \u2014 it requires explicit structural signal, whether through Hydra's tag interleaving or through the kind of inductive bias Madhyastha proposes."
+          }
+        ]
+      },
+      {
+        "type": "Section",
         "title": "April 22, 2026 \u2014 Quiet Day",
         "children": [
           {
@@ -153,7 +178,9 @@
               },
               {
                 "type": "Callout",
-                "props": { "type": "warning" },
+                "props": {
+                  "type": "warning"
+                },
                 "children": [
                   {
                     "type": "p",
@@ -175,7 +202,9 @@
               },
               {
                 "type": "Callout",
-                "props": { "type": "info" },
+                "props": {
+                  "type": "info"
+                },
                 "children": [
                   {
                     "type": "p",
@@ -211,7 +240,9 @@
               },
               {
                 "type": "Callout",
-                "props": { "type": "warning" },
+                "props": {
+                  "type": "warning"
+                },
                 "children": [
                   {
                     "type": "p",
@@ -233,7 +264,9 @@
               },
               {
                 "type": "Callout",
-                "props": { "type": "info" },
+                "props": {
+                  "type": "info"
+                },
                 "children": [
                   {
                     "type": "p",
@@ -255,7 +288,9 @@
           },
           {
             "type": "Callout",
-            "props": { "type": "info" },
+            "props": {
+              "type": "info"
+            },
             "children": [
               {
                 "type": "p",
@@ -275,7 +310,9 @@
           },
           {
             "type": "Callout",
-            "props": { "type": "info" },
+            "props": {
+              "type": "info"
+            },
             "children": [
               {
                 "type": "p",
@@ -295,7 +332,9 @@
           },
           {
             "type": "Callout",
-            "props": { "type": "warning" },
+            "props": {
+              "type": "warning"
+            },
             "children": [
               {
                 "type": "p",
@@ -309,7 +348,9 @@
           },
           {
             "type": "Callout",
-            "props": { "type": "info" },
+            "props": {
+              "type": "info"
+            },
             "children": [
               {
                 "type": "p",
@@ -329,23 +370,27 @@
         "children": [
           {
             "type": "p",
-            "children": "Thursday batch (April 9 submissions). ~12 papers scanned across cs.AI and cs.CL. Two caught our eye — both connect to the Hydra knowledge store integration we're building right now."
+            "children": "Thursday batch (April 9 submissions). ~12 papers scanned across cs.AI and cs.CL. Two caught our eye \u2014 both connect to the Hydra knowledge store integration we're building right now."
           },
           {
             "type": "Section",
-            "props": { "title": "\uD83D\uDFE1 Cram Less to Fit More (arXiv:2604.08519)" },
+            "props": {
+              "title": "\ud83d\udfe1 Cram Less to Fit More (arXiv:2604.08519)"
+            },
             "children": [
               {
                 "type": "p",
-                "children": "Ye, Feldman & Talwar formalize fact memorization information-theoretically and show that LLMs memorize facts suboptimally when training data contains more facts than model capacity allows. Data pruning (flattening the fact frequency distribution) lets GPT-2 Small (110M) memorize 1.3× more entity facts, matching a 10× larger model."
+                "children": "Ye, Feldman & Talwar formalize fact memorization information-theoretically and show that LLMs memorize facts suboptimally when training data contains more facts than model capacity allows. Data pruning (flattening the fact frequency distribution) lets GPT-2 Small (110M) memorize 1.3\u00d7 more entity facts, matching a 10\u00d7 larger model."
               },
               {
                 "type": "Callout",
-                "props": { "type": "warning" },
+                "props": {
+                  "type": "warning"
+                },
                 "children": [
                   {
                     "type": "p",
-                    "children": "Why it matters: This is the strongest empirical support yet for our core claim — that cramming facts into parameters is fundamentally capacity-limited. Their information-theoretic bound on fact memorization is exactly the problem our lambda knowledge store is designed to solve. Instead of optimizing the training distribution to fit more facts into weights, we externalize facts entirely. Their result (110M matching 1.3B through data curation) is impressive, but our approach is more radical: the model doesn't memorize facts at all, it queries them. The capacity freed up can be spent on reasoning and language."
+                    "children": "Why it matters: This is the strongest empirical support yet for our core claim \u2014 that cramming facts into parameters is fundamentally capacity-limited. Their information-theoretic bound on fact memorization is exactly the problem our lambda knowledge store is designed to solve. Instead of optimizing the training distribution to fit more facts into weights, we externalize facts entirely. Their result (110M matching 1.3B through data curation) is impressive, but our approach is more radical: the model doesn't memorize facts at all, it queries them. The capacity freed up can be spent on reasoning and language."
                   }
                 ]
               }
@@ -353,19 +398,23 @@
           },
           {
             "type": "Section",
-            "props": { "title": "\uD83D\uDFE1 The Implicit Curriculum Hypothesis (arXiv:2604.08510)" },
+            "props": {
+              "title": "\ud83d\udfe1 The Implicit Curriculum Hypothesis (arXiv:2604.08510)"
+            },
             "children": [
               {
                 "type": "p",
-                "children": "Liu et al. show that pretraining follows a compositional curriculum — skills emerge in consistent order across model families (ρ=.81 across 45 model pairs), with composite tasks emerging after their components. The ordering is readable from model representations (function vectors predict training trajectories, R²=.68-.84)."
+                "children": "Liu et al. show that pretraining follows a compositional curriculum \u2014 skills emerge in consistent order across model families (\u03c1=.81 across 45 model pairs), with composite tasks emerging after their components. The ordering is readable from model representations (function vectors predict training trajectories, R\u00b2=.68-.84)."
               },
               {
                 "type": "Callout",
-                "props": { "type": "warning" },
+                "props": {
+                  "type": "warning"
+                },
                 "children": [
                   {
                     "type": "p",
-                    "children": "Why it matters: This connects beautifully to Hydra's multi-head architecture. If pretraining has a hidden curriculum where skills compose, then Hydra's explicit heads (phrase structure → thematic roles → information structure) might be providing the curriculum that standard models must discover implicitly. The blank discovery head is especially interesting here — it should learn whatever emerges next in the implicit curriculum after our three named heads provide their foundations. Also connects to the fiber bundle framing: if skills emerge compositionally, the fibers (linguistic annotation streams) should compose similarly."
+                    "children": "Why it matters: This connects beautifully to Hydra's multi-head architecture. If pretraining has a hidden curriculum where skills compose, then Hydra's explicit heads (phrase structure \u2192 thematic roles \u2192 information structure) might be providing the curriculum that standard models must discover implicitly. The blank discovery head is especially interesting here \u2014 it should learn whatever emerges next in the implicit curriculum after our three named heads provide their foundations. Also connects to the fiber bundle framing: if skills emerge compositionally, the fibers (linguistic annotation streams) should compose similarly."
                   }
                 ]
               }
@@ -387,7 +436,9 @@
           },
           {
             "type": "Callout",
-            "props": { "type": "info" },
+            "props": {
+              "type": "info"
+            },
             "children": [
               {
                 "type": "p",
@@ -411,7 +462,9 @@
           },
           {
             "type": "Callout",
-            "props": { "type": "info" },
+            "props": {
+              "type": "info"
+            },
             "children": [
               {
                 "type": "p",
@@ -421,7 +474,9 @@
           },
           {
             "type": "DeepDive",
-            "props": { "title": "\ud83d\udfe1 How LLMs Follow Instructions: Skillful Coordination, Not a Universal Mechanism (2604.06015)" },
+            "props": {
+              "title": "\ud83d\udfe1 How LLMs Follow Instructions: Skillful Coordination, Not a Universal Mechanism (2604.06015)"
+            },
             "children": [
               {
                 "type": "p",
@@ -449,7 +504,9 @@
           },
           {
             "type": "Callout",
-            "props": { "type": "warning" },
+            "props": {
+              "type": "warning"
+            },
             "children": [
               {
                 "type": "p",
@@ -459,7 +516,9 @@
           },
           {
             "type": "DeepDive",
-            "props": { "title": "\ud83d\udfe1 MemMachine: Ground-Truth-Preserving Memory (2604.04853)" },
+            "props": {
+              "title": "\ud83d\udfe1 MemMachine: Ground-Truth-Preserving Memory (2604.04853)"
+            },
             "children": [
               {
                 "type": "p",
@@ -473,7 +532,9 @@
           },
           {
             "type": "DeepDive",
-            "props": { "title": "\ud83d\udfe1 Springdrift: The 'Artificial Retainer' Runtime" },
+            "props": {
+              "title": "\ud83d\udfe1 Springdrift: The 'Artificial Retainer' Runtime"
+            },
             "children": [
               {
                 "type": "p",
@@ -487,7 +548,9 @@
           },
           {
             "type": "DeepDive",
-            "props": { "title": "\ud83d\udfe1 SuperLocalMemory V3.3: Ebbinghaus Meets Fisher-Rao" },
+            "props": {
+              "title": "\ud83d\udfe1 SuperLocalMemory V3.3: Ebbinghaus Meets Fisher-Rao"
+            },
             "children": [
               {
                 "type": "p",
@@ -501,7 +564,9 @@
           },
           {
             "type": "DeepDive",
-            "props": { "title": "\ud83d\udfe1 Topology of Multimodal Fusion: Fiber Bundles for AI" },
+            "props": {
+              "title": "\ud83d\udfe1 Topology of Multimodal Fusion: Fiber Bundles for AI"
+            },
             "children": [
               {
                 "type": "p",
