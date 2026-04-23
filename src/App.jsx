@@ -8,7 +8,6 @@ import GoogleDriveDemo from './pages/GoogleDriveDemo.jsx'
 import ImplicationsGraph from './pages/ImplicationsGraph.jsx'
 import ThoughtBlend from './tutorials/ThoughtBlend/index.jsx'
 import Peptides from './tutorials/Peptides.jsx'
-import PasswordGate from './components/PasswordGate.jsx'
 import './App.css'
 
 // GitHub Pages needs basename, Netlify serves from root
@@ -18,20 +17,18 @@ const basename = window.location.hostname.includes('github.io')
 
 function App() {
   return (
-    <PasswordGate>
-      <Router basename={basename}>
-        <Routes>
-          <Route path="/" element={<Listing />} />
-          <Route path="/tutorial/:tutorialId" element={<TutorialWrapper />} />
-          <Route path="/tree/:tutorialId" element={<TreeWrapper />} />
-          <Route path="/quiz/:tutorialId" element={<QuizWrapper />} />
-          <Route path="/drive-demo" element={<GoogleDriveDemo />} />
-          <Route path="/implications" element={<ImplicationsGraph />} />
-          <Route path="/thoughtblend" element={<ThoughtBlend />} />
-          <Route path="/peptides" element={<Peptides />} />
-        </Routes>
-      </Router>
-    </PasswordGate>
+    <Router basename={basename}>
+      <Routes>
+        <Route path="/" element={<Listing />} />
+        <Route path="/tutorial/:tutorialId" element={<TutorialWrapper />} />
+        <Route path="/tree/:tutorialId" element={<TreeWrapper />} />
+        <Route path="/quiz/:tutorialId" element={<QuizWrapper />} />
+        <Route path="/drive-demo" element={<GoogleDriveDemo />} />
+        <Route path="/implications" element={<ImplicationsGraph />} />
+        <Route path="/thoughtblend" element={<ThoughtBlend />} />
+        <Route path="/peptides" element={<Peptides />} />
+      </Routes>
+    </Router>
   )
 }
 
