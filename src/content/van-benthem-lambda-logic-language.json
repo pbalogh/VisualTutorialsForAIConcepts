@@ -1,7 +1,7 @@
 {
   "id": "van-benthem-lambda-logic-language",
   "title": "Lambda Calculus: The Bridge Between Logic and Language",
-  "subtitle": "How van Benthem proved that categorial grammar IS lambda calculus \u2014 and what this means for structured knowledge",
+  "subtitle": "How van Benthem proved that categorial grammar IS lambda calculus — and what this means for structured knowledge",
   "readTime": "20 min",
   "state": "published",
   "content": {
@@ -15,11 +15,11 @@
         "children": [
           {
             "type": "p",
-            "children": "Here's a sentence: \"Every student passed.\" You understand it instantly. But what did your brain actually DO? It didn't just look up three words \u2014 it performed a computation. 'Every' is a function that takes a noun ('student') and returns another function that takes a verb phrase ('passed') and produces a truth value."
+            "children": "Here's a sentence: \"Every student passed.\" You understand it instantly. But what did your brain actually DO? It didn't just look up three words — it performed a computation. 'Every' is a function that takes a noun ('student') and returns another function that takes a verb phrase ('passed') and produces a truth value."
           },
           {
             "type": "p",
-            "children": "This is the core insight of categorial grammar, going back to Ajdukiewicz (1935) and Bar-Hillel (1953): words have TYPES, and sentence understanding is TYPE CHECKING. A sentence is grammatical (and meaningful) when its types compose correctly \u2014 like fitting puzzle pieces together."
+            "children": "This is the core insight of categorial grammar, going back to Ajdukiewicz (1935) and Bar-Hillel (1953): words have TYPES, and sentence understanding is TYPE CHECKING. A sentence is grammatical (and meaningful) when its types compose correctly — like fitting puzzle pieces together."
           },
           {
             "type": "Callout",
@@ -29,7 +29,7 @@
             "children": [
               {
                 "type": "p",
-                "children": "Van Benthem's key contribution: he proved this type-checking system is EXACTLY equivalent to the lambda calculus. Not metaphorically. Not approximately. The Lambek calculus L and the linear lambda calculus \u039b are the same thing (the L=\u039b theorem). Every grammatical derivation corresponds to a lambda term, and every lambda term corresponds to a derivation."
+                "children": "Van Benthem's key contribution: he proved this type-checking system is EXACTLY equivalent to the lambda calculus. Not metaphorically. Not approximately. The Lambek calculus L and the linear lambda calculus Λ are the same thing (the L=Λ theorem). Every grammatical derivation corresponds to a lambda term, and every lambda term corresponds to a derivation."
               }
             ]
           }
@@ -51,23 +51,23 @@
               "items": [
                 {
                   "term": "Proper names: type e",
-                  "definition": "'Romeo' denotes an entity. It's the simplest type \u2014 no computation needed, just a pointer to a thing in the world."
+                  "definition": "'Romeo' denotes an entity. It's the simplest type — no computation needed, just a pointer to a thing in the world."
                 },
                 {
                   "term": "Intransitive verbs: type (e, t)",
-                  "definition": "'Sleeps' is a function from entities to truth values. Give it Romeo, it returns true or false. In lambda notation: \u03bbx.sleeps(x)."
+                  "definition": "'Sleeps' is a function from entities to truth values. Give it Romeo, it returns true or false. In lambda notation: λx.sleeps(x)."
                 },
                 {
                   "term": "Transitive verbs: type (e, (e, t))",
-                  "definition": "'Loves' takes an entity (the object) and returns a function from entities to truth values. \u03bby.\u03bbx.loves(x,y). 'Loves Romeo' has type (e, t) \u2014 it's now an intransitive verb waiting for a subject."
+                  "definition": "'Loves' takes an entity (the object) and returns a function from entities to truth values. λy.λx.loves(x,y). 'Loves Romeo' has type (e, t) — it's now an intransitive verb waiting for a subject."
                 },
                 {
                   "term": "Determiners: type ((e,t), ((e,t), t))",
-                  "definition": "'Every' takes a noun (property) and returns a function that takes a verb phrase (another property) and returns a truth value. It's a function of functions of functions. \u03bbP.\u03bbQ.\u2200x[P(x) \u2192 Q(x)]."
+                  "definition": "'Every' takes a noun (property) and returns a function that takes a verb phrase (another property) and returns a truth value. It's a function of functions of functions. λP.λQ.∀x[P(x) → Q(x)]."
                 },
                 {
                   "term": "Noun phrases: type ((e,t), t)",
-                  "definition": "'Every student' takes a verb phrase and returns a truth value. The determiner has already consumed the noun, producing a 'quantified' noun phrase: \u03bbQ.\u2200x[student(x) \u2192 Q(x)]."
+                  "definition": "'Every student' takes a verb phrase and returns a truth value. The determiner has already consumed the noun, producing a 'quantified' noun phrase: λQ.∀x[student(x) → Q(x)]."
                 }
               ]
             }
@@ -76,7 +76,7 @@
             "type": "Sidebar",
             "props": {
               "type": "note",
-              "title": "Q: Does this mean there's also a version that does \u03bby.\u03bbx.loves(y,x) so that you can give it the subject right away and then give the return-value-function the object later?",
+              "title": "Q: Does this mean there's also a version that does λy.λx.loves(y,x) so that you can give it the subject right away and then give the return-value-function the object later?",
               "expanded": true,
               "id": "ann-1776973951750-goyeen",
               "sourceId": "source-ann-1776973951750-goyeen"
@@ -84,11 +84,11 @@
             "children": [
               {
                 "type": "p",
-                "children": "Yes, exactly right. You could absolutely define a version like \u03bbx.\u03bby.loves(x,y), where you feed in the subject first and the object second. Both versions encode the same two-place relation, just with the arguments curried in opposite order. The choice of which argument to bind first is a design decision, not a logical necessity."
+                "children": "Yes, exactly right. You could absolutely define a version like λx.λy.loves(x,y), where you feed in the subject first and the object second. Both versions encode the same two-place relation, just with the arguments curried in opposite order. The choice of which argument to bind first is a design decision, not a logical necessity."
               },
               {
                 "type": "p",
-                "children": "The reason this tutorial uses \u03bby.\u03bbx.loves(x,y), binding the object first, is that it mirrors how natural language syntax works in English. When you say \"loves Romeo,\" the verb has already picked up its object. What you're left with is something that still needs a subject, giving you the type (e, t), which is the same type as an intransitive verb like \"walks.\" This is incredibly useful because it means \"loves Romeo\" and \"walks\" can now slot into exactly the same syntactic position. Juliet walks. Juliet loves Romeo. The subject combines with both in the same way."
+                "children": "The reason this tutorial uses λy.λx.loves(x,y), binding the object first, is that it mirrors how natural language syntax works in English. When you say \"loves Romeo,\" the verb has already picked up its object. What you're left with is something that still needs a subject, giving you the type (e, t), which is the same type as an intransitive verb like \"walks.\" This is incredibly useful because it means \"loves Romeo\" and \"walks\" can now slot into exactly the same syntactic position. Juliet walks. Juliet loves Romeo. The subject combines with both in the same way."
               },
               {
                 "type": "p",
@@ -103,7 +103,7 @@
                 "props": {
                   "className": "text-xs text-gray-400 mt-2"
                 },
-                "children": "Asked about \"\u03bby.\u03bbx.loves(x,y)\" \u2014 4/23/2026, 3:52:13 PM"
+                "children": "Asked about \"λy.λx.loves(x,y)\" — 4/23/2026, 3:52:13 PM"
               }
             ]
           },
@@ -115,7 +115,7 @@
             "children": [
               {
                 "type": "p",
-                "children": "Notice the pattern: combining expressions is function application. 'Every student passed' = (\u03bbQ.\u2200x[student(x) \u2192 Q(x)])(\u03bby.passed(y)) = \u2200x[student(x) \u2192 passed(x)]. The sentence's MEANING falls out mechanically from the types. No special rules needed \u2014 just beta-reduction."
+                "children": "Notice the pattern: combining expressions is function application. 'Every student passed' = (λQ.∀x[student(x) → Q(x)])(λy.passed(y)) = ∀x[student(x) → passed(x)]. The sentence's MEANING falls out mechanically from the types. No special rules needed — just beta-reduction."
               }
             ]
           }
@@ -133,7 +133,7 @@
           },
           {
             "type": "p",
-            "children": "Lambek (1958) proposed a calculus of TYPE CHANGES. An expression can shift to a higher type when the context demands it. Geach's rule: if something has type (a, b), it can also function as ((c, a), (c, b)) \u2014 it 'lifts' to operate on functions rather than plain arguments."
+            "children": "Lambek (1958) proposed a calculus of TYPE CHANGES. An expression can shift to a higher type when the context demands it. Geach's rule: if something has type (a, b), it can also function as ((c, a), (c, b)) — it 'lifts' to operate on functions rather than plain arguments."
           },
           {
             "type": "InteractiveDemo",
@@ -142,20 +142,20 @@
               "description": "Watch how 'Romeo' (a simple entity) gets lifted to interact with quantified expressions. Each layer shows a more complex type assignment for the same word.",
               "steps": [
                 {
-                  "label": "Level 0: Romeo as entity \u2014 type e",
+                  "label": "Level 0: Romeo as entity — type e",
                   "detail": "Romeo denotes a single individual in the domain. Type: e. This is the base case. 'Romeo sleeps' works by simple function application: sleeps(Romeo)."
                 },
                 {
-                  "label": "Level 1: Romeo as noun phrase \u2014 type ((e,t), t)",
-                  "detail": "To combine with 'every student loves ___', Romeo must become a quantified NP. Lifting: \u03bbP.P(Romeo). Now 'Romeo' is a function that takes a property and tests whether Romeo has it. Same denotation, higher type. This is the Montague lift."
+                  "label": "Level 1: Romeo as noun phrase — type ((e,t), t)",
+                  "detail": "To combine with 'every student loves ___', Romeo must become a quantified NP. Lifting: λP.P(Romeo). Now 'Romeo' is a function that takes a property and tests whether Romeo has it. Same denotation, higher type. This is the Montague lift."
                 },
                 {
-                  "label": "Level 2: Romeo in object position \u2014 type ((e,(e,t)), (e,t))",
-                  "detail": "'Loves Romeo' requires Romeo to combine with a transitive verb directly. Another lift: \u03bbR.\u03bbx.R(Romeo)(x). Romeo now 'wraps around' a two-place relation, filling its object slot. Result: 'loves Romeo' has type (e,t) \u2014 an intransitive verb."
+                  "label": "Level 2: Romeo in object position — type ((e,(e,t)), (e,t))",
+                  "detail": "'Loves Romeo' requires Romeo to combine with a transitive verb directly. Another lift: λR.λx.R(Romeo)(x). Romeo now 'wraps around' a two-place relation, filling its object slot. Result: 'loves Romeo' has type (e,t) — an intransitive verb."
                 },
                 {
                   "label": "The key insight: all these are the SAME Romeo",
-                  "detail": "Van Benthem proves that every type-lifted version preserves the original denotation \u2014 it just repackages it for a new grammatical context. The Lambek calculus generates exactly the right type changes, no more, no less. And each corresponds to a lambda term that is a 'trivial' wrapper around the base meaning."
+                  "detail": "Van Benthem proves that every type-lifted version preserves the original denotation — it just repackages it for a new grammatical context. The Lambek calculus generates exactly the right type changes, no more, no less. And each corresponds to a lambda term that is a 'trivial' wrapper around the base meaning."
                 }
               ]
             }
@@ -165,12 +165,12 @@
       {
         "type": "Section",
         "props": {
-          "title": "L = \u039b: The Equivalence Theorem"
+          "title": "L = Λ: The Equivalence Theorem"
         },
         "children": [
           {
             "type": "p",
-            "children": "Here's van Benthem's central result: a sequent a\u2081, ..., a\u2099 \u21d2 b is derivable in the Lambek calculus L if and only if there exists a linear lambda term of type b whose free variables are exactly x_a\u2081, ..., x_a\u2099."
+            "children": "Here's van Benthem's central result: a sequent a₁, ..., aₙ ⇒ b is derivable in the Lambek calculus L if and only if there exists a linear lambda term of type b whose free variables are exactly x_a₁, ..., x_aₙ."
           },
           {
             "type": "p",
@@ -182,11 +182,11 @@
               "steps": [
                 {
                   "title": "Step 1: From grammar to lambda terms",
-                  "description": "Every Modus Ponens step (function application) becomes beta-reduction: f(a) in the grammar becomes (\u03bbx.body)(a) \u2192 body[a/x] in the lambda term. Every Conditionalization (creating a function) becomes lambda abstraction: 'assuming x, we derived y' becomes \u03bbx.y."
+                  "description": "Every Modus Ponens step (function application) becomes beta-reduction: f(a) in the grammar becomes (λx.body)(a) → body[a/x] in the lambda term. Every Conditionalization (creating a function) becomes lambda abstraction: 'assuming x, we derived y' becomes λx.y."
                 },
                 {
                   "title": "Step 2: The linearity constraint",
-                  "description": "The key restriction: each variable must be used EXACTLY ONCE. No duplication (can't use the same word twice), no deletion (can't ignore a word). This makes Lambek's calculus a LINEAR logic \u2014 and it's why it matches natural language, where every word in the sentence must contribute exactly once to the meaning."
+                  "description": "The key restriction: each variable must be used EXACTLY ONCE. No duplication (can't use the same word twice), no deletion (can't ignore a word). This makes Lambek's calculus a LINEAR logic — and it's why it matches natural language, where every word in the sentence must contribute exactly once to the meaning."
                 },
                 {
                   "title": "Step 3: From lambda terms to grammar",
@@ -194,7 +194,7 @@
                 },
                 {
                   "title": "Step 4: Decidability",
-                  "description": "Because the Lambek calculus is decidable (Lambek proved this via cut elimination), and L=\u039b, we know that the question 'is this a valid type change?' is always answerable. There's an algorithm. Natural language type-checking is computable."
+                  "description": "Because the Lambek calculus is decidable (Lambek proved this via cut elimination), and L=Λ, we know that the question 'is this a valid type change?' is always answerable. There's an algorithm. Natural language type-checking is computable."
                 }
               ]
             }
@@ -207,7 +207,7 @@
             "children": [
               {
                 "type": "p",
-                "children": "The linearity constraint is crucial. Ordinary lambda calculus allows \u03bbx.f(x,x) (using x twice) and \u03bbx.y (ignoring x entirely). The Lambek/linear version forbids both. This mirrors natural language: 'Every student every passed' is ungrammatical (duplicate), and '*Every passed' is ungrammatical (missing argument). Linearity IS grammaticality."
+                "children": "The linearity constraint is crucial. Ordinary lambda calculus allows λx.f(x,x) (using x twice) and λx.y (ignoring x entirely). The Lambek/linear version forbids both. This mirrors natural language: 'Every student every passed' is ungrammatical (duplicate), and '*Every passed' is ungrammatical (missing argument). Linearity IS grammaticality."
               }
             ]
           }
@@ -225,13 +225,13 @@
           },
           {
             "type": "p",
-            "children": "Consider the assertion: CLAIMS(subject=\"modality\", claim=\"grammar about non-real situations\"). This is a function application: the operator CLAIMS is applied to its arguments. In van Benthem's framework, this is a generalized quantifier \u2014 it takes a property (the subject domain) and another property (the claim) and returns a truth value in a possible world."
+            "children": "Consider the assertion: CLAIMS(subject=\"modality\", claim=\"grammar about non-real situations\"). This is a function application: the operator CLAIMS is applied to its arguments. In van Benthem's framework, this is a generalized quantifier — it takes a property (the subject domain) and another property (the claim) and returns a truth value in a possible world."
           },
           {
             "type": "InteractiveDemo",
             "props": {
               "title": "Linguistic Analysis of a Lambda Store Assertion",
-              "description": "Watch how a single Lambda Store assertion decomposes into van Benthem's type system \u2014 and how the types guarantee well-formedness.",
+              "description": "Watch how a single Lambda Store assertion decomposes into van Benthem's type system — and how the types guarantee well-formedness.",
               "steps": [
                 {
                   "label": "The assertion: HYPOTHESIZES(subject=\"agreement\", claim=\"lives in PS channels\", speaker=\"assistant\")",
@@ -239,15 +239,15 @@
                 },
                 {
                   "label": "Type analysis: HYPOTHESIZES has type ((e,t), ((e,t), s))",
-                  "detail": "Where s = speech-act type. It takes a subject property (agreement: type (e,t)), a claim property (lives-in-PS: type (e,t)), and produces a speech act of type s. The speaker parameter adds a third argument. The full type is ((e,t), ((e,t), (e, s))) \u2014 subject, claim, speaker \u2192 speech act."
+                  "detail": "Where s = speech-act type. It takes a subject property (agreement: type (e,t)), a claim property (lives-in-PS: type (e,t)), and produces a speech act of type s. The speaker parameter adds a third argument. The full type is ((e,t), ((e,t), (e, s))) — subject, claim, speaker → speech act."
                 },
                 {
                   "label": "The modality dimension: worlds enter via accessibility",
-                  "detail": "Because HYPOTHESIZES is conjectural (not actual), the assertion's truth value is evaluated not in the actual world w\u2080 but in epistemically accessible worlds. In van Benthem's framework: \u25a1(agreement-in-PS) is true in w\u2080 iff agreement-in-PS is true in all worlds accessible from w\u2080 via the epistemic relation R."
+                  "detail": "Because HYPOTHESIZES is conjectural (not actual), the assertion's truth value is evaluated not in the actual world w₀ but in epistemically accessible worlds. In van Benthem's framework: □(agreement-in-PS) is true in w₀ iff agreement-in-PS is true in all worlds accessible from w₀ via the epistemic relation R."
                 },
                 {
                   "label": "The composition: types check, meaning falls out",
-                  "detail": "Just like 'every student passed', the assertion's meaning is computed by mechanical function application. The type system guarantees well-formedness: you CAN'T assert HYPOTHESIZES(claim=\"lives in PS\") without a subject \u2014 it would be a type error, like 'every passed' without a noun. Van Benthem's L=\u039b theorem says this type-checking IS the grammar."
+                  "detail": "Just like 'every student passed', the assertion's meaning is computed by mechanical function application. The type system guarantees well-formedness: you CAN'T assert HYPOTHESIZES(claim=\"lives in PS\") without a subject — it would be a type error, like 'every passed' without a noun. Van Benthem's L=Λ theorem says this type-checking IS the grammar."
                 }
               ]
             }
@@ -262,23 +262,23 @@
         "children": [
           {
             "type": "p",
-            "children": "Van Benthem's Chapter 6 proposes something radical: a 'natural logic' that reasons directly from linguistic form, without first translating to predicate logic. The mechanism? Monotonicity \u2014 the same property that makes some quantifiers 'upward entailing' and others 'downward entailing.'"
+            "children": "Van Benthem's Chapter 6 proposes something radical: a 'natural logic' that reasons directly from linguistic form, without first translating to predicate logic. The mechanism? Monotonicity — the same property that makes some quantifiers 'upward entailing' and others 'downward entailing.'"
           },
           {
             "type": "DefinitionList",
             "props": {
               "items": [
                 {
-                  "term": "Upward monotone (positive position): \u2191",
-                  "definition": "If the statement is true for X, it's true for any Y \u2287 X. 'Some students passed' \u2192 'Some people passed' (students \u2286 people). Going UP the type hierarchy preserves truth."
+                  "term": "Upward monotone (positive position): ↑",
+                  "definition": "If the statement is true for X, it's true for any Y ⊇ X. 'Some students passed' → 'Some people passed' (students ⊆ people). Going UP the type hierarchy preserves truth."
                 },
                 {
-                  "term": "Downward monotone (negative position): \u2193",
-                  "definition": "If the statement is true for X, it's true for any Y \u2286 X. 'No students passed' \u2192 'No linguistics students passed' (linguistics students \u2286 students). Going DOWN preserves truth."
+                  "term": "Downward monotone (negative position): ↓",
+                  "definition": "If the statement is true for X, it's true for any Y ⊆ X. 'No students passed' → 'No linguistics students passed' (linguistics students ⊆ students). Going DOWN preserves truth."
                 },
                 {
                   "term": "The multiplication rule",
-                  "definition": "Polarity percolates through syntax by multiplication: (+)(+)=+, (+)(-)=-, (-)(+)=-, (-)(-)=+. A negative position inside a negative position becomes positive. 'Nobody doubts that every student passed' \u2014 'every' is in a doubly-negative position, so it's positive: you can weaken 'student' to 'person.'"
+                  "definition": "Polarity percolates through syntax by multiplication: (+)(+)=+, (+)(-)=-, (-)(+)=-, (-)(-)=+. A negative position inside a negative position becomes positive. 'Nobody doubts that every student passed' — 'every' is in a doubly-negative position, so it's positive: you can weaken 'student' to 'person.'"
                 }
               ]
             }
@@ -291,15 +291,15 @@
             "children": [
               {
                 "type": "p",
-                "children": "Sentence: 'No\u207b pretty\u207a girl\u207a loves\u207a a\u207a cat\u207a'"
+                "children": "Sentence: 'No⁻ pretty⁺ girl⁺ loves⁺ a⁺ cat⁺'"
               },
               {
                 "type": "p",
-                "children": "The superscripts show polarity. 'No' is downward monotone in its first argument (girl) \u2014 making that position negative. But 'girl' combines with 'pretty' (intersectively), keeping it positive within the NP. The verb phrase 'loves a cat' is in the scope of 'no', making it negative overall."
+                "children": "The superscripts show polarity. 'No' is downward monotone in its first argument (girl) — making that position negative. But 'girl' combines with 'pretty' (intersectively), keeping it positive within the NP. The verb phrase 'loves a cat' is in the scope of 'no', making it negative overall."
               },
               {
                 "type": "p",
-                "children": "Valid inferences (from the markings alone): 'No pretty girl loves a cat' \u2192 'No girl desperately loves a cat' (\u2193 on 'pretty', removing a restriction). \u2192 'No pretty girl loves a curly cat' (\u2193 on 'cat', adding a restriction in a negative position). All derivable mechanically from the polarity marks \u2014 no predicate logic needed."
+                "children": "Valid inferences (from the markings alone): 'No pretty girl loves a cat' → 'No girl desperately loves a cat' (↓ on 'pretty', removing a restriction). → 'No pretty girl loves a curly cat' (↓ on 'cat', adding a restriction in a negative position). All derivable mechanically from the polarity marks — no predicate logic needed."
               }
             ]
           },
@@ -311,7 +311,53 @@
             "children": [
               {
                 "type": "p",
-                "children": "The connection to the Lambda Store: monotonicity tells us which entailments are SAFE. If our store contains CLAIMS(subject='students', claim='passed the exam'), we can safely infer the weaker CLAIMS(subject='people', claim='passed the exam') \u2014 because 'students \u2286 people' and the claim position is upward monotone. Natural logic gives us a SOUND (if incomplete) inference engine that works directly on the store's assertions."
+                "children": [
+                  "The connection to the Lambda Store: monotonicity tells us which entailments are SAFE. If our store contains CLAIMS(subject='students', claim='passed the exam'), we can safely infer the weaker CLAIMS(subject='people', claim='passed the exam') — because 'students ⊆ people'",
+                  {
+                    "type": "FootnoteRef",
+                    "props": {
+                      "id": "source-ann-1776975567863-81bebu",
+                      "targetId": "ann-1776975567863-81bebu",
+                      "type": "ask"
+                    }
+                  },
+                  " and the claim position is upward monotone. Natural logic gives us a SOUND (if incomplete) inference engine that works directly on the store's assertions."
+                ]
+              }
+            ]
+          },
+          {
+            "type": "Sidebar",
+            "props": {
+              "type": "note",
+              "title": "Q: Of course *we* know that students are a subset of people. But how does our lambda store know this, exactly?",
+              "expanded": true,
+              "id": "ann-1776975567863-81bebu",
+              "sourceId": "source-ann-1776975567863-81bebu"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "Great question — and it cuts right to the heart of what makes this practical rather than theoretical."
+              },
+              {
+                "type": "p",
+                "children": "The honest answer is: the lambda store doesn't know this automatically. Subset relationships like \"students ⊆ people\" have to be explicitly represented in the store, just like any other fact. You might store this as a relation like IS_A(student, person) or SUBSET(students, people), or even as a lambda term that encodes the typing hierarchy. Someone — or some ingestion process — has to put that knowledge in. The store is only as smart as what you tell it."
+              },
+              {
+                "type": "p",
+                "children": "This is where things get interesting in practice. You can bootstrap a basic ontology by asserting a handful of hypernym relationships: students are people, dogs are animals, roses are flowers. These form a partial order, essentially a lattice of types. Then when the monotonicity engine wants to check whether an inference is safe, it walks this lattice. It sees \"students\" in the subject position, checks whether that position is upward monotone, then looks up whether there is a path from \"students\" to \"people\" in the type hierarchy. If there is, the inference goes through. If there is no path, the inference is blocked — not rejected as false, just not licensed as sound."
+              },
+              {
+                "type": "p",
+                "children": "So the real work is in building and maintaining that type hierarchy inside the store. In a toy system you assert it by hand. In a more serious system you might extract it from a resource like WordNet, where \"student\" is listed as a hyponym of \"person.\" The key insight is that natural logic separates two concerns: the monotonicity calculus tells you where subset relations matter and in which direction, while the store's type hierarchy tells you which subset relations actually hold. Neither is useful without the other."
+              },
+              {
+                "type": "p",
+                "props": {
+                  "className": "text-xs text-gray-400 mt-2"
+                },
+                "children": "Asked about \"'students ⊆ people'\" — 4/23/2026, 4:19:10 PM"
               }
             ]
           }
@@ -325,7 +371,7 @@
         "children": [
           {
             "type": "p",
-            "children": "Van Benthem's most surprising result: natural language quantifiers ARE automata. 'All' is a finite state machine. 'Most' is a push-down automaton. And natural language, with what van Benthem calls 'wise restraint,' stays below the G\u00f6del border \u2014 it uses additive arithmetic but not multiplicative, keeping everything decidable."
+            "children": "Van Benthem's most surprising result: natural language quantifiers ARE automata. 'All' is a finite state machine. 'Most' is a push-down automaton. And natural language, with what van Benthem calls 'wise restraint,' stays below the Gödel border — it uses additive arithmetic but not multiplicative, keeping everything decidable."
           },
           {
             "type": "InteractiveDemo",
@@ -335,19 +381,19 @@
               "steps": [
                 {
                   "label": "State U (accepting): Start here. Every student so far has passed.",
-                  "detail": "Read a 1 (student who passed) \u2192 stay in U. Read a 0 (student who didn't pass) \u2192 move to reject state R. This is the entire machine for 'all.' It's an acyclic finite state automaton \u2014 no loops, no stack, no tape. Just two states and two transitions."
+                  "detail": "Read a 1 (student who passed) → stay in U. Read a 0 (student who didn't pass) → move to reject state R. This is the entire machine for 'all.' It's an acyclic finite state automaton — no loops, no stack, no tape. Just two states and two transitions."
                 },
                 {
                   "label": "State R (rejecting): At least one student has failed.",
-                  "detail": "Once you reach R, you stay in R forever. No amount of future passing students can undo the failure. 'All' is monotone in the strongest sense \u2014 a single counterexample kills it. The automaton captures this by having an absorbing reject state."
+                  "detail": "Once you reach R, you stay in R forever. No amount of future passing students can undo the failure. 'All' is monotone in the strongest sense — a single counterexample kills it. The automaton captures this by having an absorbing reject state."
                 },
                 {
                   "label": "'Most' needs a push-down automaton (stack memory)",
-                  "detail": "'Most students passed' requires COUNTING \u2014 you need to track how many passed vs. how many didn't. A finite state machine can't count unboundedly, but a push-down automaton can: push a 1 for each passing student, pop for each failing one. If the stack has 1s at the end, most passed. This is why 'most' is computationally harder than 'all.'"
+                  "detail": "'Most students passed' requires COUNTING — you need to track how many passed vs. how many didn't. A finite state machine can't count unboundedly, but a push-down automaton can: push a 1 for each passing student, pop for each failing one. If the stack has 1s at the end, most passed. This is why 'most' is computationally harder than 'all.'"
                 },
                 {
-                  "label": "The G\u00f6del border: natural language stops at push-down",
-                  "detail": "Van Benthem observes that natural language quantifiers essentially stay within context-free complexity (push-down automata). The truly hard quantifiers \u2014 those requiring a full Turing machine \u2014 involve multiplication of quantities ('the number of Xs equals the number of Ys times the number of Zs'). Natural language wisely avoids this, staying in decidable territory. Language is powerful enough to be useful, but restrained enough to be parseable."
+                  "label": "The Gödel border: natural language stops at push-down",
+                  "detail": "Van Benthem observes that natural language quantifiers essentially stay within context-free complexity (push-down automata). The truly hard quantifiers — those requiring a full Turing machine — involve multiplication of quantities ('the number of Xs equals the number of Ys times the number of Zs'). Natural language wisely avoids this, staying in decidable territory. Language is powerful enough to be useful, but restrained enough to be parseable."
                 }
               ]
             }
@@ -360,7 +406,7 @@
             "children": [
               {
                 "type": "p",
-                "children": "The connection to SSMs (State Space Models): Mamba processes tokens sequentially, maintaining a hidden state that evolves at each step \u2014 exactly like van Benthem's semantic automata. Each Mamba channel is, in a formal sense, a finite state machine computing a semantic function over the token stream. The Hydra architecture (multiple specialized heads feeding an SSM) is essentially van Benthem's semantic automata made neural."
+                "children": "The connection to SSMs (State Space Models): Mamba processes tokens sequentially, maintaining a hidden state that evolves at each step — exactly like van Benthem's semantic automata. Each Mamba channel is, in a formal sense, a finite state machine computing a semantic function over the token stream. The Hydra architecture (multiple specialized heads feeding an SSM) is essentially van Benthem's semantic automata made neural."
               }
             ]
           }
@@ -374,7 +420,7 @@
         "children": [
           {
             "type": "p",
-            "children": "Van Benthem identifies two constraints that ALL natural language determiners obey \u2014 and argues these are semantic universals, holding across every human language."
+            "children": "Van Benthem identifies two constraints that ALL natural language determiners obey — and argues these are semantic universals, holding across every human language."
           },
           {
             "type": "DefinitionList",
@@ -382,18 +428,18 @@
               "items": [
                 {
                   "term": "Conservativity (CONS)",
-                  "definition": "D(X)(Y) depends only on X and X\u2229Y. 'Every student passed' depends only on the students and which of them passed \u2014 not on non-students. Formally: D(X)(Y) iff D(X)(X\u2229Y). This means the first argument (the noun) SETS THE DOMAIN. You never need to check individuals outside the noun's extension."
+                  "definition": "D(X)(Y) depends only on X and X∩Y. 'Every student passed' depends only on the students and which of them passed — not on non-students. Formally: D(X)(Y) iff D(X)(X∩Y). This means the first argument (the noun) SETS THE DOMAIN. You never need to check individuals outside the noun's extension."
                 },
                 {
                   "term": "Quality (QUANT / topic-neutrality)",
-                  "definition": "D(X)(Y) depends only on the NUMBERS |X\u2229Y|, |X-Y|, |Y-X|, |E-(X\u222aY)| \u2014 not on which specific individuals are involved. 'Most students passed' means the same thing whether we're talking about students in Amsterdam or students in Budapest. The quantifier is 'topic-neutral' \u2014 it doesn't care about individual identity."
+                  "definition": "D(X)(Y) depends only on the NUMBERS |X∩Y|, |X-Y|, |Y-X|, |E-(X∪Y)| — not on which specific individuals are involved. 'Most students passed' means the same thing whether we're talking about students in Amsterdam or students in Budapest. The quantifier is 'topic-neutral' — it doesn't care about individual identity."
                 }
               ]
             }
           },
           {
             "type": "p",
-            "children": "These two constraints together massively reduce the space of possible determiners. On a universe of n individuals, there are 2^(2^n) possible binary relations between sets. Conservativity alone cuts this to 2^(2^(n-1)). Adding Quality reduces it further to the 'Tree of Numbers' \u2014 a discrete combinatorial structure where every determiner can be visualized as a pattern of +/- on integer pairs."
+            "children": "These two constraints together massively reduce the space of possible determiners. On a universe of n individuals, there are 2^(2^n) possible binary relations between sets. Conservativity alone cuts this to 2^(2^(n-1)). Adding Quality reduces it further to the 'Tree of Numbers' — a discrete combinatorial structure where every determiner can be visualized as a pattern of +/- on integer pairs."
           },
           {
             "type": "Example",
@@ -403,7 +449,7 @@
             "children": [
               {
                 "type": "p",
-                "children": "Our Holographic Reduced Representations (HRR) for the Lambda Store inherently satisfy Quality. When we encode CLAIMS(subject='agreement', claim='lives in PS channels'), the circular convolution doesn't care WHETHER agreement is Hydra's agreement or some other agreement \u2014 it cares about the STRUCTURAL ROLE (subject vs. claim). The binding depends on role position, not entity identity."
+                "children": "Our Holographic Reduced Representations (HRR) for the Lambda Store inherently satisfy Quality. When we encode CLAIMS(subject='agreement', claim='lives in PS channels'), the circular convolution doesn't care WHETHER agreement is Hydra's agreement or some other agreement — it cares about the STRUCTURAL ROLE (subject vs. claim). The binding depends on role position, not entity identity."
               },
               {
                 "type": "p",
@@ -429,7 +475,7 @@
               "steps": [
                 {
                   "title": "Grammar = Computation = Lambda Calculus",
-                  "description": "The L=\u039b theorem means that parsing a sentence, computing its meaning, and type-checking a lambda term are the same operation. Our Lambda Store's use of lambda calculus for knowledge representation isn't a metaphor \u2014 it's using the EXACT formalism that natural language itself uses for composition."
+                  "description": "The L=Λ theorem means that parsing a sentence, computing its meaning, and type-checking a lambda term are the same operation. Our Lambda Store's use of lambda calculus for knowledge representation isn't a metaphor — it's using the EXACT formalism that natural language itself uses for composition."
                 },
                 {
                   "title": "Sequential processing is formally sufficient",
@@ -437,11 +483,11 @@
                 },
                 {
                   "title": "Inference can be read from surface form",
-                  "description": "Natural logic via monotonicity marking gives us a sound inference engine that works directly on linguistic structure \u2014 no translation to FOL needed. For a knowledge store, this means entailments can be computed from the store's own assertion format."
+                  "description": "Natural logic via monotonicity marking gives us a sound inference engine that works directly on linguistic structure — no translation to FOL needed. For a knowledge store, this means entailments can be computed from the store's own assertion format."
                 },
                 {
                   "title": "Semantic universals constrain what's possible",
-                  "description": "Conservativity and Quality aren't just observed patterns \u2014 they're hard constraints on any system that wants to process natural language meanings. A knowledge store that violates them (e.g., by making assertions that depend on individual identity rather than structural role) is working against the grain of how language works."
+                  "description": "Conservativity and Quality aren't just observed patterns — they're hard constraints on any system that wants to process natural language meanings. A knowledge store that violates them (e.g., by making assertions that depend on individual identity rather than structural role) is working against the grain of how language works."
                 }
               ]
             }
@@ -454,7 +500,7 @@
             "children": [
               {
                 "type": "p",
-                "children": "Van Benthem's closing thought: 'there is a subject matter for a logic of semantics... chronic quarrels may be replaced by clear-cut questions for research.' Forty years later, the Lambda Store is an attempt to do exactly that \u2014 to replace the chronic quarrel over how AI should store knowledge with a clear formal framework grounded in the same mathematics that governs language itself."
+                "children": "Van Benthem's closing thought: 'there is a subject matter for a logic of semantics... chronic quarrels may be replaced by clear-cut questions for research.' Forty years later, the Lambda Store is an attempt to do exactly that — to replace the chronic quarrel over how AI should store knowledge with a clear formal framework grounded in the same mathematics that governs language itself."
               }
             ]
           }
@@ -471,7 +517,7 @@
             "props": {
               "questions": [
                 {
-                  "question": "What does the L=\u039b theorem say?",
+                  "question": "What does the L=Λ theorem say?",
                   "options": [
                     "The Lambek calculus is more powerful than lambda calculus",
                     "A grammatical derivation exists iff a matching linear lambda term exists",
@@ -479,7 +525,7 @@
                     "All natural languages have the same grammar"
                   ],
                   "correctIndex": 1,
-                  "explanation": "Van Benthem proved that the Lambek calculus L (for categorial grammar) and the linear lambda calculus \u039b accept exactly the same sequents. A sequence of types can compose to a result type iff there exists a linear lambda term witnessing the computation. Grammar IS lambda calculus."
+                  "explanation": "Van Benthem proved that the Lambek calculus L (for categorial grammar) and the linear lambda calculus Λ accept exactly the same sequents. A sequence of types can compose to a result type iff there exists a linear lambda term witnessing the computation. Grammar IS lambda calculus."
                 },
                 {
                   "question": "Why is the LINEARITY constraint important?",
@@ -490,7 +536,7 @@
                     "It's needed for Turing completeness"
                   ],
                   "correctIndex": 1,
-                  "explanation": "In the linear lambda calculus, every variable must be used exactly once \u2014 no duplication (\u03bbx.f(x,x)) and no deletion (\u03bbx.y). This mirrors natural language: every word in a grammatical sentence contributes exactly once. 'Every student every passed' is ungrammatical precisely because 'every' is used twice."
+                  "explanation": "In the linear lambda calculus, every variable must be used exactly once — no duplication (λx.f(x,x)) and no deletion (λx.y). This mirrors natural language: every word in a grammatical sentence contributes exactly once. 'Every student every passed' is ungrammatical precisely because 'every' is used twice."
                 },
                 {
                   "question": "What is van Benthem's Quality constraint?",
@@ -501,29 +547,29 @@
                     "Only high-quality sentences have well-defined meanings"
                   ],
                   "correctIndex": 2,
-                  "explanation": "Quality (also called QUANT or topic-neutrality) says that D(X)(Y) depends only on the numbers |X\u2229Y|, |X-Y|, etc. \u2014 not on WHICH specific individuals are involved. 'Most students passed' means the same whether we're in Amsterdam or Budapest. The quantifier is invariant under permutations of the domain."
+                  "explanation": "Quality (also called QUANT or topic-neutrality) says that D(X)(Y) depends only on the numbers |X∩Y|, |X-Y|, etc. — not on WHICH specific individuals are involved. 'Most students passed' means the same whether we're in Amsterdam or Budapest. The quantifier is invariant under permutations of the domain."
                 },
                 {
                   "question": "Why does van Benthem call natural language 'wisely restrained'?",
                   "options": [
                     "Because it avoids profanity",
-                    "Because its quantifiers stay within finite-state/push-down complexity, below the G\u00f6del border",
+                    "Because its quantifiers stay within finite-state/push-down complexity, below the Gödel border",
                     "Because it has fewer words than formal logic",
                     "Because grammar limits what can be expressed"
                   ],
                   "correctIndex": 1,
-                  "explanation": "Natural language quantifiers stay within additive arithmetic (decidable), avoiding multiplicative arithmetic (which crosses the G\u00f6del border into undecidability). 'All', 'some', 'most' are computable by finite state or push-down automata. Natural language is powerful enough to be useful but restrained enough to be parseable \u2014 and this restraint is visible in the automata complexity of its quantifiers."
+                  "explanation": "Natural language quantifiers stay within additive arithmetic (decidable), avoiding multiplicative arithmetic (which crosses the Gödel border into undecidability). 'All', 'some', 'most' are computable by finite state or push-down automata. Natural language is powerful enough to be useful but restrained enough to be parseable — and this restraint is visible in the automata complexity of its quantifiers."
                 },
                 {
                   "question": "How does Conservativity (CONS) constrain determiners?",
                   "options": [
                     "Determiners must be politically conservative",
-                    "D(X)(Y) depends only on X and X\u2229Y \u2014 the noun sets the domain",
+                    "D(X)(Y) depends only on X and X∩Y — the noun sets the domain",
                     "Determiners must conserve the number of entities in the domain",
                     "Only conservative estimates of quantity are linguistically valid"
                   ],
                   "correctIndex": 1,
-                  "explanation": "Conservativity means 'every student passed' depends only on the students and which of them passed \u2014 never on non-students. Formally: D(X)(Y) iff D(X)(X\u2229Y). The first argument (the noun) sets the domain. This is a semantic universal: every natural language determiner obeys it."
+                  "explanation": "Conservativity means 'every student passed' depends only on the students and which of them passed — never on non-students. Formally: D(X)(Y) iff D(X)(X∩Y). The first argument (the noun) sets the domain. This is a semantic universal: every natural language determiner obeys it."
                 }
               ]
             }
