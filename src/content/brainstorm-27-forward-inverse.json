@@ -1,0 +1,191 @@
+{
+  "type": "Fragment",
+  "title": "Operators as Forward-Inverse Model Pairs",
+  "subtitle": "How Motor Control Theory Explains Semantic Comprehension",
+  "icon": "🔄",
+  "children": [
+    {
+      "type": "Section",
+      "title": "The Big Idea",
+      "children": [
+        {
+          "type": "Fragment",
+          "content": "Your brain doesn't just **understand** actions — it **simulates** them. When you hear 'John kicked the ball,' motor areas activate as if *you* were kicking. This isn't a metaphor — it's measurable neuroscience.\n\nMotor control uses two complementary models:\n- **Forward model:** Given a state + action → predict the new state\n- **Inverse model:** Given two states → infer what action caused the change\n\nThe radical claim: **Schankian operators ARE semantic forward models.** ATRANS(giver, receiver, object) is a forward model that predicts the state after a possession transfer. And comprehension is running the *inverse* model — given what changed, figure out which operator was applied."
+        },
+        {
+          "type": "Analogy",
+          "title": "The Robotics Connection",
+          "content": "A robot arm picking up a cup uses a forward model: 'If I move motor 3 by 10°, the arm moves here.' It also uses an inverse model: 'I want the arm *there* — which motors do I move?'\n\nLanguage works the same way:\n- **Forward (production):** 'I want to describe ATRANS(John, Mary, book)' → generate 'John gave Mary the book'\n- **Inverse (comprehension):** 'John gave Mary the book' → infer ATRANS(John, Mary, book)\n\nOperators are the shared representation that both models speak."
+        }
+      ]
+    },
+    {
+      "type": "Section",
+      "title": "Forward Models: Predicting State Changes",
+      "children": [
+        {
+          "type": "Fragment",
+          "content": "A forward model takes the current world state and an operator application, then predicts the resulting state:\n\n**state₁ + ATRANS(John, Mary, book) → state₂**\n\nwhere state₂ = state₁ but with `John.has.book` removed and `Mary.has.book` added."
+        },
+        {
+          "type": "Example",
+          "title": "Forward Model in Action",
+          "content": "```\nState₁:\n  John.has = {book, pen}\n  Mary.has = {cup}\n  John.location = library\n  Mary.location = library\n\nOperator: ATRANS(giver=John, receiver=Mary, object=book)\n\nForward Model Prediction → State₂:\n  John.has = {pen}          ← book removed\n  Mary.has = {cup, book}    ← book added\n  John.location = library   ← unchanged\n  Mary.location = library   ← unchanged\n```\n\nThe forward model knows that ATRANS changes `has` relations and nothing else. PTRANS would change `location` instead. Each operator type defines a **specific pattern of state change.**"
+        },
+        {
+          "type": "DeepDive",
+          "title": "Why Forward Models Matter for Language",
+          "content": "When you read a story, you maintain a **situation model** — a running simulation of the story world. Each sentence updates it. Forward models explain how:\n\n1. Parse sentence → extract operator + arguments\n2. Run forward model → predict new world state\n3. Update situation model → ready for next sentence\n\nThis is why readers are **surprised** by unexpected events — their forward model predicted one state, but the text delivered another. Garden-path sentences exploit exactly this mismatch.\n\nIn our Hydra architecture, the SSM's hidden state IS the situation model, and the A-matrix dynamics implement the forward model. Slow-decay TH channels maintain the state; fast-decay PS channels process the current operator."
+        }
+      ]
+    },
+    {
+      "type": "Section",
+      "title": "Inverse Models: Inferring Operators from Changes",
+      "children": [
+        {
+          "type": "Fragment",
+          "content": "The inverse model runs backwards: given a state change, infer which operator caused it.\n\n**state₁ → state₂ implies which operator?**\n\nThis is exactly what our **wake-sleep operator discovery** does! The sleep phase observes (state₁, state₂) pairs and learns to compress them into operator labels."
+        },
+        {
+          "type": "InteractiveDemo",
+          "title": "Guess the Operator",
+          "description": "Given two states, can you infer which Schankian primitive was applied?",
+          "component": "OperatorGuessingGame",
+          "props": {
+            "scenarios": [
+              {
+                "before": {"John.has": ["ball"], "Mary.has": []},
+                "after": {"John.has": [], "Mary.has": ["ball"]},
+                "options": ["ATRANS", "PTRANS", "MTRANS", "INGEST"],
+                "answer": "ATRANS",
+                "explanation": "Possession transferred from John to Mary → ATRANS (abstract transfer)"
+              },
+              {
+                "before": {"John.location": "home", "Mary.location": "office"},
+                "after": {"John.location": "office", "Mary.location": "office"},
+                "options": ["ATRANS", "PTRANS", "MTRANS", "PROPEL"],
+                "answer": "PTRANS",
+                "explanation": "Location changed from home to office → PTRANS (physical transfer)"
+              },
+              {
+                "before": {"John.knows": [], "Mary.knows": ["secret"]},
+                "after": {"John.knows": ["secret"], "Mary.knows": ["secret"]},
+                "options": ["ATRANS", "PTRANS", "MTRANS", "MBUILD"],
+                "answer": "MTRANS",
+                "explanation": "Knowledge transferred (but not removed from Mary!) → MTRANS (mental transfer). Unlike ATRANS, the source keeps what they share."
+              },
+              {
+                "before": {"John.consumed": [], "food.location": "table"},
+                "after": {"John.consumed": ["food"], "food.location": "inside_John"},
+                "options": ["ATRANS", "INGEST", "PTRANS", "GRASP"],
+                "answer": "INGEST",
+                "explanation": "Substance moved from outside to inside an agent → INGEST. Note it's both a PTRANS (location change) and a boundary crossing."
+              }
+            ]
+          }
+        },
+        {
+          "type": "DeepDive",
+          "title": "The Wake-Sleep Connection",
+          "content": "Our wake-sleep operator discovery (arXiv:2603.25975) is literally an inverse model learner:\n\n**Wake phase:** Use current operators to decompose new events (forward model application)\n**Sleep phase:** Observe state transitions, discover new operators (inverse model learning)\n\nThe key finding: starting from just SET/UNSET/CHANGE/MOVE_PROP (raw state operations), the inverse model *rediscovered* ATRANS, PTRANS, MTRANS, and INGEST — plus 2 novel operators for emotion and status changes.\n\nMDL compression drives this: the inverse model finds the minimum description length operator library, which turns out to be within 4% of Schank's hand-coded primitives."
+        }
+      ]
+    },
+    {
+      "type": "Section",
+      "title": "Training Both Directions",
+      "children": [
+        {
+          "type": "Fragment",
+          "content": "The most powerful approach trains **both** models simultaneously. This creates a learning loop:"
+        },
+        {
+          "type": "DefinitionList",
+          "items": [
+            {
+              "term": "Forward Training",
+              "definition": "Given (state₁, operator) → predict state₂. Loss = how wrong was the prediction? Teaches the model what operators DO."
+            },
+            {
+              "term": "Inverse Training", 
+              "definition": "Given (state₁, state₂) → predict operator. Loss = how wrong was the operator classification? Teaches the model to RECOGNIZE operators."
+            },
+            {
+              "term": "Cycle Consistency",
+              "definition": "Apply forward then inverse: state₁ → forward(op) → state₂ → inverse → op'. The recovered operator op' should match op. This regularizes both models simultaneously."
+            },
+            {
+              "term": "Contrastive Signal",
+              "definition": "Show the model two similar but different state transitions. 'John gave Mary the book' (ATRANS) vs 'John told Mary the news' (MTRANS). The forward models differ (has vs knows); the inverse models must classify correctly."
+            }
+          ]
+        },
+        {
+          "type": "Callout",
+          "style": "insight",
+          "content": "**The ENACT benchmark** (arXiv:2412.15109) tests exactly this! It evaluates whether language models can track entity states through narratives — essentially testing their forward model. Current LLMs perform poorly, suggesting they lack genuine operator-level understanding."
+        }
+      ]
+    },
+    {
+      "type": "Section",
+      "title": "Connection to HRR and Hydra",
+      "children": [
+        {
+          "type": "Fragment",
+          "content": "In our Holographic Reduced Representation (HRR) framework, forward and inverse models become algebraic operations:\n\n**Forward model (binding):**\n```\nstate₂ = state₁ ⊛ operator_transition\n```\nApply the operator's transition tensor via circular convolution.\n\n**Inverse model (unbinding):**\n```\noperator = state₂ ⊘ state₁\n```\nRecover the operator by circular correlation between the two states.\n\nThis is why HRR is so natural for Schankian primitives — forward and inverse models are **literally the same operation with arguments swapped.**"
+        },
+        {
+          "type": "Example",
+          "title": "HRR Forward-Inverse Round Trip",
+          "content": "```python\n# Forward: apply ATRANS to state\nstate_1 = HRR.bind(john_has, book)  # John has book\natrans_transition = HRR.bind(role_giver, john) + HRR.bind(role_receiver, mary)\nstate_2 = HRR.bind(state_1, atrans_transition)  # Apply operator\n\n# Inverse: recover operator from state change\nrecovered = HRR.unbind(state_2, state_1)  # What changed?\n# recovered ≈ atrans_transition (with noise ~ 1/√dim)\n\n# Decode: what operator was it?\nfor op_name, op_vec in operator_library.items():\n    sim = HRR.similarity(recovered, op_vec)\n    print(f'{op_name}: {sim:.3f}')\n# ATRANS: 0.42  ← highest!\n# PTRANS: 0.03\n# MTRANS: 0.01\n```\n\nThe round-trip works because circular convolution is approximately invertible. The noise floor (1/√512 ≈ 0.04) is well below the signal."
+        },
+        {
+          "type": "DeepDive",
+          "title": "Why This Matters for Hydra's SSM Channels",
+          "content": "In Hydra's architecture:\n- **TH channels (slow decay)** store the world state as HRR vectors\n- **CLS gradient scaling (0.05)** protects these channels = protects the forward model\n- **Reading from state (C-projection)** implements the inverse model at each token\n\nWhen the model reads 'John gave Mary the book,' the TH channels update via the forward model (state ⊛ ATRANS). When it needs to predict the next token, the C-projection runs the inverse model to check what operators have been applied and what state the world is in.\n\nThe agreement problem (exp 7, running now) is essentially a forward model failure: the PS channels can't maintain number agreement because their model of phrase structure is being overwritten by LM gradients. CLS protects the forward model's parameters."
+        }
+      ]
+    },
+    {
+      "type": "Section",
+      "title": "The Embodied Prediction Perspective",
+      "children": [
+        {
+          "type": "Fragment",
+          "content": "This framework connects to **predictive processing** in cognitive science: the brain is fundamentally a prediction machine. Forward models predict sensory consequences of actions; prediction errors drive learning.\n\nFor language:\n- **Prediction:** Forward model predicts next world state → generates expectations about upcoming words\n- **Surprise:** When prediction fails (garden-path, plot twist) → prediction error → update model\n- **Comprehension:** Running the inverse model on the prediction error → 'Oh, it was MTRANS not ATRANS'\n\nThis explains why language processing is *incremental* — each word updates the forward model, and the inverse model runs continuously to maintain the operator parse."
+        },
+        {
+          "type": "Quiz",
+          "questions": [
+            {
+              "question": "A forward model for ATRANS predicts changes to which state variable?",
+              "options": ["location", "possession (has)", "knowledge (knows)", "physical state"],
+              "correct": 1,
+              "explanation": "ATRANS = Abstract TRANSfer. It transfers possession/ownership. PTRANS changes location, MTRANS changes knowledge."
+            },
+            {
+              "question": "In HRR, how do you recover the operator from a state change?",
+              "options": ["Matrix multiplication", "Circular correlation (unbinding)", "Gradient descent", "Cosine similarity search"],
+              "correct": 1,
+              "explanation": "Circular correlation (⊘) is the approximate inverse of circular convolution (⊛). state₂ ⊘ state₁ ≈ operator_transition."
+            },
+            {
+              "question": "Why does MTRANS differ from ATRANS in the inverse model?",
+              "options": ["MTRANS is faster", "The source keeps what they transfer in MTRANS", "MTRANS only works with physical objects", "They're actually the same operator"],
+              "correct": 1,
+              "explanation": "In ATRANS, the giver LOSES what they give (John no longer has the book). In MTRANS, the sender KEEPS the knowledge (Mary still knows the secret after telling John). The inverse model must distinguish these from the state diff pattern."
+            },
+            {
+              "question": "What does cycle consistency test in forward-inverse training?",
+              "options": ["Forward speed", "Whether forward(inverse(state_change)) recovers the original operator", "Memory usage", "Tokenization quality"],
+              "correct": 1,
+              "explanation": "Cycle consistency = apply forward model, then inverse model, and check if you recover the original operator. This regularizes both models simultaneously."
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

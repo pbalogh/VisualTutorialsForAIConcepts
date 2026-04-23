@@ -2018,6 +2018,18 @@ const tutorials = [
     readTime: '18 min',
     difficulty: 2,
   },
+  {
+    id: 'brainstorm-27-forward-inverse',
+    title: 'Operators as Forward-Inverse Model Pairs',
+    description: 'Motor control uses forward models (predict effects) and inverse models (infer actions). Schankian operators ARE semantic forward models — ATRANS predicts possession change, PTRANS predicts location change. HRR binding implements the forward model; unbinding implements the inverse. With interactive operator guessing game.',
+    tags: ['motor control', 'forward models', 'HRR', 'Schankian primitives', 'predictive processing'],
+    icon: '🔄',
+    gradient: 'from-rose-500 to-orange-600',
+    shadowColor: 'shadow-rose-500/30',
+    glowColor: 'rgba(244, 63, 94, 0.4)',
+    readTime: '20 min',
+    difficulty: 3,
+  },
 ]
 
 // Semantic tag color system - filled backgrounds
