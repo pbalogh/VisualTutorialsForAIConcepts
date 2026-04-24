@@ -5,7 +5,7 @@
   "children": [
     {
       "id": "paper1",
-      "title": "Paper 1: Core Method — Learned Schankian Operators",
+      "title": "Paper 1: Core Method \u2014 Learned Schankian Operators",
       "excerpt": "Semantic operators can be LEARNED from data rather than hand-coded, using RotatE-style rotations in complex space",
       "children": [
         {
@@ -22,7 +22,7 @@
                 "children": [
                   {
                     "type": "p",
-                    "children": "Events like 'cop shot frank' have asymmetric structure. The cop does something TO frank — this is fundamentally different from 'frank shot cop'."
+                    "children": "Events like 'cop shot frank' have asymmetric structure. The cop does something TO frank \u2014 this is fundamentally different from 'frank shot cop'."
                   },
                   {
                     "type": "p",
@@ -47,7 +47,7 @@
                     "children": [
                       {
                         "type": "li",
-                        "children": "TransE: h + r ≈ t — addition is commutative, can't capture asymmetry"
+                        "children": "TransE: h + r \u2248 t \u2014 addition is commutative, can't capture asymmetry"
                       },
                       {
                         "type": "li",
@@ -65,7 +65,7 @@
             {
               "id": "paper1-problem-key-insight",
               "title": "Key Insight: Non-Commutativity",
-              "excerpt": "(agent, operator, patient) ≠ (patient, operator, agent)",
+              "excerpt": "(agent, operator, patient) \u2260 (patient, operator, agent)",
               "content": {
                 "type": "Fragment",
                 "children": [
@@ -74,7 +74,7 @@
                     "props": {
                       "type": "info"
                     },
-                    "children": "Key insight: (agent, operator, patient) ≠ (patient, operator, agent). Non-commutativity is essential for capturing event semantics."
+                    "children": "Key insight: (agent, operator, patient) \u2260 (patient, operator, agent). Non-commutativity is essential for capturing event semantics."
                   },
                   {
                     "type": "p",
@@ -93,7 +93,7 @@
             {
               "id": "paper1-approach-entities",
               "title": "Entities as Complex Vectors",
-              "excerpt": "Each entity is a d-dimensional complex vector — but what does that really mean?",
+              "excerpt": "Each entity is a d-dimensional complex vector \u2014 but what does that really mean?",
               "children": [
                 {
                   "id": "paper1-approach-entities-what",
@@ -119,7 +119,7 @@
                 {
                   "id": "paper1-approach-entities-why",
                   "title": "Why Complex Numbers?",
-                  "excerpt": "Complex multiplication = rotation. Euler's identity: e^(iθ) = cos(θ) + i·sin(θ)",
+                  "excerpt": "Complex multiplication = rotation. Euler's identity: e^(i\u03b8) = cos(\u03b8) + i\u00b7sin(\u03b8)",
                   "content": {
                     "type": "Fragment",
                     "children": [
@@ -129,7 +129,7 @@
                       },
                       {
                         "type": "p",
-                        "children": "e^(iθ) = cos(θ) + i·sin(θ)"
+                        "children": "e^(i\u03b8) = cos(\u03b8) + i\u00b7sin(\u03b8)"
                       },
                       {
                         "type": "ComplexRotationViz",
@@ -139,7 +139,7 @@
                       },
                       {
                         "type": "p",
-                        "children": "When you multiply a complex number by e^(iθ), you rotate it by angle θ. This is EXACTLY what we want operators to do — rotate entities in semantic space."
+                        "children": "When you multiply a complex number by e^(i\u03b8), you rotate it by angle \u03b8. This is EXACTLY what we want operators to do \u2014 rotate entities in semantic space."
                       }
                     ]
                   }
@@ -183,7 +183,7 @@
                   },
                   {
                     "type": "p",
-                    "children": "Diagonal means we rotate each dimension independently — simpler than full matrices but still expressive."
+                    "children": "Diagonal means we rotate each dimension independently \u2014 simpler than full matrices but still expressive."
                   },
                   {
                     "type": "p",
@@ -195,13 +195,13 @@
             {
               "id": "paper1-approach-scoring",
               "title": "Scoring Function",
-              "excerpt": "||agent ⊙ operator - patient|| — how well does the rotation predict the patient?",
+              "excerpt": "||agent \u2299 operator - patient|| \u2014 how well does the rotation predict the patient?",
               "content": {
                 "type": "Fragment",
                 "children": [
                   {
                     "type": "p",
-                    "children": "Scoring function: ||agent ⊙ operator - patient||"
+                    "children": "Scoring function: ||agent \u2299 operator - patient||"
                   },
                   {
                     "type": "p",
@@ -307,12 +307,12 @@
                       "rows": [
                         [
                           "HARM",
-                          "Agent +45°, Patient -45°",
+                          "Agent +45\u00b0, Patient -45\u00b0",
                           "Adversarial: agent acts against patient"
                         ],
                         [
                           "TRANSFER",
-                          "Both +30°",
+                          "Both +30\u00b0",
                           "Symmetric: both move together"
                         ],
                         [
@@ -322,12 +322,12 @@
                         ],
                         [
                           "MOVE",
-                          "Agent +60°, Patient -30°",
+                          "Agent +60\u00b0, Patient -30\u00b0",
                           "Agent-dominant action"
                         ],
                         [
                           "RECEIVE",
-                          "Agent -30°, Patient +60°",
+                          "Agent -30\u00b0, Patient +60\u00b0",
                           "Patient-dominant reception"
                         ]
                       ]
@@ -352,7 +352,7 @@
                     "props": {
                       "language": "python"
                     },
-                    "children": "# For each triple (agent, operator, patient):\n\n# 1. Score correct triple (should be LOW)\nscore_pos = ||agent ⊙ operator - patient||\n\n# 2. Score corrupted triple (swap agent/patient)\nscore_neg = ||wrong_agent ⊙ operator - patient||\n\n# 3. Loss: push positive below negative\nloss = max(0, margin + score_pos - score_neg)"
+                    "children": "# For each triple (agent, operator, patient):\n\n# 1. Score correct triple (should be LOW)\nscore_pos = ||agent \u2299 operator - patient||\n\n# 2. Score corrupted triple (swap agent/patient)\nscore_neg = ||wrong_agent \u2299 operator - patient||\n\n# 3. Loss: push positive below negative\nloss = max(0, margin + score_pos - score_neg)"
                   },
                   {
                     "type": "Callout",
@@ -376,7 +376,7 @@
                     "props": {
                       "type": "success"
                     },
-                    "children": "✅ Result: 88.2% average operator recovery. All 5 operators successfully learned from data."
+                    "children": "\u2705 Result: 88.2% average operator recovery. All 5 operators successfully learned from data."
                   },
                   {
                     "type": "ComparisonTable",
@@ -400,7 +400,7 @@
                         [
                           "LEARN",
                           "0.844",
-                          "Best recovery — cleanest geometry"
+                          "Best recovery \u2014 cleanest geometry"
                         ],
                         [
                           "MOVE",
@@ -434,23 +434,23 @@
                     "children": [
                       {
                         "type": "li",
-                        "children": "✅ Operators CAN be learned from data alone — not hardcoded by humans"
+                        "children": "\u2705 Operators CAN be learned from data alone \u2014 not hardcoded by humans"
                       },
                       {
                         "type": "li",
-                        "children": "✅ Non-commutativity emerges naturally — (agent, op, patient) ≠ (patient, op, agent)"
+                        "children": "\u2705 Non-commutativity emerges naturally \u2014 (agent, op, patient) \u2260 (patient, op, agent)"
                       },
                       {
                         "type": "li",
-                        "children": "✅ Simple diagonal rotations are sufficient — no need for full matrices"
+                        "children": "\u2705 Simple diagonal rotations are sufficient \u2014 no need for full matrices"
                       },
                       {
                         "type": "li",
-                        "children": "✅ Ranking loss works — no reconstruction term needed"
+                        "children": "\u2705 Ranking loss works \u2014 no reconstruction term needed"
                       },
                       {
                         "type": "li",
-                        "children": "✅ Architecture validated — ready to try real data"
+                        "children": "\u2705 Architecture validated \u2014 ready to try real data"
                       }
                     ]
                   },
@@ -471,12 +471,12 @@
     {
       "id": "paper2",
       "title": "Paper 2: Entity State Tracking",
-      "excerpt": "Track how entities evolve through narratives. Frank-before-shooting ≠ Frank-after-shooting.",
+      "excerpt": "Track how entities evolve through narratives. Frank-before-shooting \u2260 Frank-after-shooting.",
       "children": [
         {
           "id": "paper2-trajectory",
           "title": "State as Trajectory",
-          "excerpt": "Entity state is not a snapshot but a trajectory through vector space — the path taken matters",
+          "excerpt": "Entity state is not a snapshot but a trajectory through vector space \u2014 the path taken matters",
           "children": [
             {
               "id": "paper2-trajectory-not-snapshot",
@@ -487,11 +487,11 @@
                 "children": [
                   {
                     "type": "p",
-                    "children": "The 'state' of an entity is not a single vector but a trajectory through vector space — a sequence representing the entity at different points in time."
+                    "children": "The 'state' of an entity is not a single vector but a trajectory through vector space \u2014 a sequence representing the entity at different points in time."
                   },
                   {
                     "type": "p",
-                    "children": "Frank-before-shooting ≠ Frank-after-shooting, even if both are 'Frank'."
+                    "children": "Frank-before-shooting \u2260 Frank-after-shooting, even if both are 'Frank'."
                   }
                 ]
               }
@@ -552,15 +552,15 @@
                     "children": [
                       {
                         "type": "li",
-                        "children": "Getting into bed → removal of shoes (implicit)"
+                        "children": "Getting into bed \u2192 removal of shoes (implicit)"
                       },
                       {
                         "type": "li",
-                        "children": "Getting out of bed → still shoeless (implicit)"
+                        "children": "Getting out of bed \u2192 still shoeless (implicit)"
                       },
                       {
                         "type": "li",
-                        "children": "Stepping on Legos barefoot → pain (implicit, explains the scream)"
+                        "children": "Stepping on Legos barefoot \u2192 pain (implicit, explains the scream)"
                       }
                     ]
                   },
@@ -588,7 +588,7 @@
                   },
                   {
                     "type": "p",
-                    "children": "A couple at the altar in fancy dress → getting married → implies: were dating, someone proposed, someone said yes, will be married couple."
+                    "children": "A couple at the altar in fancy dress \u2192 getting married \u2192 implies: were dating, someone proposed, someone said yes, will be married couple."
                   }
                 ]
               }
@@ -597,7 +597,7 @@
         },
         {
           "id": "paper2-annotation",
-          "title": "⭐ The Big Idea: Implicit-Explicit Document Enrichment",
+          "title": "\u2b50 The Big Idea: Implicit-Explicit Document Enrichment",
           "excerpt": "Annotate ALL implicit state, then use hierarchical summarization for efficient RAG. THIS MAY BE THE MOST IMPACTFUL IDEA.",
           "children": [
             {
@@ -627,7 +627,7 @@
                       },
                       {
                         "type": "p",
-                        "children": "RAG: 'No mention of shoes.' Human: 'No — he's barefoot because he just got out of bed.'"
+                        "children": "RAG: 'No mention of shoes.' Human: 'No \u2014 he's barefoot because he just got out of bed.'"
                       }
                     ]
                   }
@@ -637,7 +637,7 @@
             {
               "id": "paper2-annotation-hemingway",
               "title": "The Extreme Case: Hemingway's Six Words",
-              "excerpt": "'For sale: baby shoes, never worn.' — devastating because of everything LEFT UNSAID",
+              "excerpt": "'For sale: baby shoes, never worn.' \u2014 devastating because of everything LEFT UNSAID",
               "content": {
                 "type": "Fragment",
                 "children": [
@@ -666,11 +666,11 @@
                       },
                       {
                         "type": "li",
-                        "children": "Selling them → processing grief, moving on"
+                        "children": "Selling them \u2192 processing grief, moving on"
                       },
                       {
                         "type": "li",
-                        "children": "The brevity itself → too painful to elaborate"
+                        "children": "The brevity itself \u2192 too painful to elaborate"
                       }
                     ]
                   },
@@ -679,7 +679,7 @@
                     "props": {
                       "language": "text"
                     },
-                    "children": "Annotated:\n  EVENTS:\n    - TRANSFER(?, shoes, seller) — acquired\n    - ANTICIPATE(seller, baby) — expected baby\n    - LOSS(seller, baby) — baby never came\n    - ¬PTRANS(baby, shoes) — never used\n  STATES:\n    - seller.emotion = grief\n    - shoes.condition = new"
+                    "children": "Annotated:\n  EVENTS:\n    - TRANSFER(?, shoes, seller) \u2014 acquired\n    - ANTICIPATE(seller, baby) \u2014 expected baby\n    - LOSS(seller, baby) \u2014 baby never came\n    - \u00acPTRANS(baby, shoes) \u2014 never used\n  STATES:\n    - seller.emotion = grief\n    - shoes.condition = new"
                   },
                   {
                     "type": "Callout",
@@ -707,7 +707,7 @@
                     "props": {
                       "language": "text"
                     },
-                    "children": "Original: 'Marlowe tumbled out of bed'\n\nAnnotated:\n  [IMPLICIT: Was in bed → shoes removed]\n  [IMPLICIT: Now standing, barefoot, near bed]"
+                    "children": "Original: 'Marlowe tumbled out of bed'\n\nAnnotated:\n  [IMPLICIT: Was in bed \u2192 shoes removed]\n  [IMPLICIT: Now standing, barefoot, near bed]"
                   },
                   {
                     "type": "p",
@@ -797,7 +797,7 @@
             "children": [
               {
                 "type": "p",
-                "children": "A Schankian primitive neuron + two entity neurons tells us the operator is relevant. But it doesn't tell us SEQUENCE — critical for non-commutative operators."
+                "children": "A Schankian primitive neuron + two entity neurons tells us the operator is relevant. But it doesn't tell us SEQUENCE \u2014 critical for non-commutative operators."
               },
               {
                 "type": "p",
@@ -886,7 +886,7 @@
     {
       "id": "paper4",
       "title": "Paper 4: Semantic Reward Machines",
-      "excerpt": "Operators as the shared language of understanding and planning — comprehension IS planning in reverse",
+      "excerpt": "Operators as the shared language of understanding and planning \u2014 comprehension IS planning in reverse",
       "children": [
         {
           "id": "paper4-thesis",
@@ -900,11 +900,11 @@
                 "props": {
                   "type": "tip"
                 },
-                "children": "🎯 The same Schankian operators that let you UNDERSTAND a narrative also let you PLAN and EXECUTE actions. Comprehension and agency use the same primitives."
+                "children": "\ud83c\udfaf The same Schankian operators that let you UNDERSTAND a narrative also let you PLAN and EXECUTE actions. Comprehension and agency use the same primitives."
               },
               {
                 "type": "p",
-                "children": "'John went to the store and bought milk' — you understand it because you can see the plan: PTRANS(John, home→store) then ATRANS(store, milk, John). An agent planning to get milk constructs the SAME sequence. Same operators, opposite direction."
+                "children": "'John went to the store and bought milk' \u2014 you understand it because you can see the plan: PTRANS(John, home\u2192store) then ATRANS(store, milk, John). An agent planning to get milk constructs the SAME sequence. Same operators, opposite direction."
               }
             ]
           }
@@ -912,7 +912,7 @@
         {
           "id": "paper4-reward-machines",
           "title": "Reward Machines: The Missing Bridge",
-          "excerpt": "Schank's scripts ARE Reward Machines — same structure, 45 years apart, different fields",
+          "excerpt": "Schank's scripts ARE Reward Machines \u2014 same structure, 45 years apart, different fields",
           "content": {
             "type": "Fragment",
             "children": [
@@ -922,14 +922,14 @@
               },
               {
                 "type": "p",
-                "children": "The restaurant script (Schank 1977) = ENTER→SIT→ORDER→EAT→PAY. This IS a valid Reward Machine from the 2022 RL literature. Same structure, independently discovered."
+                "children": "The restaurant script (Schank 1977) = ENTER\u2192SIT\u2192ORDER\u2192EAT\u2192PAY. This IS a valid Reward Machine from the 2022 RL literature. Same structure, independently discovered."
               },
               {
                 "type": "Callout",
                 "props": {
                   "type": "info"
                 },
-                "children": "Neural Reward Machines (Dahan et al., 2024) solve symbol grounding with probabilistic Moore machines — learning to map observations to symbols. We do the same for language: map text to operator symbols."
+                "children": "Neural Reward Machines (Dahan et al., 2024) solve symbol grounding with probabilistic Moore machines \u2014 learning to map observations to symbols. We do the same for language: map text to operator symbols."
               }
             ]
           }
@@ -950,11 +950,11 @@
                   },
                   {
                     "type": "li",
-                    "children": "Expectation: 'Sat down at table' → predict MTRANS(menu) next"
+                    "children": "Expectation: 'Sat down at table' \u2192 predict MTRANS(menu) next"
                   },
                   {
                     "type": "li",
-                    "children": "Anomaly: 'Sat down and started fighting' → unexpected transition → wrong script"
+                    "children": "Anomaly: 'Sat down and started fighting' \u2192 unexpected transition \u2192 wrong script"
                   },
                   {
                     "type": "li",
@@ -977,11 +977,11 @@
                 "children": [
                   {
                     "type": "li",
-                    "children": "Goal decomposition: 'Get milk' → PTRANS + ATRANS + PTRANS"
+                    "children": "Goal decomposition: 'Get milk' \u2192 PTRANS + ATRANS + PTRANS"
                   },
                   {
                     "type": "li",
-                    "children": "Failure recovery: ATRANS fails (no money) → backtrack or alternate path"
+                    "children": "Failure recovery: ATRANS fails (no money) \u2192 backtrack or alternate path"
                   },
                   {
                     "type": "li",
@@ -989,7 +989,7 @@
                   },
                   {
                     "type": "li",
-                    "children": "Transfer: Restaurant ≈ Café ≈ Fast food — same topology, different params"
+                    "children": "Transfer: Restaurant \u2248 Caf\u00e9 \u2248 Fast food \u2014 same topology, different params"
                   }
                 ]
               }
@@ -999,7 +999,7 @@
         {
           "id": "paper4-architecture",
           "title": "The Architecture Stack",
-          "excerpt": "Operator Detection → State Tracker → Temporal Orchestrator → Reward Machine Layer",
+          "excerpt": "Operator Detection \u2192 State Tracker \u2192 Temporal Orchestrator \u2192 Reward Machine Layer",
           "content": {
             "type": "Fragment",
             "children": [
@@ -1012,7 +1012,7 @@
                 "children": [
                   {
                     "type": "li",
-                    "children": "Paper 1: Operator Detection (text → operator triples)"
+                    "children": "Paper 1: Operator Detection (text \u2192 operator triples)"
                   },
                   {
                     "type": "li",
@@ -1058,15 +1058,15 @@
                   },
                   {
                     "type": "li",
-                    "children": "The operator vocabulary is finite, learnable, and compositional — novel situations = novel compositions"
+                    "children": "The operator vocabulary is finite, learnable, and compositional \u2014 novel situations = novel compositions"
                   },
                   {
                     "type": "li",
-                    "children": "Interpretability is built in — every decision expressible as human-readable operator sequences"
+                    "children": "Interpretability is built in \u2014 every decision expressible as human-readable operator sequences"
                   },
                   {
                     "type": "li",
-                    "children": "Transfer across domains is natural — operators are invariant, grounding changes"
+                    "children": "Transfer across domains is natural \u2014 operators are invariant, grounding changes"
                   }
                 ]
               }
@@ -1077,7 +1077,7 @@
     },
     {
       "id": "reading-list",
-      "title": "📚 Reading List",
+      "title": "\ud83d\udcda Reading List",
       "excerpt": "Key papers to read: RotatE, TransE, Schank 1972, ProPara, VerbNet...",
       "children": [
         {
@@ -1088,14 +1088,14 @@
             {
               "id": "reading-kg-rotate",
               "title": "RotatE (Sun et al., ICLR 2019)",
-              "excerpt": "YOUR DIRECT INSPIRATION — Relations as rotations in complex space",
+              "excerpt": "YOUR DIRECT INSPIRATION \u2014 Relations as rotations in complex space",
               "content": {
                 "type": "Fragment",
                 "children": [
                   {
                     "type": "p",
                     "children": [
-                      "🔲 ",
+                      "\ud83d\udd32 ",
                       {
                         "type": "a",
                         "props": {
@@ -1134,14 +1134,14 @@
             {
               "id": "reading-kg-transe",
               "title": "TransE (Bordes et al., NeurIPS 2013)",
-              "excerpt": "The original KG embedding — h + r ≈ t",
+              "excerpt": "The original KG embedding \u2014 h + r \u2248 t",
               "content": {
                 "type": "Fragment",
                 "children": [
                   {
                     "type": "p",
                     "children": [
-                      "🔲 ",
+                      "\ud83d\udd32 ",
                       {
                         "type": "a",
                         "props": {
@@ -1158,7 +1158,7 @@
                   },
                   {
                     "type": "p",
-                    "children": "The original knowledge graph embedding. Uses h + r ≈ t (head + relation ≈ tail). Foundational but can't handle asymmetry well."
+                    "children": "The original knowledge graph embedding. Uses h + r \u2248 t (head + relation \u2248 tail). Foundational but can't handle asymmetry well."
                   }
                 ]
               }
@@ -1173,7 +1173,7 @@
                   {
                     "type": "p",
                     "children": [
-                      "🔲 ",
+                      "\ud83d\udd32 ",
                       {
                         "type": "a",
                         "props": {
@@ -1205,7 +1205,7 @@
                   {
                     "type": "p",
                     "children": [
-                      "🔲 ",
+                      "\ud83d\udd32 ",
                       {
                         "type": "a",
                         "props": {
@@ -1232,11 +1232,11 @@
         {
           "id": "reading-schank",
           "title": "Classic NLP: Conceptual Dependency",
-          "excerpt": "Schank 1972, Scripts/Plans/Goals book — what you're reviving",
+          "excerpt": "Schank 1972, Scripts/Plans/Goals book \u2014 what you're reviving",
           "children": [
             {
               "id": "reading-schank-1972",
-              "title": "Schank (1972) — THE ORIGINAL",
+              "title": "Schank (1972) \u2014 THE ORIGINAL",
               "excerpt": "Conceptual Dependency: A Theory of Natural Language Understanding",
               "content": {
                 "type": "Fragment",
@@ -1244,7 +1244,7 @@
                   {
                     "type": "p",
                     "children": [
-                      "🔲 ",
+                      "\ud83d\udd32 ",
                       {
                         "type": "a",
                         "props": {
@@ -1268,7 +1268,7 @@
             },
             {
               "id": "reading-schank-1977",
-              "title": "Schank & Abelson (1977) — Scripts Book",
+              "title": "Schank & Abelson (1977) \u2014 Scripts Book",
               "excerpt": "Scripts, Plans, Goals and Understanding",
               "content": {
                 "type": "Fragment",
@@ -1276,7 +1276,7 @@
                   {
                     "type": "p",
                     "children": [
-                      "🔲 ",
+                      "\ud83d\udd32 ",
                       {
                         "type": "a",
                         "props": {
@@ -1303,19 +1303,19 @@
         {
           "id": "reading-state",
           "title": "Entity State Tracking",
-          "excerpt": "ProPara, OpenPI — benchmarks for your Paper 2",
+          "excerpt": "ProPara, OpenPI \u2014 benchmarks for your Paper 2",
           "children": [
             {
               "id": "reading-state-propara",
               "title": "ProPara (Dalvi et al., NAACL 2018)",
-              "excerpt": "KEY BENCHMARK — Tracking State Changes in Procedural Text",
+              "excerpt": "KEY BENCHMARK \u2014 Tracking State Changes in Procedural Text",
               "content": {
                 "type": "Fragment",
                 "children": [
                   {
                     "type": "p",
                     "children": [
-                      "🔲 ",
+                      "\ud83d\udd32 ",
                       {
                         "type": "a",
                         "props": {
@@ -1340,14 +1340,14 @@
             {
               "id": "reading-state-openpi",
               "title": "OpenPI (Tandon et al., EMNLP 2020)",
-              "excerpt": "Open domain procedural text — WikiHow data",
+              "excerpt": "Open domain procedural text \u2014 WikiHow data",
               "content": {
                 "type": "Fragment",
                 "children": [
                   {
                     "type": "p",
                     "children": [
-                      "🔲 ",
+                      "\ud83d\udd32 ",
                       {
                         "type": "a",
                         "props": {
@@ -1374,7 +1374,7 @@
         {
           "id": "reading-events",
           "title": "Event/Script Learning",
-          "excerpt": "Narrative graphs, script learning — closest to your vision",
+          "excerpt": "Narrative graphs, script learning \u2014 closest to your vision",
           "children": [
             {
               "id": "reading-events-neeg",
@@ -1386,7 +1386,7 @@
                   {
                     "type": "p",
                     "children": [
-                      "🔲 ",
+                      "\ud83d\udd32 ",
                       {
                         "type": "a",
                         "props": {
@@ -1411,14 +1411,14 @@
             {
               "id": "reading-events-verbnet",
               "title": "VerbNet + Generative Lexicon (2022)",
-              "excerpt": "Hand-crafted subevent semantics — what you're trying to LEARN",
+              "excerpt": "Hand-crafted subevent semantics \u2014 what you're trying to LEARN",
               "content": {
                 "type": "Fragment",
                 "children": [
                   {
                     "type": "p",
                     "children": [
-                      "🔲 ",
+                      "\ud83d\udd32 ",
                       {
                         "type": "a",
                         "props": {
@@ -1446,8 +1446,8 @@
     },
     {
       "id": "brainstorming",
-      "title": "🧠 Brainstorming",
-      "excerpt": "Far-flung connections, unexpected implications — updated hourly",
+      "title": "\ud83e\udde0 Brainstorming",
+      "excerpt": "Far-flung connections, unexpected implications \u2014 updated hourly",
       "children": [
         {
           "id": "brainstorm-oscillations",
@@ -1461,7 +1461,7 @@
                 "props": {
                   "type": "info"
                 },
-                "children": "Wild Connection — Speculative but intriguing"
+                "children": "Wild Connection \u2014 Speculative but intriguing"
               },
               {
                 "type": "p",
@@ -1472,11 +1472,11 @@
                 "children": [
                   {
                     "type": "li",
-                    "children": "Gamma oscillations for feature binding → primitives bind entity features?"
+                    "children": "Gamma oscillations for feature binding \u2192 primitives bind entity features?"
                   },
                   {
                     "type": "li",
-                    "children": "Theta phase for episodic encoding → operators as phase transitions?"
+                    "children": "Theta phase for episodic encoding \u2192 operators as phase transitions?"
                   },
                   {
                     "type": "li",
@@ -1522,15 +1522,15 @@
                 "props": {
                   "type": "tip"
                 },
-                "children": "Philosophical Connection — Potentially significant"
+                "children": "Philosophical Connection \u2014 Potentially significant"
               },
               {
                 "type": "p",
-                "children": "The 'implicit state' idea directly connects to the Frame Problem — one of the oldest unsolved problems in AI. How does an intelligent system know what DOESN'T change?"
+                "children": "The 'implicit state' idea directly connects to the Frame Problem \u2014 one of the oldest unsolved problems in AI. How does an intelligent system know what DOESN'T change?"
               },
               {
                 "type": "p",
-                "children": "Our approach flips it: Instead of asking 'what didn't change?', we ask 'what MUST be true given what happened?' Getting out of bed → was in bed → removed shoes. We enumerate implicit preconditions/postconditions."
+                "children": "Our approach flips it: Instead of asking 'what didn't change?', we ask 'what MUST be true given what happened?' Getting out of bed \u2192 was in bed \u2192 removed shoes. We enumerate implicit preconditions/postconditions."
               },
               {
                 "type": "p",
@@ -1570,7 +1570,7 @@
                 "props": {
                   "type": "info"
                 },
-                "children": "Future Direction — Exciting for Paper 4"
+                "children": "Future Direction \u2014 Exciting for Paper 4"
               },
               {
                 "type": "p",
@@ -1581,7 +1581,7 @@
                 "children": [
                   {
                     "type": "li",
-                    "children": "Operator inverses already exist (r₂ = r̄₁ in RotatE terms)"
+                    "children": "Operator inverses already exist (r\u2082 = r\u0304\u2081 in RotatE terms)"
                   },
                   {
                     "type": "li",
@@ -1595,7 +1595,7 @@
               },
               {
                 "type": "p",
-                "children": "Implication: Learning operators might enable counterfactual reasoning without explicit causal graphs — the geometry encodes causal structure implicitly."
+                "children": "Implication: Learning operators might enable counterfactual reasoning without explicit causal graphs \u2014 the geometry encodes causal structure implicitly."
               },
               {
                 "type": "p",
@@ -1626,7 +1626,7 @@
         {
           "id": "brainstorm-benchmark",
           "title": "ImplicitState-1K Benchmark",
-          "excerpt": "Turn Marlowe/Lego into a dataset — concrete action item",
+          "excerpt": "Turn Marlowe/Lego into a dataset \u2014 concrete action item",
           "content": {
             "type": "Fragment",
             "children": [
@@ -1635,7 +1635,7 @@
                 "props": {
                   "type": "warning"
                 },
-                "children": "Practical Idea — Should do this"
+                "children": "Practical Idea \u2014 Should do this"
               },
               {
                 "type": "p",
@@ -1700,12 +1700,12 @@
         {
           "id": "brainstorm-flat-arrays-to-rotation",
           "title": "From Flat Arrays to Full Rotation Matrices",
-          "excerpt": "First-principles derivation: graph DB flat arrays → bitvector compression → Bloom filter analogy → bitmask-as-rotation hierarchy → diagonal fails for feature interactions → ARCHITECTURE DECISION: full rotation matrices on concatenated participant embeddings."
+          "excerpt": "First-principles derivation: graph DB flat arrays \u2192 bitvector compression \u2192 Bloom filter analogy \u2192 bitmask-as-rotation hierarchy \u2192 diagonal fails for feature interactions \u2192 ARCHITECTURE DECISION: full rotation matrices on concatenated participant embeddings."
         },
         {
           "id": "brainstorm-rate-distortion",
           "title": "Rate-Distortion Bounds on Compression",
-          "excerpt": "Shannon theory gives minimum embedding dims per operator. If R(D) ≈ N, compression provably fails — falsifiability for the entire framework."
+          "excerpt": "Shannon theory gives minimum embedding dims per operator. If R(D) \u2248 N, compression provably fails \u2014 falsifiability for the entire framework."
         },
         {
           "id": "brainstorm-reward-machines",
@@ -1720,22 +1720,22 @@
         {
           "id": "bs-59",
           "label": "59: Modal Operators as Mental Primitives",
-          "excerpt": "MBUILD/MTRANS as differentiable modal operators with learnable Kripke accessibility relations — implements Theory of Mind as geometric operator composition"
+          "excerpt": "MBUILD/MTRANS as differentiable modal operators with learnable Kripke accessibility relations \u2014 implements Theory of Mind as geometric operator composition"
         },
         {
           "id": "bs-60",
           "label": "60: Goto Considered Helpful",
-          "excerpt": "Two layers of Schankian operators (text-level and process-level) — stack-based backtracking for disambiguation via GLR parsing in the residual stream"
+          "excerpt": "Two layers of Schankian operators (text-level and process-level) \u2014 stack-based backtracking for disambiguation via GLR parsing in the residual stream"
         },
         {
           "id": "bs-61",
           "label": "61: Successor Representation as Script",
-          "excerpt": "Schankian operators ARE the transition matrix T that generates the successor representation — scripts are factored predictive maps with O(K×d²) compression"
+          "excerpt": "Schankian operators ARE the transition matrix T that generates the successor representation \u2014 scripts are factored predictive maps with O(K\u00d7d\u00b2) compression"
         },
         {
           "id": "bs-63",
           "label": "63: GC in the Residual Stream",
-          "excerpt": "Attention heads perform implicit reference counting — erasure heads are neural free(). Script boundaries trigger GC of entity representations."
+          "excerpt": "Attention heads perform implicit reference counting \u2014 erasure heads are neural free(). Script boundaries trigger GC of entity representations."
         },
         {
           "id": "bs-65",
@@ -1750,7 +1750,7 @@
         {
           "id": "bs-71",
           "title": "71: Operators as Gauge Connections",
-          "excerpt": "Operators as gauge connections on a semantic manifold — parallel transport of entity meaning across narrative context. Curvature = narrative surprise. Gauge invariance = cross-linguistic universality."
+          "excerpt": "Operators as gauge connections on a semantic manifold \u2014 parallel transport of entity meaning across narrative context. Curvature = narrative surprise. Gauge invariance = cross-linguistic universality."
         },
         {
           "id": "bs-74",
@@ -1761,10 +1761,10 @@
         {
           "id": "idea-86",
           "title": "86. Concept Bottleneck Operators",
-          "excerpt": "CBMs force predictions through operator labels — bottleneck leakage measures sufficiency"
+          "excerpt": "CBMs force predictions through operator labels \u2014 bottleneck leakage measures sufficiency"
         },
         {
-          "name": "90: Gärdenfors Bridge",
+          "name": "90: G\u00e4rdenfors Bridge",
           "description": "Primitives as dimensions in conceptual space"
         },
         {
@@ -1778,8 +1778,8 @@
         },
         {
           "id": "brainstorm-97",
-          "title": "Entry 97: Structural Factoring — Finite Grammar as Cognitive Constraint",
-          "excerpt": "Monk stiff fingers / Beckett French for LMs — finite structural module + infinite semantic backbone"
+          "title": "Entry 97: Structural Factoring \u2014 Finite Grammar as Cognitive Constraint",
+          "excerpt": "Monk stiff fingers / Beckett French for LMs \u2014 finite structural module + infinite semantic backbone"
         },
         {
           "id": "entry-98",
@@ -1796,7 +1796,7 @@
         {
           "id": "brainstorm-84",
           "title": "#84: Manifold-Local Operators",
-          "excerpt": "Schankian primitives vary by register — ATRANS in legal vs casual speech has different behavior",
+          "excerpt": "Schankian primitives vary by register \u2014 ATRANS in legal vs casual speech has different behavior",
           "content": "Primitives are sections of a fiber bundle, not fixed universal operators."
         },
         {
@@ -1806,7 +1806,7 @@
         },
         {
           "title": "#54: Operator Universality Classes",
-          "excerpt": "Cross-corpus convergence (ATOMIC↔GLUCOSE) as evidence for information-theoretic fixed points in event semantics"
+          "excerpt": "Cross-corpus convergence (ATOMIC\u2194GLUCOSE) as evidence for information-theoretic fixed points in event semantics"
         },
         {
           "title": "#60: Polysemy IS Operator Superposition",
@@ -1817,6 +1817,12 @@
           "title": "Operator Motifs as Causal Contribution Patterns",
           "date": "2026-04-20",
           "status": "brainstorm"
+        },
+        {
+          "id": "brainstorm-64",
+          "label": "#64: Cognitive Pharmacophores",
+          "status": "fresh",
+          "date": "2026-04-24"
         }
       ]
     },
@@ -1829,7 +1835,7 @@
         "bs-32",
         "bs-5"
       ],
-      "description": "Brownian lightning for text generation — recursive midpoint displacement + SAE feature hierarchy. O(log n), embarrassingly parallel, MapReduce-friendly."
+      "description": "Brownian lightning for text generation \u2014 recursive midpoint displacement + SAE feature hierarchy. O(log n), embarrassingly parallel, MapReduce-friendly."
     },
     {
       "id": "bs-78",
@@ -1841,7 +1847,7 @@
         "bs-61",
         "bs-5"
       ],
-      "description": "Schankian operators form recursive decomposition trees (HARM → PROPEL → MOVE → DAMAGE). Combined with NEKG entity tracking and recursive midpoint generation, the tree IS the story plan. Bridges 1970s Conceptual Dependency with modern hierarchical text generation."
+      "description": "Schankian operators form recursive decomposition trees (HARM \u2192 PROPEL \u2192 MOVE \u2192 DAMAGE). Combined with NEKG entity tracking and recursive midpoint generation, the tree IS the story plan. Bridges 1970s Conceptual Dependency with modern hierarchical text generation."
     },
     {
       "name": "#42: Lambda Calculus Bridge",
