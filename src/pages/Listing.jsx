@@ -1935,6 +1935,18 @@ const tutorials = [
     difficulty: 3,
   },
   {
+    id: 'brainstorm-64-cognitive-pharmacophores',
+    title: 'Cognitive Pharmacophores: Meaning Primitives as Functional Groups',
+    description: 'Schankian primitives are to event cognition what pharmacophores are to drug design: the minimal functional features that determine activity regardless of scaffold. Scaffold-hopping in chemistry = paraphrase in language. MDL compression discovers both.',
+    tags: ['Schankian primitives', 'pharmacophore', 'HRR', 'scaffold-hopping', 'drug discovery', 'MDL compression'],
+    icon: '💊',
+    gradient: 'from-rose-500 to-pink-600',
+    shadowColor: 'shadow-rose-500/30',
+    glowColor: 'rgba(244, 63, 94, 0.4)',
+    readTime: '15 min',
+    difficulty: 2,
+  },
+  {
     id: 'brainstorm-operator-motifs-causal',
     title: 'Operator Motifs as Causal Contribution Patterns',
     description: 'Can behavioral compression (wake-sleep) and mechanistic decomposition (CODEC/SAE) converge on the same Schankian primitives from opposite directions? If so, operators are real computational structures, not just labels.',
