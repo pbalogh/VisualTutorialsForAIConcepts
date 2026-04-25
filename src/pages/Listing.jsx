@@ -1851,6 +1851,18 @@ const tutorials = [
     featured: true,
   },
   {
+    id: 'brainstorm-46-persistent-homology-operators',
+    title: 'Persistent Homology of Operator Spaces',
+    description: 'Apply topological data analysis to learned Schankian operator embeddings. Persistence barcodes give coordinate-free fingerprints — simpler barcodes = more primitive operators. Cross-lingual comparison without embedding alignment.',
+    tags: ['persistent homology', 'TDA', 'Betti numbers', 'barcodes', 'topology', 'operators', 'cross-lingual'],
+    icon: '🕸️',
+    gradient: 'from-violet-500 to-purple-700',
+    shadowColor: 'shadow-violet-500/30',
+    glowColor: 'rgba(139, 92, 246, 0.4)',
+    readTime: '24 min',
+    difficulty: 4,
+  },
+  {
     id: 'brainstorm-102-epistemic-regress',
     title: 'The Epistemic Regress of Operator Discovery',
     description: 'How epistemology\'s oldest problem — the infinite justification chain — maps onto Schankian operator discovery. Russell\'s acquaintance/description distinction provides foundations that stop the regress.',

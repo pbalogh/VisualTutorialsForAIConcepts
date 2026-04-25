@@ -1,0 +1,490 @@
+{
+  "id": "brainstorm-46-persistent-homology-operators",
+  "title": "Persistent Homology of Operator Spaces",
+  "subtitle": "Topological Signatures of Semantic Primitivity — Barcodes, Betti Numbers, and the Shape of Meaning",
+  "readTime": "24 min",
+  "state": {},
+  "content": {
+    "type": "Fragment",
+    "children": [
+      {
+        "type": "Callout",
+        "props": { "type": "info" },
+        "children": "If Schankian primitives like ATRANS, PTRANS, and PROPEL are truly fundamental, the geometry of their embedding space should be simple and stable — like the topology of a crystal lattice rather than a tangled knot. Persistent homology gives us coordinate-free tools to measure exactly this: how many clusters, loops, and voids persist as we zoom out. Simpler barcodes mean more primitive operators. This tutorial explores how topological data analysis (TDA) can fingerprint, validate, and even enforce the structure of learned semantic operators."
+      },
+      {
+        "type": "Section",
+        "props": { "title": "1. Why Topology? The Limits of Geometry" },
+        "children": [
+          {
+            "type": "p",
+            "children": "When we learn operator embeddings — vectors representing ATRANS, HARM, PROPEL, etc. — we typically evaluate them geometrically: distances, angles, cluster separability. But geometry is fragile. Rotate the space, scale an axis, apply a nonlinear warp, and distances change. If Schankian primitives are truly universal across languages and models, we need invariants that survive such transformations."
+          },
+          {
+            "type": "Analogy",
+            "children": "Imagine you have a coffee mug and a donut. Geometrically they look nothing alike — different dimensions, curves, proportions. But topologically they're identical: both have exactly one hole (the handle / the center). Topology captures the essential structure — the 'one-hole-ness' — that survives any continuous deformation. We want the same robustness for comparing operator spaces across languages, models, and training runs."
+          },
+          {
+            "type": "DefinitionList",
+            "children": [
+              {
+                "term": "Topology",
+                "definition": "The study of properties preserved under continuous deformations (stretching, bending — no tearing or gluing). Counts holes, connected components, and voids rather than measuring distances."
+              },
+              {
+                "term": "Point Cloud",
+                "definition": "A finite set of points in some space — here, the learned embedding vectors of Schankian operators. We study the shape of this cloud."
+              },
+              {
+                "term": "Topological Invariant",
+                "definition": "A property (like number of holes) that doesn't change under continuous deformation. Two spaces with different invariants are fundamentally different shapes."
+              }
+            ]
+          },
+          {
+            "type": "DeepDive",
+            "props": { "title": "Why Not Just Use Clustering?" },
+            "children": [
+              {
+                "type": "p",
+                "children": "Standard clustering (k-means, DBSCAN) finds groups but misses richer structure. A ring of points has one cluster but a topological hole. Two interlinked rings have two components and a non-trivial linking. Persistent homology captures ALL of this — connected components (H₀), loops (H₁), voids (H₂), and higher-dimensional cavities. For operator spaces, a loop might mean a cycle of operators (GIVE → TAKE → GIVE) forms a closed semantic circuit. A void might mean certain operator combinations are systematically absent — a 'forbidden zone' in meaning space."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "2. Persistent Homology in 5 Minutes" },
+        "children": [
+          {
+            "type": "p",
+            "children": "The core idea is deceptively simple: grow balls around each point and track what topological features appear and disappear as the balls expand."
+          },
+          {
+            "type": "Example",
+            "props": { "title": "Building a Simplicial Complex from Operators" },
+            "children": [
+              {
+                "type": "p",
+                "children": "Suppose we have five operator embeddings: ATRANS, PTRANS, PROPEL, MOVE, GRASP. At radius ε = 0, each is an isolated point (five connected components, H₀ = 5). As we increase ε:"
+              },
+              {
+                "type": "p",
+                "children": "• ε = 0.3: PTRANS and MOVE merge (both involve physical location change). H₀ drops to 4."
+              },
+              {
+                "type": "p",
+                "children": "• ε = 0.5: PROPEL and GRASP merge (both involve physical force application). H₀ = 3."
+              },
+              {
+                "type": "p",
+                "children": "• ε = 0.7: The physical cluster {PTRANS, MOVE, PROPEL, GRASP} forms. H₀ = 2."
+              },
+              {
+                "type": "p",
+                "children": "• ε = 1.2: ATRANS (abstract transfer) finally joins. H₀ = 1. But wait — a loop appears (H₁ = 1) because ATRANS connects to both PTRANS and PROPEL through different semantic paths."
+              },
+              {
+                "type": "p",
+                "children": "• ε = 1.8: The loop fills in (H₁ = 0). Everything is one blob."
+              },
+              {
+                "type": "p",
+                "children": "The persistence barcode records: ATRANS was born at ε = 0 and merged at ε = 1.2 (long bar = distinctive operator). The H₁ loop lived from ε = 1.2 to ε = 1.8 (short bar = transient feature). Long bars = real structure. Short bars = noise."
+              }
+            ]
+          },
+          {
+            "type": "DefinitionList",
+            "children": [
+              {
+                "term": "Vietoris-Rips Complex",
+                "definition": "At radius ε, connect points within distance ε. Add triangles when three points are mutually connected, tetrahedra when four are, etc. The resulting simplicial complex approximates the shape of the point cloud at scale ε."
+              },
+              {
+                "term": "Betti Numbers (H₀, H₁, H₂, ...)",
+                "definition": "H₀ = number of connected components. H₁ = number of 1-dimensional holes (loops). H₂ = number of 2-dimensional voids (cavities). Higher Hₖ count k-dimensional holes."
+              },
+              {
+                "term": "Persistence Barcode",
+                "definition": "A multiset of intervals [birth, death) — one per topological feature. Birth = radius where feature appears. Death = radius where it disappears. Long bars = robust features. Short bars = noise."
+              },
+              {
+                "term": "Persistence Diagram",
+                "definition": "Equivalent to barcodes but plotted as points (birth, death) in the plane. Points far from the diagonal are persistent (real structure); points near the diagonal are ephemeral (noise)."
+              }
+            ]
+          },
+          {
+            "type": "InteractiveDemo",
+            "props": {
+              "title": "Growing Balls: From Point Cloud to Simplicial Complex",
+              "height": 420
+            },
+            "children": "<div style=\"font-family:system-ui;background:#0f172a;padding:20px;border-radius:12px;color:#e2e8f0\">\n<div style=\"text-align:center;margin-bottom:12px\">\n<strong style=\"color:#38bdf8\">Drag the slider to grow ε-balls around operator embeddings</strong>\n</div>\n<svg viewBox=\"0 0 500 300\" style=\"width:100%;max-width:500px;display:block;margin:0 auto\">\n<!-- Background grid -->\n<rect width=\"500\" height=\"300\" fill=\"#1e293b\" rx=\"8\"/>\n<line x1=\"50\" y1=\"280\" x2=\"470\" y2=\"280\" stroke=\"#334155\" stroke-width=\"1\"/>\n<line x1=\"50\" y1=\"280\" x2=\"50\" y2=\"20\" stroke=\"#334155\" stroke-width=\"1\"/>\n\n<!-- Operator points with labels -->\n<circle cx=\"120\" cy=\"200\" r=\"6\" fill=\"#f472b6\" opacity=\"0.9\"/>\n<text x=\"120\" y=\"225\" fill=\"#f472b6\" font-size=\"10\" text-anchor=\"middle\">PTRANS</text>\n\n<circle cx=\"160\" cy=\"180\" r=\"6\" fill=\"#f472b6\" opacity=\"0.9\"/>\n<text x=\"160\" y=\"205\" fill=\"#f472b6\" font-size=\"10\" text-anchor=\"middle\">MOVE</text>\n\n<circle cx=\"280\" cy=\"160\" r=\"6\" fill=\"#a78bfa\" opacity=\"0.9\"/>\n<text x=\"280\" y=\"185\" fill=\"#a78bfa\" font-size=\"10\" text-anchor=\"middle\">PROPEL</text>\n\n<circle cx=\"310\" cy=\"130\" r=\"6\" fill=\"#a78bfa\" opacity=\"0.9\"/>\n<text x=\"310\" y=\"118\" fill=\"#a78bfa\" font-size=\"10\" text-anchor=\"middle\">GRASP</text>\n\n<circle cx=\"380\" cy=\"80\" r=\"6\" fill=\"#34d399\" opacity=\"0.9\"/>\n<text x=\"380\" y=\"68\" fill=\"#34d399\" font-size=\"10\" text-anchor=\"middle\">ATRANS</text>\n\n<!-- ε-balls (shown at a medium radius) -->\n<circle cx=\"120\" cy=\"200\" r=\"45\" fill=\"#f472b6\" opacity=\"0.08\" stroke=\"#f472b6\" stroke-width=\"0.5\" stroke-dasharray=\"3,3\"/>\n<circle cx=\"160\" cy=\"180\" r=\"45\" fill=\"#f472b6\" opacity=\"0.08\" stroke=\"#f472b6\" stroke-width=\"0.5\" stroke-dasharray=\"3,3\"/>\n<circle cx=\"280\" cy=\"160\" r=\"45\" fill=\"#a78bfa\" opacity=\"0.08\" stroke=\"#a78bfa\" stroke-width=\"0.5\" stroke-dasharray=\"3,3\"/>\n<circle cx=\"310\" cy=\"130\" r=\"45\" fill=\"#a78bfa\" opacity=\"0.08\" stroke=\"#a78bfa\" stroke-width=\"0.5\" stroke-dasharray=\"3,3\"/>\n<circle cx=\"380\" cy=\"80\" r=\"45\" fill=\"#34d399\" opacity=\"0.08\" stroke=\"#34d399\" stroke-width=\"0.5\" stroke-dasharray=\"3,3\"/>\n\n<!-- Edges formed at this radius -->\n<line x1=\"120\" y1=\"200\" x2=\"160\" y2=\"180\" stroke=\"#f472b6\" stroke-width=\"1.5\" opacity=\"0.6\"/>\n<line x1=\"280\" y1=\"160\" x2=\"310\" y2=\"130\" stroke=\"#a78bfa\" stroke-width=\"1.5\" opacity=\"0.6\"/>\n\n<!-- Legend -->\n<text x=\"60\" y=\"40\" fill=\"#94a3b8\" font-size=\"11\">ε = 0.5 (medium radius)</text>\n<text x=\"60\" y=\"56\" fill=\"#94a3b8\" font-size=\"10\">H₀ = 3 components | H₁ = 0 loops</text>\n\n<!-- Barcode preview -->\n<text x=\"60\" y=\"270\" fill=\"#64748b\" font-size=\"9\">Barcode: ━━━━ PTRANS-MOVE merged | ━━━━ PROPEL-GRASP merged | ━━━━━━━━ ATRANS still isolated</text>\n</svg>\n<p style=\"color:#94a3b8;font-size:12px;text-align:center;margin-top:8px\">At ε = 0.5, physical-motion operators merge first (short semantic distance), while abstract ATRANS stays isolated — its distinctiveness shows as a long bar in the barcode.</p>\n</div>"
+          },
+          {
+            "type": "DeepDive",
+            "props": { "title": "Why Vietoris-Rips and Not Čech?" },
+            "children": [
+              {
+                "type": "p",
+                "children": "The Čech complex uses actual ball intersections — more geometrically accurate but exponentially expensive (requires checking all subset intersections). The Vietoris-Rips complex only checks pairwise distances, making it computable for thousands of points. For operator spaces with ~14-100 embeddings, either works, but Rips is standard. The key theorem: Čech(ε) ⊆ Rips(ε) ⊆ Čech(ε√2), so Rips approximates Čech within a √2 factor. For our purposes, this is more than precise enough."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "3. What 'Simple Topology' Means for Primitives" },
+        "children": [
+          {
+            "type": "p",
+            "children": "Here's the core hypothesis: if Schankian operators are true primitives — irreducible atomic units of meaning — their embedding space should have simple, clean topology. What does 'simple' mean precisely?"
+          },
+          {
+            "type": "DefinitionList",
+            "children": [
+              {
+                "term": "Few persistent H₀ components",
+                "definition": "Operators should form a small number of well-separated clusters (physical, mental, social, emotional), not a uniform fog. Each persistent component = a genuine semantic domain."
+              },
+              {
+                "term": "Minimal H₁ loops",
+                "definition": "Loops mean circular dependencies — operator A is between B and C, which are between D, which is between A. True primitives should be independent, not cyclically entangled. A loop signals redundancy: one operator in the cycle could be composed from others."
+              },
+              {
+                "term": "No persistent H₂ voids",
+                "definition": "A void means a 'forbidden region' in operator space surrounded by operators on all sides. This would imply a systematic gap — a primitive that should exist but doesn't. Like Mendeleev's gaps predicting undiscovered elements."
+              }
+            ]
+          },
+          {
+            "type": "Analogy",
+            "children": "Think of chemical elements vs. molecules. The periodic table (primitives) has clean structure — elements are distinct points, organized by atomic number, with clear group/period patterns. Molecular space, by contrast, is a tangled high-dimensional mess — millions of compounds with complex relationships. If your 'operator space' looks like molecular space, you haven't found primitives yet. True primitives should look like the periodic table: sparse, well-separated, with gaps that predict missing entries."
+          },
+          {
+            "type": "Example",
+            "props": { "title": "Barcode Complexity as a Primitivity Score" },
+            "children": [
+              {
+                "type": "p",
+                "children": "We can quantify topological simplicity using barcode entropy — borrowing from information theory. Given a persistence barcode B = {[bᵢ, dᵢ)}, normalize the lifetimes ℓᵢ = dᵢ - bᵢ into a probability distribution pᵢ = ℓᵢ / Σℓⱼ, then compute:"
+              },
+              {
+                "type": "code",
+                "props": { "language": "text" },
+                "children": "Barcode Entropy = -Σ pᵢ log(pᵢ)\n\nLow entropy = few dominant long bars = simple topology = PRIMITIVE\nHigh entropy = many similar-length bars = complex topology = NOT PRIMITIVE\n\nExample:\n  Operator set A: {14 Schankian primitives}  → Entropy = 1.2 bits\n  Operator set B: {500 VerbNet fine classes}  → Entropy = 5.8 bits\n  Operator set C: {random 14 verbs}           → Entropy = 3.1 bits\n\nSchankian primitives should have the LOWEST barcode entropy\n— their topology is the simplest because they ARE the basis."
+              }
+            ]
+          },
+          {
+            "type": "DeepDive",
+            "props": { "title": "The Stability Theorem — Why This Works" },
+            "children": [
+              {
+                "type": "p",
+                "children": "The Persistence Stability Theorem (Cohen-Steiner, Edelsbrunner, Harer 2007) guarantees that small perturbations to the point cloud cause only small changes to the persistence diagram, measured by bottleneck distance. Formally: d_B(Dgm(f), Dgm(g)) ≤ ||f - g||∞. This means noisy training runs, slightly different hyperparameters, or approximate embeddings won't destroy the topological signal. The long bars (real structure) are stable; only the short bars (noise) wiggle. This is exactly why topology succeeds where raw geometry fails — it's noise-robust by theorem, not by hope."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "4. Cross-Lingual Universality Without Alignment" },
+        "children": [
+          {
+            "type": "p",
+            "children": "One of the most powerful applications: testing whether Schankian primitives are truly universal across languages without ever aligning embedding spaces. If we learn operators from English text and from Mandarin text, the embeddings live in completely different vector spaces — you can't directly compare them. But you CAN compare their persistence diagrams."
+          },
+          {
+            "type": "Callout",
+            "props": { "type": "warning" },
+            "children": "This is the killer app of persistent homology for our project. Traditional cross-lingual comparison requires Procrustes alignment, bilingual dictionaries, or shared multilingual models. All of these inject assumptions. Persistence diagrams are coordinate-free — they depend only on the pairwise distance matrix, not on the embedding coordinates. If English and Mandarin operator spaces have the same persistence diagram, they have the same topological structure, period."
+          },
+          {
+            "type": "Example",
+            "props": { "title": "Comparing English and Mandarin Operator Topologies" },
+            "children": [
+              {
+                "type": "p",
+                "children": "Train operator embeddings independently on English and Mandarin corpora. Compute persistence diagrams for each. Compare using bottleneck distance d_B or Wasserstein distance d_W:"
+              },
+              {
+                "type": "code",
+                "props": { "language": "python" },
+                "children": "from ripser import ripser\nfrom persim import bottleneck\nimport numpy as np\n\n# Compute persistence diagrams\nen_result = ripser(english_operator_embeddings, maxdim=2)\nzh_result = ripser(mandarin_operator_embeddings, maxdim=2)\n\n# Compare H₀ (connected components)\nd_components = bottleneck(\n    en_result['dgms'][0],\n    zh_result['dgms'][0]\n)\n\n# Compare H₁ (loops)\nd_loops = bottleneck(\n    en_result['dgms'][1],\n    zh_result['dgms'][1]\n)\n\nprint(f\"Component structure distance: {d_components:.3f}\")\nprint(f\"Loop structure distance: {d_loops:.3f}\")\n# If both are small → same topological structure → universal primitives!"
+              }
+            ]
+          },
+          {
+            "type": "Analogy",
+            "children": "It's like comparing two subway systems by their route maps rather than their physical layouts. The Tokyo Metro and London Underground look nothing alike on a geographic map — different scales, shapes, orientations. But their route topology might be similar: both have a central ring line with radial lines branching out. Persistent homology compares the 'route map' of operator spaces, ignoring the arbitrary 'geography' of embedding coordinates."
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "5. Topological Loss Functions — Enforcing Clean Structure" },
+        "children": [
+          {
+            "type": "p",
+            "children": "Beyond analysis, topology can actively shape training. Topological loss functions penalize undesirable features (noisy short bars, unexpected loops) and reward desirable ones (clean separation, stable components). The key insight: persistence diagrams are differentiable with respect to the input point positions — we can backpropagate through topology."
+          },
+          {
+            "type": "DefinitionList",
+            "children": [
+              {
+                "term": "Topological Regularization",
+                "definition": "Add a penalty term to the training loss that discourages topological complexity: L_topo = Σ (dᵢ - bᵢ)^p for features we want to REMOVE (short bars, spurious loops). Raising p emphasizes the most persistent unwanted features."
+              },
+              {
+                "term": "Persistence-Based Clustering Loss",
+                "definition": "Maximize the persistence (lifetime) of H₀ features corresponding to desired operator clusters. Force operators within the same semantic domain to form persistent connected components."
+              },
+              {
+                "term": "Topological Autoencoder",
+                "definition": "Enforce that the latent space of an autoencoder preserves the topological structure of the input. Applied to operators: the compressed operator representation should maintain the same persistence diagram as the full embedding."
+              }
+            ]
+          },
+          {
+            "type": "InteractiveDemo",
+            "props": {
+              "title": "Persistence Barcode: Primitive vs. Non-Primitive Operators",
+              "height": 480
+            },
+            "children": "<div style=\"font-family:system-ui;background:#0f172a;padding:20px;border-radius:12px;color:#e2e8f0\">\n<div style=\"text-align:center;margin-bottom:16px\">\n<strong style=\"color:#38bdf8\">Comparing Persistence Barcodes</strong><br/>\n<span style=\"color:#94a3b8;font-size:13px\">Simple barcodes = primitive operators | Complex barcodes = redundant operators</span>\n</div>\n<svg viewBox=\"0 0 520 400\" style=\"width:100%;max-width:520px;display:block;margin:0 auto\">\n<rect width=\"520\" height=\"400\" fill=\"#1e293b\" rx=\"8\"/>\n\n<!-- Left: Schankian Primitives barcode -->\n<text x=\"20\" y=\"30\" fill=\"#34d399\" font-size=\"13\" font-weight=\"bold\">A. Schankian Primitives (14 operators)</text>\n<text x=\"20\" y=\"46\" fill=\"#64748b\" font-size=\"10\">Barcode entropy: 1.2 bits — SIMPLE</text>\n\n<!-- H0 bars - few, long, well-separated -->\n<text x=\"20\" y=\"68\" fill=\"#94a3b8\" font-size=\"9\">H₀ (components):</text>\n<rect x=\"100\" y=\"60\" width=\"380\" height=\"6\" rx=\"3\" fill=\"#34d399\" opacity=\"0.8\"/>\n<rect x=\"100\" y=\"72\" width=\"300\" height=\"6\" rx=\"3\" fill=\"#34d399\" opacity=\"0.7\"/>\n<rect x=\"100\" y=\"84\" width=\"250\" height=\"6\" rx=\"3\" fill=\"#34d399\" opacity=\"0.6\"/>\n<rect x=\"100\" y=\"96\" width=\"200\" height=\"6\" rx=\"3\" fill=\"#34d399\" opacity=\"0.5\"/>\n\n<!-- H1 bars - almost none -->\n<text x=\"20\" y=\"120\" fill=\"#94a3b8\" font-size=\"9\">H₁ (loops):</text>\n<rect x=\"200\" y=\"112\" width=\"30\" height=\"6\" rx=\"3\" fill=\"#a78bfa\" opacity=\"0.4\"/>\n<text x=\"240\" y=\"118\" fill=\"#64748b\" font-size=\"9\">← almost no loops (independent primitives)</text>\n\n<!-- Divider -->\n<line x1=\"10\" y1=\"145\" x2=\"510\" y2=\"145\" stroke=\"#334155\" stroke-width=\"1\" stroke-dasharray=\"4,4\"/>\n\n<!-- Right: VerbNet Fine Classes barcode -->\n<text x=\"20\" y=\"170\" fill=\"#f472b6\" font-size=\"13\" font-weight=\"bold\">B. VerbNet Fine Classes (500 verbs)</text>\n<text x=\"20\" y=\"186\" fill=\"#64748b\" font-size=\"10\">Barcode entropy: 5.8 bits — COMPLEX</text>\n\n<!-- H0 bars - many, varying lengths, cluttered -->\n<text x=\"20\" y=\"208\" fill=\"#94a3b8\" font-size=\"9\">H₀ (components):</text>\n<rect x=\"100\" y=\"200\" width=\"380\" height=\"4\" rx=\"2\" fill=\"#f472b6\" opacity=\"0.7\"/>\n<rect x=\"100\" y=\"207\" width=\"340\" height=\"4\" rx=\"2\" fill=\"#f472b6\" opacity=\"0.65\"/>\n<rect x=\"100\" y=\"214\" width=\"310\" height=\"4\" rx=\"2\" fill=\"#f472b6\" opacity=\"0.6\"/>\n<rect x=\"100\" y=\"221\" width=\"280\" height=\"4\" rx=\"2\" fill=\"#f472b6\" opacity=\"0.55\"/>\n<rect x=\"100\" y=\"228\" width=\"240\" height=\"4\" rx=\"2\" fill=\"#f472b6\" opacity=\"0.5\"/>\n<rect x=\"100\" y=\"235\" width=\"200\" height=\"4\" rx=\"2\" fill=\"#f472b6\" opacity=\"0.45\"/>\n<rect x=\"100\" y=\"242\" width=\"170\" height=\"4\" rx=\"2\" fill=\"#f472b6\" opacity=\"0.4\"/>\n<rect x=\"100\" y=\"249\" width=\"140\" height=\"4\" rx=\"2\" fill=\"#f472b6\" opacity=\"0.35\"/>\n<rect x=\"100\" y=\"256\" width=\"110\" height=\"4\" rx=\"2\" fill=\"#f472b6\" opacity=\"0.3\"/>\n<rect x=\"100\" y=\"263\" width=\"80\" height=\"4\" rx=\"2\" fill=\"#f472b6\" opacity=\"0.25\"/>\n<rect x=\"100\" y=\"270\" width=\"60\" height=\"4\" rx=\"2\" fill=\"#f472b6\" opacity=\"0.2\"/>\n<rect x=\"100\" y=\"277\" width=\"40\" height=\"4\" rx=\"2\" fill=\"#f472b6\" opacity=\"0.15\"/>\n\n<!-- H1 bars - many loops -->\n<text x=\"20\" y=\"300\" fill=\"#94a3b8\" font-size=\"9\">H₁ (loops):</text>\n<rect x=\"150\" y=\"292\" width=\"120\" height=\"4\" rx=\"2\" fill=\"#a78bfa\" opacity=\"0.6\"/>\n<rect x=\"180\" y=\"299\" width=\"90\" height=\"4\" rx=\"2\" fill=\"#a78bfa\" opacity=\"0.5\"/>\n<rect x=\"200\" y=\"306\" width=\"70\" height=\"4\" rx=\"2\" fill=\"#a78bfa\" opacity=\"0.4\"/>\n<rect x=\"220\" y=\"313\" width=\"50\" height=\"4\" rx=\"2\" fill=\"#a78bfa\" opacity=\"0.3\"/>\n<rect x=\"160\" y=\"320\" width=\"100\" height=\"4\" rx=\"2\" fill=\"#a78bfa\" opacity=\"0.5\"/>\n<rect x=\"190\" y=\"327\" width=\"60\" height=\"4\" rx=\"2\" fill=\"#a78bfa\" opacity=\"0.35\"/>\n<text x=\"300\" y=\"318\" fill=\"#64748b\" font-size=\"9\">← many loops (redundant, entangled)</text>\n\n<!-- H2 void -->\n<text x=\"20\" y=\"350\" fill=\"#94a3b8\" font-size=\"9\">H₂ (voids):</text>\n<rect x=\"250\" y=\"342\" width=\"40\" height=\"4\" rx=\"2\" fill=\"#fbbf24\" opacity=\"0.5\"/>\n<text x=\"300\" y=\"348\" fill=\"#fbbf24\" font-size=\"9\">← void! Missing operator region</text>\n\n<!-- Bottom label -->\n<text x=\"260\" y=\"380\" fill=\"#94a3b8\" font-size=\"11\" text-anchor=\"middle\">Radius ε →</text>\n<text x=\"100\" y=\"393\" fill=\"#64748b\" font-size=\"9\">birth</text>\n<text x=\"460\" y=\"393\" fill=\"#64748b\" font-size=\"9\">death</text>\n</svg>\n<p style=\"color:#94a3b8;font-size:12px;text-align:center;margin-top:8px\">Schankian primitives (top) show few long H₀ bars and almost no H₁ loops — clean, independent basis. VerbNet fine classes (bottom) show cluttered H₀, many H₁ loops (circular dependencies), and even an H₂ void (a gap where a missing operator should be).</p>\n</div>"
+          },
+          {
+            "type": "DeepDive",
+            "props": { "title": "Differentiating Through Persistence — The Technical Magic" },
+            "children": [
+              {
+                "type": "p",
+                "children": "How do you backpropagate through a topological computation? The persistence diagram is a function of pairwise distances, which are functions of point positions. At critical radii (where features are born or die), the diagram changes non-smoothly — but almost everywhere it's differentiable. Poulenard et al. (2020) showed that the gradient of the persistence loss with respect to a point position is: ∂L/∂xᵢ = Σⱼ (∂L/∂dᵢⱼ)(xᵢ - xⱼ)/dᵢⱼ, essentially pushing points apart (to create persistent features) or together (to kill them). Libraries like giotto-tda and TopologyLayer implement this automatically. The cost is O(n³) for n points — fine for ~14-100 operators, prohibitive for millions of tokens."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "6. Predicting Missing Operators from Topological Gaps" },
+        "children": [
+          {
+            "type": "p",
+            "children": "Perhaps the most exciting application: persistent homology can reveal gaps in the operator inventory — 'missing primitives' analogous to Mendeleev's predicted elements. An H₂ void (a persistent cavity in operator space) means there's a region surrounded by operators on all sides but empty in the middle. Something should be there."
+          },
+          {
+            "type": "Example",
+            "props": { "title": "Finding the Missing Operator" },
+            "children": [
+              {
+                "type": "p",
+                "children": "Suppose we learn 12 operators from English text and compute their persistence diagram. We find a persistent H₂ void centered in a region between ATRANS (transfer of possession), MTRANS (transfer of information), and PTRANS (transfer of location). The void says: 'There should be an operator here that transfers something, but it's not possession, information, or location.'"
+              },
+              {
+                "type": "p",
+                "children": "What could it be? Transfer of emotional state — ETRANS? Transfer of authority — CTRANS (control transfer)? The topology doesn't tell us what the missing operator IS, but it tells us WHERE it should live and what it should be BETWEEN. We can then search corpora for events that cluster in the void region."
+              },
+              {
+                "type": "code",
+                "props": { "language": "python" },
+                "children": "# Find the centroid of an H₂ void (simplified)\nvoid_birth, void_death = persistent_voids[0]  # most persistent void\n\n# The void is bounded by a 2-cycle of operators\nboundary_operators = get_void_boundary(operator_embeddings, void_birth)\n\n# The centroid of the boundary approximates the missing operator\nmissing_location = np.mean([op.embedding for op in boundary_operators], axis=0)\n\n# Search for events that project near this location\ncandidates = find_nearest_events(corpus_embeddings, missing_location, k=100)\nprint(\"Events near the void centroid:\")\nfor event in candidates[:10]:\n    print(f\"  {event.text}\")\n# Expected output: events involving transfer of emotion, control, etc."
+              }
+            ]
+          },
+          {
+            "type": "Callout",
+            "props": { "type": "tip" },
+            "children": "This connects directly to Brainstorm #44 (Periodic Table of Operators). The periodic table predicts missing elements by gaps in the pattern; persistent homology predicts missing operators by voids in the topology. Both are structure-driven prediction — but persistent homology is coordinate-free and doesn't require choosing axes a priori."
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "7. Computational Pipeline" },
+        "children": [
+          {
+            "type": "p",
+            "children": "Here's a concrete implementation pipeline for applying persistent homology to Schankian operator spaces:"
+          },
+          {
+            "type": "code",
+            "props": { "language": "python" },
+            "children": "import numpy as np\nfrom ripser import ripser\nfrom persim import plot_diagrams, bottleneck, wasserstein\nimport matplotlib.pyplot as plt\n\n# Step 1: Get operator embeddings (from wake-sleep, SAE mining, etc.)\noperator_embeddings = load_learned_operators()  # shape: (K, d)\n# K = number of operators (~14-100), d = embedding dimension\n\n# Step 2: Compute persistence up to dimension 2\nresult = ripser(operator_embeddings, maxdim=2, thresh=np.inf)\ndiagrams = result['dgms']  # list of arrays, one per dimension\n\n# Step 3: Compute barcode entropy\ndef barcode_entropy(dgm):\n    lifetimes = dgm[:, 1] - dgm[:, 0]\n    lifetimes = lifetimes[lifetimes > 0]  # remove zero-length\n    if len(lifetimes) == 0:\n        return 0.0\n    probs = lifetimes / lifetimes.sum()\n    return -np.sum(probs * np.log2(probs + 1e-12))\n\nfor dim, dgm in enumerate(diagrams):\n    ent = barcode_entropy(dgm)\n    print(f\"H_{dim} barcode entropy: {ent:.2f} bits\")\n    print(f\"  Persistent features (lifetime > median): \"\n          f\"{np.sum((dgm[:,1]-dgm[:,0]) > np.median(dgm[:,1]-dgm[:,0]))}\")\n\n# Step 4: Visualize\nfig, axes = plt.subplots(1, 3, figsize=(15, 5))\nplot_diagrams(diagrams, ax=axes[0], title=\"Persistence Diagram\")\n# ... (barcode plot, landscape plot)"
+          },
+          {
+            "type": "DeepDive",
+            "props": { "title": "Persistence Landscapes — A Functional Alternative" },
+            "children": [
+              {
+                "type": "p",
+                "children": "Persistence diagrams are multisets of points — awkward to average or do statistics on. Persistence landscapes (Bubenik 2015) convert each diagram into a sequence of functions λ₁ ≥ λ₂ ≥ ... where λₖ(t) is the kth largest value of min(t - bᵢ, dᵢ - t) over all bars. Landscapes live in a Banach space, so you can compute means, variances, and do hypothesis testing. For our project: train 10 different operator sets, compute their average persistence landscape, and test whether the topological structure is statistically stable across training runs."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "8. Connections to Other Brainstorms" },
+        "children": [
+          {
+            "type": "p",
+            "children": "Persistent homology connects to nearly every other approach in the operator discovery project:"
+          },
+          {
+            "type": "DefinitionList",
+            "children": [
+              {
+                "term": "#39 Information Bottleneck",
+                "definition": "The IB curve and the persistence barcode encode similar information from different angles. IB says 'this compression level preserves this much structure.' Persistence says 'this scale reveals this many features.' The IB optimal point should correspond to the persistence threshold that maximizes the gap between long and short bars."
+              },
+              {
+                "term": "#44 Periodic Table of Operators",
+                "definition": "The periodic table is a 2D projection of operator space. Persistent homology provides the rigorous multi-dimensional version: H₀ components = groups, H₁ loops = cycles in the table, H₂ voids = missing elements."
+              },
+              {
+                "term": "#45 MDL Operator Discovery",
+                "definition": "MDL finds the operator count that minimizes description length. Barcode entropy provides a topological analogue: the operator count that minimizes topological complexity. These should converge to the same number."
+              },
+              {
+                "term": "#47 Semantic Renormalization",
+                "definition": "RG fixed points are topological invariants under coarse-graining. The persistence diagram of operator space at the RG fixed point should be maximally simple — the topological signature of universality."
+              },
+              {
+                "term": "#71 Gauge Connections",
+                "definition": "Gauge connections define parallel transport; persistent homology detects the global structure (holonomy) that parallel transport reveals. H₁ loops correspond to non-trivial holonomy — operators that don't compose back to identity around a cycle."
+              }
+            ]
+          },
+          {
+            "type": "Analogy",
+            "children": "Persistent homology is like an X-ray of the operator space — it reveals the skeleton (topological structure) regardless of the flesh (geometric details). Just as an X-ray shows fractures invisible on the surface, persistence barcodes reveal structural problems (redundant operators, missing primitives) that clustering metrics miss."
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "9. The TDA-for-NLP Landscape" },
+        "children": [
+          {
+            "type": "p",
+            "children": "Topological data analysis is gaining traction in NLP. Key prior work that our approach builds on:"
+          },
+          {
+            "type": "DefinitionList",
+            "children": [
+              {
+                "term": "Word Embedding Topology (Jakubowski et al. 2020)",
+                "definition": "Applied persistent homology to word2vec and GloVe embeddings. Found that word embedding spaces have non-trivial H₁ features (loops) corresponding to semantic cycles like antonym chains. Our approach extends this from word spaces to operator spaces."
+              },
+              {
+                "term": "Topological Signatures of Neural Text (Kushnareva et al. 2021)",
+                "definition": "Used persistence barcodes of attention matrices to detect machine-generated text. Showed that topological features of transformer internals carry meaningful signal. Our proposal: use the same features to identify operator structure."
+              },
+              {
+                "term": "TDA for Transformer Interpretability (Rathore et al. 2023)",
+                "definition": "Mapped persistent homology of attention patterns across layers, finding that topological complexity peaks in middle layers. Operators likely live where topology is most structured (not most complex)."
+              }
+            ]
+          },
+          {
+            "type": "DeepDive",
+            "props": { "title": "The AwesomeTDA4NLP Repository" },
+            "children": [
+              {
+                "type": "p",
+                "children": "Ada Uchendu maintains a comprehensive survey repository (github.com/AdaUchendu/AwesomeTDA4NLP) cataloging all applications of topological data analysis to natural language processing. As of early 2026, it lists ~80 papers spanning text classification, authorship attribution, sentiment analysis, machine translation quality, and transformer interpretability. Notably absent: applying TDA to learned semantic primitives or event operators. This is genuinely new territory — and the mathematical framework is mature enough to apply immediately."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "Quiz: Test Your Understanding" },
+        "children": [
+          {
+            "type": "Quiz",
+            "props": {
+              "question": "If a set of learned operator embeddings shows many persistent H₁ features (loops) in its persistence barcode, what does this suggest about the operator set?",
+              "options": [
+                "The operators are truly primitive and well-separated",
+                "Some operators are redundant — they form circular dependency chains that could be simplified",
+                "The embedding dimension is too low",
+                "The operators need more training data"
+              ],
+              "correctIndex": 1,
+              "explanation": "Persistent H₁ loops indicate that operators form cycles: A is similar to B, B to C, C back to A. This suggests circular semantic dependencies — at least one operator in each cycle could potentially be composed from others, meaning the set isn't fully reduced to independent primitives. True primitives should show minimal H₁ features."
+            }
+          },
+          {
+            "type": "Quiz",
+            "props": {
+              "question": "What is the key advantage of using persistent homology to compare operator spaces across languages, compared to traditional methods like Procrustes alignment?",
+              "options": [
+                "Persistent homology is faster to compute",
+                "Persistent homology requires bilingual dictionaries for calibration",
+                "Persistence diagrams are coordinate-free — they depend only on pairwise distances, not embedding coordinates",
+                "Persistent homology can only compare spaces of the same dimension"
+              ],
+              "correctIndex": 2,
+              "explanation": "Persistence diagrams depend solely on the pairwise distance matrix between points, not on the coordinate system. Two operator spaces can live in completely different vector spaces with different dimensions and orientations, but if their pairwise distance structures produce the same persistence diagram, they have the same topological shape. This is exactly what 'coordinate-free' means — no alignment, rotation, or translation needed."
+            }
+          },
+          {
+            "type": "Quiz",
+            "props": {
+              "question": "A persistent H₂ void in operator space suggests:",
+              "options": [
+                "The training diverged",
+                "There are too many operators",
+                "A region where a missing operator should exist, surrounded by known operators on all sides",
+                "The embedding dimension should be reduced"
+              ],
+              "correctIndex": 2,
+              "explanation": "An H₂ void is a persistent 2-dimensional cavity — a hollow region in the point cloud surrounded by a closed surface of operators. Like Mendeleev's gaps in the periodic table, this suggests a systematically missing primitive: the topology 'expects' an operator where none was learned. The centroid of the void boundary approximates where the missing operator should live."
+            }
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "10. Open Questions and Future Directions" },
+        "children": [
+          {
+            "type": "p",
+            "children": "Persistent homology for operator spaces opens several research directions:"
+          },
+          {
+            "type": "p",
+            "children": "1. What is the expected barcode complexity of 'true' primitives? We need baselines: random operator sets, linguistically motivated sets (Dowty, Vendler), and learned sets across multiple methods."
+          },
+          {
+            "type": "p",
+            "children": "2. Can topological loss functions discover the right number of operators automatically? Instead of specifying K=14, let the topology settle into a natural structure."
+          },
+          {
+            "type": "p",
+            "children": "3. How does the persistence diagram evolve during training? Tracking topological features across epochs might reveal phase transitions — moments when the operator space suddenly simplifies."
+          },
+          {
+            "type": "p",
+            "children": "4. Multi-scale analysis: Operators might have different topological structure at different scales. Physical operators (PTRANS, PROPEL) might be tightly clustered; abstract operators (MBUILD, MTRANS) might be more diffuse. Persistence captures this naturally via the multi-scale filtration."
+          },
+          {
+            "type": "Callout",
+            "props": { "type": "tip" },
+            "children": "The ultimate test: if persistent homology of operator spaces trained on 50 different languages all produce statistically indistinguishable persistence landscapes, that's coordinate-free, model-free, language-free evidence for universal semantic primitives. No other method provides this level of invariance."
+          }
+        ]
+      }
+    ]
+  }
+}
