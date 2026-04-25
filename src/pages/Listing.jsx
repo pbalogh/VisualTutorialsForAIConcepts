@@ -1947,6 +1947,18 @@ const tutorials = [
     difficulty: 2,
   },
   {
+    id: 'brainstorm-94-conceptual-spaces-geometry',
+    title: 'Conceptual Spaces Meet Schankian Primitives',
+    description: 'Gärdenfors decomposes events into geometric vectors (agent, force, patient, result). Schank partitions the same space into discrete primitives. Wake-sleep discovers the Voronoi tessellation connecting them — primitives are centroids in conceptual space.',
+    tags: ['Gärdenfors', 'conceptual spaces', 'Voronoi', 'Schankian primitives', 'image schemas', 'Lakoff', 'Hydra'],
+    icon: '🌐',
+    gradient: 'from-violet-500 to-purple-600',
+    shadowColor: 'shadow-violet-500/30',
+    glowColor: 'rgba(139, 92, 246, 0.4)',
+    readTime: '18 min',
+    difficulty: 3,
+  },
+  {
     id: 'brainstorm-operator-motifs-causal',
     title: 'Operator Motifs as Causal Contribution Patterns',
     description: 'Can behavioral compression (wake-sleep) and mechanistic decomposition (CODEC/SAE) converge on the same Schankian primitives from opposite directions? If so, operators are real computational structures, not just labels.',
