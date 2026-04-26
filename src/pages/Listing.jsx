@@ -2055,6 +2055,18 @@ const tutorials = [
     difficulty: 2,
   },
   {
+    id: 'brainstorm-95b-bpe-for-meaning',
+    title: 'BPE for Meaning — Adaptive Semantic Vocabularies',
+    description: 'BPE merges bytes into tokens; our system splits overloaded semantic primitives and merges frequent co-occurrences. Four fates: survive, promote, demote, split. The optimal vocabulary emerges through information-theoretic pressure — natural selection for concepts.',
+    tags: ['BPE', 'Wierzbicka', 'MDL', 'information theory', 'semantic primes', 'vocabulary optimization'],
+    icon: '🧬',
+    gradient: 'from-violet-500 to-fuchsia-600',
+    shadowColor: 'shadow-violet-500/30',
+    glowColor: 'rgba(139, 92, 246, 0.4)',
+    readTime: '15 min',
+    difficulty: 2,
+  },
+  {
     id: 'brainstorm-27-forward-inverse',
     title: 'Operators as Forward-Inverse Model Pairs',
     description: 'Motor control uses forward models (predict effects) and inverse models (infer actions). Schankian operators ARE semantic forward models — ATRANS predicts possession change, PTRANS predicts location change. HRR binding implements the forward model; unbinding implements the inverse. With interactive operator guessing game.',

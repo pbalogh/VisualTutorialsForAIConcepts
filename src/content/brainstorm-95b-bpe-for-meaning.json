@@ -1,0 +1,360 @@
+{
+  "type": "Fragment",
+  "meta": {
+    "title": "BPE for Meaning",
+    "description": "What if semantic primitives aren't fixed? BPE merges bytes into tokens; our system splits overloaded primitives and merges frequent co-occurrences — finding the optimal vocabulary through information-theoretic pressure.",
+    "author": "Clawd",
+    "lastUpdated": "2026-04-26"
+  },
+  "content": {
+    "type": "Fragment",
+    "children": [
+      {
+        "type": "Section",
+        "props": {
+          "title": "The Problem: Fixed Vocabularies Break"
+        },
+        "children": [
+          {
+            "type": "Callout",
+            "props": {
+              "type": "insight"
+            },
+            "children": "Wierzbicka claims 65 semantic primes are universal and irreducible — the atoms of meaning. Schank proposed 11 event primitives. But what if the 'right' vocabulary depends on your corpus? What if primitives should be alive?"
+          },
+          {
+            "type": "p",
+            "children": "Every knowledge representation faces a vocabulary problem. Too few primitives and everything looks the same — COMPUTE covers arithmetic, neural networks, and formal proofs. Too many and you've reinvented natural language. The sweet spot is corpus-dependent, and it changes as your knowledge grows."
+          },
+          {
+            "type": "Analogy",
+            "props": {
+              "title": "The Paint Store"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "A paint store starts with 8 primary colors. Customers keep asking for 'blue' — but some want sky blue, some want navy, some want teal. When 'blue' accounts for 30% of all sales, the store splits it into three shades. Meanwhile, 'burnt sienna' sells once a year — it gets merged back into 'brown.' The store's palette evolves to match demand. Semantic primitives should work the same way."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "BPE: The Inspiration"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "Byte Pair Encoding (BPE) is how modern language models build their tokenizer vocabularies. Start with individual bytes (256 symbols). Find the most frequent adjacent pair. Merge them into a new symbol. Repeat until you reach your target vocabulary size. The result: common words get single tokens, rare words get split into meaningful subwords."
+          },
+          {
+            "type": "DeepDive",
+            "props": {
+              "title": "How BPE Works Step by Step",
+              "text": "Corpus: 'low low low low low lowest lowest newer newer wider'\n\n1. Start with characters: l, o, w, e, s, t, n, r, i, d\n2. Most frequent pair: (l, o) → merge into 'lo' (5 times)\n3. Next: (lo, w) → merge into 'low' (7 times)\n4. Next: (e, r) → merge into 'er' (3 times)\n5. Next: (n, ew) → merge into 'new' (2 times)\n6. Next: (low, est) → merge into 'lowest' (2 times)\n...\n\nEach merge compresses the representation. The vocabulary grows to capture frequent patterns. Rare words still decompose into known subwords."
+            }
+          },
+          {
+            "type": "p",
+            "children": "The key insight: BPE is a greedy bottom-up compression algorithm. It merges frequent co-occurrences into single symbols. Our semantic primitive system needs the INVERSE operation too — splitting overloaded symbols into more specific ones."
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "Four Fates of a Primitive"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "In our adaptive vocabulary system, every primitive is under constant pressure from four directions. Its fate depends on how the corpus uses it:"
+          },
+          {
+            "type": "DefinitionList",
+            "props": {
+              "items": [
+                {
+                  "term": "🟢 Survive (True Prime)",
+                  "definition": "Steady usage, irreducible, carries real information. FEEL, MOVE, KNOW — these earn their keep across all corpora."
+                },
+                {
+                  "term": "⬆️ Promoted (Compound → Prime)",
+                  "definition": "Frequent co-occurrence gets compressed into a single symbol. BODY+LIVE+HOT+FAMILY appears so often it becomes MAMMAL. This is BPE's merge operation applied to meaning."
+                },
+                {
+                  "term": "⬇️ Demoted (Prime → Absorbed)",
+                  "definition": "Rarely used, replaceable by neighbors. SOFT_PHYS (1 usage!) might just be NOT+HARD_PHYS. Dead weight — costs a codebook slot but carries no information."
+                },
+                {
+                  "term": "✂️ Split (Overloaded → Sub-primes)",
+                  "definition": "Used so often it distinguishes nothing. COMPUTE at 24% of entities is like a token so common it's meaningless. Split into COMPUTE_NUMERIC, COMPUTE_SYMBOLIC, COMPUTE_LEARN."
+                }
+              ]
+            }
+          },
+          {
+            "type": "Callout",
+            "props": {
+              "type": "key-idea"
+            },
+            "children": "The vocabulary at any moment is a snapshot of an ongoing competition. Primes that don't pay rent in information-theoretic utility get evicted. Frequent compounds earn promotion. The fixed point of this process IS the optimal vocabulary for your corpus."
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "The Entropy-Based Splitter"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "When should a primitive split? When knowing it tells you almost nothing about which KIND of entity you're looking at. We measure this with conditional entropy: H(neighbors | prime). If COMPUTE's neighbors are uniformly spread across all other primes, it's overloaded — knowing something is COMPUTE barely narrows down what it IS."
+          },
+          {
+            "type": "Example",
+            "props": {
+              "title": "Splitting COMPUTE"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "In our real system, COMPUTE appears in 24.3% of 2,222 entity decompositions. The overload score (combining frequency, neighbor entropy, and discrimination loss) is 0.432 — on the watch list.\n\nClustering entities that use COMPUTE by their CO-OCCURRING primes reveals two natural groups:\n\n• COMPUTE + PATTERN + ENCODE (156 entities) → pattern recognition, encoding\n• COMPUTE + MEASURE (383 entities) → quantification, optimization\n\nThese are genuinely different computational activities that happen to share a label."
+              }
+            ]
+          },
+          {
+            "type": "InteractiveDemo",
+            "props": {
+              "title": "Prime Overload Calculator",
+              "description": "See how frequency and neighbor entropy combine into an overload score",
+              "type": "slider",
+              "config": {
+                "sliders": [
+                  {"label": "Frequency (%)", "min": 1, "max": 50, "default": 24, "step": 1, "id": "freq"},
+                  {"label": "Neighbor Entropy (normalized)", "min": 0, "max": 1, "default": 0.78, "step": 0.01, "id": "h_norm"}
+                ],
+                "formula": "overload = 0.4 × (freq/100) + 0.35 × h_norm + 0.25 × (freq/100)",
+                "output": "Overload Score: {result} — {result >= 0.6 ? '🔴 SPLIT' : result >= 0.4 ? '🟡 Watch' : '🟢 OK'}"
+              }
+            }
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "The Merge Detector"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "The complement of splitting is merging: when two primes almost always appear together, they're really one concept wearing two hats. We detect this via pointwise mutual information (PMI) — how much more often do they co-occur than chance would predict?"
+          },
+          {
+            "type": "Example",
+            "props": {
+              "title": "BODY + MEDICAL"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "In our corpus, BODY and MEDICAL co-occur in 75% of MEDICAL's usages (PMI = 4.06). That's extremely high — these primes almost never appear without each other. A BIOMEDICAL compound prime would compress the vocabulary without losing expressiveness.\n\nMeanwhile, COMPUTE and TECHNICAL co-occur at 72% — also a merge candidate. Makes sense: in a research-heavy corpus, 'technical computation' is practically one concept."
+              }
+            ]
+          },
+          {
+            "type": "Callout",
+            "props": {
+              "type": "connection"
+            },
+            "children": "This is exactly what BPE does: find frequent pairs, merge them. Applied to semantic primitives instead of character pairs. The merge operation creates 'promoted compounds' — frequent combinations that earn their own codebook entry."
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "The Demotion Detector"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "Some primes sounded fundamental when created but never found a niche. In our 2,222-entity corpus:"
+          },
+          {
+            "type": "DefinitionList",
+            "props": {
+              "items": [
+                {
+                  "term": "SOFT_PHYS — 1 usage",
+                  "definition": "Could be expressed as NOT + HARD_PHYS. The distinction doesn't earn its codebook slot."
+                },
+                {
+                  "term": "MINE — 2 usages",
+                  "definition": "Always appears with PATTERN, SPATIAL_PROCESS. Possibly just OWN in different clothing."
+                },
+                {
+                  "term": "HEAVY — 1 usage",
+                  "definition": "Co-occurs with HARD_PHYS, SOLID. Might be a physical descriptor that HARD_PHYS already captures."
+                }
+              ]
+            }
+          },
+          {
+            "type": "p",
+            "children": "These are the semantic equivalent of dead letters in an alphabet — they cost a vector in the codebook but carry almost zero information. Natural selection for concepts: primes compete for representational real estate."
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "Bidirectional MDL Optimization"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "The deep insight: split + merge + demote together form a bidirectional optimization under the Minimum Description Length (MDL) principle. The optimal vocabulary minimizes the total description length of the corpus:"
+          },
+          {
+            "type": "DeepDive",
+            "props": {
+              "title": "MDL = Codebook Cost + Encoding Cost",
+              "text": "Total description length = (size of vocabulary × vector dimension) + (number of entity decompositions × avg primes per entity × log₂(vocab size))\n\nMore primes → bigger codebook (first term goes up) but shorter encodings (second term goes down, because each prime is more specific).\n\nFewer primes → smaller codebook but longer encodings (need more primes per entity to be specific).\n\nThe minimum of this trade-off IS the optimal vocabulary size. Split/merge/demote are hill-climbing moves toward this minimum."
+            }
+          },
+          {
+            "type": "Analogy",
+            "props": {
+              "title": "The Warehouse Analogy"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "A warehouse stocks parts for a factory. Each shelf slot costs rent (codebook cost). Each assembly instruction references parts by shelf number (encoding cost). Stock too few part types → long assembly instructions ('take the metal thing from shelf 3, cut it, bend it...'). Stock too many → mostly empty shelves burning rent. The optimal inventory minimizes total cost: rent + assembly complexity. That's MDL for semantic vocabularies."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "Emergent Taxonomy"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "Here's the surprising consequence: this system bypasses traditional hierarchical taxonomy. Entities aren't organized in a tree (animal → mammal → dog). Instead, each entity is a bag of primes, and similarity is just prime overlap. A 'medical algorithm' lives near both medicine AND computation because it literally IS both: [MEDICAL, COMPUTE, PATTERN]."
+          },
+          {
+            "type": "p",
+            "children": "But taxonomy doesn't disappear — it emerges from the bottom up. If 500 animal entities all share BODY+LIVE+HOT+FAMILY, the merge detector will eventually compress that bundle into a MAMMAL compound prime. The hierarchy is earned through information-theoretic pressure, not imposed by philosophical fiat."
+          },
+          {
+            "type": "Callout",
+            "props": {
+              "type": "provocation"
+            },
+            "children": "Were Wierzbicka's 65 primes ever truly irreducible, or were they the promoted compounds of everyday human experience? Run this system on pure mathematics and THINK might split into PROVE, CONJECTURE, and COMPUTE. The 'universal' vocabulary is just one equilibrium among many."
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "Connection to Schankian Operators"
+        },
+        "children": [
+          {
+            "type": "p",
+            "children": "Wake-sleep compression on ATOMIC events rediscovered ATRANS, PTRANS, MTRANS, INGEST — Schank's primitives. These are exactly promoted compounds: frequent event patterns that earned their own symbols through MDL pressure. Schank found them by intuition; the algorithm found them by frequency. Same thing."
+          },
+          {
+            "type": "p",
+            "children": "But Schank's vocabulary was optimized for a small corpus of everyday narratives. As the event corpus grows, some primitives will overload (ATRANS covers gift/trade/steal/inherit/tax) while others stay sharp. Adaptive splitting discovers sub-primitives Schank missed — not because his theory was wrong, but because his corpus was small."
+          },
+          {
+            "type": "DeepDive",
+            "props": {
+              "title": "The Lifecycle of a Schankian Primitive",
+              "text": "ATRANS starts as a universal 'transfer of possession.' As the corpus grows:\n\n1. ATRANS appears in 30% of events → overloaded\n2. Clustering reveals: gift-ATRANS (voluntary, social), trade-ATRANS (reciprocal), theft-ATRANS (involuntary), tax-ATRANS (institutional)\n3. Conditional entropy H(event|ATRANS) is high → split!\n4. Four sub-primitives enter the vocabulary\n5. Each sub-primitive now carries real information\n6. MDL of the corpus decreases\n\nSchank's single ATRANS was the right answer for 1975. Four sub-ATRANSes might be the right answer for 2026."
+            }
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "Practical Design Principle"
+        },
+        "children": [
+          {
+            "type": "Callout",
+            "props": {
+              "type": "key-idea"
+            },
+            "children": "Start sloppy, let compression clean it up. It's strictly better to begin with too many primes than too few — merging is lossless (you just compress redundancy) while splitting requires clustering to invent distinctions you don't have data for. Err on the side of granularity."
+          },
+          {
+            "type": "p",
+            "children": "This means 'compound prime' isn't a contradiction — it's a description-length statement. At this corpus size, this compound is frequent enough to deserve a single symbol. Tomorrow, with more data, it might split again. The vocabulary is alive."
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "Quiz"
+        },
+        "children": [
+          {
+            "type": "Quiz",
+            "props": {
+              "questions": [
+                {
+                  "question": "A prime appears in 35% of all entities but has low neighbor entropy (co-occurring primes are predictable). What should happen?",
+                  "options": [
+                    "Split it — high frequency means overloaded",
+                    "Keep it — low neighbor entropy means it's actually specific",
+                    "Demote it — it's used too much to be useful",
+                    "Merge it with its most common neighbor"
+                  ],
+                  "correct": 1,
+                  "explanation": "High frequency alone doesn't justify splitting. If neighbor entropy is low, the prime reliably predicts its context — it's specific despite being common. A prime like LIVE might appear in 35% of entities (all living things) but always with predictable neighbors (BODY, GROW). That's fine — it's doing real semantic work."
+                },
+                {
+                  "question": "Two primes co-occur in 90% of the less-frequent prime's usages, with PMI > 3.0. What does this suggest?",
+                  "options": [
+                    "One should be split",
+                    "Both should be demoted",
+                    "They're merge candidates — probably one concept",
+                    "Nothing — high PMI is normal"
+                  ],
+                  "correct": 2,
+                  "explanation": "90% co-occurrence with high PMI means these primes almost never appear without each other. They're really one concept wearing two hats — a merge candidate. The resulting compound prime would compress the vocabulary without losing expressiveness."
+                },
+                {
+                  "question": "Why is starting with too many primes better than too few?",
+                  "options": [
+                    "More primes means better accuracy",
+                    "Merging is lossless but splitting requires inventing distinctions",
+                    "The MDL formula always favors larger vocabularies",
+                    "It makes the codebook look more impressive"
+                  ],
+                  "correct": 1,
+                  "explanation": "Merging redundant primes is just compression — no information is lost. But splitting an underspecified prime requires clustering to discover sub-categories that weren't explicitly encoded. You can always compress, but you can't always decompress. Start granular, let the system find the right level."
+                }
+              ]
+            }
+          }
+        ]
+      }
+    ]
+  }
+}
