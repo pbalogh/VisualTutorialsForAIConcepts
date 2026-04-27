@@ -2078,6 +2078,18 @@ const tutorials = [
     readTime: '20 min',
     difficulty: 3,
   },
+  {
+    id: 'brainstorm-96b-navigable-semantics',
+    title: 'Navigable Semantics: Operator Frequencies as Kleinberg Coordinates',
+    description: 'Why are social networks navigable? Kleinberg proved greedy routing needs inverse-square link distributions. We show that Schankian operator frequencies (which follow Zipf\'s law) naturally produce exactly this distribution in semantic space — solving an open problem from Easley & Kleinberg.',
+    tags: ['small-world', 'Kleinberg', 'Zipf', 'navigability', 'operator frequency', 'network science'],
+    icon: '🧭',
+    gradient: 'from-emerald-500 to-teal-600',
+    shadowColor: 'shadow-emerald-500/30',
+    glowColor: 'rgba(16, 185, 129, 0.4)',
+    readTime: '18 min',
+    difficulty: 3,
+  },
 ]
 
 // Semantic tag color system - filled backgrounds
