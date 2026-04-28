@@ -2090,6 +2090,18 @@ const tutorials = [
     readTime: '18 min',
     difficulty: 3,
   },
+  {
+    id: 'brainstorm-97-deontic-personality',
+    title: "Dickens's Diff: Personality as Deontic Policy",
+    description: 'Character traits like generous, vindictive, and reliable are statistical signatures over obligation patterns. 18 temporal-deontic compound operators decompose social verbs into Schankian primitives + modal worlds. Character arcs are measurable rotations — Scrooge\'s Christmas Carol is a vector diff in obligation space.',
+    tags: ['deontic logic', 'Schankian primitives', 'narrative', 'personality', 'modal worlds', 'obligations'],
+    icon: '⚖️',
+    gradient: 'from-amber-500 to-orange-600',
+    shadowColor: 'shadow-amber-500/30',
+    glowColor: 'rgba(245, 158, 11, 0.4)',
+    readTime: '20 min',
+    difficulty: 2,
+  },
 ]
 
 // Semantic tag color system - filled backgrounds
