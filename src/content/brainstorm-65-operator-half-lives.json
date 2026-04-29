@@ -1,0 +1,361 @@
+{
+  "id": "brainstorm-65-operator-half-lives",
+  "title": "Operators Have Half-Lives",
+  "subtitle": "Temporal Decay Signatures as a New Taxonomic Axis for Schankian Primitives",
+  "readTime": "15 min",
+  "state": "published",
+  "content": {
+    "type": "Fragment",
+    "children": [
+      {
+        "type": "Callout",
+        "props": { "type": "idea" },
+        "children": [
+          {
+            "type": "p",
+            "children": "🔑 Core Claim: Schank classified primitives by semantic type (ATRANS, PTRANS, MTRANS...). But there's a second axis he never formalized: temporal persistence — how long an operator's effects survive in neural state. This is measurable, and it predicts that language models have already learned operator half-lives through the decay rates in their recurrent state."
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "1. The Observation: Not All State Changes Are Created Equal" },
+        "children": [
+          {
+            "type": "p",
+            "children": "Consider two sentences: 'Alice gave Bob the book' (ATRANS) and 'Alice told Bob the news' (MTRANS). Both are Schankian primitives — transfer operations. But their effects have radically different temporal profiles."
+          },
+          {
+            "type": "p",
+            "children": "The ATRANS (give) creates a permanent state change: Bob now owns the book. This fact persists indefinitely — the next paragraph, the next chapter, even a sequel. Unless another ATRANS explicitly reverses it ('Bob returned the book'), the ownership state holds."
+          },
+          {
+            "type": "p",
+            "children": "The MTRANS (tell) is different. The communicative act itself fades from narrative salience within sentences. Bob knows the news now, yes, but the 'telling' event stops being the active frame almost immediately. By the next paragraph, we're focused on what Bob does with the knowledge, not the telling itself."
+          },
+          {
+            "type": "p",
+            "children": "This isn't just a literary intuition — it's a structural property of the operators. And we claim it's measurable in neural networks."
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "2. The Half-Life Spectrum" },
+        "children": [
+          {
+            "type": "p",
+            "children": "Just as radioactive isotopes have characteristic half-lives (carbon-14: 5,700 years; iodine-131: 8 days), Schankian operators have characteristic persistence profiles. We can rank them:"
+          },
+          {
+            "type": "DefinitionList",
+            "props": {
+              "items": [
+                {
+                  "term": "INGEST — Irreversible (half-life: ∞)",
+                  "definition": "'Alice ate the cake.' The cake is gone. There is no un-eating. INGEST is the only primitive that destroys its object. This creates a permanent, irreversible state change — the strongest temporal signature of any operator."
+                },
+                {
+                  "term": "ATRANS — Permanent until reversal (half-life: ∞)",
+                  "definition": "'Alice gave Bob the book.' Ownership persists indefinitely. Unlike INGEST, ATRANS is reversible (Bob can give it back), but the default is persistence. A language model tracking entity states must remember ATRANS effects across arbitrary distances."
+                },
+                {
+                  "term": "PTRANS — Semi-permanent (half-life: hours to days)",
+                  "definition": "'Alice went to Paris.' She's there until she moves again. PTRANS effects persist but are expected to be overwritten — people move. A model needs medium-term retention: long enough to track location across a scene, short enough to not be surprised when it changes."
+                },
+                {
+                  "term": "SPEAK — Bifurcated (act: seconds; social effects: days)",
+                  "definition": "'Alice announced the results.' The physical act of speaking is instantaneous, but the social consequences (everyone now knows) persist. SPEAK is unique in having a split temporal profile — the event decays fast, but its downstream effects don't."
+                },
+                {
+                  "term": "MTRANS — Ephemeral (half-life: minutes to hours)",
+                  "definition": "'Alice told Bob the secret.' The transfer of information is quick — the narrative focus moves on rapidly. What persists is not the MTRANS itself but its RESULT (Bob's new knowledge state). The operator is a bridge, not a destination."
+                },
+                {
+                  "term": "MBUILD — Volatile (half-life: seconds to minutes)",
+                  "definition": "'Alice decided to leave.' Decisions can be revised at any moment. MBUILD (mental construction — decisions, plans, conclusions) creates the most fragile state changes. In narrative, characters constantly revise their MBUILDs. A model that treats MBUILD as permanent will be wrong more often than one that treats it as provisional."
+                }
+              ]
+            }
+          },
+          {
+            "type": "Analogy",
+            "children": "Think of radioactive elements: Uranium-238 (4.5 billion years) is like INGEST — essentially permanent. Carbon-14 (5,700 years) is like ATRANS — long-lived but eventually decays. Radon-222 (3.8 days) is like PTRANS — around for a while but expected to change. And noble gases that barely interact are like MBUILD — fleeting mental states that leave almost no trace."
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "3. Why This Matters for Neural Networks" },
+        "children": [
+          {
+            "type": "p",
+            "children": "State-space models like Mamba have an explicit mechanism for temporal persistence: the A matrix. Each dimension of the recurrent state has its own decay rate. When A ≈ 1 (close to the unit circle), information persists for many timesteps. When A ≈ 0, information decays rapidly."
+          },
+          {
+            "type": "p",
+            "children": "The standard Mamba recurrence is:"
+          },
+          {
+            "type": "Example",
+            "props": { "label": "Mamba State Recurrence" },
+            "children": "h[t] = A · h[t-1] + B · x[t]\n\nwhere:\n  h[t] = hidden state at time t\n  A = diagonal decay matrix (the 'half-life' controller)\n  B = input projection (what enters the state)\n  x[t] = current input\n\nKey insight: A is diagonal, so each state dimension decays independently.\nDim 0 might have A₀ = 0.99 (slow decay, long memory)\nDim 7 might have A₇ = 0.50 (fast decay, short memory)"
+          },
+          {
+            "type": "p",
+            "children": "Here's the connection: if different Schankian operators naturally require different persistence durations, and the A matrix controls persistence per dimension, then a well-trained model should route different operators to different state dimensions with matched decay rates."
+          },
+          {
+            "type": "Callout",
+            "props": { "type": "warning" },
+            "children": [
+              {
+                "type": "p",
+                "children": "⚠️ Important Distinction: The spatial routing (WHICH dimensions an operator uses) and temporal persistence (HOW LONG those dimensions retain information) are separate mechanisms. The spatial routing is a multiplicative mask on the B matrix. The temporal persistence is the A matrix. They compose but don't conflate. A Gaussian envelope over dimensions is NOT IIR feedback — it's just spatial windowing."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "4. The Hydra Architecture: Fiber Envelopes Meet Temporal Persistence" },
+        "children": [
+          {
+            "type": "p",
+            "children": "The Hydra project partitions Mamba's state space into 'fibers' — regions specialized for different linguistic functions. Originally these were hard partitions (dims 0-7 = phrase structure, dims 8-19 = thematic roles, etc.). The new proposal replaces hard boundaries with smooth Gaussian envelopes."
+          },
+          {
+            "type": "p",
+            "children": "Each fiber has a center (μ), width (σ), and gain (g). The envelope E_f(d) = g · exp(-(d - μ)² / (2σ²)) controls how strongly each state dimension participates in that fiber. Near the center: full participation. At the edges: attenuated. Far away: negligible."
+          },
+          {
+            "type": "InteractiveDemo",
+            "props": {
+              "id": "fiber-envelope-viz",
+              "title": "Fiber Envelope Visualization",
+              "description": "Imagine 32 state dimensions laid out in a row. Each fiber is a Gaussian bell curve over these dimensions. The center, width, and gain of each fiber are learnable parameters.",
+              "initialCode": "# Fiber Envelope Configuration (Hydra v4d-B layout)\nimport math\n\ndef gaussian_envelope(d, mu, sigma, gain=1.0):\n    return gain * math.exp(-(d - mu)**2 / (2 * sigma**2))\n\n# Four fibers over 32 state dimensions:\nfibers = {\n    'PS (Phrase Structure)': {'mu': 4, 'sigma': 2.7, 'gain': 1.0},\n    'TH (Thematic Roles)':   {'mu': 14, 'sigma': 4.0, 'gain': 1.0},\n    'IS (Info Structure)':   {'mu': 23, 'sigma': 2.0, 'gain': 1.0},\n    'Gen (General)':         {'mu': 29, 'sigma': 2.0, 'gain': 1.0},\n}\n\n# Show envelope values at key dimensions:\nfor fiber_name, params in fibers.items():\n    vals = [gaussian_envelope(d, **params) for d in range(32)]\n    peak = max(vals)\n    bar = ''.join(['█' if v > 0.5 else '▓' if v > 0.2 else '░' if v > 0.05 else ' ' for v in vals])\n    print(f'{fiber_name:25s} |{bar}|')\n\n# Overlap between PS and TH at dim 9:\noverlap_ps = gaussian_envelope(9, **fibers['PS (Phrase Structure)'])\noverlap_th = gaussian_envelope(9, **fibers['TH (Thematic Roles)'])\nprint(f'\\nOverlap at dim 9: PS={overlap_ps:.3f}, TH={overlap_th:.3f}')\nprint('This overlap zone is where garden-path resolution happens!')"
+            }
+          },
+          {
+            "type": "p",
+            "children": "The crucial prediction: if we initialize the A matrix values within each fiber's region to match the operator class that fiber handles, training should converge faster because the temporal prior matches the operator's natural half-life."
+          },
+          {
+            "type": "Example",
+            "props": { "label": "Fiber-Matched A Initialization" },
+            "children": "Fiber: PS (phrase structure)  → A ≈ -0.05 (slow decay)\n  Why: Bracket matching needs LONG memory. An open parenthesis\n  must persist until the close, potentially dozens of tokens later.\n  Half-life analogy: Uranium-238 (persistent structural state)\n\nFiber: TH (thematic roles)   → A ≈ -0.20 (medium decay)\n  Why: Who-does-what-to-whom persists for a clause, then resets.\n  ATRANS effects live here. Need ~clause-length memory.\n  Half-life analogy: Carbon-14 (medium-lived relational state)\n\nFiber: IS (info structure)   → A ≈ -0.50 (faster decay)\n  Why: Topic/focus shifts rapidly. What's 'given' vs 'new'\n  changes every sentence or two.\n  Half-life analogy: Radon-222 (relatively short-lived)\n\nFiber: Lexical (general)     → A ≈ -1.20 (fast decay)\n  Why: Token identity matters only locally. Recent words\n  for collocational statistics, then overwrite.\n  Half-life analogy: Francium-223 (22 minutes — blink and it's gone)"
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "5. The Testable Prediction" },
+        "children": [
+          {
+            "type": "p",
+            "children": "This isn't just theory — it makes a concrete, falsifiable prediction. Here's the experiment:"
+          },
+          {
+            "type": "Example",
+            "props": { "label": "Experimental Protocol" },
+            "children": "1. Train a Mamba model on text (or use a pre-trained one)\n2. Extract SAE features at each layer\n3. Feed sentences with known Schankian operators:\n   - INGEST: 'The child ate the apple'\n   - ATRANS: 'She gave him the keys'\n   - PTRANS: 'They moved to Berlin'\n   - MTRANS: 'He told her the plan'\n   - MBUILD: 'She decided to quit'\n4. Track feature activation across subsequent tokens\n   (the 'impulse response' of each operator)\n5. Measure the decay profile: how many tokens until\n   the operator-specific features return to baseline?\n6. Cluster operators by their decay profiles\n\nPrediction: The clusters will match Schank's categories:\n  Cluster 1 (slow decay):  INGEST, ATRANS\n  Cluster 2 (medium decay): PTRANS, SPEAK\n  Cluster 3 (fast decay):  MTRANS, MBUILD"
+          },
+          {
+            "type": "p",
+            "children": "If the clusters match, that's strong evidence that temporal persistence is an implicit axis of Schank's original taxonomy — he noticed the semantic differences, but the temporal differences fall out automatically from what the model needs to remember."
+          },
+          {
+            "type": "DeepDive",
+            "props": { "title": "Why would clusters match Schank? The information-theoretic argument" },
+            "children": [
+              {
+                "type": "p",
+                "children": "The reason is information-theoretic. A language model's job is to predict the next token. Different operators create different prediction horizons:"
+              },
+              {
+                "type": "p",
+                "children": "After ATRANS ('gave the book'), the model must remember the ownership change for potentially hundreds of tokens — any future reference to 'the book' needs to know Bob has it. The prediction horizon is long, so the state must persist."
+              },
+              {
+                "type": "p",
+                "children": "After MBUILD ('decided to leave'), the model needs this information for maybe 5-10 tokens — enough to generate 'so she stood up and walked out.' After that, the decision has been executed and the state can be overwritten. Short prediction horizon, short persistence."
+              },
+              {
+                "type": "p",
+                "children": "The A matrix decay rates are learned to minimize prediction loss. If ATRANS effects need to persist longer to make good predictions, the dimensions handling ATRANS will naturally develop slower decay. The model discovers operator half-lives because it needs them."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "6. Compound Operators and Mixed Decay" },
+        "children": [
+          {
+            "type": "p",
+            "children": "Compound operators should show mixed temporal signatures, because they compose primitives with different half-lives."
+          },
+          {
+            "type": "DefinitionList",
+            "props": {
+              "items": [
+                {
+                  "term": "MAIL = ATRANS ∘ PTRANS",
+                  "definition": "Mailing combines permanent ownership transfer (ATRANS: the letter now belongs to the recipient) with temporary physical movement (PTRANS: the letter is in transit). The SAE features should show a bifurcated decay: ATRANS-related features persist, PTRANS-related features decay after the mail arrives."
+                },
+                {
+                  "term": "TEACH = MTRANS ∘ SPEAK",
+                  "definition": "Teaching combines ephemeral communication (MTRANS) with a more lasting knowledge transfer. But here's the twist: 'teach' is a special MTRANS whose RESULT (the student's knowledge) is expected to be permanent. The operator itself is ephemeral, but it modifies a persistent state. The decay profile should show fast initial decay (the teaching event) followed by a long plateau (the knowledge state)."
+                },
+                {
+                  "term": "STEAL = ATRANS + negated consent",
+                  "definition": "Stealing has the same persistence as giving (permanent ownership change) but adds a persistent social violation. Interestingly, the social violation may decay SLOWER than the ownership change — 'he stole from me' carries emotional weight long after the object is recovered."
+                }
+              ]
+            }
+          },
+          {
+            "type": "Analogy",
+            "children": "Compound operators are like nuclear decay chains. Uranium-238 decays to Thorium-234 (half-life: 24 days), which decays to Protactinium-234 (half-life: 1.2 minutes), which decays to Uranium-234 (half-life: 245,000 years). Each step in the chain has its own half-life. Similarly, MAIL = ATRANS∘PTRANS has a fast-decaying component (the physical transit) feeding into a long-lived one (the ownership transfer)."
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "7. The Deeper Claim: Semantics IS Temporal Categorization" },
+        "children": [
+          {
+            "type": "p",
+            "children": "Here's the radical version of this idea: Schank's primitives aren't just semantic categories that happen to have different temporal profiles. The temporal profiles ARE the categories."
+          },
+          {
+            "type": "p",
+            "children": "Why are ATRANS and PTRANS different operators? The standard answer: because one is abstract (ownership) and the other is physical (location). Our answer: because one creates permanent state changes and the other creates temporary ones. The semantic distinction falls out from the temporal distinction."
+          },
+          {
+            "type": "p",
+            "children": "Why are MTRANS and ATRANS different? Standard: one transfers information, the other transfers objects. Ours: one creates ephemeral state (communication fades), the other creates permanent state (ownership persists). The brain — and language models — distinguish them because they need different memory management strategies."
+          },
+          {
+            "type": "Callout",
+            "props": { "type": "idea" },
+            "children": [
+              {
+                "type": "p",
+                "children": "💡 Provocative reframing: The brain doesn't have separate circuits for 'transfer of objects' vs 'transfer of information.' It has circuits for 'permanent state change' vs 'temporary state change' — and the semantic labels (ATRANS, MTRANS) are human-legible names for what are fundamentally temporal categories."
+              }
+            ]
+          },
+          {
+            "type": "DeepDive",
+            "props": { "title": "Connection to Vendler's Aspectual Classes" },
+            "children": [
+              {
+                "type": "p",
+                "children": "This connects to Vendler's (1957) classification of event types: states (no internal structure, persist), activities (ongoing, medium duration), achievements (instantaneous transition), accomplishments (durative with endpoint). Our operator half-lives map onto Vendler's classes:"
+              },
+              {
+                "type": "p",
+                "children": "• States ↔ ATRANS results, INGEST results (persistent)\n• Activities ↔ PTRANS in progress (ongoing, medium)\n• Achievements ↔ MBUILD, moment of MTRANS (punctual)\n• Accomplishments ↔ compound operators like TEACH (durative with an endpoint)"
+              },
+              {
+                "type": "p",
+                "children": "Vendler was classifying the LINGUISTIC expression of temporal structure. We're claiming the NEURAL implementation uses the same temporal categories — because the prediction task requires it."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "8. Literary Applications: Plot vs. Tension" },
+        "children": [
+          {
+            "type": "p",
+            "children": "The half-life spectrum has a direct literary interpretation. Operators split into two functional categories based on persistence:"
+          },
+          {
+            "type": "DefinitionList",
+            "props": {
+              "items": [
+                {
+                  "term": "Plot-advancing operators (long half-life)",
+                  "definition": "ATRANS, INGEST — these create irreversible or persistent state changes. When a character gives away a fortune or eats the poisoned apple, the story has moved forward. These operators advance the plot because their effects can't easily be undone."
+                },
+                {
+                  "term": "Tension-creating operators (short half-life)",
+                  "definition": "MBUILD, MTRANS — these create fragile, provisional states. When a character decides to betray their friend (MBUILD) or reveals a secret (MTRANS), the tension comes precisely from the instability of the state. The decision might be reversed. The secret might be denied. Short half-life = narrative tension."
+                }
+              ]
+            }
+          },
+          {
+            "type": "p",
+            "children": "Great fiction interleaves these: short-half-life operators create tension (will she decide? will he tell?), then long-half-life operators resolve it (she gave away the crown / he ate the evidence). The rhythm of a narrative is the rhythm of half-life alternation."
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "Quiz: Test Your Understanding" },
+        "children": [
+          {
+            "type": "Quiz",
+            "props": {
+              "question": "Why would a Mamba SSM naturally develop different A-matrix decay rates for ATRANS vs MTRANS?",
+              "options": [
+                "Because ATRANS is about physical objects and MTRANS is about information",
+                "Because ATRANS effects need to persist longer for accurate next-token prediction",
+                "Because the training data has more ATRANS examples",
+                "Because the A matrix is randomly initialized"
+              ],
+              "answer": 1,
+              "explanation": "The model learns decay rates that minimize prediction loss. After ATRANS ('gave the book to Bob'), any future reference to 'the book' needs to know Bob has it — the model must remember the ownership change across many tokens. After MTRANS ('told Bob the news'), the communicative act fades from relevance quickly. The prediction horizon determines the optimal decay rate."
+            }
+          },
+          {
+            "type": "Quiz",
+            "props": {
+              "question": "What would you expect the SAE feature decay profile of 'Alice mailed the package to Bob' (MAIL = ATRANS ∘ PTRANS) to look like?",
+              "options": [
+                "Uniform slow decay across all features",
+                "Uniform fast decay across all features",
+                "Bifurcated: PTRANS features decay fast (package in transit), ATRANS features persist (Bob now owns it)",
+                "No decay at all — compound operators are permanent"
+              ],
+              "answer": 2,
+              "explanation": "MAIL composes two operators with different half-lives. The physical movement (PTRANS) is temporary — the package is in transit, then it arrives. But the ownership transfer (ATRANS) is permanent — Bob now has the package. The SAE features should reflect this split: transport-related features decay when delivery completes, ownership-related features persist."
+            }
+          },
+          {
+            "type": "Quiz",
+            "props": {
+              "question": "A Gaussian fiber envelope that routes operators to specific state dimensions is best described as:",
+              "options": [
+                "An IIR filter with feedback from previous outputs",
+                "A spatial mask (multiplicative windowing) on the input path — NOT IIR",
+                "A Kalman filter for optimal state estimation",
+                "A learned attention mechanism over state dimensions"
+              ],
+              "answer": 1,
+              "explanation": "The fiber envelope modulates which state dimensions receive the input signal: B_modulated[d] = envelope(d) · B_raw[d] · x[t]. There is no feedback from previous outputs — it's purely a spatial mask. The actual IIR behavior (temporal persistence via feedback) comes from Mamba's existing A·h[t-1] recurrence, not from the envelope. HRR vectors are quasi-orthogonal random vectors with no periodic structure for feedback poles to amplify."
+            }
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "Further Reading" },
+        "children": [
+          {
+            "type": "p",
+            "children": "• Schank, R. (1975). Conceptual Information Processing — The original primitive taxonomy\n• Vendler, Z. (1957). Verbs and Times — Aspectual classes that map onto operator persistence\n• Gu, A. & Dao, T. (2023). Mamba: Linear-Time Sequence Modeling with Selective State Spaces (arXiv:2312.00752) — The A matrix as per-dimension decay\n• Balogh, P. (2026). Do Neurons Dream of Primitive Operators? (arXiv:2603.25975) — Wake-sleep discovery of Schankian primitives\n• Pustejovsky, J. (2026). Geometric Algebra for NL Semantics (arXiv:2604.25902) — Grade selection as fiber selection\n• Related tutorial: Aspectual Decay (Brainstorm #58b) — Vendler's classes meet SSM memory"
+          }
+        ]
+      }
+    ]
+  }
+}

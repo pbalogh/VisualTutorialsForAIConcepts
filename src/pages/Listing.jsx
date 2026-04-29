@@ -1959,6 +1959,18 @@ const tutorials = [
     difficulty: 2,
   },
   {
+    id: 'brainstorm-65-operator-half-lives',
+    title: 'Operators Have Half-Lives',
+    description: 'Schankian primitives differ not just in what they change, but how long their effects persist. ATRANS is permanent, PTRANS semi-permanent, MTRANS ephemeral, MBUILD volatile. These temporal signatures map directly onto SSM decay rates — and are measurable in SAE features.',
+    tags: ['Schankian primitives', 'half-life', 'temporal decay', 'Mamba SSM', 'A matrix', 'fiber envelopes', 'Hydra'],
+    icon: '☢️',
+    gradient: 'from-amber-500 to-orange-600',
+    shadowColor: 'shadow-amber-500/30',
+    glowColor: 'rgba(245, 158, 11, 0.4)',
+    readTime: '15 min',
+    difficulty: 2,
+  },
+  {
     id: 'brainstorm-94-conceptual-spaces-geometry',
     title: 'Conceptual Spaces Meet Schankian Primitives',
     description: 'Gärdenfors decomposes events into geometric vectors (agent, force, patient, result). Schank partitions the same space into discrete primitives. Wake-sleep discovers the Voronoi tessellation connecting them — primitives are centroids in conceptual space.',
