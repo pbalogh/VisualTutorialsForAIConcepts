@@ -1123,6 +1123,18 @@ const tutorials = [
     difficulty: 4,
   },
   {
+    id: 'brainstorm-91c-recursive-terms-native-output',
+    title: 'Recursive Terms as Native Output',
+    description: 'Can a Mamba model learn to output recursive JSON where any argument slot can be an arbitrarily nested structure? Training on Schankian CD structures that naturally nest events inside events — if it works, the parser output IS a lambda term.',
+    tags: ['Schankian', 'recursive-json', 'mamba', 'lambda-calculus', 'semantic-parsing', 'hydra'],
+    icon: '🌿',
+    gradient: 'from-emerald-500 to-teal-600',
+    shadowColor: 'shadow-emerald-500/30',
+    glowColor: 'rgba(16, 185, 129, 0.4)',
+    readTime: '12 min',
+    difficulty: 3,
+  },
+  {
     id: 'brainstorm-41-attention-motifs',
     title: 'Operators as Attention Motifs',
     description: 'Schankian primitives may already exist inside transformers as characteristic multi-head attention patterns. Cluster attention motifs on event sentences to discover operators — connected to the N2123 vote counter finding.',

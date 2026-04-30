@@ -1,0 +1,337 @@
+{
+  "meta": {
+    "id": "brainstorm-91c-recursive-terms-native-output",
+    "title": "Recursive Terms as Native Output: Can Sequence Models Learn Tree Structure?",
+    "subtitle": "From Flat Templates to Compositional Lambda Terms",
+    "author": "Peter Balogh",
+    "date": "2026-04-30",
+    "brainstormEntry": 91,
+    "status": "active-experiment",
+    "tags": ["recursive-json", "mamba", "semantic-parsing", "lambda-calculus", "schank", "hydra"],
+    "readTime": "12 min"
+  },
+  "content": {
+    "type": "Fragment",
+    "children": [
+      {
+        "type": "Section",
+        "title": "The Problem: Flat Representations for a Recursive World",
+        "children": [
+          {
+            "type": "Fragment",
+            "content": "Every sentence you speak has recursive structure. 'Alice told Bob that Charlie trusts Eve' nests one proposition inside another. But when we train neural networks to parse language into structured representations, we almost always flatten the output into fixed templates or sequential linearizations. What if we just... didn't?"
+          },
+          {
+            "type": "Analogy",
+            "props": {
+              "concept": "Recursive Output",
+              "analogy": "Assembly vs. S-Expressions"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "Imagine you need to describe a family tree. The 'flat' approach is like writing assembly code: 'STORE person1 = Alice; STORE person2 = Bob; LINK person1 PARENT_OF person2.' You invent temporary names and keep track of references. The 'recursive' approach is like an S-expression: '(PARENT Alice (PARENT Bob Charlie))' — the structure IS the meaning. No temporary names needed. The nesting handles composition."
+              }
+            ]
+          },
+          {
+            "type": "DeepDive",
+            "props": {
+              "title": "Why Schank's Conceptual Dependency Was Always Recursive",
+              "preview": "The original CD theory naturally nests events inside events"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "Roger Schank's Conceptual Dependency theory (1975) decomposed sentences into primitive acts: ATRANS (transfer possession), PTRANS (physical movement), MTRANS (mental transfer), etc. Crucially, these were always recursive — an MTRANS ('tell') takes another CD structure as its object. 'Alice told Bob that Charlie hit Dave' becomes MTRANS(actor=Alice, to=Bob, object=PROPEL(actor=Charlie, object=Dave)). The nesting was a feature, not a bug."
+              },
+              {
+                "type": "p",
+                "children": "But when modern NLP adopted structured prediction, it typically used flat slot-filling: extract (subject, verb, object) tuples. The recursive beauty of CD was lost. Our experiment asks: can we get it back?"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "title": "The Experiment: Training Mamba on Recursive JSON",
+        "children": [
+          {
+            "type": "Fragment",
+            "content": "We're training a Mamba state-space model to parse natural language into recursive JSON structures. The key innovation: any argument slot (subject, object) can contain either a simple string OR a nested structure."
+          },
+          {
+            "type": "Example",
+            "props": {
+              "title": "Three Levels of Nesting Depth"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "**Depth 0 (Flat):** 'Alice trusts Bob'"
+              },
+              {
+                "type": "code",
+                "props": { "language": "json" },
+                "children": "{\"operator\": \"TRUSTS\", \"subject\": \"ALICE\", \"object\": \"BOB\"}"
+              },
+              {
+                "type": "p",
+                "children": "**Depth 1 (One level of nesting):** 'Alice and Bob trust Charlie'"
+              },
+              {
+                "type": "code",
+                "props": { "language": "json" },
+                "children": "{\"operator\": \"TRUSTS\",\n \"subject\": {\"type\": \"group\", \"members\": [\"ALICE\", \"BOB\"]},\n \"object\": \"CHARLIE\"}"
+              },
+              {
+                "type": "p",
+                "children": "**Depth 2 (Nested assertion with group):** 'Eve told Frank that Alice and Bob trust Charlie'"
+              },
+              {
+                "type": "code",
+                "props": { "language": "json" },
+                "children": "{\"operator\": \"MTRANS\",\n \"subject\": \"EVE\",\n \"recipient\": \"FRANK\",\n \"object\": {\n   \"operator\": \"TRUSTS\",\n   \"subject\": {\"type\": \"group\", \"members\": [\"ALICE\", \"BOB\"]},\n   \"object\": \"CHARLIE\"\n }}"
+              }
+            ]
+          },
+          {
+            "type": "Callout",
+            "props": { "type": "key-insight" },
+            "children": [
+              {
+                "type": "p",
+                "children": "The model must learn three things simultaneously: (1) correct JSON syntax with matched braces at variable depth, (2) when a value should be a string vs. an object, and (3) how to track semantic context across nesting levels. This is essentially asking: can a sequence model learn recursive type theory?"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "title": "Why This Matters: The Parser IS the Lambda Compiler",
+        "children": [
+          {
+            "type": "Fragment",
+            "content": "Here's the deep connection: if the model learns to output recursive JSON, its output IS a lambda term. No translation layer needed between the parser and a knowledge store."
+          },
+          {
+            "type": "DeepDive",
+            "props": {
+              "title": "From JSON Nesting to Lambda Calculus",
+              "preview": "Structural containment implicitly encodes scope, binding, and composition"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "Percy Liang's Lambda DCS (2013) showed you can do compositional semantics without variables by making existential quantification implicit. Our recursive JSON does something analogous — the nesting structure implicitly encodes scope and binding. When the model outputs {\"operator\": \"BELIEVES\", \"subject\": \"ALICE\", \"object\": {\"operator\": \"TRUSTS\", ...}}, the nesting captures that the inner assertion is within Alice's belief scope. No explicit variable binding needed."
+              },
+              {
+                "type": "p",
+                "children": "This means the Hydra parser output feeds directly into the lambda knowledge store we built for the AI memory architecture project. Parse → store → reason. One representation, end to end."
+              }
+            ]
+          },
+          {
+            "type": "Example",
+            "props": {
+              "title": "The Group Constructor: Sets Without Russell's Paradox"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "'Alice and Bob trust Charlie' creates a composite entity. In our schema, the subject slot contains an extensional group definition:"
+              },
+              {
+                "type": "code",
+                "props": { "language": "json" },
+                "children": "\"subject\": {\"type\": \"group\", \"members\": [\"ALICE\", \"BOB\"]}"
+              },
+              {
+                "type": "p",
+                "children": "This is safe because it's extensional — an explicit member list. The dangerous version would be intensional: {\"type\": \"group\", \"predicate\": {\"operator\": \"TRUSTS\", \"object\": \"CHARLIE\"}} — 'everyone who trusts Charlie.' That's a lambda abstraction (λx. TRUSTS(x, CHARLIE)), and one step from Russell's paradox. We stay extensional for now."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "title": "The Training Data: A Curriculum of Nesting",
+        "children": [
+          {
+            "type": "Fragment",
+            "content": "We generated 16,834 training examples with a deliberate nesting curriculum:"
+          },
+          {
+            "type": "DefinitionList",
+            "children": [
+              {
+                "type": "dt",
+                "children": "Depth 0 (70.6%)"
+              },
+              {
+                "type": "dd",
+                "children": "Flat assertions, queries, world operations — the base the model must nail first"
+              },
+              {
+                "type": "dt",
+                "children": "Depth 1 (21.4%)"
+              },
+              {
+                "type": "dd",
+                "children": "Groups, relations ('Alice's mother'), embedded clauses ('believes that...'), passive voice"
+              },
+              {
+                "type": "dt",
+                "children": "Depth 2 (8.0%)"
+              },
+              {
+                "type": "dd",
+                "children": "Compound nesting — 'Eve told Frank that Alice and Bob trust Charlie'"
+              }
+            ]
+          },
+          {
+            "type": "Callout",
+            "props": { "type": "tip" },
+            "children": [
+              {
+                "type": "p",
+                "children": "The curriculum matters. If you feed the model 50% depth-2 examples from the start, it may fail to learn basic flat JSON. The 70/21/8 split ensures solid foundations before challenging the model with recursion — the same principle as Hydra's two-phase training."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "title": "Interactive: Predict the Parse",
+        "children": [
+          {
+            "type": "InteractiveDemo",
+            "props": {
+              "id": "recursive-parse-quiz",
+              "title": "Can You Parse Like the Model?",
+              "description": "For each sentence, predict whether the JSON output needs depth 0, 1, or 2 nesting."
+            },
+            "children": [
+              {
+                "type": "Fragment",
+                "content": "**Test yourself:** What nesting depth does each sentence require?\n\n1. 'Bob likes pizza' → **Depth 0** (flat: subject=BOB, operator=LIKES, object=PIZZA)\n2. 'Diana is trusted by Eve' → **Depth 0** (passive voice flips subject/object but stays flat)\n3. 'Frank's boss likes Grace' → **Depth 1** (subject slot contains a relation: {type: 'relation', relation: 'BOSS', of: 'FRANK'})\n4. 'Henry believes that Iris and Jack trust Kim' → **Depth 2** (BELIEVES contains an assertion, which contains a group in its subject slot)"
+              }
+            ]
+          },
+          {
+            "type": "Quiz",
+            "props": {
+              "question": "What should the model output for 'The CEO of Google trusts Alice'?",
+              "options": [
+                "{\"operator\": \"TRUSTS\", \"subject\": \"CEO_OF_GOOGLE\", \"object\": \"ALICE\"}",
+                "{\"operator\": \"TRUSTS\", \"subject\": {\"type\": \"relation\", \"relation\": \"CEO\", \"of\": \"GOOGLE\"}, \"object\": \"ALICE\"}",
+                "{\"operator\": \"TRUSTS\", \"subject\": \"GOOGLE\", \"object\": \"ALICE\"}",
+                "[{\"type\": \"define\", \"name\": \"X\", \"role\": \"CEO\", \"of\": \"GOOGLE\"}, {\"operator\": \"TRUSTS\", \"subject\": \"X\", \"object\": \"ALICE\"}]"
+              ],
+              "correctIndex": 1,
+              "explanation": "The subject is a relation (depth 1 nesting). Option 4 uses the flat-array-with-backreferences approach — it works but forces the model to invent temporary names and manage references. The nested approach keeps composition implicit in the structure."
+            }
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "title": "Early Results: Is It Working?",
+        "children": [
+          {
+            "type": "Fragment",
+            "content": "As of April 30, 2026, the Hydra v5 model is training on an EC2 T4 GPU. The very first epoch shows promising loss curves:"
+          },
+          {
+            "type": "Example",
+            "props": {
+              "title": "Epoch 0 Training Loss (first 180 batches)"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "Batch 30: loss = 0.83 → Batch 60: 0.50 → Batch 90: 0.42 → Batch 120: 0.27 → Batch 150: 0.33 → Batch 180: 0.26"
+              },
+              {
+                "type": "p",
+                "children": "The rapid drop from 0.83 to 0.26 in the first 180 batches suggests the model is quickly learning the basic JSON structure. The real test will be whether validation loss converges on depth-1 and depth-2 examples — that's where recursive competence shows up."
+              }
+            ]
+          },
+          {
+            "type": "Callout",
+            "props": { "type": "warning" },
+            "children": [
+              {
+                "type": "p",
+                "children": "What would REFUTE the hypothesis: if training loss converges only on flat examples while depth-2 loss plateaus above 0.3. This would mean the Mamba architecture can't track nesting depth — it would suggest that state-space models are fundamentally limited to fixed-depth structure, and that recursive output requires attention-based architectures."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "title": "The Bigger Picture: From Parser to Knowledge Compiler",
+        "children": [
+          {
+            "type": "Fragment",
+            "content": "If this works, the implications cascade:"
+          },
+          {
+            "type": "DefinitionList",
+            "children": [
+              {
+                "type": "dt",
+                "children": "NL → λ Compiler"
+              },
+              {
+                "type": "dd",
+                "children": "Natural language in, lambda terms out. No intermediate representation. The parser IS the compiler from English to formal knowledge."
+              },
+              {
+                "type": "dt",
+                "children": "Compositional Event Understanding"
+              },
+              {
+                "type": "dd",
+                "children": "Compound events like 'mail' = ATRANS∘PTRANS can be discovered by the model, not hand-coded. The recursive output naturally represents operator composition."
+              },
+              {
+                "type": "dt",
+                "children": "Schank's CD Theory, Learned"
+              },
+              {
+                "type": "dd",
+                "children": "If the model independently discovers that embedded clauses use assertion-in-object and coordination uses group-in-subject, it's rediscovering the recursive structure of conceptual dependency — not from rules, but from data."
+              },
+              {
+                "type": "dt",
+                "children": "Can Sequence Models Do Trees?"
+              },
+              {
+                "type": "dd",
+                "children": "This is a direct test of the 'can SSMs handle recursive structure?' question that motivates the entire Hydra project. If Mamba can generate properly nested JSON, it demonstrates structural competence that many assume requires attention."
+              }
+            ]
+          },
+          {
+            "type": "Callout",
+            "props": { "type": "key-insight" },
+            "children": [
+              {
+                "type": "p",
+                "children": "The ultimate test: give the trained model a sentence it's never seen, with a nesting pattern it's never seen, and check if it produces valid recursive JSON with correct semantic structure. That would be genuine compositional generalization — the holy grail of structured prediction."
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}
