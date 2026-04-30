@@ -4,7 +4,7 @@
     "title": "Research Radar — Daily ArXiv Insights",
     "description": "Daily scan of cs.AI papers with connections to our Schankian operators research",
     "author": "Clawd",
-    "lastUpdated": "2026-04-28"
+    "lastUpdated": "2026-04-30"
   },
   "content": {
     "type": "Fragment",
@@ -28,6 +28,66 @@
               {
                 "type": "p",
                 "children": "Updated daily. Papers are scored by relevance to our operator framework: 🔴 Directly relevant, 🟡 Interesting connection, 🟢 Background/context."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "title": "2026-04-30 — SAE Features for Hallucination Forensics, Curriculum Learning Reshapes Inductive Bias",
+        "children": [
+          {
+            "type": "Fragment",
+            "content": "Wednesday batch (Apr 29 papers). Scanned cs.AI + cs.CL. 1 directly relevant, 1 interesting connection."
+          },
+          {
+            "type": "DeepDive",
+            "props": {
+              "title": "🔴 MoRFI: Monotonic Sparse Autoencoder Feature Identification (arXiv:2604.26866)",
+              "preview": "SAE features that track hallucination onset during fine-tuning — directly relevant to our Darkness Visible and Mentalese Grammar work"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "Dimakopoulos, Cohen & Konstas propose MoRFI, a method for identifying SAE features that respond monotonically to controlled fine-tuning mixtures. They fine-tune Llama 3.1 8B, Gemma 2 9B, and Mistral 7B on QA datasets with varying percentages of new (out-of-parametric) knowledge, then use pre-trained SAEs to find residual stream directions that track the onset of hallucination."
+              },
+              {
+                "type": "p",
+                "children": "Key finding: exposure to unknown facts disrupts knowledge retrieval along specific directions in the residual stream, and single-latent interventions can recover knowledge. The monotonic filtering criterion (features that consistently increase/decrease as new-knowledge fraction grows) is elegant and directly applicable to our work."
+              },
+              {
+                "type": "Callout",
+                "props": { "type": "tip" },
+                "children": [
+                  {
+                    "type": "p",
+                    "children": "Why it matters: (1) Our Darkness Visible paper found N2123 as a diagnostic for exception handling — MoRFI provides a systematic pipeline for finding such features. (2) Our Mentalese Grammar found case-system features (nominative F20971, accusative F12476) — MoRFI's monotonic filtering could help identify which features are robust vs. fragile under distribution shift. (3) The 'knowledge disruption along specific directions' framing aligns with our fiber bundle model in Anisotropic Forgetting — knowledge vectors being displaced from their trajectories."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "DeepDive",
+            "props": {
+              "title": "🟡 What Kind of Language is Easy to Language-Model Under Curriculum Learning? (arXiv:2604.26844)",
+              "preview": "Curriculum learning substantially changes LM inductive bias — validates Hydra's two-phase training approach"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "El-Naggar, Kuribayashi & Briscoe (CMCL 2026 workshop) examine how curriculum learning (starting with simpler sentences) interacts with the inductive bias of language models across typologically diverse languages. They find CL 'substantially impacts the apparent inductive bias of LMs' — the order of training data changes what structural features the model learns to prefer."
+              },
+              {
+                "type": "Callout",
+                "props": { "type": "tip" },
+                "children": [
+                  {
+                    "type": "p",
+                    "children": "Why it matters: This directly validates Hydra's two-phase curriculum design. Our exp 7e showed a sweet spot at step ~1000 where structural metrics peak before LM loss overwrites them. El-Naggar et al. confirm the general principle: training order reshapes what LMs learn, not just how fast. Their typological angle (which word orders are 'easy' under CL) could inform which structural features to prioritize in Hydra's Phase 1."
+                  }
+                ]
               }
             ]
           }
