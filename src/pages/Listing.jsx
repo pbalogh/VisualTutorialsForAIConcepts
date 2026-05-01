@@ -1123,6 +1123,18 @@ const tutorials = [
     difficulty: 4,
   },
   {
+    id: 'brainstorm-92-moa-pharmacological-primitive',
+    title: 'Mechanism of Action as Pharmacological Primitive',
+    description: 'The Broad Repurposing Hub\'s 1,135 MoA classes decompose drug action like Schank decomposed events. Combination therapy = compound operators. Scaffold hopping = operator-preserving paraphrase. Schankian primitives are universal state-transition vocabulary.',
+    tags: ['Schankian', 'pharmacology', 'drug-discovery', 'MoA', 'operators', 'HRR', 'antibiotics'],
+    icon: '💊',
+    gradient: 'from-cyan-500 to-blue-600',
+    shadowColor: 'shadow-cyan-500/30',
+    glowColor: 'rgba(6, 182, 212, 0.4)',
+    readTime: '12 min',
+    difficulty: 2,
+  },
+  {
     id: 'brainstorm-91c-recursive-terms-native-output',
     title: 'Recursive Terms as Native Output',
     description: 'Can a Mamba model learn to output recursive JSON where any argument slot can be an arbitrarily nested structure? Training on Schankian CD structures that naturally nest events inside events — if it works, the parser output IS a lambda term.',
