@@ -1135,6 +1135,18 @@ const tutorials = [
     difficulty: 2,
   },
   {
+    id: 'brainstorm-93-fiber-bundles-event-space',
+    title: 'Fiber Bundles Over Event Space',
+    description: 'HRR fiber decomposition IS Schankian decomposition in different notation. MI clustering discovers semi-independent dimensions in drugs, theorems, and any structured domain. If cross-domain fiber genomes share invariants, Wigner\'s unreasonable effectiveness becomes computable.',
+    tags: ['Schankian', 'fiber-bundles', 'HRR', 'Wigner', 'decomposition', 'cross-domain', 'Jackendoff'],
+    icon: '🧬',
+    gradient: 'from-violet-500 to-purple-600',
+    shadowColor: 'shadow-violet-500/30',
+    glowColor: 'rgba(139, 92, 246, 0.4)',
+    readTime: '15 min',
+    difficulty: 3,
+  },
+  {
     id: 'brainstorm-91c-recursive-terms-native-output',
     title: 'Recursive Terms as Native Output',
     description: 'Can a Mamba model learn to output recursive JSON where any argument slot can be an arbitrarily nested structure? Training on Schankian CD structures that naturally nest events inside events — if it works, the parser output IS a lambda term.',

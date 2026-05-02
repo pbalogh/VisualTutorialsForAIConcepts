@@ -1,0 +1,295 @@
+{
+  "id": "brainstorm-93-fiber-bundles-event-space",
+  "title": "Fiber Bundles Over Event Space",
+  "subtitle": "Schankian Primitives as Independent Decomposition Dimensions — From Drug Discovery to Formal Proofs",
+  "readTime": "15 min",
+  "state": "published",
+  "content": {
+    "type": "Fragment",
+    "children": [
+      {
+        "type": "Callout",
+        "variant": "key-insight",
+        "children": [
+          {
+            "type": "p",
+            "content": "HRR fiber decomposition IS Schankian decomposition in a different notation. Both find semi-independent dimensions along which complex objects vary. Both discover that 'what something does' and 'what it's made of' are separable. And both produce a compact vocabulary for structural analogy. If cross-domain fiber genomes share invariants, there IS a universal grammar of decomposition — and Wigner's 'unreasonable effectiveness' becomes computable."
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "title": "The Same Discovery, Three Times",
+        "children": [
+          {
+            "type": "p",
+            "content": "In 1975, Roger Schank decomposed human actions into ~14 primitive operators (ATRANS, PTRANS, MTRANS, INGEST...). In 2025, Jackendoff's Parallel Architecture argued that phonology, syntax, and semantics are independent generative components linked through interfaces. In 2026, mutual information clustering on drug compounds independently rediscovered that mechanism-of-action and molecular structure are semi-independent fibers. The math is identical in all three cases: fiber bundle decomposition."
+          },
+          {
+            "type": "Example",
+            "title": "Three Domains, One Structure",
+            "children": [
+              {
+                "type": "p",
+                "content": "<strong>Schank (1975):</strong> 'John mailed a letter' → ATRANS(possession) ∘ PTRANS(location). The action decomposes into independent primitive dimensions.<br/><br/><strong>Jackendoff (2025):</strong> Language = [phonological structure] × [syntactic structure] × [semantic structure], linked by interface rules. Three independent generative components.<br/><br/><strong>HRR Discovery Engine (2026):</strong> A drug = [mechanism_fiber] × [structure_fiber] × [target_fiber] × [pharmacokinetic_fiber]. Four semi-independent dimensions discovered from data via MI clustering."
+              }
+            ]
+          },
+          {
+            "type": "p",
+            "content": "The key word is 'semi-independent.' Not fully independent — modules need rings, membrane drugs need lipophilicity, ATRANS implies a possessor. The soft boundaries between fibers encode these dependency constraints. And those constraints have structure too."
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "title": "What Is a Fiber Bundle?",
+        "children": [
+          {
+            "type": "p",
+            "content": "In mathematics, a fiber bundle attaches a 'fiber' (a local space of variation) to each point of a 'base space.' Think of the Earth's surface (base) with a thermometer at each point (fiber = temperature value). The total space is all (location, temperature) pairs."
+          },
+          {
+            "type": "Analogy",
+            "title": "The Dresser Analogy",
+            "children": [
+              {
+                "type": "p",
+                "content": "A fiber bundle is like a dresser. The base space is the set of drawers (top, middle, bottom). Each drawer is a fiber — an independent dimension of variation. The top drawer (socks) varies independently of the bottom drawer (pants). You can change your socks without changing your pants. But some items interact across drawers: a belt (bottom drawer) must match the pants (middle drawer). These cross-drawer constraints are the 'soft boundaries' between fibers."
+              }
+            ]
+          },
+          {
+            "type": "DeepDive",
+            "title": "The Formal Definition",
+            "children": [
+              {
+                "type": "p",
+                "content": "A fiber bundle (E, B, π, F) consists of: a total space E (all possible objects), a base space B (the 'types' or 'kinds'), a projection π: E → B (which type is this?), and a fiber F (the dimensions along which objects of a given type can vary). For drugs: B = {antibacterial, antifungal, anticancer, ...}, F = R^n where n is the number of features, and π maps each drug to its therapeutic class. The key property: locally, E looks like B × F — the fibers are independent near any point."
+              }
+            ]
+          },
+          {
+            "type": "InteractiveDemo",
+            "title": "Build Your Own Fiber Bundle",
+            "demoId": "fiber-bundle-builder",
+            "description": "Imagine three objects described by 6 features. Features 1-3 cluster together (fiber A) and features 4-6 cluster together (fiber B). Objects that differ only in fiber A have similar 'B-profiles' and vice versa.",
+            "initialState": {
+              "objects": [
+                {"name": "Ethambutol", "fiberA": [0.8, 0.3, 0.9], "fiberB": [0.2, 0.7, 0.1]},
+                {"name": "Isoniazid", "fiberA": [0.7, 0.4, 0.8], "fiberB": [0.9, 0.2, 0.6]},
+                {"name": "Mystery Drug", "fiberA": [0.8, 0.3, 0.9], "fiberB": [0.9, 0.2, 0.6]}
+              ]
+            },
+            "steps": [
+              "Notice: Mystery Drug has the SAME fiber A as Ethambutol (mechanism) but the SAME fiber B as Isoniazid (structure).",
+              "This is a scaffold hop: combining the mechanism of one drug with the structure of another.",
+              "The fiber decomposition tells us WHICH dimensions can be independently varied — the grammar of analogy."
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "title": "MI Clustering: How Data Discovers Its Own Fibers",
+        "children": [
+          {
+            "type": "p",
+            "content": "Given a matrix of objects × features, we compute the Normalized Mutual Information (NMI) between every pair of features. Features with high NMI (> threshold) co-vary — they belong to the same fiber. Features with low NMI vary independently — they belong to different fibers. No human labels needed. The data tells us its own decomposition."
+          },
+          {
+            "type": "Example",
+            "title": "Real Results: Drug Compounds",
+            "children": [
+              {
+                "type": "p",
+                "content": "<strong>Input:</strong> 6,798 drug compounds × 86 molecular features<br/><strong>Discovered fibers (evolved, 15 generations):</strong><br/>• <strong>Fiber 1:</strong> molecular weight, atom count, bond count, ring count — the SIZE fiber<br/>• <strong>Fiber 2:</strong> LogP, polar surface area, H-bond donors/acceptors — the PHARMACOKINETICS fiber<br/>• <strong>Fiber 3:</strong> target class, mechanism pathway — the MECHANISM fiber<br/>• <strong>Fiber 4:</strong> aromatic rings, heterocycles, functional groups — the CHEMISTRY fiber<br/><br/>55 of 86 features had soft membership across multiple fibers — they contribute partially to more than one dimension."
+              }
+            ]
+          },
+          {
+            "type": "Example",
+            "title": "Real Results: Formal Mathematical Proofs",
+            "children": [
+              {
+                "type": "p",
+                "content": "<strong>Input:</strong> 61,544 Lean/Mathlib theorems × 47 structural features<br/><strong>Discovered fibers:</strong><br/>• <strong>CLASSICAL fiber:</strong> tactic_classical + uses_classical (intra-corr 0.87) — constructive vs classical reasoning<br/>• <strong>STRATEGY fiber:</strong> num_tactics + diversity + rewriting + structural + goal_mgmt + automation (7 features, intra-corr 0.54) — the proof's tactical signature<br/>• <strong>COMPLEXITY fiber:</strong> initial_state_length + num_instances + final_state_length (intra-corr 0.78) — type class machinery weight<br/>• <strong>ORDER/DISJUNCTION fiber:</strong> has_order + num_or (intra-corr 0.56) — lattice theory with case splits<br/>• <strong>32 singleton fibers:</strong> Each mathematical object type (group, ring, topology, measure...) is independently discoverable<br/><br/>Key finding: Mathematical object type features are almost completely independent from proof strategy features. WHAT you prove and HOW you prove it are separable — just like what a drug does and what it's made of."
+              }
+            ]
+          },
+          {
+            "type": "Callout",
+            "variant": "warning",
+            "children": [
+              {
+                "type": "p",
+                "content": "The cross-domain correlations that DO exist are revealing: HAS_INT ↔ HAS_NAT (0.47), HAS_SET ↔ HAS_TOPOLOGY (0.30), HAS_MODULE ↔ HAS_RING (0.37). These are dependency constraints — you can't have modules without rings, just as membrane-targeting drugs must be lipophilic. The soft fiber boundaries encode these necessary co-occurrences."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "title": "Scaffold Hopping: Analogy as Algorithm",
+        "children": [
+          {
+            "type": "p",
+            "content": "Once you have the fiber decomposition, scaffold hopping becomes principled. Encode each object as an HRR (Holographic Reduced Representation) vector — one sub-vector per fiber, bound together. Then similarity in HRR space IS structural analogy: two objects are 'analogous' when they share fiber values along some dimensions but differ along others."
+          },
+          {
+            "type": "Analogy",
+            "title": "The Hofstadter Connection",
+            "children": [
+              {
+                "type": "p",
+                "content": "Douglas Hofstadter argued that analogy is the core of cognition — every creative leap is recognizing structural similarity across different domains. Our engine computes this: encode drugs and theorems into the SAME HRR space using their respective fiber decompositions. If a drug's mechanism fiber and a theorem's strategy fiber have the same SHAPE (same number of sub-dimensions, same independence structure), they're 'analogous' at the meta-level. Shannon's information theory ← Boltzmann's thermodynamics. PageRank ← citation analysis. CRISPR ← phage biology. Every breakthrough is a scaffold hop."
+              }
+            ]
+          },
+          {
+            "type": "InteractiveDemo",
+            "title": "Cross-Domain Scaffold Hop",
+            "demoId": "cross-domain-hop",
+            "description": "Two domains with discovered fibers. Find the structural analog of a seed object in the other domain.",
+            "initialState": {
+              "domainA": {
+                "name": "Antibacterials",
+                "fibers": ["mechanism", "structure", "target", "kinetics"],
+                "seed": "Ethambutol: cell-wall inhibitor, small molecule, arabinosyltransferase, oral"
+              },
+              "domainB": {
+                "name": "Math Proofs",
+                "fibers": ["strategy", "object_type", "classical_vs_constructive", "complexity"],
+                "analog": "Topology.IsCompact.finite: simplification-heavy, topological spaces, constructive, moderate complexity"
+              }
+            },
+            "steps": [
+              "Both objects have a 'what it targets' fiber and a 'how it works' fiber.",
+              "Ethambutol targets cell wall synthesis via inhibition. The topology theorem targets compactness via simplification.",
+              "The STRUCTURE of the decomposition is the same — even though the domains share nothing.",
+              "This is Wigner's unreasonable effectiveness: the fiber grammar is domain-independent."
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "title": "The Universal Grammar of Decomposition",
+        "children": [
+          {
+            "type": "p",
+            "content": "If we run fiber discovery on 10+ domains and collect their fiber genomes, we can ask: do the genomes share structural invariants? Is there always a 'what' fiber and a 'how' fiber? Is the number of multi-feature fibers always small (3-5) with many singleton fibers? Do the soft boundary patterns (which features participate in multiple fibers) follow universal laws?"
+          },
+          {
+            "type": "DefinitionList",
+            "items": [
+              {
+                "term": "Fiber Genome",
+                "definition": "The full specification of a domain's fiber decomposition: number of fibers, features per fiber, intra-fiber correlations, inter-fiber independence scores, soft boundary weights."
+              },
+              {
+                "term": "Meta-Processor",
+                "definition": "An engine that encodes fiber genomes FROM each domain AS HRR vectors, then scaffold hops across genomes to find universal structural invariants."
+              },
+              {
+                "term": "Universal Fiber Grammar",
+                "definition": "The hypothesized set of structural invariants shared by all fiber decompositions, regardless of domain. If it exists, it explains why mathematics is 'unreasonably effective' — because all complex systems decompose the same way."
+              }
+            ]
+          },
+          {
+            "type": "p",
+            "content": "Jackendoff's Parallel Architecture is exactly this claim for language: phonology, syntax, and semantics are universal fibers, linked by universal interface rules. Our engine can test whether the same claim holds for chemistry, mathematics, law, music, and every other structured domain."
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "title": "Wigner's Thesis, Computationally",
+        "children": [
+          {
+            "type": "p",
+            "content": "Eugene Wigner observed in 1960 that mathematical structures invented for pure abstract reasons turn out to describe physical reality with eerie precision. Our engine inverts Wigner: instead of asking WHY math describes physics, we ask WHAT structural patterns are shared between mathematical proofs and physical systems — and we COMPUTE the answer via fiber genome comparison."
+          },
+          {
+            "type": "DeepDive",
+            "title": "A Computable Wigner Thesis",
+            "children": [
+              {
+                "type": "p",
+                "content": "If fiber discovery on Lean/Mathlib produces a genome G_math, and fiber discovery on antibacterial compounds produces G_chem, and the genomes share structural invariants (e.g., both have 3-5 multi-feature fibers, both show 'what vs how' separation, both have similar soft boundary density), then we have EVIDENCE that the 'unreasonable effectiveness' is a consequence of universal decomposition grammar — not coincidence, not divine plan, but a structural necessity of complex systems. The fiber bundle formalism makes this precise: the structure group of the bundle (the symmetries that preserve fiber independence) may be the same across domains."
+              }
+            ]
+          },
+          {
+            "type": "Quiz",
+            "question": "Why is the Lean/Mathlib dataset especially valuable for testing universal fiber grammar?",
+            "options": [
+              "It has the most data points",
+              "Mathematical structure IS the data — no measurement noise or approximation",
+              "Lean is the most popular programming language",
+              "Formal proofs are easier to understand than chemistry"
+            ],
+            "correctIndex": 1,
+            "explanation": "In chemistry, features like 'molecular weight' or 'LogP' are approximations of the underlying molecular reality. In Lean, the type signature, tactic sequence, and dependency graph ARE the theorem — there's no gap between representation and reality. If fiber grammar works here, it works on the purest possible test case."
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "title": "The Road to 10 Domains",
+        "children": [
+          {
+            "type": "p",
+            "content": "The meta-processor needs N ≥ 10 diverse domain genomes to be meaningful. Current progress:"
+          },
+          {
+            "type": "Example",
+            "title": "Domain Genome Collection",
+            "children": [
+              {
+                "type": "p",
+                "content": "<strong>✅ Completed:</strong><br/>1. Battery electrolytes (OBELiX, 599 compounds, 16 fibers)<br/>2. Antibacterial drugs (Broad Repurposing Hub, 6,798 compounds, 4 evolved fibers)<br/>3. Formal mathematics (LeanDojo/Mathlib, 61,544 theorems, 4 multi-feature + 32 singleton fibers)<br/><br/><strong>🔜 Next:</strong><br/>4. Scientific theories (OpenAlex, 67,600 papers pulled, fiber discovery pending)<br/>5. Materials science (Materials Project, 154K materials)<br/>6. Patents (USPTO, 15.4M documents)<br/>7. Legal precedent (Harvard Caselaw, 6.7M cases)<br/>8. Drug combinations (ChEMBL, synergy data)<br/>9. Catalysts (Open Catalyst Project, 1.3M configurations)<br/>10. Music structure (Million Song Dataset)"
+              }
+            ]
+          },
+          {
+            "type": "Callout",
+            "variant": "key-insight",
+            "children": [
+              {
+                "type": "p",
+                "content": "Each new domain isn't just 'another dataset.' It's a new genome in the fiber grammar hypothesis test. Three genomes showed the 'what vs how' separation. Will the fourth? The fifth? If the pattern holds at 10 diverse domains — chemistry, mathematics, law, music, biology — that's not a coincidence. That's a law."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Quiz",
+        "question": "What is the meta-processor?",
+        "options": [
+          "A faster version of the fiber discovery algorithm",
+          "An engine that encodes fiber genomes as HRR vectors and scaffold hops across genomes",
+          "A neural network that replaces MI clustering",
+          "A database of all domain datasets"
+        ],
+        "correctIndex": 1,
+        "explanation": "The meta-processor treats each domain's fiber genome as an object, encodes it as an HRR vector, and then finds structural analogies BETWEEN genomes. It's scaffold hopping at the meta-level: instead of hopping between drugs, we hop between entire domains to find universal decomposition patterns."
+      },
+      {
+        "type": "Quiz",
+        "question": "What do soft fiber boundaries encode?",
+        "options": [
+          "Measurement errors in the data",
+          "Features that should be removed from analysis",
+          "Dependency constraints — features that MUST co-vary due to causal relationships",
+          "Random noise from the MI computation"
+        ],
+        "correctIndex": 2,
+        "explanation": "Soft boundaries capture features that participate in multiple fibers with partial membership. HAS_MODULE correlates with HAS_RING (0.37) because modules require rings — a mathematical dependency. Similarly, membrane-targeting drugs must be lipophilic — a physical dependency. These aren't noise; they're the 'interface rules' that Jackendoff described between parallel generative components."
+      }
+    ]
+  }
+}
