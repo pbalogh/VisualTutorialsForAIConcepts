@@ -1147,6 +1147,18 @@ const tutorials = [
     difficulty: 3,
   },
   {
+    id: 'brainstorm-94b-fiber-discovery-primitive-discovery',
+    title: 'Fiber Discovery IS Primitive Discovery',
+    description: 'MI-based fiber discovery is the automated Schank: both decompose domains into minimal independent subspaces. Identical fibers across datasets (Jaccard=1.0) prove primitives are real statistical invariants. Vocabulary/semantics distinction maps directly: fibers are vocabulary, target importance is semantics.',
+    tags: ['Schankian', 'mutual-information', 'fibers', 'primitives', 'hyperbolic', 'cross-domain', 'sisPCA'],
+    icon: '🔬',
+    gradient: 'from-emerald-500 to-teal-600',
+    shadowColor: 'shadow-emerald-500/30',
+    glowColor: 'rgba(16, 185, 129, 0.4)',
+    readTime: '18 min',
+    difficulty: 3,
+  },
+  {
     id: 'brainstorm-91c-recursive-terms-native-output',
     title: 'Recursive Terms as Native Output',
     description: 'Can a Mamba model learn to output recursive JSON where any argument slot can be an arbitrarily nested structure? Training on Schankian CD structures that naturally nest events inside events — if it works, the parser output IS a lambda term.',

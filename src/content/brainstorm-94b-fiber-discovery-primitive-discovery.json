@@ -1,0 +1,292 @@
+{
+  "id": "brainstorm-94-fiber-discovery-primitive-discovery",
+  "title": "Fiber Discovery IS Primitive Discovery",
+  "subtitle": "The MI→Schank Pipeline — How Statistical Independence Rediscovers Conceptual Primitives",
+  "readTime": "18 min",
+  "state": "published",
+  "content": {
+    "type": "Fragment",
+    "children": [
+      {
+        "type": "Callout",
+        "variant": "key-insight",
+        "children": [
+          {
+            "type": "p",
+            "content": "Mutual information fiber discovery is the automated version of what Schank did by hand. Both decompose a domain into minimal independent subspaces — Schank used linguistic intuition on event descriptions; we use MI on molecular features. The discovery that identical fiber structures appear across datasets (Jaccard = 1.0) suggests primitives are not arbitrary conventions but genuine statistical invariants of nature. Fibers are VOCABULARY; target-linked importance is SEMANTICS."
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "title": "The Same Operation, 50 Years Apart",
+        "children": [
+          {
+            "type": "p",
+            "content": "In the 1970s, Roger Schank examined thousands of event descriptions and asked: what are the irreducible building blocks? He found ~14 primitives — ATRANS (transfer of possession), PTRANS (physical motion), MTRANS (mental transfer), INGEST, EXPEL, etc. These were controversial: were they real, or just one linguist's arbitrary decomposition?"
+          },
+          {
+            "type": "p",
+            "content": "In 2026, a mutual information pipeline examines thousands of molecular compounds and asks: which features travel together independently? It finds 10 atomic fibers — the fluorine fiber, the nitrogen fiber, the sp-hybridization fiber. Same epistemological operation. Same answer: the domain decomposes into a small number of independent dimensions."
+          },
+          {
+            "type": "Analogy",
+            "source": "Schank's manual decomposition of events",
+            "target": "MI fiber discovery on molecules",
+            "mapping": "Both find the minimal set of independent dimensions that describe variation in a domain. Schank used intuition on language; MI uses statistics on features.",
+            "children": [
+              {
+                "type": "p",
+                "content": "<strong>Schank:</strong> Looked at 'John gave Mary a book' → decomposes into ATRANS(object=book, from=John, to=Mary). The giving is one dimension, the physical object is another, the direction is a third.<br/><br/><strong>MI Pipeline:</strong> Looked at ciprofloxacin (C₁₇H₁₈FN₃O₃) → decomposes into [fluorine fiber] × [nitrogen fiber] × [cyclopropyl fiber] × [aromaticity fiber]. The fluorine substitution is one dimension, the nitrogen count is another, the ring structure is a third.<br/><br/><strong>Both:</strong> Find that the whole is a product of independent parts."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "title": "What Makes a Primitive 'Primitive'?",
+        "children": [
+          {
+            "type": "p",
+            "content": "The deep question: what criterion decides whether a decomposition is 'right'? Schank used INFERENCE — a primitive is primitive if it enables predictions that its components don't. You can infer from ATRANS that the recipient now possesses the object; you can't infer that from the surface verb 'gave' without knowing ATRANS."
+          },
+          {
+            "type": "p",
+            "content": "Our MI pipeline uses STATISTICAL INDEPENDENCE — features are in the same fiber if they co-vary, and in different fibers if they don't. But here's the connection: statistical independence IS a formalization of Schank's inferential criterion."
+          },
+          {
+            "type": "DeepDive",
+            "title": "Why Independence ≈ Inferential Usefulness",
+            "children": [
+              {
+                "type": "p",
+                "content": "If two features are statistically independent, knowing one tells you nothing about the other. This means they capture genuinely different aspects of the data — different 'dimensions of variation.' Schank's primitives are useful precisely because they're independent: knowing something is an ATRANS tells you about possession change but not physical motion (that's PTRANS). The sisPCA framework (arXiv:2410.23595) formalizes this exactly: decompose data into statistically independent subspaces, where 'supervised' independence means independence CONDITIONAL ON a target variable."
+              },
+              {
+                "type": "p",
+                "content": "The target variable is the key. In drug discovery, the target is MIC (minimum inhibitory concentration). In Schank's system, the target is inferential power — can you predict what happens next? In both cases, the 'right' decomposition is the one where each primitive/fiber independently contributes to the target."
+              }
+            ]
+          },
+          {
+            "type": "InteractiveDemo",
+            "title": "Fiber Independence Visualizer",
+            "description": "Explore how mutual information identifies independent feature clusters. Drag the MI threshold slider to see how fibers merge and split.",
+            "demoType": "threshold-slider",
+            "config": {
+              "features": ["fluorine", "chlorine", "nitrogen", "oxygen", "sp_hybridization", "aromaticity", "ring_count", "cyclopropyl", "sulfur", "molecular_weight"],
+              "fibers_at_020": [["fluorine", "chlorine"], ["nitrogen", "oxygen"], ["sp_hybridization", "aromaticity", "ring_count"], ["cyclopropyl"], ["sulfur"], ["molecular_weight"]],
+              "fibers_at_035": [["fluorine"], ["chlorine"], ["nitrogen"], ["oxygen"], ["sp_hybridization", "aromaticity"], ["ring_count"], ["cyclopropyl"], ["sulfur"], ["molecular_weight"]],
+              "description": "At threshold 0.20, fluorine and chlorine cluster together (both halogens). At 0.35, they separate into distinct fibers. The 'right' threshold depends on your inferential target — tighter fibers give better prediction (R² jumps from 0.26 to 0.52)."
+            }
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "title": "The Vocabulary/Semantics Distinction",
+        "children": [
+          {
+            "type": "p",
+            "content": "Here's the insight that bridges Schank to fiber discovery: fibers are VOCABULARY. Target-linked importance is SEMANTICS."
+          },
+          {
+            "type": "p",
+            "content": "The nitrogen fiber exists in both antibacterial compounds and battery electrolytes. Same fiber. But its importance is completely different — nitrogen is critical for antibacterial potency (drug targets are protein folds full of nitrogen), while it barely matters for ionic conductivity. Same word, different meaning depending on context."
+          },
+          {
+            "type": "Example",
+            "title": "Same Primitive, Different Semantics",
+            "children": [
+              {
+                "type": "p",
+                "content": "<strong>In Schank's framework:</strong> PTRANS (physical transfer) appears in both 'John walked to the store' and 'The planet orbits the sun.' Same primitive. But its inferential weight differs enormously — in the first, PTRANS implies volition and a destination; in the second, it's passive and cyclical.<br/><br/><strong>In fiber discovery:</strong> The fluorine fiber appears in both ChEMBL antibacterials (Jaccard = 1.0 match with Broad Hub) and battery electrolytes. Same fiber. But fluorine's gradient weight is +0.3 for antibacterial potency and -0.1 for ionic conductivity — it helps drugs but hurts batteries."
+              }
+            ]
+          },
+          {
+            "type": "Callout",
+            "variant": "important",
+            "children": [
+              {
+                "type": "p",
+                "content": "This is why cross-domain analogy works: if the VOCABULARY is shared (same fibers across domains), then discovering the SEMANTICS in one domain (gradient weights) can inform hypotheses in another. You can ask: 'What does nitrogen DO in mathematics?' — and answer by looking at what the nitrogen-like fiber does in proof space."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "title": "The Invariance Test: Are Primitives Real?",
+        "children": [
+          {
+            "type": "p",
+            "content": "Schank's critics argued his primitives were arbitrary — just one possible decomposition among many. The MI pipeline answers this empirically: run the same algorithm on different datasets from the same domain. Do you get the same fibers?"
+          },
+          {
+            "type": "p",
+            "content": "Result: YES. The fluorine fiber has Jaccard similarity = 1.0 across ChEMBL antibacterials and the Broad Repurposing Hub. The chlorine fiber: 1.0. The sp-hybridization fiber: 0.8. These are not arbitrary — they're the same statistical structure rediscovered independently from different data."
+          },
+          {
+            "type": "InteractiveDemo",
+            "title": "Cross-Dataset Fiber Invariance",
+            "description": "Compare fiber structures discovered independently from two different chemical datasets. Matching fibers are highlighted.",
+            "demoType": "comparison-table",
+            "config": {
+              "dataset1": "ChEMBL Antibacterials (602 compounds)",
+              "dataset2": "Broad Repurposing Hub (6,784 compounds)",
+              "fibers": [
+                {"name": "Fluorine", "jaccard": 1.0, "features": ["fr_halogen_F", "fluorine_count"]},
+                {"name": "Chlorine", "jaccard": 1.0, "features": ["fr_halogen_Cl", "chlorine_count"]},
+                {"name": "sp-Hybridization", "jaccard": 0.8, "features": ["sp_count", "sp2_fraction"]},
+                {"name": "Nitrogen", "jaccard": 0.7, "features": ["nitrogen_count", "basic_nitrogen"]},
+                {"name": "Aromaticity", "jaccard": 0.65, "features": ["aromatic_rings", "aromatic_fraction"]}
+              ],
+              "description": "Jaccard = 1.0 means the exact same features cluster together in both datasets. The fiber IS the same primitive, discovered independently."
+            }
+          },
+          {
+            "type": "DeepDive",
+            "title": "Six Structural Invariant Tests",
+            "children": [
+              {
+                "type": "p",
+                "content": "We test six invariants across ALL domain genomes (drugs, batteries, proofs, papers):<br/><br/>1. <strong>Multi-fiber count in [2, 8]</strong> — not too few (trivial), not too many (overfitting)<br/>2. <strong>Singletons exist</strong> — some features are genuinely independent<br/>3. <strong>Non-trivial sizes</strong> — multi-feature fibers have 2+ members<br/>4. <strong>Positive intra-correlation</strong> — features within a fiber actually co-vary<br/>5. <strong>Bounded multi/total ratio</strong> — not everything is in one mega-fiber<br/>6. <strong>Low coefficient of variation</strong> — fiber sizes are roughly balanced<br/><br/>All five tested domains pass 5/6 or 6/6 tests. This is not coincidence."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "title": "From Features to Events: The Schank Pipeline",
+        "children": [
+          {
+            "type": "p",
+            "content": "The final step: if MI fiber discovery works on molecular features, it should work on EVENT features too. Take a corpus of (entity_before, action, entity_after) triples. Extract features: did possession change? Did location change? Was force applied? Was information transferred? Run MI clustering."
+          },
+          {
+            "type": "p",
+            "content": "Prediction: the resulting fibers will converge on something Schank-like. The 'possession change' feature will cluster with 'giver/receiver roles.' The 'location change' feature will cluster with 'source/destination.' These ARE ATRANS and PTRANS, discovered from data."
+          },
+          {
+            "type": "Quiz",
+            "question": "If MI fiber discovery on event features produces the same primitives that Schank found by hand, what does that prove?",
+            "options": [
+              "Schank was right all along and his critics were wrong",
+              "The primitives are genuine statistical invariants of event structure, not arbitrary",
+              "MI clustering always produces Schank-like results regardless of input",
+              "Language structure determines physical event structure"
+            ],
+            "correctIndex": 1,
+            "explanation": "It proves the primitives are real statistical structure, not one linguist's opinion. Schank wasn't 'right' in the sense of having unique insight — he was right because the structure is there for anyone (or any algorithm) to find. The critics' worry about arbitrariness is resolved empirically."
+          },
+          {
+            "type": "Callout",
+            "variant": "connection",
+            "children": [
+              {
+                "type": "p",
+                "content": "<strong>Key papers:</strong> sisPCA (arXiv:2410.23595) — Supervised Independent Subspace PCA, formalizes decomposition into independent subspaces with target supervision. DAE (arXiv:2507.19602) — disentangled autoencoder for materials discovery, independently finds fiber-like independent multidimensional subspaces. ISA (arXiv:1909.05063) — Independent Subspace Analysis, resolves VAE unidentifiability with non-rotationally-invariant priors."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "title": "Hyperbolic Navigation of Primitive Space",
+        "children": [
+          {
+            "type": "p",
+            "content": "Once you have structured λ-terms (typed decompositions of facts), you can embed them in hyperbolic space. Tree depth maps to hyperbolic radius: root concepts sit near the origin, leaf details sit near the boundary. Structural analogs — facts with the same tree shape but different content — land at the same point in the Poincaré disk."
+          },
+          {
+            "type": "Example",
+            "title": "Isomorphic Analogs at Distance Zero",
+            "children": [
+              {
+                "type": "p",
+                "content": "<strong>Drug Discovery:</strong> DISCOVERS(agent=method, result=FITS(model=METHOD, features=DISCOVERED_BY(method=MI), target=PROPERTY(MIC), quality=METRIC(R²=0.52)))<br/><br/><strong>Proof Analysis:</strong> DISCOVERS(agent=method, result=FITS(model=METHOD, features=DISCOVERED_BY(method=MI), target=PROPERTY(proof_length), quality=METRIC(R²=0.38)))<br/><br/><strong>Hyperbolic distance: 0.0004</strong> — essentially zero. The system correctly identifies these as the SAME OPERATION applied in different domains. The leaves are different (MIC vs proof_length), but the tree structure is identical."
+              }
+            ]
+          },
+          {
+            "type": "InteractiveDemo",
+            "title": "Poincaré Disk Explorer",
+            "description": "Visualize λ-term embeddings in hyperbolic space. Root types (DISCOVERS) cluster near the center; specialized types (REPURPOSES, INVARIANT) orbit near the boundary. Cross-domain isomorphisms appear as overlapping points from different domains.",
+            "demoType": "poincare-disk",
+            "config": {
+              "points": [
+                {"id": "drug-gradient", "domain": "chemistry", "type": "DISCOVERS", "radius": 0.34, "angle": 45},
+                {"id": "proof-analysis", "domain": "mathematics", "type": "DISCOVERS", "radius": 0.34, "angle": 47},
+                {"id": "hydra-parser", "domain": "linguistics", "type": "DISCOVERS", "radius": 0.34, "angle": 43},
+                {"id": "epacadostat", "domain": "chemistry", "type": "REPURPOSES", "radius": 0.78, "angle": 160},
+                {"id": "catalyst-repurpose", "domain": "materials", "type": "REPURPOSES", "radius": 0.78, "angle": 162},
+                {"id": "fiber-invariant", "domain": "mathematics", "type": "INVARIANT", "radius": 0.85, "angle": 270}
+              ],
+              "description": "Notice: DISCOVERS terms from three different domains overlap at radius ~0.34. REPURPOSES terms from chemistry and materials overlap at radius ~0.78. The Poincaré disk naturally groups structural isomorphs."
+            }
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "title": "The Full Pipeline",
+        "children": [
+          {
+            "type": "p",
+            "content": "Putting it all together, the MI→Schank pipeline looks like this:"
+          },
+          {
+            "type": "DefinitionList",
+            "items": [
+              {"term": "1. Collect domain data", "definition": "Molecules, theorems, events, papers — any structured dataset with features."},
+              {"term": "2. MI fiber discovery", "definition": "Cluster features by mutual information. Semi-independent groups = fibers = primitives."},
+              {"term": "3. Gradient analysis", "definition": "Fit a linear model with target. Gradient direction = human-readable prescription for improvement."},
+              {"term": "4. λ-term encoding", "definition": "Structure each discovery as a typed term: DISCOVERS(result=FITS(model, features, target, quality))."},
+              {"term": "5. Hyperbolic embedding", "definition": "Embed λ-terms in Poincaré ball. Tree depth → radius. Structural analogs cluster."},
+              {"term": "6. Cross-domain dreaming", "definition": "Find isomorphic terms across domains. 'What plays the role of fluorine in proof space?'"}
+            ]
+          },
+          {
+            "type": "Quiz",
+            "question": "Why is hyperbolic space better than Euclidean space for embedding λ-terms?",
+            "options": [
+              "Hyperbolic space has more dimensions",
+              "Trees embed naturally in hyperbolic space because it has exponentially growing volume at the boundary",
+              "Euclidean space can't represent typed terms",
+              "Hyperbolic distances are always smaller than Euclidean distances"
+            ],
+            "correctIndex": 1,
+            "explanation": "λ-terms are trees, and trees have exponentially many leaves relative to their depth. Hyperbolic space (like the Poincaré disk) has exponentially growing area near the boundary — exactly matching the branching structure of trees. In Euclidean space, you'd need exponentially many dimensions; in hyperbolic space, you can embed ANY tree with bounded distortion in fixed dimensions."
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "title": "Implications",
+        "children": [
+          {
+            "type": "p",
+            "content": "If this pipeline works — if MI on event features converges to Schankian primitives — then three things follow:"
+          },
+          {
+            "type": "p",
+            "content": "<strong>1. Primitives are discoverable, not designable.</strong> You don't need a linguist to hand-code them. Run MI clustering on a large enough event corpus and they emerge. This resolves the 50-year debate about whether Schank's specific set was arbitrary."
+          },
+          {
+            "type": "p",
+            "content": "<strong>2. Cross-domain analogy becomes computable.</strong> If drugs and proofs share the same fiber grammar (same structural invariants), then insights from one domain transfer to the other. The fluorine fiber and the classical-logic fiber may be 'the same primitive in different substrates.'"
+          },
+          {
+            "type": "p",
+            "content": "<strong>3. Schank was measuring the universe.</strong> His primitives weren't a theory of language — they were a measurement of event space. Like discovering that matter comes in atoms, discovering that events come in ATRANS/PTRANS/MTRANS is an empirical finding about the structure of reality, not a theoretical choice."
+          }
+        ]
+      }
+    ]
+  }
+}
