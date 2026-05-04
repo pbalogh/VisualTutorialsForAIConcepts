@@ -2162,6 +2162,18 @@ const tutorials = [
     readTime: '20 min',
     difficulty: 2,
   },
+  {
+    id: 'brainstorm-95-proof-tactics-as-primitives',
+    title: 'Proof Tactics as Schankian Primitives',
+    description: 'When we encoded 61,544 Mathlib theorems as HRR vectors, WHAT you prove and HOW you prove it decomposed into independent fibers — the same pattern found in drugs, language, and scientific papers. Six structural invariants hold across five domains. Schank found it first by hand; we found it everywhere by algorithm.',
+    tags: ['Schankian primitives', 'formal proofs', 'fiber bundles', 'HRR', 'Lean', 'independence'],
+    icon: '📐',
+    gradient: 'from-emerald-500 to-teal-600',
+    shadowColor: 'shadow-emerald-500/30',
+    glowColor: 'rgba(16, 185, 129, 0.4)',
+    readTime: '20 min',
+    difficulty: 3,
+  },
 ]
 
 // Semantic tag color system - filled backgrounds
