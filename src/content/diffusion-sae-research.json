@@ -8183,6 +8183,141 @@
             ]
           }
         ]
+      },
+      {
+        "type": "Section",
+        "header": {
+          "type": "h2",
+          "title": "🔬 May 4, 2026: Neural CTMC, SAE Concept Manifolds, Qwen-Scope"
+        },
+        "children": [
+          {
+            "type": "DeepDive",
+            "title": "[Apr 22] Neural CTMC: Principled CTMC Decomposition for Discrete Diffusion",
+            "children": [
+              {
+                "type": "p",
+                "children": [
+                  {
+                    "type": "strong",
+                    "children": [
+                      "Paper:"
+                    ]
+                  },
+                  " Jiang et al., \"Neural Continuous-Time Markov Chain: Discrete Diffusion via Decoupled Jump Timing and Direction\" (arXiv:2604.15694, Apr 22, 2026)"
+                ]
+              },
+              {
+                "type": "p",
+                "children": [
+                  {
+                    "type": "strong",
+                    "children": [
+                      "Key insight:"
+                    ]
+                  },
+                  " Decomposes the CTMC reverse process into two dedicated network heads: an exit rate (when to jump) and a jump distribution (where to jump), aligned with the intrinsic Poisson decomposition of CTMCs. Shows the ELBO factorizes into a Poisson KL for timing and categorical KL for direction. First pure-uniform noise method to outperform mask-based methods (MDLM, SEDD) on OpenWebText language modeling. Framework covers both masked and GIDD-style noise schedules. Pretrained weights released on HuggingFace."
+                ]
+              },
+              {
+                "type": "p",
+                "children": [
+                  {
+                    "type": "strong",
+                    "children": [
+                      "Relevance:"
+                    ]
+                  },
+                  " ⭐⭐⭐ CORE. The exit rate / jump direction decomposition is directly relevant to understanding what SAEs would discover in diffusion models — the \"when\" and \"where\" of denoising may activate distinct feature families. The uniform noise success matters because uniform corruption preserves more token identity information than masking, potentially giving SAEs richer intermediate representations to decompose. Validates that the theoretical structure of CTMCs (not just engineering choices like masking) determines generation quality."
+                ]
+              }
+            ]
+          },
+          {
+            "type": "DeepDive",
+            "title": "[Apr 30] Do Sparse Autoencoders Capture Concept Manifolds?",
+            "children": [
+              {
+                "type": "p",
+                "children": [
+                  {
+                    "type": "strong",
+                    "children": [
+                      "Paper:"
+                    ]
+                  },
+                  " Bhalla, Fel, Rager, Feucht, Haklay, Wurgaft et al., \"Do Sparse Autoencoders Capture Concept Manifolds?\" (arXiv:2604.28119, Apr 30, 2026)"
+                ]
+              },
+              {
+                "type": "p",
+                "children": [
+                  {
+                    "type": "strong",
+                    "children": [
+                      "Key insight:"
+                    ]
+                  },
+                  " Develops theoretical framework for how SAEs capture continuous concept manifolds. Identifies two mechanisms: (1) GLOBAL — compact group of atoms whose span contains the entire manifold; (2) LOCAL — features that each tile a restricted region of the geometry. In practice, SAEs operate in a suboptimal 'dilution' regime that mixes both strategies — many localized features tile the manifold fragmentarily. This explains why manifold structure is rarely visible at the level of individual SAE features. Steering interventions between concept centroids (e.g., Wednesday→Thursday) produce smooth probability changes, confirming geometric structure is causally relevant."
+                ]
+              },
+              {
+                "type": "p",
+                "children": [
+                  {
+                    "type": "strong",
+                    "children": [
+                      "Relevance:"
+                    ]
+                  },
+                  " ⭐⭐⭐ CRITICAL. This is the most important SAE theory paper in months for the diffusion+SAE intersection. If SAEs fragment continuous manifolds into diluted local tiles, this has profound implications for applying SAEs to diffusion models where the denoising trajectory IS a continuous manifold (noise→clean). The dilution phenomenon may explain why naively applying SAEs to diffusion intermediates could miss the global denoising structure. Suggests that post-hoc manifold recovery methods (not just raw SAE features) may be needed to extract meaningful diffusion dynamics."
+                ]
+              }
+            ]
+          },
+          {
+            "type": "DeepDive",
+            "title": "[May 1] Qwen-Scope: Industrial-Scale Open SAE Suite",
+            "children": [
+              {
+                "type": "p",
+                "children": [
+                  {
+                    "type": "strong",
+                    "children": [
+                      "Paper/Release:"
+                    ]
+                  },
+                  " Qwen Team, \"Qwen-Scope: Sparse AutoEncoders for Qwen Models\" (May 1, 2026). Open-source release of 14 SAE groups across 7 model variants including Qwen3-8B and Qwen3.5-35B-A3B (MoE). HuggingFace collection + live demo."
+                ]
+              },
+              {
+                "type": "p",
+                "children": [
+                  {
+                    "type": "strong",
+                    "children": [
+                      "Key insight:"
+                    ]
+                  },
+                  " First major Chinese lab to release production-quality SAEs. Feature widths from 32K to 128K with Top-k sparsity (k=50 or 100). Covers residual stream activations across model layers. Notably includes MoE model SAEs — first public SAEs for mixture-of-experts architectures, where expert routing already provides a form of sparse activation that may interact non-trivially with SAE-discovered features."
+                ]
+              },
+              {
+                "type": "p",
+                "children": [
+                  {
+                    "type": "strong",
+                    "children": [
+                      "Relevance:"
+                    ]
+                  },
+                  " ⭐⭐ ECOSYSTEM. Expands the SAE toolkit beyond Anthropic/OpenAI models. The MoE SAEs are particularly interesting: MoE expert selection is itself a discrete routing mechanism analogous to what diffusion models do when choosing which tokens to denoise. If SAE features align with or cut across expert boundaries, this reveals whether interpretable concepts follow the model's own routing or transcend it. The 32K-128K width range provides a practical reference for sizing SAEs on diffusion model intermediates."
+                ]
+              }
+            ]
+          }
+        ]
       }
     ]
   }
