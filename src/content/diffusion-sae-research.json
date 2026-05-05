@@ -8318,6 +8318,75 @@
             ]
           }
         ]
+      },
+      {
+        "type": "Section",
+        "props": {
+          "title": "🔬 May 5, 2026: FoCore — Self-Contrast Decoding via High-Density Tokens"
+        },
+        "children": [
+          {
+            "type": "DeepDive",
+            "title": "[May 2] FoCore: Focus on the Core — Self-Contrast for dLLMs (arXiv:2605.01373)",
+            "children": [
+              {
+                "type": "p",
+                "children": [
+                  {
+                    "type": "strong",
+                    "children": [
+                      "Paper:"
+                    ]
+                  },
+                  " Feng et al., 'Focus on the Core: Empowering Diffusion Large Language Models by Self-Contrast' (arXiv:2605.01373, May 2, 2026)"
+                ]
+              },
+              {
+                "type": "p",
+                "children": [
+                  {
+                    "type": "strong",
+                    "children": [
+                      "Key insight:"
+                    ]
+                  },
+                  " Current dLLM decoding strategies exhibit 'local preference' that overlooks heterogeneous information density in context. Two findings: (1) explicitly conditioning on high-information-density (HD) tokens substantially improves output quality; (2) HD tokens converge EARLIER than surrounding tokens during denoising. FoCore remasks converged HD tokens temporarily as negative samples for self-contrast guidance. FoCore_A detects HD convergence and triggers parallel decoding over stable local candidates. Training-free, plug-and-play for LLaDA and Dream."
+                ]
+              },
+              {
+                "type": "p",
+                "children": [
+                  {
+                    "type": "strong",
+                    "children": [
+                      "Results:"
+                    ]
+                  },
+                  " +3.66 pass@1 on HumanEval over standard CFG. 2.07× fewer decoding steps. Per-sample latency from 20.76s to 8.64s (-58.4%). Consistent improvements across math, code, and logical reasoning."
+                ]
+              },
+              {
+                "type": "p",
+                "children": [
+                  {
+                    "type": "strong",
+                    "children": [
+                      "Relevance:"
+                    ]
+                  },
+                  " ⭐⭐ FOR IDEAS 2 & 3. HD token identification is a task SAE features could perform more precisely — semantic importance captured by SAE feature activations is richer than surface-level information density metrics. The 'early convergence of important tokens' finding complements 'Mask Is What DLLM Needs' (2603.15803) from the inference side: structurally important tokens resolve first during generation. The self-contrast mechanism (using converged features as negative guidance) maps to SAE feature constraint inversion — amplify desired features by contrasting against their absence. The convergence-detection trigger could be replaced with SAE feature stability signals (as in SWD). Adds a 5th approach to the 'token importance during denoising' cluster (alongside DyLLM saliency, SWD stability, STDec spatio-temporal, LogicDiff role-based)."
+                ]
+              }
+            ]
+          },
+          {
+            "type": "Callout",
+            "props": {
+              "type": "info"
+            },
+            "children": "Running total: ~112 tracked papers. FoCore contributes a new angle on information-density-aware decoding. The field continues to produce training-free decoding improvements that exploit the iterative nature of diffusion — each one a potential site for SAE feature integration. The direct SAE+diffusion intersection remains open territory."
+          }
+        ]
       }
     ]
   }
