@@ -2174,6 +2174,18 @@ const tutorials = [
     readTime: '20 min',
     difficulty: 3,
   },
+  {
+    id: 'brainstorm-96-compositional-sparsity-codes',
+    title: 'Error-Correcting Codes as Compositional Sparsity',
+    description: 'Error-correcting codes decompose into three independent dimensions (algebraic, iterative, geometric). All existing codes use at most two. This is the same compositional sparsity that explains Schankian primitives, protein operators, and drug mechanisms — and nobody has deliberately composed all three coding dimensions until now.',
+    tags: ['Schankian primitives', 'coding theory', 'compositional sparsity', '6G', 'fiber bundles', 'triple composition'],
+    icon: '📡',
+    gradient: 'from-cyan-500 to-blue-600',
+    shadowColor: 'shadow-cyan-500/30',
+    glowColor: 'rgba(6, 182, 212, 0.4)',
+    readTime: '15 min',
+    difficulty: 3,
+  },
 ]
 
 // Semantic tag color system - filled backgrounds
