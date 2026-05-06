@@ -2186,6 +2186,18 @@ const tutorials = [
     readTime: '15 min',
     difficulty: 3,
   },
+  {
+    id: 'brainstorm-97-autopoietic-knowledge-stores',
+    title: 'Self-Growing Knowledge Stores as Autopoietic Systems',
+    description: 'A lambda store that grows itself — ingesting from multiple sources, discovering its own ontology via MI fiber clustering, expanding its own frontier, and validating its own consistency. The store produces the components for its own continued growth.',
+    tags: ['knowledge graphs', 'autopoiesis', 'Schankian primitives', 'lambda calculus', 'FAISS', 'self-organization'],
+    icon: '🌱',
+    gradient: 'from-green-500 to-emerald-600',
+    shadowColor: 'shadow-green-500/30',
+    glowColor: 'rgba(16, 185, 129, 0.4)',
+    readTime: '18 min',
+    difficulty: 2,
+  },
 ]
 
 // Semantic tag color system - filled backgrounds

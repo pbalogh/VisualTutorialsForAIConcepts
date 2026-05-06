@@ -1,0 +1,346 @@
+{
+  "type": "Fragment",
+  "children": [
+    {
+      "type": "Section",
+      "props": { "title": "Self-Growing Knowledge Stores as Autopoietic Systems" },
+      "children": [
+        {
+          "type": "p",
+          "children": "What if a knowledge base could grow itself — not just accumulating facts, but discovering its own organizational principles, expanding its own frontier, and validating its own consistency? This is autopoiesis applied to knowledge engineering."
+        },
+        {
+          "type": "Callout",
+          "props": { "type": "key-insight", "title": "The Core Insight" },
+          "children": "A lambda store ingesting from multiple simultaneous sources (language-mediated via T5, purely structural via Wikidata/DBpedia) with a self-expanding topic frontier is autopoietic — it produces the components necessary for its own continued growth. The ontology emerges from statistical independence (MI fiber discovery) on the data itself, not from top-down human design."
+        }
+      ]
+    },
+    {
+      "type": "Section",
+      "props": { "title": "What is Autopoiesis?" },
+      "children": [
+        {
+          "type": "p",
+          "children": "Maturana and Varela coined 'autopoiesis' in 1972 to describe living systems that produce their own components. A cell creates its own membrane, which defines its boundary, which enables the chemical reactions that produce the membrane. The system is both the factory and the product."
+        },
+        {
+          "type": "DefinitionList",
+          "props": {
+            "items": [
+              { "term": "🧬 Biological Autopoiesis", "definition": "A cell produces its own membrane, enzymes, and DNA repair machinery. It maintains itself by producing itself. Remove any component and the cycle breaks." },
+              { "term": "📚 Knowledge Autopoiesis", "definition": "A knowledge store produces its own ontology (via fiber discovery), its own ingestion frontier (via link extraction), and its own quality control (via contradiction detection). It grows by growing." },
+              { "term": "🔄 Key Property", "definition": "The system's output feeds back as its own input. Ingested facts → discovered fibers → better organization → better ingestion → more facts → richer fibers..." }
+            ]
+          }
+        },
+        {
+          "type": "Analogy",
+          "props": { "title": "The Library That Writes Its Own Card Catalog" },
+          "children": "Imagine a library where books arrive faster than any librarian could categorize them. Instead of hiring more librarians, the books themselves reveal their categories — statistical patterns in which topics co-occur tell you which shelves to build. As more books arrive, the categories refine. The library designs its own filing system from the data itself."
+        }
+      ]
+    },
+    {
+      "type": "Section",
+      "props": { "title": "The Two Knowledge Paths" },
+      "children": [
+        {
+          "type": "p",
+          "children": "A truly robust knowledge system needs two independent pathways to the same facts — like how scientists require reproducibility. If both paths agree, confidence is high. If they disagree, you've found something interesting."
+        },
+        {
+          "type": "DefinitionList",
+          "props": {
+            "items": [
+              { "term": "🗣️ Language-Mediated Path", "definition": "Natural language → T5 decomposer → operator + entities → lambda store. Handles: Wikipedia articles, movie dialogue, research papers, any prose. Strength: captures implicit relationships ('aspirin makes headaches go away' → CAUSES). Cost: needs NLP model, ~200ms per sentence." },
+              { "term": "🔗 Direct Structural Path", "definition": "Knowledge graph triples → direct operator mapping → lambda store. Handles: Wikidata (P2175 = treats → INHIBITS), DBpedia (rdfs:subClassOf → DEFINES). Strength: zero ambiguity, instant mapping, millions of facts. Cost: only captures what was explicitly annotated." },
+              { "term": "✅ Convergence Test", "definition": "When both paths independently assign the same operator to the same entity-relationship, we have high confidence. When they disagree, we've found either a T5 error or a Wikidata annotation gap." }
+            ]
+          }
+        },
+        {
+          "type": "DeepDive",
+          "props": { "title": "Why Two Paths Are Better Than One" },
+          "children": [
+            {
+              "type": "p",
+              "children": "The language path captures things the structural path misses: causal relationships, implicit state changes, metaphors, narratives. But it makes errors (T5 has ~95% accuracy, not 100%)."
+            },
+            {
+              "type": "p",
+              "children": "The structural path captures things the language path struggles with: precise chemical formulas, exact dates, taxonomic hierarchies. But it only knows what humans explicitly encoded in knowledge graphs."
+            },
+            {
+              "type": "p",
+              "children": "Together: structural facts validate language-derived ones (auto-correction), and language-derived facts fill gaps in structural knowledge (discovery). This is how the store self-improves."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "Section",
+      "props": { "title": "The Self-Expanding Frontier" },
+      "children": [
+        {
+          "type": "p",
+          "children": "The key autopoietic property: the store decides what to learn next based on what it already knows. This isn't random crawling — it's directed growth."
+        },
+        {
+          "type": "Example",
+          "props": { "title": "How the Frontier Grows" },
+          "children": [
+            {
+              "type": "p",
+              "children": "1. Store ingests Wikipedia article on 'Morphine'"
+            },
+            {
+              "type": "p",
+              "children": "2. T5 extracts: morphine INHIBITS pain, morphine CAUSES respiratory_depression, morphine DEFINES opioid"
+            },
+            {
+              "type": "p",
+              "children": "3. Entity extraction finds links: 'respiratory depression', 'opioid receptor', 'naloxone'"
+            },
+            {
+              "type": "p",
+              "children": "4. Frontier checker: 'respiratory_depression' has 0 facts in store → ADD TO FRONTIER"
+            },
+            {
+              "type": "p",
+              "children": "5. Next ingestion cycle fetches 'Respiratory depression' article → new facts → new frontier items"
+            },
+            {
+              "type": "p",
+              "children": "The store grows toward what it doesn't know, guided by what it does know. No human curates the frontier."
+            }
+          ]
+        },
+        {
+          "type": "InteractiveDemo",
+          "props": {
+            "title": "Frontier Growth Simulation",
+            "type": "slider",
+            "description": "Adjust the relevance threshold to see how the frontier expands. Low threshold = broad growth (many topics, shallow). High threshold = focused growth (few topics, deep).",
+            "initialValue": 50,
+            "min": 10,
+            "max": 90,
+            "labels": { "left": "Broad (encyclopedic)", "right": "Deep (expert)" },
+            "formula": "Topics per cycle: floor(100 / (threshold/10)). Depth per topic: threshold/10 articles."
+          }
+        }
+      ]
+    },
+    {
+      "type": "Section",
+      "props": { "title": "Emergent Ontology via MI Fiber Discovery" },
+      "children": [
+        {
+          "type": "p",
+          "children": "Traditional knowledge engineering: humans design an ontology first, then populate it. Autopoietic approach: populate first, let the ontology emerge from statistical structure."
+        },
+        {
+          "type": "p",
+          "children": "MI (Mutual Information) fiber discovery clusters features that are statistically dependent into 'fibers' — groups that move together. Applied to a knowledge store's events, it discovers which properties form natural groupings."
+        },
+        {
+          "type": "Example",
+          "props": { "title": "Discovered Fibers in Drug Knowledge" },
+          "children": [
+            {
+              "type": "p",
+              "children": "After ingesting 7,000 drug facts from Wikidata, MI clustering reveals:"
+            },
+            {
+              "type": "p",
+              "children": "• Fiber 1 (CHEMISTRY): formula, molecular_weight, CAS_number — intra-correlation 0.89"
+            },
+            {
+              "type": "p",
+              "children": "• Fiber 2 (PHARMACOLOGY): indication, drug_class, mechanism — intra-correlation 0.72"
+            },
+            {
+              "type": "p",
+              "children": "• Fiber 3 (SAFETY): side_effects, pregnancy_category, interactions — intra-correlation 0.65"
+            },
+            {
+              "type": "p",
+              "children": "Nobody told the system these categories exist. They emerged from the data's statistical structure — exactly as they would in any well-organized pharmacology textbook."
+            }
+          ]
+        },
+        {
+          "type": "DeepDive",
+          "props": { "title": "Connection to Schankian Primitives" },
+          "children": [
+            {
+              "type": "p",
+              "children": "Schank manually identified ~14 primitive operators (ATRANS, PTRANS, MTRANS, etc.) through linguistic intuition. MI fiber discovery does the same thing computationally — it finds the statistically independent dimensions of a domain."
+            },
+            {
+              "type": "p",
+              "children": "The same algorithm that discovers drug fibers also discovers proof-strategy independence in mathematics, operator independence in proteins, and crystal-structure independence in materials. The primitives are real statistical structure, not human conventions."
+            },
+            {
+              "type": "p",
+              "children": "This is what Schank intended with MOPs (Memory Organization Packets) but never achieved: organizational structure learned from data, not imposed by the designer."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "Section",
+      "props": { "title": "The Architecture of Self-Growth" },
+      "children": [
+        {
+          "type": "p",
+          "children": "The complete autopoietic cycle has five stages, each feeding into the next:"
+        },
+        {
+          "type": "DefinitionList",
+          "props": {
+            "items": [
+              { "term": "1️⃣ Ingest", "definition": "Multiple parallel streams (Wikipedia T5, Wikidata SPARQL, Cornell dialogues, arXiv) add facts at ~3 facts/sec combined. Each stream fills different gaps." },
+              { "term": "2️⃣ Organize", "definition": "MI fiber discovery runs periodically on accumulated events. Discovers independent dimensions. Tags new events with fiber coordinates automatically." },
+              { "term": "3️⃣ Validate", "definition": "Contradiction detection (entity overlap + polarity flip) flags inconsistencies. Two-path convergence validates uncertain facts. Auto-conviction assigns confidence scores." },
+              { "term": "4️⃣ Expand", "definition": "Link extraction from ingested articles adds to the frontier. Entities with few facts get priority. Domains with high fiber entropy (= many unexplored dimensions) attract more ingestion." },
+              { "term": "5️⃣ Consolidate", "definition": "Deduplication removes redundant events. Orphan archival moves disconnected facts to cold storage. The store becomes denser, not just bigger." }
+            ]
+          }
+        },
+        {
+          "type": "Callout",
+          "props": { "type": "warning", "title": "The Autopoietic Closure" },
+          "children": "Each stage produces inputs for other stages. Ingest produces raw events for Organize. Organize produces fiber tags for Validate. Validate produces confidence scores for Consolidate. Expand produces frontier items for Ingest. The circle closes — no external curator needed."
+        }
+      ]
+    },
+    {
+      "type": "Section",
+      "props": { "title": "Real Numbers: A System in Production" },
+      "children": [
+        {
+          "type": "p",
+          "children": "This isn't theoretical — it's running right now on a Mac mini with no GPU, no cloud APIs, zero ongoing cost:"
+        },
+        {
+          "type": "DefinitionList",
+          "props": {
+            "items": [
+              { "term": "📊 Store Size", "definition": "100,000+ events across 7 semantic worlds (physics, chemistry, biology, medicine, language, mathematics, general)" },
+              { "term": "⚡ Ingestion Rate", "definition": "~3 facts/second sustained (T5 inference on CPU). 10,000+ facts per hour." },
+              { "term": "🔍 Search", "definition": "FAISS index with sentence-transformers: 46,130 vectors, sub-second semantic search, 38-second full rebuild." },
+              { "term": "🌐 Sources", "definition": "Simple Wikipedia (16K facts), English Wikipedia (3.4K), Wikidata (7K structured), Cornell Movie Dialogs (ongoing), DBpedia (ongoing)" },
+              { "term": "💰 Cost", "definition": "Zero. All local inference. T5-small (60M params) + spaCy + sentence-transformers. No API calls." },
+              { "term": "🎯 Accuracy", "definition": "T5 constructor accuracy 95.5%, average confidence 0.987, contradiction detection precision ~98%" }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "type": "Section",
+      "props": { "title": "Why This Matters: Store as Language Model" },
+      "children": [
+        {
+          "type": "p",
+          "children": "The deeper claim: this store is becoming a language model — one that performs the same four steps as an LLM but with fundamentally different properties."
+        },
+        {
+          "type": "DefinitionList",
+          "props": {
+            "items": [
+              { "term": "Same 4 Steps", "definition": "Text in → activate relevant knowledge → structure understanding → text out. Both LLMs and the lambda store do exactly this." },
+              { "term": "🔬 Inspectable", "definition": "Every fact has provenance. You can ask WHY the store believes something and get a source chain." },
+              { "term": "📝 Correctable", "definition": "Wrong fact? Delete one event. LLMs require full retraining to unlearn." },
+              { "term": "🎭 Modally Aware", "definition": "The store distinguishes 'X is true' from 'X might be true' from 'X should be true'. LLMs collapse these into probability." },
+              { "term": "📈 Incrementally Learnable", "definition": "New knowledge = new events. No catastrophic forgetting, no retraining, no fine-tuning." },
+              { "term": "🔁 Self-Improving", "definition": "The fiber discovery, contradiction detection, and inference engine continuously improve the store's organization without human intervention." }
+            ]
+          }
+        },
+        {
+          "type": "Analogy",
+          "props": { "title": "The Crystal vs. The Fog" },
+          "children": "An LLM is a fog — knowledge distributed everywhere, impossible to point at individual facts, impressive but opaque. A lambda store is a crystal — each fact has a precise location, connected to its neighbors by explicit relationships, growing one atom at a time into a structure that reflects reality's own geometry."
+        }
+      ]
+    },
+    {
+      "type": "Section",
+      "props": { "title": "The T5 Bootstrap Paradox" },
+      "children": [
+        {
+          "type": "p",
+          "children": "Here's the beautiful paradox: T5 teaches the store, but the store will eventually make T5 redundant."
+        },
+        {
+          "type": "DeepDive",
+          "props": { "title": "How Bootstrap Works" },
+          "children": [
+            {
+              "type": "p",
+              "children": "Phase 1 (NOW): T5 converts natural language → operators + entities. The store grows. Accuracy ~95%."
+            },
+            {
+              "type": "p",
+              "children": "Phase 2 (EMERGING): The store accumulates enough verb patterns to parse WITHOUT T5 for covered territory. The pure-store parser already handles 83% of sentences about known entities."
+            },
+            {
+              "type": "p",
+              "children": "Phase 3 (FUTURE): T5 only needed for novel constructions. The store IS the parser for everything it's seen before — faster, more accurate, zero inference cost."
+            },
+            {
+              "type": "p",
+              "children": "The analogy: training wheels (T5) teach the bike rider (store) to balance. Eventually the training wheels come off. But they were essential for getting started."
+            }
+          ]
+        },
+        {
+          "type": "Quiz",
+          "props": {
+            "question": "Why does the store eventually outperform T5 for known territory?",
+            "options": [
+              "Because the store has more parameters",
+              "Because lookup is faster and more precise than inference — the store has the EXACT answer, not a probabilistic approximation",
+              "Because T5 degrades over time",
+              "Because the store uses a GPU"
+            ],
+            "correctIndex": 1,
+            "explanation": "T5 must infer the decomposition every time (200ms, ~95% accuracy). The store simply looks it up (microseconds, 100% accuracy for known patterns). Inference approximates; memory retrieves exactly."
+          }
+        }
+      ]
+    },
+    {
+      "type": "Section",
+      "props": { "title": "Connection to Schank's Vision" },
+      "children": [
+        {
+          "type": "p",
+          "children": "Roger Schank proposed Memory Organization Packets (MOPs) in 1982 — dynamic memory structures that reorganize based on experience. He envisioned a system that would learn its own categories from exposure to events. He never built it because the technology didn't exist."
+        },
+        {
+          "type": "p",
+          "children": "Forty-four years later, we have: T5 for language decomposition, FAISS for semantic retrieval, MI clustering for fiber discovery, and sufficient compute for continuous ingestion. The autopoietic knowledge store IS Schank's MOP system, finally realized — with one crucial addition he couldn't have anticipated: the store discovers its own primitives rather than having them hand-coded."
+        },
+        {
+          "type": "Quiz",
+          "props": {
+            "question": "What makes this system 'autopoietic' rather than just 'automated'?",
+            "options": [
+              "It runs without human intervention",
+              "It produces the components (ontology, frontier, quality metrics) needed for its own continued production — a self-sustaining cycle",
+              "It uses biological algorithms",
+              "It can repair physical hardware"
+            ],
+            "correctIndex": 1,
+            "explanation": "Automation means executing predefined steps without supervision. Autopoiesis means the system produces its own organizational structure — the ontology isn't designed, it emerges; the frontier isn't curated, it self-expands; the quality control isn't hard-coded, it evolves with the data."
+          }
+        }
+      ]
+    }
+  ]
+}
