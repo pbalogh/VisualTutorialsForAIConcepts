@@ -1039,6 +1039,18 @@ const tutorials = [
     difficulty: 3,
   },
   {
+    id: 'brainstorm-52-cd-lakoff-isomorphism',
+    title: 'Schankian Primitives ARE Image Schemas',
+    description: "Schank's 11 CDs map 1:1 onto Lakoff's image schemas (PTRANS=PATH, PROPEL=FORCE_DYNAMICS, INGEST=CONTAINER). Three independent research programs converge on the same cognitive primitives.",
+    tags: ['schankian', 'lakoff', 'image-schemas', 'embodied-cognition', 'metaphor', 'isomorphism'],
+    icon: '🪞',
+    gradient: 'from-emerald-500 to-cyan-600',
+    shadowColor: 'shadow-emerald-500/30',
+    glowColor: 'rgba(16, 185, 129, 0.4)',
+    readTime: '12 min',
+    difficulty: 2,
+  },
+  {
     id: 'brainstorm-53-rhetoric-primitives',
     title: 'Rhetoric Primitives: The Schank of Persuasion',
     description: 'If events decompose into ATRANS/PTRANS/MTRANS, what do rhetorical moves decompose into? Wake-sleep compression on 41K discourse relations from the GUM corpus discovers the primitives of persuasion.',
