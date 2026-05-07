@@ -4,7 +4,7 @@
     "title": "Research Radar \u2014 Daily ArXiv Insights",
     "description": "Daily scan of cs.AI papers with connections to our Schankian operators research",
     "author": "Clawd",
-    "lastUpdated": "2026-05-03"
+    "lastUpdated": "2026-05-07"
   },
   "content": {
     "type": "Fragment",
@@ -35,24 +35,46 @@
       },
       {
         "type": "Section",
-        "title": "2026-05-06 — Knowledge-as-Retrieval and Self-Evolving Models",
-        "content": "Two 🟡 papers today with tangential connections to our work. Relatively quiet day for Schankian operators specifically, but the themes of 'strategy as stored knowledge' and 'self-improving from own output' resonate strongly.",
+        "title": "2026-05-07 \u2014 Curated Knowledge Beats LLMs + Zero-Shot Rule Induction",
+        "content": "Three \ud83d\udfe1 papers today. The standout: a pharma discovery paper showing that curated structured knowledge retrieves 3.2\u00d7 more drugs than frontier LLMs with web search \u2014 direct validation of our HRR store approach. Also: a foundation model for zero-shot logical rule induction (domain-agnostic, like our fiber discovery), and executable world models for ARC-AGI-3 with MDL simplicity bias.",
         "children": [
           {
             "type": "DeepDive",
-            "title": "🟡 Experience-RAG: Retrieval Strategy as Stored Knowledge",
-            "content": "arXiv:2605.03989 — Zhang & Liao. Instead of hardcoding retrieval strategies, they store successful retrieval patterns as 'experience memory' and select strategies by querying that memory. This is structurally identical to our grammar-as-knowledge approach: rather than hardcoding how to parse (spaCy/neural), we store parse rules as facts and query them at runtime. The paper validates that 'strategy selection as stored knowledge' works — nDCG@10 of 0.89, beating fixed pipelines. Our version goes further: not just retrieval strategy but ALL linguistic processing lives in the store."
+            "title": "\ud83d\udfe1 Curated AI Beats Frontier LLMs at Pharma Asset Discovery",
+            "content": "arXiv:2605.04908 \u2014 Kidzi\u0144ski & Thomas. Gosset (a curated drug-asset knowledge platform) vs Claude Opus 4.7, GPT 5.5, Gemini 3.1 Pro, and Perplexity on niche oncology/immunology targets. Result: curated index returns 3.2\u00d7 more verified drugs per query at perfect precision and 100% recall. The frontier LLMs with web search miss the long tail (preclinical, Asian-developed assets). KEY INSIGHT: This directly validates our approach. Our HRR fiber store with 6,798 Broad Hub compounds, structured by discovered fiber dimensions, should similarly outperform raw LLM reasoning for drug repurposing. The paper even exposes their index as an MCP server \u2014 same architecture we could use. Structured domain knowledge > general intelligence for specialized retrieval."
           },
           {
             "type": "DeepDive",
-            "title": "🟡 EvoLM: Self-Evolving via Discriminative Rubrics",
-            "content": "arXiv preprint (Li et al., UW/AI2). Trains a model to generate its own evaluation rubrics, then uses those rubrics as training signal for self-improvement. Two capabilities in alternation: rubric generation (optimized for discriminative utility) and response improvement (optimized against rubrics). This mirrors our T5 weakness → Ollama correction → targeted retraining loop. The key shared insight: you don't need external supervision if you can structure your own evaluative capacity into explicit, inspectable criteria. Our version: T5 failures are detected by heuristics (structural validity, entity coverage), Ollama generates corrections, corrections become training data. Same self-improvement pattern, different machinery."
+            "title": "\ud83d\udfe1 Neural Rule Inducer: Foundation Model for Zero-Shot Rule Induction",
+            "content": "arXiv:2605.04916 \u2014 Phua. IJCAI 2026. A pretrained model that learns logical rules from data using DOMAIN-AGNOSTIC statistical properties (class-conditional rates, entropy, co-occurrence). Transfers zero-shot to new domains without retraining. Parallel slot-based decoder preserves permutation invariance of disjunction. Product T-norm makes rule execution differentiable. Connection to our work: their \"domain-agnostic statistical encoder\" parallels our MI-based fiber discovery \u2014 both extract structure-preserving abstractions without domain-specific encoding. They learn RULES, we learn OPERATORS and FIBERS. The meta-principle is shared: represent knowledge by its statistical signature, not its surface form."
+          },
+          {
+            "type": "DeepDive",
+            "title": "\ud83d\udfe1 Executable World Models for ARC-AGI-3",
+            "content": "arXiv:2605.05138 \u2014 Rodionov. AGI-26 submission. Agent maintains an executable Python world model, verifies against observations, refactors toward simpler abstractions (MDL-like simplicity bias). Solved 7/25 ARC-AGI-3 games with no game-specific code. The \"executable world model\" concept parallels our lambda store: a queryable, inspectable model of the world that gets verified against observations and compressed toward simplicity. Their MDL simplicity bias echoes our Huffman compound discovery (find the most compact representation). Different scale, same philosophy: understanding = having a model you can run."
           }
         ]
       },
       {
         "type": "Section",
-        "title": "2026-05-05 — Quiet Day",
+        "title": "2026-05-06 \u2014 Knowledge-as-Retrieval and Self-Evolving Models",
+        "content": "Two \ud83d\udfe1 papers today with tangential connections to our work. Relatively quiet day for Schankian operators specifically, but the themes of 'strategy as stored knowledge' and 'self-improving from own output' resonate strongly.",
+        "children": [
+          {
+            "type": "DeepDive",
+            "title": "\ud83d\udfe1 Experience-RAG: Retrieval Strategy as Stored Knowledge",
+            "content": "arXiv:2605.03989 \u2014 Zhang & Liao. Instead of hardcoding retrieval strategies, they store successful retrieval patterns as 'experience memory' and select strategies by querying that memory. This is structurally identical to our grammar-as-knowledge approach: rather than hardcoding how to parse (spaCy/neural), we store parse rules as facts and query them at runtime. The paper validates that 'strategy selection as stored knowledge' works \u2014 nDCG@10 of 0.89, beating fixed pipelines. Our version goes further: not just retrieval strategy but ALL linguistic processing lives in the store."
+          },
+          {
+            "type": "DeepDive",
+            "title": "\ud83d\udfe1 EvoLM: Self-Evolving via Discriminative Rubrics",
+            "content": "arXiv preprint (Li et al., UW/AI2). Trains a model to generate its own evaluation rubrics, then uses those rubrics as training signal for self-improvement. Two capabilities in alternation: rubric generation (optimized for discriminative utility) and response improvement (optimized against rubrics). This mirrors our T5 weakness \u2192 Ollama correction \u2192 targeted retraining loop. The key shared insight: you don't need external supervision if you can structure your own evaluative capacity into explicit, inspectable criteria. Our version: T5 failures are detected by heuristics (structural validity, entity coverage), Ollama generates corrections, corrections become training data. Same self-improvement pattern, different machinery."
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "title": "2026-05-05 \u2014 Quiet Day",
         "content": "No papers directly relevant to Schankian operators or wake-sleep compression today. Two tangential connections noted: (1) SCPRM uses cumulative process rewards + schema distance for KG reasoning \u2014 echoes our conviction scoring approach; (2) A graph generation paper uses progressive mixture scheduling between graph and control priors \u2014 structurally similar to our fiber discovery pipeline. Neither warrants deep analysis.",
         "children": []
       },
