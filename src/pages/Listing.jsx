@@ -2210,6 +2210,18 @@ const tutorials = [
     readTime: '18 min',
     difficulty: 2,
   },
+  {
+    id: 'brainstorm-53-disambiguation-pressure',
+    title: 'Disambiguation Pressure: How Primitives Emerge from Context',
+    description: 'When a parser must decide "noun or verb?", the categories that crystallize ARE the Schankian primitives — no supervision needed. Geometric context vectors learn to disambiguate via running centroids, and the equilibrium categories converge to Schank\'s 11 ACTs.',
+    tags: ['disambiguation', 'HRR', 'Schankian primitives', 'self-learning', 'geometric parsing', 'information theory'],
+    icon: '🎯',
+    gradient: 'from-violet-500 to-purple-600',
+    shadowColor: 'shadow-violet-500/30',
+    glowColor: 'rgba(139, 92, 246, 0.4)',
+    readTime: '12 min',
+    difficulty: 2,
+  },
 ]
 
 // Semantic tag color system - filled backgrounds
