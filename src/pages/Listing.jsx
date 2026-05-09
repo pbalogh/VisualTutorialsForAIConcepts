@@ -1935,6 +1935,18 @@ const tutorials = [
     difficulty: 3,
   },
   {
+    id: 'brainstorm-103-eigenverbs',
+    title: 'Eigenverbs: Spectral Decomposition of Narrative Transitions',
+    description: 'What if Schank\'s primitives aren\'t types of events but the principal AXES of world-state change? Build a transition matrix from narrative triples, eigendecompose it, and the spectral gap predicts primitive count.',
+    tags: ['eigenvalues', 'PCA', 'transition matrices', 'Markov chains', 'spectral gap', 'narrative'],
+    icon: '🌈',
+    gradient: 'from-violet-500 to-fuchsia-600',
+    shadowColor: 'shadow-violet-500/30',
+    glowColor: 'rgba(139, 92, 246, 0.4)',
+    readTime: '18 min',
+    difficulty: 3,
+  },
+  {
     id: 'brainstorm-87-routing-primitive-selectors',
     title: 'Routing Programs as Primitive Selectors',
     description: 'Is the MLP exception handler a Schankian dispatcher? The 27-neuron routing program in GPT-2 may literally select which conceptual primitive applies to each token — connecting mech interp to cognitive science.',

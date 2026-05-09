@@ -1,0 +1,315 @@
+{
+  "id": "brainstorm-103-eigenverbs",
+  "title": "Eigenverbs: Spectral Decomposition of Narrative Transition Matrices",
+  "subtitle": "What if Schank's primitive operators aren't types of events, but the principal AXES along which world-state changes? PCA on state transitions reveals the irreducible modes of change.",
+  "readTime": "18 min",
+  "state": "brainstorm_103",
+  "content": {
+    "type": "Fragment",
+    "children": [
+      {
+        "type": "Section",
+        "props": { "title": "The Core Insight" },
+        "children": [
+          {
+            "type": "p",
+            "children": "Everyone discovers Schankian primitives by clustering VERBS. 'Give', 'donate', 'transfer' → they share some property → call it ATRANS. But what if we looked at it from the other side? Not what the agent DOES, but what CHANGES in the world?"
+          },
+          {
+            "type": "Callout",
+            "props": {
+              "type": "key-insight",
+              "title": "The Eigenverb Hypothesis"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "If you collect enough (entity_state_before, event, entity_state_after) triples and build a transition matrix M, the EIGENVECTORS of M are the independent axes of state change — the 'eigenverbs.' These are the mathematically necessary primitive operators because they're the irreducible dimensions along which entity states actually move."
+              }
+            ]
+          },
+          {
+            "type": "p",
+            "children": "PCA finds principal components of VARIANCE. Eigendecomposition of transition matrices finds principal modes of CHANGE. And those modes should converge to something Schankian."
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "Building the Transition Matrix" },
+        "children": [
+          {
+            "type": "p",
+            "children": "The recipe is surprisingly simple. For each event in a narrative corpus:"
+          },
+          {
+            "type": "DefinitionList",
+            "props": {
+              "items": [
+                {
+                  "term": "1. State Vector s_t",
+                  "definition": "Represent each entity's state at time t as a vector in ℝ^d. This encodes properties like possession, location, emotional state, physical integrity, knowledge, etc."
+                },
+                {
+                  "term": "2. State Change Δs",
+                  "definition": "Compute Δs = s_{t+1} - s_t for each entity involved in an event. This is the 'effect signature' of the event."
+                },
+                {
+                  "term": "3. Transition Matrix M",
+                  "definition": "Construct M = E[Δs · Δs^T] — the covariance matrix of all state changes. This captures which dimensions of change tend to co-occur."
+                },
+                {
+                  "term": "4. Eigendecompose",
+                  "definition": "M = VΛV^T. The columns of V are the principal directions of change. The eigenvalues in Λ tell you how much variance each direction explains."
+                }
+              ]
+            }
+          },
+          {
+            "type": "Example",
+            "props": { "title": "Concrete Example: A Simple Narrative" },
+            "children": [
+              {
+                "type": "p",
+                "children": "Consider: 'Alice gave Bob the book.' State changes:"
+              },
+              {
+                "type": "p",
+                "children": "• Alice: Δ(possession) = -1 (lost book)\n• Bob: Δ(possession) = +1 (gained book)\n• Book: Δ(location) = change (moved from Alice to Bob)"
+              },
+              {
+                "type": "p",
+                "children": "Now 'Charlie sold Dave the car': same pattern! Δ(possession) for seller = -1, buyer = +1, object location changes. These events are DIFFERENT verbs but produce the SAME eigenverb: the 'transfer' direction."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "The Spectral Gap Prediction" },
+        "children": [
+          {
+            "type": "p",
+            "children": "The most exciting prediction: the eigenvalue spectrum should have a SPECTRAL GAP — a sharp drop-off after k significant eigenvalues. And k should be approximately 11-14, matching Schank's original primitive count."
+          },
+          {
+            "type": "Analogy",
+            "props": {
+              "source": "Color Perception",
+              "target": "Eigenverbs"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "Visible light is a continuous spectrum. But human perception has exactly 3 principal components (RGB cone types). Not because physics demands 3, but because that's the rank of the biological response matrix. Similarly, narrative event space might be continuous, but the response matrix of entity-state changes might have rank ≈ 12 — giving us exactly Schank's primitive count."
+              }
+            ]
+          },
+          {
+            "type": "DeepDive",
+            "props": { "title": "Why Spectral Gaps Appear" },
+            "children": [
+              {
+                "type": "p",
+                "children": "Spectral gaps emerge when there's clustered structure in the data. If world-state changes really do decompose into a small set of independent modes (possession transfer, physical motion, information flow, damage, creation...), then the transition matrix will have a block-diagonal-like structure with a few dominant eigenvalues and many near-zero ones."
+              },
+              {
+                "type": "p",
+                "children": "The Perron-Frobenius theorem guarantees that for primitive (positive) transition matrices, the dominant eigenvalue is unique and real. The gap between it and the second eigenvalue controls mixing time — how quickly you forget initial conditions. In our context: how quickly arbitrary events converge to one of the k primitive modes."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "Eigenverbs vs. Verb Clustering" },
+        "children": [
+          {
+            "type": "p",
+            "children": "Traditional approaches cluster verbs by distributional similarity ('give' and 'donate' appear in similar contexts). Eigenverbs work differently:"
+          },
+          {
+            "type": "DefinitionList",
+            "props": {
+              "items": [
+                {
+                  "term": "Verb Clustering (Traditional)",
+                  "definition": "Group verbs by co-occurrence → name the clusters → hope they correspond to primitives. Problem: co-occurrence ≠ same state change. 'Kill' and 'save' occur in similar contexts but have OPPOSITE effects."
+                },
+                {
+                  "term": "Eigenverbs (New)",
+                  "definition": "Decompose the EFFECT SPACE directly → find independent axes of change → these ARE the primitives by definition. No clustering heuristic needed. The math gives you the answer."
+                }
+              ]
+            }
+          },
+          {
+            "type": "Callout",
+            "props": {
+              "type": "warning",
+              "title": "The Key Reframing"
+            },
+            "children": [
+              {
+                "type": "p",
+                "children": "Primitives aren't types of events. They're AXES OF CHANGE in world state. 'Give', 'steal', 'buy', 'inherit' are different events that all move state along the same axis: the possession-transfer eigenverb. The surface diversity is irrelevant; what matters is the direction of state movement."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "Connection to Markov Chains" },
+        "children": [
+          {
+            "type": "p",
+            "children": "There's a deep connection to Markov chain theory. If we model entity states as discrete (alive/dead, has_object/lacks_object, knows_fact/ignorant), the transition matrix becomes a proper stochastic matrix with rich theory:"
+          },
+          {
+            "type": "Example",
+            "props": { "title": "Narrative as Markov Chain" },
+            "children": [
+              {
+                "type": "p",
+                "children": "States: {has_book, lacks_book} × {happy, sad} × {at_home, away}\nTransition: 'Alice gave away her favorite book and left sadly'\n\nM[has_book, lacks_book] gets weight from 'give' events\nM[happy, sad] gets weight from loss events\nM[at_home, away] gets weight from departure events"
+              },
+              {
+                "type": "p",
+                "children": "The eigenvectors of M reveal: dimension 1 = possession changes, dimension 2 = emotional changes, dimension 3 = location changes. Three independent eigenverbs — three of Schank's primitives (ATRANS, mental state change, PTRANS)."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "Testable Predictions" },
+        "children": [
+          {
+            "type": "p",
+            "children": "The eigenverb hypothesis makes concrete, falsifiable predictions:"
+          },
+          {
+            "type": "InteractiveDemo",
+            "props": {
+              "title": "Prediction Checklist",
+              "type": "checklist",
+              "items": [
+                "The eigenvalue spectrum shows a clear gap after k ≈ 11-14 eigenvalues",
+                "The gap location is consistent across English, Chinese, and Arabic narrative corpora",
+                "Identified eigenverbs correspond to recognizable semantic categories (possession, motion, creation, destruction, information transfer...)",
+                "Eigenverbs from ATOMIC (commonsense) match eigenverbs from ProPara (procedural) — domain independence",
+                "Adding more training data refines eigenvalues but doesn't change k (the rank is stable)"
+              ]
+            }
+          },
+          {
+            "type": "p",
+            "children": "Each prediction is testable with existing datasets: ATOMIC (880K commonsense tuples), ProPara (physical state changes), and multilingual narrative corpora."
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "Implementation Sketch" },
+        "children": [
+          {
+            "type": "Example",
+            "props": { "title": "Python pseudocode" },
+            "children": [
+              {
+                "type": "p",
+                "children": "```python\nimport numpy as np\nfrom atomic_dataset import load_atomic\n\n# 1. Load (before, event, after) triples\ntriples = load_atomic()  # 880K tuples\n\n# 2. Encode entity states as vectors\ndef encode_state(entity_description):\n    # Map properties to binary/continuous dimensions\n    # possession, location, physical_state, emotion, knowledge...\n    return state_vector  # ℝ^d\n\n# 3. Compute state changes\ndeltas = []\nfor before, event, after in triples:\n    s_before = encode_state(before)\n    s_after = encode_state(after)\n    deltas.append(s_after - s_before)\n\n# 4. Build transition covariance matrix\nD = np.array(deltas)  # (N, d)\nM = D.T @ D / len(D)  # (d, d) covariance of changes\n\n# 5. Eigendecompose\neigenvalues, eigenvectors = np.linalg.eigh(M)\n\n# 6. Find the spectral gap\nsorted_evals = np.sort(eigenvalues)[::-1]\nratios = sorted_evals[:-1] / sorted_evals[1:]\nk = np.argmax(ratios) + 1  # Number of significant eigenverbs\n\nprint(f'Number of eigenverbs: {k}')\nprint(f'Top eigenverbs explain {100*sum(sorted_evals[:k])/sum(sorted_evals):.1f}% of change variance')\n```"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "Connections to Prior Work" },
+        "children": [
+          {
+            "type": "DeepDive",
+            "props": { "title": "Chambers & Jurafsky's Narrative Chains (2008)" },
+            "children": [
+              {
+                "type": "p",
+                "children": "Chambers and Jurafsky discovered 'narrative event chains' — sequences of events sharing a protagonist. They found statistical regularities (after 'arrest', 'convict' is likely; after 'hire', 'fire' is possible). Eigenverbs explain WHY: these sequences follow paths along specific eigenverb axes. An arrest-conviction chain moves along the 'freedom/constraint' eigenverb."
+              }
+            ]
+          },
+          {
+            "type": "DeepDive",
+            "props": { "title": "Entry #36: Eigenoperators and Semantic Attractors" },
+            "children": [
+              {
+                "type": "p",
+                "children": "The earlier eigenoperator idea focused on what happens when you apply an operator REPEATEDLY (convergence to fixed points). Eigenverbs are different — they're about the spectral structure of the TRANSITION MATRIX itself. Eigenoperators ask 'where does repeated application lead?' Eigenverbs ask 'what are the independent dimensions of single-step change?'"
+              }
+            ]
+          },
+          {
+            "type": "DeepDive",
+            "props": { "title": "Entry #47: Semantic Renormalization Group" },
+            "children": [
+              {
+                "type": "p",
+                "children": "RG coarse-graining produces fixed points of the renormalization flow. Eigenverbs are the fixed-point DIRECTIONS — the dimensions that survive coarse-graining because they represent genuine independent degrees of freedom in state-change space. RG explains WHY eigenverbs are universal; eigenverbs tell you WHAT the universals are."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Section",
+        "props": { "title": "Quiz: Test Your Understanding" },
+        "children": [
+          {
+            "type": "Quiz",
+            "props": {
+              "questions": [
+                {
+                  "question": "What distinguishes eigenverbs from traditional verb clustering?",
+                  "options": [
+                    "Eigenverbs use neural networks while clustering doesn't",
+                    "Eigenverbs decompose the effect space (state changes) directly, while clustering groups verbs by distributional similarity",
+                    "Eigenverbs only work for physical verbs, clustering works for all verbs",
+                    "There is no real difference — they find the same primitives"
+                  ],
+                  "correct": 1,
+                  "explanation": "Traditional clustering groups verbs by context (co-occurrence), which can put opposite-effect verbs together. Eigenverbs directly decompose HOW states change, finding independent axes regardless of surface verb identity."
+                },
+                {
+                  "question": "What does the 'spectral gap' predict about primitive operators?",
+                  "options": [
+                    "That there are infinitely many primitives",
+                    "That the exact number of primitives depends on the language",
+                    "That the eigenvalue spectrum drops sharply after k ≈ 11-14 significant values, matching Schank's count",
+                    "That primitives are impossible to discover mathematically"
+                  ],
+                  "correct": 2,
+                  "explanation": "A spectral gap means there are exactly k 'large' eigenvalues and then a sharp drop to noise. This k would be the mathematically necessary number of independent change dimensions — predicted to match Schank's ~11-14 primitives."
+                },
+                {
+                  "question": "Why is the Perron-Frobenius theorem relevant to eigenverbs?",
+                  "options": [
+                    "It proves that all matrices have real eigenvalues",
+                    "It guarantees a unique dominant eigenvalue for primitive (positive) matrices, with the gap controlling convergence",
+                    "It shows that eigenverbs must be orthogonal",
+                    "It proves that transition matrices always have rank 14"
+                  ],
+                  "correct": 1,
+                  "explanation": "Perron-Frobenius guarantees that for positive (primitive) transition matrices, there's a unique largest eigenvalue with a gap to the second. This gap structure is what makes eigenverb discovery robust — the dominant directions are well-separated from noise."
+                }
+              ]
+            }
+          }
+        ]
+      }
+    ]
+  }
+}
